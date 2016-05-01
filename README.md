@@ -1,5 +1,5 @@
 # Strongo Bots Framework
-This is a [Go language](https://golang.org/) framework for building multilingual messenger bots (_Telegram, Facebook Messenger, Skype, Line, Kik, WeChat_) hosted on [AppEngine](https://cloud.google.com/appengine/), [Amazon](https://aws.amazon.com/), [Azure](https://azure.microsoft.com/), [Heroku](https://www.heroku.com/), [Docker](https://www.docker.com/) or just as a standard Go HTTP server.
+This is a [Go language](https://golang.org/) framework for building multilingual messenger bots (_Telegram, Facebook Messenger, Skype, Line, Kik, WeChat_) hosted on [AppEngine](https://cloud.google.com/appengine/), [Amazon](https://aws.amazon.com/), [Azure](https://azure.microsoft.com/), [Heroku](https://www.heroku.com/), [Docker](https://www.docker.com/) or just as a standard [Go HTTP server](https://golang.org/doc/articles/wiki/).
 
 ## Sample bots built with Strongo Bots Framework
 The best way to learn is to see examples of usage. Here is few:
