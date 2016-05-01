@@ -1,7 +1,7 @@
 package bots
 
 import (
-	"github.com/strongo/cacheddb"
+	"bitbucket.com/debtstracker/gae_app/strongo/cacheddb"
 	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"
 )

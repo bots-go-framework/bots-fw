@@ -5,7 +5,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/cacheddb"
+	"bitbucket.com/debtstracker/gae_app/strongo/cacheddb"
 	"strconv"
 )
 

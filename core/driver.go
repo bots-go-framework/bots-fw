@@ -12,11 +12,11 @@ type WebhookDriver interface {
 
 type BotDriver struct {
 	botHost BotHost
-	router WebhooksRouter
+	router *WebhooksRouter
 }
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
-func NewBotDriver(host BotHost, router WebhooksRouter) WebhookDriver {
+func NewBotDriver(host BotHost, router *WebhooksRouter) WebhookDriver {
 	return BotDriver{botHost: host, router: router}
 }
 
