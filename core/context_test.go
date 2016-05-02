@@ -53,6 +53,8 @@ func (whc TestWebhookContext) GetOrCreateUser() (*datastore.Key, UserEntity, err
 
 func (whc TestWebhookContext) ApiUser() BotApiUser { panic("Not implemented")}
 
+func (whc TestWebhookContext) GetLogger() Logger { panic("Not implemented") }
+
 var _ WebhookContext = TestWebhookContext{}
 
 

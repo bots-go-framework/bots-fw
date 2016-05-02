@@ -20,7 +20,7 @@ type Locale struct {
 }
 
 func (l Locale) String() string {
-	return fmt.Sprintf("Locale{Code5:'%v', IsRtl:'%v', NativeTitle:'%v', EnglishTitle: '%v', FlagIcon: '%v'}", l.Code5, l.IsRtl, l.NativeTitle, l.EnglishTitle, l.FlagIcon)
+	return fmt.Sprintf(`Locale{Code5: "%v", IsRtl: %v, NativeTitle: "%v", EnglishTitle: "%v", FlagIcon: "%v"}`, l.Code5, l.IsRtl, l.NativeTitle, l.EnglishTitle, l.FlagIcon)
 }
 
 func (l Locale) TitleWithIcon() string {

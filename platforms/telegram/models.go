@@ -5,7 +5,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/bots-framework/core"
-	"bitbucket.com/debtstracker/gae_app/strongo/cacheddb"
+	"github.com/qedus/nds"
 	"strconv"
 )
 
@@ -43,7 +43,7 @@ func GetUserByTelegramID(ctx context.Context, telegramUserID int, createIfMissin
 	}
 	userKey := datastore.NewKey(ctx, common.UserKind, "", telegramUser.UserID, nil)
 	user := common.User{}
-	err = cacheddb.Get(ctx, userKey, &user)
+	err = nds.Get(ctx, userKey, &user)
 	return userKey, &user, err
 }
 

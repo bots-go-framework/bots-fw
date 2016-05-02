@@ -24,7 +24,7 @@ type FbmChat struct {
 //	if err == nil {
 //		userKey := datastore.NewKey(ctx, common.UserKind, "", botUser.UserID, nil)
 //		user := common.User{}
-//		err = cacheddb.Get(ctx, userKey, &user)
+//		err = nds.Get(ctx, userKey, &user)
 //		return userKey, &user, err
 //	}
 //	return nil, nil, err
