@@ -1,6 +1,9 @@
 # Strongo Bots Framework
 This is a [Go language](https://golang.org/) framework for building multilingual messenger bots (_Telegram, Facebook Messenger, Skype, Line, Kik, WeChat_) hosted on [AppEngine](https://cloud.google.com/appengine/), [Amazon](https://aws.amazon.com/), [Azure](https://azure.microsoft.com/), [Heroku](https://www.heroku.com/), [Docker](https://www.docker.com/) or just as a standard [Go HTTP server](https://golang.org/doc/articles/wiki/).
 
+## Conitious Integration
+[![Build Status](https://drone.io/github.com/strongo/bots-framework/status.png)](https://drone.io/github.com/strongo/bots-framework/latest)
+
 ## Sample bots built with Strongo Bots Framework
 The best way to learn is to see examples of usage. Here is few:
   * [strongo/bots-example-calculator](http://github.com/strongo/bots-example-calculator) — a simple bot that calculates math expressions
