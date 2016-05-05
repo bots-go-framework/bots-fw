@@ -39,4 +39,3 @@ func (l Locale) TitleWithIconAndNumber(i int) string {
 		return fmt.Sprintf("/%d. %v %v", i, l.NativeTitle, l.FlagIcon)
 	}
 }
-

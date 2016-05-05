@@ -1,7 +1,11 @@
 package telegram_bot
 
+import "github.com/strongo/bots-framework/core"
+
 type TelegramPlatform struct {
 }
+
+var _ bots.BotPlatform = (*TelegramPlatform)(nil)
 
 func (p TelegramPlatform) Id() string {
 	return "telegram"

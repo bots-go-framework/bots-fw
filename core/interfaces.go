@@ -22,13 +22,17 @@ type BotHost interface {
 	GetHttpClient(r *http.Request) *http.Client
 }
 
-type WebhookHandler interface {
-	RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request))
-	HandleRequest(w http.ResponseWriter, r *http.Request)
-	GetEntryInputs(r *http.Request) (entryInputs []EntryInputs, err error)
-	//ProcessInput(input WebhookInput, entry *WebhookEntry)
+type BotContext struct {
+	BotSettings BotSettings
+	EntriesWithInputs []EntryInputs
 }
 
+type WebhookHandler interface {
+	RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request))
+	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
+	GetBotContext(r *http.Request) (botContext BotContext, err error)
+	//ProcessInput(input WebhookInput, entry *WebhookEntry)
+}
 
 type WebhookEntry interface {
 	GetID() int64
@@ -43,6 +47,8 @@ const (
 	WebhookInputPostback
 	WebhookInputDelivery
 	WebhookInputAttachment
+	WebhookInputInlineQuery // Telegram only?
+	WebhookInputChoosenInlineResult // Telegram only?
 )
 
 type WebhookInput interface { // '/entry/messaging' for Facebook
@@ -69,7 +75,8 @@ type WebhookRecipient interface {
 }
 
 type WebhookMessage interface {
-	ID() string
+	IntID() int64
+	StringID() string
 	Sequence() int // 'seq' for Facebook, '???' for Telegram
 	Text() string
 }
@@ -83,7 +90,7 @@ type WebhookDelivery interface {
 }
 
 type WebhookAttachment interface {
-	Type() string // Enum(image, video, audio) for Facebook
+	Type() string       // Enum(image, video, audio) for Facebook
 	PayloadUrl() string // 'payload.url' for Facebook
 }
 

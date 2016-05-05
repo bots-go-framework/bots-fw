@@ -1,16 +1,16 @@
 package bots
 
 import (
-	"time"
-	"strings"
 	"fmt"
 	"net/url"
+	"strings"
+	"time"
 )
 
 type OwnedByUser struct {
-	UserID int64
-	DtCreated     time.Time
-	DtUpdated	  time.Time
+	UserID    int64
+	DtCreated time.Time
+	DtUpdated time.Time
 }
 
 func (e *OwnedByUser) GetUserID() int64 {
@@ -37,18 +37,18 @@ func (e *BotEntity) SetAccessGranted(value bool) {
 type BotUserEntity struct {
 	BotEntity
 
-	FirstName     string // required
-	LastName      string // optional
-	UserName      string // optional
+	FirstName string // required
+	LastName  string // optional
+	UserName  string // optional
 }
 
 type BotChatEntity struct {
 	BotEntity
 	//
-	Type string `datastore:",noindex"`
+	Type  string `datastore:",noindex"`
 	Title string `datastore:",noindex"`
 	//
-	AwaitingReplyTo string `datastore:",noindex"`
+	AwaitingReplyTo   string `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
 }
 

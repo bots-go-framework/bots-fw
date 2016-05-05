@@ -1,10 +1,10 @@
 package skype
 
 import (
-	"net/http"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"io/ioutil"
+	"net/http"
 )
 
 func SkypeWebhookHandler(w http.ResponseWriter, r *http.Request) {

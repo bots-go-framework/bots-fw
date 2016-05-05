@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	KikChatKind = "KikChat";
-	KikUserKind = "KikUser";
+	KikChatKind = "KikChat"
+	KikUserKind = "KikUser"
 )
 
 type KikUser struct {

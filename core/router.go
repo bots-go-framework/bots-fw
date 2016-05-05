@@ -1,13 +1,13 @@
 package bots
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"strings"
 )
 
 type WebhooksRouter struct {
-	commands []Command
+	commands       []Command
 	commandsByCode map[string]Command
 }
 
@@ -19,15 +19,19 @@ func NewWebhookRouter(commands []Command) *WebhooksRouter {
 	return r
 }
 func (r *WebhooksRouter) verifyCommands() {
+	r.commandsByCode = make(map[string]Command, len(r.commands))
 	for _, command := range r.commands {
+		if command.Code == "" {
+			panic(fmt.Sprintf("Command %v is missing required property Code", command))
+		}
 		if _, ok := r.commandsByCode[command.Code]; ok {
-			panic("Command with code '%v' define multiple times")
+			panic(fmt.Sprintf("Command with code '%v' defined multiple times", command.Code))
 		}
 		r.commandsByCode[command.Code] = command
 	}
 }
 
-func (r *WebhooksRouter)  matchCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
+func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
 	messageText := whc.MessageText()
 	messageTextLowerCase := strings.ToLower(messageText)
 
@@ -53,7 +57,7 @@ func (r *WebhooksRouter)  matchCommands(whc WebhookContext, parentPath string, c
 				}
 			}
 		}
-		if command.ExactMatch == messageText || (command.ExactMatch != "" && whc.TranslateNoWarning(command.ExactMatch)  == messageText) {
+		if command.ExactMatch == messageText || (command.ExactMatch != "" && whc.TranslateNoWarning(command.ExactMatch) == messageText) {
 			log.Debugf("%v matched my command.exactMatch", command.Code)
 			matchedCommand = &command
 			return
@@ -66,7 +70,7 @@ func (r *WebhooksRouter)  matchCommands(whc WebhookContext, parentPath string, c
 			log.Debugf("command(code=%v).Title(whc): %v", command.Code, command.DefaultTitle(whc))
 		}
 		for _, commandName := range command.Commands {
-			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName + " ") {
+			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
 				log.Debugf("%v matched my command.commands", command.Code)
 				matchedCommand = &command
 				return
@@ -106,7 +110,7 @@ func (r *WebhooksRouter) Dispatch(w http.ResponseWriter, whc WebhookContext) {
 		}
 		log.Infof("No command found for the message: %v", whc.MessageText)
 		processCommandResponse(w, whc, m, nil)
-	} else{
+	} else {
 		log.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		m, err := matchedCommand.Action(whc)
 		processCommandResponse(w, whc, m, err)
@@ -125,10 +129,10 @@ func processCommandResponse(w http.ResponseWriter, whc WebhookContext, m Message
 			log.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 	} else {
-		log.Errorf(err.Error());
+		log.Errorf(err.Error())
 		err = whc.ReplyByBot(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)))
 		if err != nil {
-			log.Errorf("Failed to report to user a server error: %v", err);
+			log.Errorf("Failed to report to user a server error: %v", err)
 		}
 	}
 }

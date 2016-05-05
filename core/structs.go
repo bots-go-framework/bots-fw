@@ -1,7 +1,7 @@
 package bots
 
 type EntryInputs struct {
-	Entry WebhookEntry
+	Entry  WebhookEntry
 	Inputs []WebhookInput
 }
 
@@ -16,7 +16,6 @@ type BaseHandler struct {
 	BotPlatform
 }
 
-
 type MessageFormat int
 
 const (
@@ -26,18 +25,18 @@ const (
 )
 
 type MessageFromBot struct {
-	Text string
-	Format MessageFormat
+	Text                  string
+	Format                MessageFormat
 	DisableWebPagePreview bool
-	Keyboard Keyboard
+	Keyboard              Keyboard
 	IsReplyToInputMessage bool
 }
 
 type Keyboard struct {
-	HideKeyboard bool
-	ResizeKeyboard bool
-	ForceReply bool
-	Selective bool
+	HideKeyboard    bool
+	ResizeKeyboard  bool
+	ForceReply      bool
+	Selective       bool
 	OneTimeKeyboard bool
-	Buttons [][]string
+	Buttons         [][]string
 }

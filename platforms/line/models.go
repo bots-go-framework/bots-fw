@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	LineChatKind = "LineChat";
-	LineUserKind = "LineUser";
+	LineChatKind = "LineChat"
+	LineUserKind = "LineUser"
 )
 
 type LineUser struct {

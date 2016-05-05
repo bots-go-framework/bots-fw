@@ -5,11 +5,11 @@ import (
 )
 
 var testCmd = Command{
-		Title: "Title1",
-		Titles: map[string]string{
-			SHORT_TITLE: "ttl1",
-		},
-	}
+	Title: "Title1",
+	Titles: map[string]string{
+		SHORT_TITLE: "ttl1",
+	},
+}
 
 var testWhc = TestWebhookContext{}
 

@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	FbmChatKind = "FbmChat";
-	FbmUserKind = "FbmUser";
+	FbmChatKind = "FbmChat"
+	FbmUserKind = "FbmUser"
 )
 
 type FbmUser struct {

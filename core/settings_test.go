@@ -6,8 +6,8 @@ import (
 
 func TestNewBotSettings(t *testing.T) {
 	const (
-		code = "TestBot1"
-		token = "TestToken2"
+		code        = "TestBot1"
+		token       = "TestToken2"
 		localeCode5 = "Kode5"
 	)
 	bs := NewBotSettings(code, token, Locale{Code5: localeCode5})

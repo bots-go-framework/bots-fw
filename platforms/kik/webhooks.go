@@ -1,12 +1,12 @@
 package kik
 
 import (
-	"net/http"
+	"encoding/base64"
+	"fmt"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
+	"net/http"
 	"strings"
-	"fmt"
-	"encoding/base64"
 )
 
 func KikWebhookHandler(w http.ResponseWriter, r *http.Request) {

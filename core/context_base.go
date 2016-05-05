@@ -1,12 +1,12 @@
 package bots
 
 import (
-	"google.golang.org/appengine/datastore"
-	"net/http"
-	"google.golang.org/appengine"
 	"fmt"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"net/http"
 )
 
 type WebhookContextBase struct {
@@ -18,16 +18,16 @@ type WebhookContextBase struct {
 	locale      Locale
 	BotSettings BotSettings
 	//update      tgbotapi.Update
-	chatKey     *datastore.Key
-	chatEntity  BotChat
+	chatKey    *datastore.Key
+	chatEntity BotChat
 
-	BotUserKey     *datastore.Key
-	user UserEntity
+	BotUserKey *datastore.Key
+	user       UserEntity
 	Translator
 	Locales LocalesProvider
 }
 
-func (whcb *WebhookContextBase) GetLogger() Logger{
+func (whcb *WebhookContextBase) GetLogger() Logger {
 	return whcb.BotHost.GetLogger(whcb.r)
 }
 
@@ -110,14 +110,13 @@ func (whc *WebhookContextBase) NewChatKey(c context.Context) *datastore.Key {
 	return datastore.NewKey(c, chatKey.Kind(), chatKey.StringID(), chatKey.IntID(), chatKey.Parent())
 }
 
-func (whc *WebhookContextBase) SetChatKey(key *datastore.Key)  {
+func (whc *WebhookContextBase) SetChatKey(key *datastore.Key) {
 	whc.chatKey = key
 }
 
 func (whc *WebhookContextBase) UserEntity() UserEntity {
 	return whc.user
 }
-
 
 func (c *WebhookContextBase) InitBase(r *http.Request, botSettings BotSettings) {
 	c.r = r

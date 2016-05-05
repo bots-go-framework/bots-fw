@@ -1,20 +1,20 @@
 package fbm_strongo_bot
 
 import (
-	"net/http"
-	"io/ioutil"
-	"fmt"
-	"strings"
 	"encoding/json"
+	"fmt"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost) FbmWebhookHandler {
 	return FbmWebhookHandler{
 		BaseHandler: bots.BaseHandler{
-			BotPlatform: FbmPlatform{},
-			BotHost: botHost,
+			BotPlatform:   FbmPlatform{},
+			BotHost:       botHost,
 			WebhookDriver: webhookDriver,
 		},
 		botsBy: botsBy,
@@ -27,7 +27,7 @@ type FbmWebhookHandler struct {
 }
 
 func (h FbmWebhookHandler) RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc("/bot/fbm/webhook", h.HandleRequest)
+	http.HandleFunc("/bot/fbm/webhook", h.HandleWebhookRequest)
 	http.HandleFunc("/bot/fbm/webhook/", notFound) // TODO: Try to get rid?
 	http.HandleFunc("/bot/fbm/subscribe", h.Subscribe)
 }
@@ -53,7 +53,7 @@ func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h FbmWebhookHandler) HandleRequest (w http.ResponseWriter, r *http.Request) {
+func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		q := r.URL.Query()
@@ -77,7 +77,7 @@ func (h FbmWebhookHandler) HandleRequest (w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (h FbmWebhookHandler) GetEntryInputs(r *http.Request) (entriesWithInputs []bots.EntryInputs, err error) {
+func (h FbmWebhookHandler) GetBotContext(r *http.Request) (botContext bots.BotContext, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
 	log := h.BotHost.GetLogger(r)
 	content := make([]byte, r.ContentLength)
@@ -91,16 +91,20 @@ func (h FbmWebhookHandler) GetEntryInputs(r *http.Request) (entriesWithInputs []
 		return
 	}
 	log.Infof("Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
-	entriesWithInputs = make([]bots.EntryInputs, len(receivedMessage.Entries))
+	entriesWithInputs := make([]bots.EntryInputs, len(receivedMessage.Entries))
 	for i, entry := range receivedMessage.Entries {
 		entryWithInputs := bots.EntryInputs{
-			Entry: entry,
+			Entry:  entry,
 			Inputs: make([]bots.WebhookInput, len(entry.Messaging)),
 		}
 		for j, messaging := range entry.Messaging {
 			entryWithInputs.Inputs[j] = bots.WebhookInput(messaging)
 		}
 		entriesWithInputs[i] = entryWithInputs
+	}
+	botContext = bots.BotContext{
+		//BotSettings: nil, // TODO: fill with actual
+		EntriesWithInputs: entriesWithInputs,
 	}
 	return
 }

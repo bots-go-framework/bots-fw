@@ -1,8 +1,8 @@
 package gae_host
 
 import (
-	"testing"
 	"github.com/strongo/strongo-bots"
+	"testing"
 )
 
 func TestGaeLoggerIsInterfaceOfLogger(t *testing.T) {

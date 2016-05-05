@@ -1,9 +1,9 @@
 package bots
 
 import (
-	"net/http"
-	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
+	"net/http"
 )
 
 type UserEntity interface {
@@ -25,7 +25,7 @@ type WebhookContext interface {
 
 	ChatKey() *datastore.Key
 	NewChatKey(c context.Context) *datastore.Key
-	ChatEntity()  BotChat
+	ChatEntity() BotChat
 	ReplyByBot(m MessageFromBot) error
 
 	CommandTitle(title, icon string) string

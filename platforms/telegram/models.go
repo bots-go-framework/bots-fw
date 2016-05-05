@@ -2,16 +2,16 @@ package telegram_bot
 
 import (
 	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
+	"github.com/qedus/nds"
+	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/bots-framework/core"
-	"github.com/qedus/nds"
 	"strconv"
 )
 
 const (
-	TelegramChatKind = "TgChat";
-	TelegramUserKind = "TgUser";
+	TelegramChatKind = "TgChat"
+	TelegramUserKind = "TgUser"
 )
 
 type TelegramUser struct {
@@ -27,7 +27,7 @@ type TelegramUser struct {
 
 type TelegramChat struct {
 	bots.BotChatEntity
-	TelegramUserID int
+	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
 }
 
@@ -48,10 +48,9 @@ func GetUserByTelegramID(ctx context.Context, telegramUserID int, createIfMissin
 }
 
 func NewTelegramChatEntityKey(c context.Context, botID string, chatID int) *datastore.Key {
-	return datastore.NewKey(c, TelegramChatKind, botID + strconv.FormatInt(int64(chatID), 10), 0, nil)
+	return datastore.NewKey(c, TelegramChatKind, botID+strconv.FormatInt(int64(chatID), 10), 0, nil)
 }
 
 func NewTelegramUserEntityKey(c context.Context, id int) *datastore.Key {
 	return datastore.NewKey(c, TelegramUserKind, "", int64(id), nil)
 }
-

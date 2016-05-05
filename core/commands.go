@@ -6,6 +6,7 @@ type CommandMatcher func(Command, WebhookContext) bool
 
 const DEFAULT_TITLE = ""
 const SHORT_TITLE = "short_title"
+
 //const LONG_TITLE = "long_title"
 
 type Command struct {
@@ -20,10 +21,9 @@ type Command struct {
 	Action     CommandAction
 }
 
-
 func (whcb *WebhookContextBase) CommandTitle(title, icon string) string {
 	title = whcb.Translate(title)
-	return  whcb.CommandTitleNoTrans(title, icon)
+	return whcb.CommandTitleNoTrans(title, icon)
 }
 
 func (whc *WebhookContextBase) CommandTitleNoTrans(title, icon string) string {
@@ -46,7 +46,7 @@ func (c Command) TitleByKey(key string, whc WebhookContext) string {
 	var title string
 	if key == DEFAULT_TITLE && c.Title != "" {
 		title = c.Title
-	} else  if val, ok := c.Titles[key]; ok {
+	} else if val, ok := c.Titles[key]; ok {
 		title = val
 	}
 
@@ -65,4 +65,3 @@ func (c Command) TitleByKey(key string, whc WebhookContext) string {
 	}
 	return title
 }
-

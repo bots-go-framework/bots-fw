@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	AWAITING_REPLY_TO_PATH_SEPARATOR = "/"
+	AWAITING_REPLY_TO_PATH_SEPARATOR       = "/"
 	AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR = "?"
-	AWAITING_REPLY_TO_PARAMS_SEPARATOR = "&"
+	AWAITING_REPLY_TO_PARAMS_SEPARATOR     = "&"
 )
 
 func AwaitingReplyToPath(awaitingReplyTo string) string {
@@ -19,5 +19,3 @@ func AwaitingReplyToQuery(awaitingReplyTo string) string {
 	s := strings.Split(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR)
 	return s[1]
 }
-
-
