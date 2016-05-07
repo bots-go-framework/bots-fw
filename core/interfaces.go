@@ -15,22 +15,26 @@ type Logger interface {
 	Infof(format string, args ...interface{})
 	Warningf(format string, args ...interface{})
 	Errorf(format string, args ...interface{})
+	Criticalf(format string, args ...interface{})
 }
 
 type BotHost interface {
 	GetLogger(r *http.Request) Logger
 	GetHttpClient(r *http.Request) *http.Client
+	GetBotChatStore(platform string, r *http.Request) BotChatStore
 }
 
-type BotContext struct {
+type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
+	BotHost BotHost
 	BotSettings BotSettings
-	EntriesWithInputs []EntryInputs
 }
 
 type WebhookHandler interface {
-	RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request))
+	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
-	GetBotContext(r *http.Request) (botContext BotContext, err error)
+	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
+	CreateWebhookContext(r *http.Request, botContext BotContext, webhookInput WebhookInput) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
+
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
 
@@ -94,34 +98,10 @@ type WebhookAttachment interface {
 	PayloadUrl() string // 'payload.url' for Facebook
 }
 
-type WebhookResponser interface {
-	SendMessage()
-}
-
-type BotChat interface {
-	GetUserID() int64
-	SetUserID(id int64)
-
-	IsAccessGranted() bool
-	SetAccessGranted(value bool)
-
-	GetPreferredLanguage() string
-	SetPreferredLanguage(value string)
-
-	SetDtUpdatedToNow()
-
-	GetAwaitingReplyTo() string
-	SetAwaitingReplyTo(string)
-	IsAwaitingReplyTo(code string) bool
-	AddWizardParam(name, value string)
-	AddStepToAwaitingReplyTo(code string)
+type WebhookResponder interface {
+	SendMessage(m MessageFromBot) error
 }
 
 type InputMessage interface {
 	Text() string
-}
-
-type BotUser interface {
-	GetUserID() int64
-	IsAccessGranted() bool
 }

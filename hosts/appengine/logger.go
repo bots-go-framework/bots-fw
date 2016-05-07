@@ -2,16 +2,17 @@ package gae_host
 
 import (
 	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
+	"net/http"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
-	"net/http"
+	"golang.org/x/net/context"
 )
 
 type GaeLogger struct {
 	c context.Context
 }
+
+var _ bots.Logger = (*GaeLogger)(nil)
 
 func (l GaeLogger) Debugf(format string, args ...interface{}) {
 	log.Debugf(l.c, format, args...)
@@ -27,18 +28,11 @@ func (l GaeLogger) Warningf(format string, args ...interface{}) {
 func (l GaeLogger) Errorf(format string, args ...interface{}) {
 	log.Errorf(l.c, format, args...)
 }
+func (l GaeLogger) Criticalf(format string, args ...interface{}) {
+	log.Criticalf(l.c, format, args...)
+}
 
 func NewGaeLogger(r *http.Request) GaeLogger {
 	return GaeLogger{c: appengine.NewContext(r)}
 }
 
-type GaeBotHost struct {
-}
-
-func (h GaeBotHost) GetLogger(r *http.Request) bots.Logger {
-	return NewGaeLogger(r)
-}
-
-func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
-	return &http.Client{Transport: &urlfetch.Transport{Context: appengine.NewContext(r)}}
-}

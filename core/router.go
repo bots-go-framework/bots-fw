@@ -2,7 +2,7 @@ package bots
 
 import (
 	"fmt"
-	"net/http"
+	//"net/http"
 	"strings"
 )
 
@@ -95,11 +95,11 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	return
 }
 
-func (r *WebhooksRouter) Dispatch(w http.ResponseWriter, whc WebhookContext) {
+func (r *WebhooksRouter) Dispatch(whc WebhookContext) {
 	log := whc.GetLogger()
 	chatEntity := whc.ChatEntity()
-	log.Debugf("message text: [%v]", whc.MessageText)
-	log.Debugf("AwaitingReplyTo: [%v]", chatEntity.GetAwaitingReplyTo())
+	log.Debugf("message text: [%v]", whc.InputMessage().Text())
+	//log.Debugf("AwaitingReplyTo: [%v]", chatEntity.GetAwaitingReplyTo())
 
 	matchedCommand := r.matchCommands(whc, "", r.commands)
 
@@ -108,31 +108,31 @@ func (r *WebhooksRouter) Dispatch(w http.ResponseWriter, whc WebhookContext) {
 		if chatEntity.GetAwaitingReplyTo() != "" {
 			m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 		}
-		log.Infof("No command found for the message: %v", whc.MessageText)
-		processCommandResponse(w, whc, m, nil)
+		log.Infof("No command found for the message: %v", whc.MessageText())
+		//processCommandResponse(w, whc, m, nil)
 	} else {
 		log.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
-		m, err := matchedCommand.Action(whc)
-		processCommandResponse(w, whc, m, err)
+		//m, err := matchedCommand.Action(whc)
+		//processCommandResponse(w, whc, m, err)
 		return
 	}
 }
 
-func processCommandResponse(w http.ResponseWriter, whc WebhookContext, m MessageFromBot, err error) {
-	log := whc.GetLogger()
-	if err == nil {
-		log.Infof("Bot response message: %v", m)
-		//_, err := whc.BotApi(whc.Context()).Send(m)
-		//chattable := tgbotapi.Chattable(m)
-		err = whc.ReplyByBot(m)
-		if err != nil {
-			log.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
-		}
-	} else {
-		log.Errorf(err.Error())
-		err = whc.ReplyByBot(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)))
-		if err != nil {
-			log.Errorf("Failed to report to user a server error: %v", err)
-		}
-	}
-}
+//func processCommandResponse(w http.ResponseWriter, whc WebhookContext, m MessageFromBot, err error) {
+//	log := whc.GetLogger()
+//	if err == nil {
+//		log.Infof("Bot response message: %v", m)
+//		//_, err := whc.BotApi(whc.Context()).Send(m)
+//		//chattable := tgbotapi.Chattable(m)
+//		err = whc.ReplyByBot(m)
+//		if err != nil {
+//			log.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
+//		}
+//	} else {
+//		log.Errorf(err.Error())
+//		err = whc.ReplyByBot(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)))
+//		if err != nil {
+//			log.Errorf("Failed to report to user a server error: %v", err)
+//		}
+//	}
+//}

@@ -1,12 +1,7 @@
 package telegram_bot
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/common"
-	"github.com/qedus/nds"
 	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
-	"strconv"
 )
 
 const (
@@ -18,39 +13,25 @@ type TelegramUser struct {
 	bots.BotUserEntity
 }
 
-//func TelegramUserIdFromTelegramUserKey(key *datastore.Key) int64 {
-//	if key.Kind() != TelegramUserKind {
-//		panic(fmt.Sprintf("Invalid key, got kind %v, expected %v", key.Kind(), TelegramUserKind))
-//	}
-//	return key.IntID()
-//}
-
 type TelegramChat struct {
 	bots.BotChatEntity
-	TelegramUserID        int
+	BotUserID             int64
 	LastProcessedUpdateID int `datastore:",noindex"`
 }
+var _ bots.BotChat = (*TelegramChat)(nil)
 
-func (e *TelegramChat) SetUserID(id int64) {
-	e.UserID = id
+func (chat *TelegramChat) SetAppUserID(id int64) {
+	chat.AppUserID = id
 }
 
-func GetUserByTelegramID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, bots.UserEntity, error) {
-	telegramUser := TelegramUser{}
-	err := bots.GetBotUserEntity(ctx, NewTelegramUserEntityKey(ctx, telegramUserID), &telegramUser)
-	if err != nil {
-		return nil, nil, err
-	}
-	userKey := datastore.NewKey(ctx, common.UserKind, "", telegramUser.UserID, nil)
-	user := common.User{}
-	err = nds.Get(ctx, userKey, &user)
-	return userKey, &user, err
+func(chat *TelegramChat) GetAppUserID() int64 {
+	return chat.BotUserID
 }
 
-func NewTelegramChatEntityKey(c context.Context, botID string, chatID int) *datastore.Key {
-	return datastore.NewKey(c, TelegramChatKind, botID+strconv.FormatInt(int64(chatID), 10), 0, nil)
+func(chat *TelegramChat) GetBotUserID() int64 {
+	return chat.BotUserID
 }
 
-func NewTelegramUserEntityKey(c context.Context, id int) *datastore.Key {
-	return datastore.NewKey(c, TelegramUserKind, "", int64(id), nil)
+func(chat *TelegramChat) SetBotUserID(id int64){
+	chat.BotUserID = id
 }

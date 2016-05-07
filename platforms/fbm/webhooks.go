@@ -26,10 +26,10 @@ type FbmWebhookHandler struct {
 	botsBy bots.BotSettingsBy
 }
 
-func (h FbmWebhookHandler) RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc("/bot/fbm/webhook", h.HandleWebhookRequest)
-	http.HandleFunc("/bot/fbm/webhook/", notFound) // TODO: Try to get rid?
-	http.HandleFunc("/bot/fbm/subscribe", h.Subscribe)
+func (h FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
+	http.HandleFunc(pathPrefix + "/fbm/webhook", h.HandleWebhookRequest)
+	http.HandleFunc(pathPrefix + "/fbm/webhook/", notFound) // TODO: Try to get rid?
+	http.HandleFunc(pathPrefix + "/fbm/subscribe", h.Subscribe)
 }
 
 func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (h FbmWebhookHandler) GetBotContext(r *http.Request) (botContext bots.BotContext, err error) {
+func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
 	log := h.BotHost.GetLogger(r)
 	content := make([]byte, r.ContentLength)
@@ -91,7 +91,7 @@ func (h FbmWebhookHandler) GetBotContext(r *http.Request) (botContext bots.BotCo
 		return
 	}
 	log.Infof("Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
-	entriesWithInputs := make([]bots.EntryInputs, len(receivedMessage.Entries))
+	entriesWithInputs = make([]bots.EntryInputs, len(receivedMessage.Entries))
 	for i, entry := range receivedMessage.Entries {
 		entryWithInputs := bots.EntryInputs{
 			Entry:  entry,
@@ -103,8 +103,12 @@ func (h FbmWebhookHandler) GetBotContext(r *http.Request) (botContext bots.BotCo
 		entriesWithInputs[i] = entryWithInputs
 	}
 	botContext = bots.BotContext{
+		BotHost: h.BotHost,
 		//BotSettings: nil, // TODO: fill with actual
-		EntriesWithInputs: entriesWithInputs,
 	}
 	return
+}
+
+func (h FbmWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) bots.WebhookContext {
+	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }

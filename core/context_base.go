@@ -10,25 +10,36 @@ import (
 )
 
 type WebhookContextBase struct {
-	w http.ResponseWriter
-	r *http.Request
+	//w          http.ResponseWriter
+	r          *http.Request
 
-	BotHost
+	BotContext BotContext
+	WebhookInput
 
-	locale      Locale
-	BotSettings BotSettings
+	locale     Locale
+
 	//update      tgbotapi.Update
-	chatKey    *datastore.Key
 	chatEntity BotChat
 
 	BotUserKey *datastore.Key
-	user       UserEntity
+	appUser    AppUser
 	Translator
-	Locales LocalesProvider
+	Locales    LocalesProvider
+
+	BotChatStore
+}
+
+func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botChatStore BotChatStore) *WebhookContextBase {
+	return &WebhookContextBase{
+		r: r,
+		BotContext: botContext,
+		WebhookInput: webhookInput,
+		BotChatStore: botChatStore,
+	}
 }
 
 func (whcb *WebhookContextBase) GetLogger() Logger {
-	return whcb.BotHost.GetLogger(whcb.r)
+	return whcb.BotContext.BotHost.GetLogger(whcb.r)
 }
 
 func (whcb *WebhookContextBase) Translate(key string) string {
@@ -40,7 +51,7 @@ func (whcb *WebhookContextBase) TranslateNoWarning(key string) string {
 }
 
 func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
-	return whcb.BotHost.GetHttpClient(whcb.r)
+	return whcb.BotContext.BotHost.GetHttpClient(whcb.r)
 }
 
 func (whcb *WebhookContextBase) HasChatEntity() bool {
@@ -66,62 +77,37 @@ func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, erro
 		return whcb.chatEntity, nil
 	}
 
-	chatEntity := whc.NewChatEntity()
-
-	err := LoadBotChatEntity(ctx, whc.ChatKey(), chatEntity)
+	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(whc.BotChatID())
 	switch err {
 	case nil: // Nothing to do
-	case datastore.ErrNoSuchEntity: //TODO: Should be this moved to DAL?
+	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof(ctx, "Creating new BotChat entity...")
-		chatEntity = whc.MakeChatEntity()
 		userEntity, err := whc.GetOrCreateUserEntity()
 		if err == nil {
-			chatEntity.SetUserID(userEntity.GetUserID())
+			botChatEntity.SetAppUserID(userEntity.GetUserID())
 			if userEntity.IsAccessGranted() {
-				chatEntity.SetAccessGranted(true)
+				botChatEntity.SetAccessGranted(true)
 			}
 		}
 	default:
 		log.Errorf(ctx, "Failed to load TelegramChat: %v", err)
 		return nil, err
 	}
-	log.Debugf(ctx, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, chatEntity.GetPreferredLanguage(), whc.Locale().Code5, chatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != chatEntity.GetPreferredLanguage())
-	if chatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != chatEntity.GetPreferredLanguage() {
-		err = whc.SetLocale(chatEntity.GetPreferredLanguage())
+	log.Debugf(ctx, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
+	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
+		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err != nil {
 
 		} else {
 			log.Debugf(ctx, "whc.locale cahged to: %v", whc.Locale)
 		}
 	}
-	return chatEntity, err
-}
-func NewWebhookContextBase(botHost BotHost, w http.ResponseWriter, r *http.Request, translator Translator) *WebhookContextBase {
-	return &WebhookContextBase{w: w, r: r, BotHost: botHost, Translator: translator}
+	return botChatEntity, err
 }
 
-func (whc *WebhookContextBase) ChatKey() *datastore.Key {
-	return whc.chatKey
-}
-
-func (whc *WebhookContextBase) NewChatKey(c context.Context) *datastore.Key {
-	chatKey := whc.ChatKey()
-	return datastore.NewKey(c, chatKey.Kind(), chatKey.StringID(), chatKey.IntID(), chatKey.Parent())
-}
-
-func (whc *WebhookContextBase) SetChatKey(key *datastore.Key) {
-	whc.chatKey = key
-}
-
-func (whc *WebhookContextBase) UserEntity() UserEntity {
-	return whc.user
-}
-
-func (c *WebhookContextBase) InitBase(r *http.Request, botSettings BotSettings) {
-	c.r = r
-	c.locale = botSettings.Locale
-	c.BotSettings = botSettings
+func (whc *WebhookContextBase) AppUserEntity() AppUser {
+	return whc.appUser
 }
 
 func (whc *WebhookContextBase) Context() context.Context {

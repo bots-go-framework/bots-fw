@@ -2,6 +2,8 @@ package bots
 
 import (
 	"net/http"
+	"fmt"
+	"runtime/debug"
 )
 
 // The driver is doing initial request & final response processing
@@ -25,7 +27,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	log := d.botHost.GetLogger(r)
 	log.Infof("HandleWebhook() => webhookHandler: %T", webhookHandler)
 
-	botContext, err := webhookHandler.GetBotContext(r)
+	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(r)
 
 	if err != nil {
 		if _, ok := err.(AuthFailedError); ok {
@@ -37,17 +39,33 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 		return
 	}
-	log.Infof("Got %v entries", len(botContext.EntriesWithInputs))
-	for i, entryWithInputs := range botContext.EntriesWithInputs {
+	log.Infof("Got %v entries", len(entriesWithInputs))
+
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
+			log.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
+			//whc.ReplyByBot(whc.NewMessage("\xF0\x9F\x9A\xA8 " + messageText))
+		}
+	}()
+
+	if err != nil {
+		log.Errorf("Failed to create new WebhookContext: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	for i, entryWithInputs := range entriesWithInputs {
 		log.Infof("Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for j, input := range entryWithInputs.Inputs {
-			log.Infof("Input[%v]: %v", j, input)
 			switch input.InputType() {
 			case WebhookInputMessage:
 				log.Infof("Input[%v].Message().Text(): %v", j, input.InputMessage().Text())
 			default:
 				log.Infof("Input[%v].InputType(): %v", j, input.InputType())
 			}
+			whc := webhookHandler.CreateWebhookContext(r, botContext, input)
+			d.router.Dispatch(whc)
 		}
 	}
 }

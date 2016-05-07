@@ -25,10 +25,10 @@ type TelegramWebhookHandler struct {
 	botsBy bots.BotSettingsBy
 }
 
-func (h TelegramWebhookHandler) RegisterHandlers(notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc("/bot/telegram/webhook", h.HandleWebhookRequest)
-	http.HandleFunc("/bot/telegram/webhook/", notFound)
-	http.HandleFunc("/bot/telegram/setwebhook", h.SetWebhook)
+func (h TelegramWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
+	http.HandleFunc(pathPrefix + "/telegram/webhook", h.HandleWebhookRequest)
+	http.HandleFunc(pathPrefix + "/telegram/webhook/", notFound)
+	http.HandleFunc(pathPrefix + "/telegram/setwebhook", h.SetWebhook)
 }
 
 func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
@@ -69,27 +69,33 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 	w.Write([]byte("Webhook set"))
 }
 
-func (h TelegramWebhookHandler) GetBotContext(r *http.Request) (botContext bots.BotContext, err error) {
+func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	token := r.URL.Query().Get("token")
 	botSettings, ok := h.botsBy.ApiToken[token]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown token: [%v]", token)
-		return botContext, bots.AuthFailedError(errMess)
+		err = bots.AuthFailedError(errMess)
+		return
 	}
 	bytes, _ := ioutil.ReadAll(r.Body)
 	var update tgbotapi.Update
 	err = json.Unmarshal(bytes, &update)
 	if err != nil {
-		return botContext, err
+		return
 	}
 	return bots.BotContext{
+		BotHost: h.BotHost,
 		BotSettings: botSettings,
-		EntriesWithInputs: []bots.EntryInputs{
-			bots.EntryInputs{
-				Entry: TelegramWebhookEntry{update: update},
-				Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
-			},
+	},
+	[]bots.EntryInputs{
+		bots.EntryInputs{
+			Entry: TelegramWebhookEntry{update: update},
+			Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
 		},
-	}, nil
+	},
+	nil
 }
 
+func (h TelegramWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) bots.WebhookContext {
+	return NewTelegramWebhookContext(r, botContext, webhookInput)
+}

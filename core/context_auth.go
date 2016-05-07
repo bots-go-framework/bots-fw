@@ -16,8 +16,7 @@ func SetAccessGranted(whc WebhookContext, value bool) error {
 		log.Infof(ctx, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 	} else {
 		chatEntity.SetAccessGranted(value)
-		_, err := SaveBotChatEntity(ctx, whc.ChatKey(), chatEntity)
-		if err != nil {
+		if err := whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil {
 			return err
 		}
 	}

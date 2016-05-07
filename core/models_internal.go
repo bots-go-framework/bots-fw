@@ -8,13 +8,13 @@ import (
 )
 
 type OwnedByUser struct {
-	UserID    int64
+	AppUserID int64
 	DtCreated time.Time
 	DtUpdated time.Time
 }
 
 func (e *OwnedByUser) GetUserID() int64 {
-	return e.UserID
+	return e.AppUserID
 }
 
 func (whc *OwnedByUser) SetDtUpdatedToNow() {
