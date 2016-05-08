@@ -9,14 +9,20 @@ type TelegramWebhookMessage struct {
 	updateID int
 	message tgbotapi.Message
 }
+var _ bots.WebhookMessage = (*TelegramWebhookMessage)(nil)
 
 func NewTelegramWebhookMessage(updateID int, message tgbotapi.Message) TelegramWebhookMessage {
 	return TelegramWebhookMessage{updateID: updateID, message: message}
 }
-var _ bots.WebhookMessage = (*TelegramWebhookMessage)(nil)
 
 func (whm TelegramWebhookMessage) IntID() int64 {
 	return (int64)(whm.message.MessageID)
+}
+
+func (whm TelegramWebhookMessage) Chat() bots.WebhookChat {
+	return TelegramWebhookChat{
+		chat: whm.message.Chat,
+	}
 }
 
 func (whm TelegramWebhookMessage) StringID() string {

@@ -10,7 +10,6 @@ type TelegramWebhookInput struct {
 	inputType bots.WebhookInputType
 	update tgbotapi.Update
 }
-
 var _ bots.WebhookInput = (*TelegramWebhookInput)(nil)
 
 func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {

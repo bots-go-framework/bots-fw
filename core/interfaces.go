@@ -83,6 +83,13 @@ type WebhookMessage interface {
 	StringID() string
 	Sequence() int // 'seq' for Facebook, '???' for Telegram
 	Text() string
+	Chat() WebhookChat
+}
+
+type WebhookChat interface {
+	GetID() interface{}
+	GetTitle() string
+	GetType() string
 }
 
 type WebhookPostback interface {

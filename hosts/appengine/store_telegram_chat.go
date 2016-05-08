@@ -6,6 +6,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"
 	"fmt"
+	"google.golang.org/appengine/log"
 )
 
 type GaeTelegramChatStore struct {
@@ -25,7 +26,9 @@ func NewGaeTelegramChatStore(c context.Context) *GaeTelegramChatStore {
 			},
 			botChatKey: func(botChatId interface{}) *datastore.Key {
 				if intId, ok := botChatId.(int64); ok {
-					return datastore.NewKey(c, telegram_bot.TelegramChatKind, "", intId, nil)
+					key := datastore.NewKey(c, telegram_bot.TelegramChatKind, "", intId, nil)
+					log.Infof(c, "BotChatKey: %v", key)
+					return key
 				} else {
 					panic(fmt.Sprintf("Expected botChatId as int64, got: %t", botChatId))
 				}

@@ -77,7 +77,9 @@ func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, erro
 		return whcb.chatEntity, nil
 	}
 
-	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(whc.BotChatID())
+	botChatID := whc.BotChatID()
+	whc.GetLogger().Infof("botChatID: %v", botChatID)
+	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
 	switch err {
 	case nil: // Nothing to do
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?

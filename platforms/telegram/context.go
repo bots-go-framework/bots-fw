@@ -12,13 +12,14 @@ import (
 
 type TelegramWebhookContext struct {
 	*bots.WebhookContextBase
-	update         tgbotapi.Update
+	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 }
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func NewTelegramWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) *TelegramWebhookContext {
 	return &TelegramWebhookContext{
+		//update: update,
 		WebhookContextBase: bots.NewWebhookContextBase(r, botContext, webhookInput, botContext.BotHost.GetBotChatStore("telegram", r)),
 	}
 }
@@ -68,11 +69,13 @@ func (whc *TelegramWebhookContext) AppUserID() int64 {
 }
 
 func (whc *TelegramWebhookContext) MessageText() string {
-	return whc.update.Message.Text
+	return whc.WebhookInput.InputMessage().Text()
 }
 
 func (whc *TelegramWebhookContext) BotChatID() interface {} {
-	return whc.update.Message.Chat.ID
+	chatId := whc.WebhookInput.InputMessage().Chat().GetID()
+	whc.GetLogger().Infof("BotChatID(): %v", chatId)
+	return chatId
 }
 
 func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
@@ -81,13 +84,13 @@ func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
 
 func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	if telegramChat, ok := whc.ChatEntity().(*TelegramChat); ok && telegramChat != nil {
-		return whc.update.UpdateID > telegramChat.LastProcessedUpdateID
+		return whc.InputMessage().Sequence() > telegramChat.LastProcessedUpdateID
 	}
 	return false
 }
 
 func (whc *TelegramWebhookContext) TelegramApiUser() tgbotapi.User {
-	return whc.update.Message.From
+	panic("Not implemented yet") //return whc.update.Message.From
 }
 
 func (whc *TelegramWebhookContext) GetUser() (*datastore.Key, bots.AppUser, error) {
@@ -113,11 +116,11 @@ func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
 }
 
 func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
-	telegramChat := whc.update.Message.Chat
+	telegramChat := whc.InputMessage().Chat()
 	chatEntity := TelegramChat{
 		BotChatEntity: bots.BotChatEntity{
-			Type:  telegramChat.Type,
-			Title: telegramChat.Title,
+			Type:  telegramChat.GetType(),
+			Title: telegramChat.GetTitle(),
 		},
 		BotUserID: (int64)(whc.TelegramApiUser().ID),
 	}
@@ -134,8 +137,12 @@ func (whc *TelegramWebhookContext) GetOrCreateUser() (*datastore.Key, bots.AppUs
 }
 
 func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
-	log.Infof(tc.Context(), "NewTgMessage(): tc.update.Message.Chat.ID: %v", tc.update.Message.Chat.ID)
-	return tgbotapi.NewMessage(tc.update.Message.Chat.ID, text)
+	log.Infof(tc.Context(), "NewTgMessage(): tc.update.Message.Chat.ID: %v", tc.InputMessage().Chat().GetID())
+	if intID, ok := tc.BotChatID().(int64); ok {
+		return tgbotapi.NewMessage((int)(intID), text)
+	} else {
+		panic("tc.BotChatID.(int64) is not OK")
+	}
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
@@ -143,7 +150,7 @@ func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) e
 	if !ok {
 		return errors.New("Failed to cast: chatEntity.(*TelegramChat)")
 	}
-	telegramChat.LastProcessedUpdateID = tc.update.UpdateID
+	telegramChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
 	return nil
 }
 
