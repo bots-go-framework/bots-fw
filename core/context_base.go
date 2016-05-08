@@ -29,12 +29,13 @@ type WebhookContextBase struct {
 	BotChatStore
 }
 
-func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botChatStore BotChatStore) *WebhookContextBase {
+func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botChatStore BotChatStore, translator Translator) *WebhookContextBase {
 	return &WebhookContextBase{
 		r: r,
 		BotContext: botContext,
 		WebhookInput: webhookInput,
 		BotChatStore: botChatStore,
+		Translator: translator,
 	}
 }
 

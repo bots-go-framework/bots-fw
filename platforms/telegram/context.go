@@ -17,10 +17,10 @@ type TelegramWebhookContext struct {
 }
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
-func NewTelegramWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) *TelegramWebhookContext {
+func NewTelegramWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) *TelegramWebhookContext {
 	return &TelegramWebhookContext{
 		//update: update,
-		WebhookContextBase: bots.NewWebhookContextBase(r, botContext, webhookInput, botContext.BotHost.GetBotChatStore("telegram", r)),
+		WebhookContextBase: bots.NewWebhookContextBase(r, botContext, webhookInput, botContext.BotHost.GetBotChatStore("telegram", r), translator),
 	}
 }
 
@@ -122,7 +122,7 @@ func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 			Type:  telegramChat.GetType(),
 			Title: telegramChat.GetTitle(),
 		},
-		BotUserID: (int64)(whc.TelegramApiUser().ID),
+		TelegramUserID: (int64)(whc.TelegramApiUser().ID),
 	}
 	return &chatEntity
 }

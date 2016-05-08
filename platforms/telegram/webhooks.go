@@ -9,13 +9,14 @@ import (
 	"encoding/json"
 )
 
-func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost) TelegramWebhookHandler {
+func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
 	return TelegramWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:   TelegramPlatform{},
 			BotHost:       botHost,
 			WebhookDriver: webhookDriver,
+			TranslatorProvider: translatorProvider,
 		},
 	}
 }
@@ -96,6 +97,6 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 	nil
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) bots.WebhookContext {
-	return NewTelegramWebhookContext(r, botContext, webhookInput)
+func (h TelegramWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) bots.WebhookContext {
+	return NewTelegramWebhookContext(r, botContext, webhookInput, translator)
 }

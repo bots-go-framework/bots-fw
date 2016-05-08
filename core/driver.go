@@ -64,7 +64,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			default:
 				log.Infof("Input[%v].InputType(): %v", j, input.InputType())
 			}
-			whc := webhookHandler.CreateWebhookContext(r, botContext, input)
+
+			whc := webhookHandler.CreateWebhookContext(r, botContext, input, webhookHandler.GetTranslator(r))
 			d.router.Dispatch(whc)
 		}
 	}

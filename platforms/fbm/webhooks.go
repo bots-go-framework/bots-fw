@@ -10,12 +10,13 @@ import (
 	"strings"
 )
 
-func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost) FbmWebhookHandler {
+func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
 	return FbmWebhookHandler{
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:   FbmPlatform{},
 			BotHost:       botHost,
 			WebhookDriver: webhookDriver,
+			TranslatorProvider: translatorProvider,
 		},
 		botsBy: botsBy,
 	}
@@ -109,6 +110,6 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 	return
 }
 
-func (h FbmWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput) bots.WebhookContext {
+func (h FbmWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) bots.WebhookContext {
 	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }

@@ -33,8 +33,8 @@ type WebhookHandler interface {
 	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateWebhookContext(r *http.Request, botContext BotContext, webhookInput WebhookInput) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
-
+	CreateWebhookContext(r *http.Request, botContext BotContext, webhookInput WebhookInput, translator Translator) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
+	GetTranslator(r *http.Request) Translator
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
 
