@@ -35,7 +35,7 @@ type WebhookHandler interface {
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
 	CreateWebhookContext(r *http.Request, botContext BotContext, webhookInput WebhookInput, translator Translator) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
 	GetTranslator(r *http.Request) Translator
-	GetResponder(platform string, w http.ResponseWriter, r *http.Request) WebhookResponder
+	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
 
