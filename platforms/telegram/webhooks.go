@@ -102,7 +102,7 @@ func (h TelegramWebhookHandler) CreateWebhookContext(r *http.Request, botContext
 }
 
 func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
-	if twhc, ok := whc.(TelegramWebhookContext); ok {
+	if twhc, ok := whc.(*TelegramWebhookContext); ok {
 		return NewTelegramWebhookResponder(w, twhc)
 	} else {
 		panic(fmt.Sprintf("Expected TelegramWebhookContext, got: %t", whc))

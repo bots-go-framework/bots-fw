@@ -9,12 +9,12 @@ import (
 
 type TelegramWebhookResponder struct {
 	w http.ResponseWriter
-	whc TelegramWebhookContext
+	whc *TelegramWebhookContext
 }
 
 var _ bots.WebhookResponder = (*TelegramWebhookResponder)(nil)
 
-func NewTelegramWebhookResponder(w http.ResponseWriter, whc TelegramWebhookContext) TelegramWebhookResponder {
+func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookContext) TelegramWebhookResponder {
 	return TelegramWebhookResponder{w: w, whc: whc}
 }
 
