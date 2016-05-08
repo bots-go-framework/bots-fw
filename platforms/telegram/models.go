@@ -21,7 +21,7 @@ type TelegramChat struct {
 var _ bots.BotChat = (*TelegramChat)(nil)
 
 func (chat *TelegramChat) SetAppUserID(id int64) {
-	chat.AppUserID = id
+	chat.UserID = id
 }
 
 func(chat *TelegramChat) GetAppUserID() int64 {

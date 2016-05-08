@@ -154,6 +154,6 @@ func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) e
 	return nil
 }
 
-func (tc *TelegramWebhookContext) ReplyByBot(m bots.MessageFromBot) error {
+func (tc *TelegramWebhookContext) ReplyByBot(w http.ResponseWriter, m bots.MessageFromBot) error {
 	return nil
 }

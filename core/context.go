@@ -18,7 +18,7 @@ type WebhookContext interface {
 	BotChatID() interface{}
 
 	ChatEntity() BotChat
-	ReplyByBot(m MessageFromBot) error
+	ReplyByBot(w http.ResponseWriter, m MessageFromBot) error
 
 	CommandTitle(title, icon string) string
 

@@ -5,7 +5,6 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 	"net/http"
 )
 
@@ -72,20 +71,20 @@ func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) BotChat {
 }
 
 func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, error) {
-	ctx := whc.Context()
+	log := whcb.GetLogger()
 	if whcb.HasChatEntity() {
-		log.Warningf(ctx, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
+		log.Warningf("Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return whcb.chatEntity, nil
 	}
 
 	botChatID := whc.BotChatID()
-	whc.GetLogger().Infof("botChatID: %v", botChatID)
+	log.Infof("botChatID: %v", botChatID)
 	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
 	switch err {
 	case nil: // Nothing to do
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
-		log.Infof(ctx, "Creating new BotChat entity...")
+		log.Infof("Creating new BotChat entity...")
 		userEntity, err := whc.GetOrCreateUserEntity()
 		if err == nil {
 			botChatEntity.SetAppUserID(userEntity.GetUserID())
@@ -94,16 +93,16 @@ func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, erro
 			}
 		}
 	default:
-		log.Errorf(ctx, "Failed to load TelegramChat: %v", err)
+		log.Errorf("Failed to load TelegramChat: %v", err)
 		return nil, err
 	}
-	log.Debugf(ctx, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
+	log.Debugf(`chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
 	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err != nil {
 
 		} else {
-			log.Debugf(ctx, "whc.locale cahged to: %v", whc.Locale)
+			log.Debugf("whc.locale cahged to: %v", whc.Locale)
 		}
 	}
 	return botChatEntity, err

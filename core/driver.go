@@ -55,6 +55,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		return
 	}
 
+	responder := webhookHandler.GetResponder("telegram", w, r)
+
 	for i, entryWithInputs := range entriesWithInputs {
 		log.Infof("Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for j, input := range entryWithInputs.Inputs {
@@ -66,7 +68,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 
 			whc := webhookHandler.CreateWebhookContext(r, botContext, input, webhookHandler.GetTranslator(r))
-			d.router.Dispatch(whc)
+			d.router.Dispatch(responder, whc)
 		}
 	}
 }

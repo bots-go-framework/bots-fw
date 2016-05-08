@@ -113,3 +113,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 func (h FbmWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) bots.WebhookContext {
 	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }
+
+func (h FbmWebhookHandler) GetResponder(platform string, w http.ResponseWriter, r *http.Request) bots.WebhookResponder {
+	panic("Not implemented yet") //return NewTelegramWebhookResponder(w, r)
+}

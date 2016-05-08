@@ -1,6 +1,8 @@
 package bots
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type EntryInputs struct {
 	Entry  WebhookEntry
