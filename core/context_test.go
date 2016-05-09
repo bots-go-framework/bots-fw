@@ -49,15 +49,9 @@ func (whc TestWebhookContext) GetHttpClient() *http.Client                  { pa
 func (whc TestWebhookContext) IsNewerThen(chatEntity BotChat) bool          { panic("Not implemented") }
 func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { panic("Not implemented") }
 
-func (whc TestWebhookContext) GetOrCreateUserEntity() (BotUser, error)      { panic("Not implemented") }
 func (whc TestWebhookContext) UserID() int64                                { panic("Not implemented") }
 func (whc TestWebhookContext) CurrentUserKey() *datastore.Key               { panic("Not implemented") }
-func (whc TestWebhookContext) GetUser() (*datastore.Key, UserEntity, error) { panic("Not implemented") }
-func (whc TestWebhookContext) GetOrCreateUser() (*datastore.Key, UserEntity, error) {
-	panic("Not implemented")
-}
-
-func (whc TestWebhookContext) ApiUser() BotApiUser { panic("Not implemented") }
+func (whc TestWebhookContext) GetAppUser() (*datastore.Key, AppUser, error) { panic("Not implemented") }
 
 func (whc TestWebhookContext) GetLogger() Logger { panic("Not implemented") }
 

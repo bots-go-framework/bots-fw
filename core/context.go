@@ -31,14 +31,12 @@ type WebhookContext interface {
 	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error
 
-	GetOrCreateUserEntity() (BotUser, error)
 	AppUserID() int64
-	GetUser() (*datastore.Key, AppUser, error)
-	GetOrCreateUser() (*datastore.Key, AppUser, error)
+	GetAppUser() (*datastore.Key, AppUser, error)
 
-	ApiUser() BotApiUser
 	BotState
 	BotChatStore
+	BotUserStore
 	WebhookInput
 }
 

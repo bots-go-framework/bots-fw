@@ -25,15 +25,15 @@ type WebhookContextBase struct {
 	Translator
 	Locales    LocalesProvider
 
-	BotChatStore
+	BotCoreStores
 }
 
-func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botChatStore BotChatStore, translator Translator) *WebhookContextBase {
+func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, translator Translator) *WebhookContextBase {
 	return &WebhookContextBase{
 		r: r,
 		BotContext: botContext,
 		WebhookInput: webhookInput,
-		BotChatStore: botChatStore,
+		BotCoreStores: botCoreStores,
 		Translator: translator,
 	}
 }
@@ -43,7 +43,7 @@ func (whcb *WebhookContextBase) GetLogger() Logger {
 }
 
 func (whcb *WebhookContextBase) Translate(key string) string {
-	return whcb.Translator.Translate(key, whcb.locale.Code5)
+	return whcb.Translator.Translate(key, whcb.Locale().Code5)
 }
 
 func (whcb *WebhookContextBase) TranslateNoWarning(key string) string {
@@ -62,19 +62,21 @@ func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity
 }
 
-func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) BotChat {
+func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) {
 	if whcb.chatEntity == nil {
-		chatEntity, _ := whcb.GetChatEntity(whc)
-		whcb.SetChatEntity(chatEntity)
+		err := whcb.getChatEntityBase(whc)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return whcb.chatEntity
+	return whcb.chatEntity, nil
 }
 
-func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, error) {
+func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 	log := whcb.GetLogger()
 	if whcb.HasChatEntity() {
 		log.Warningf("Duplicate call of func (whc *bot.WebhookContext) _getChat()")
-		return whcb.chatEntity, nil
+		return nil
 	}
 
 	botChatID := whc.BotChatID()
@@ -82,30 +84,28 @@ func (whcb *WebhookContextBase) GetChatEntity(whc WebhookContext) (BotChat, erro
 	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
 	switch err {
 	case nil: // Nothing to do
+		log.Debugf("Loaded botChatEntity: %v", botChatEntity)
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof("Creating new BotChat entity...")
-		userEntity, err := whc.GetOrCreateUserEntity()
+		botUser, err := whcb.CreateBotUser(whcb.GetSender())
 		if err == nil {
-			botChatEntity.SetAppUserID(userEntity.GetUserID())
-			if userEntity.IsAccessGranted() {
-				botChatEntity.SetAccessGranted(true)
-			}
+			botChatEntity = whcb.BotChatStore.CreateBotChat(botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
+		} else {
+			return err
 		}
 	default:
-		log.Errorf("Failed to load TelegramChat: %v", err)
-		return nil, err
+		return err
 	}
 	log.Debugf(`chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
 	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
-		if err != nil {
-
-		} else {
+		if err == nil {
 			log.Debugf("whc.locale cahged to: %v", whc.Locale)
 		}
 	}
-	return botChatEntity, err
+	whcb.chatEntity = botChatEntity
+	return err
 }
 
 func (whc *WebhookContextBase) AppUserEntity() AppUser {
@@ -125,6 +125,9 @@ func (*WebhookContextBase) NewMessage(text string) MessageFromBot {
 }
 
 func (whcb *WebhookContextBase) Locale() Locale {
+	if whcb.locale.Code5 == "" {
+		return whcb.BotContext.BotSettings.Locale
+	}
 	return whcb.locale
 }
 

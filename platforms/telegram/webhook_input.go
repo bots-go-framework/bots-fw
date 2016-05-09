@@ -23,7 +23,7 @@ func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {
 }
 
 func (whi TelegramWebhookInput) GetSender() bots.WebhookSender{
-	panic("Not implemented")
+	return TelegramSender{tgUser: whi.update.Message.From}
 }
 
 func (whi TelegramWebhookInput) GetRecipient() bots.WebhookRecipient {

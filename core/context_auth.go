@@ -37,7 +37,7 @@ func SetAccessGranted(whc WebhookContext, value bool) error {
 //	//if telegramUserEntity.AccessGranted == value {
 //	//	log.Infof(ctx, "No need to update TelegramUser entity as AccessGranted is already: %v", value)
 //	//} else {
-//	//	if _, err := SaveTelegramUserEntity(ctx, whc.TelegramApiUser().ID, &telegramUserEntity); err != nil {
+//	//	if _, err := SaveTelegramUserEntity(ctx, whc.GetSender().GetID(), &telegramUserEntity); err != nil {
 //	//		return err
 //	//	}
 //	//}

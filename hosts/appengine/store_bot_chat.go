@@ -26,8 +26,11 @@ func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotC
 		s.botChats = make(map[interface{}]bots.BotChat, 1)
 	}
 	botChatEntity := s.newBotChatEntity()
-	err := nds.Get(s.c, s.botChatKey(botChatId), botChatEntity)
-	if err != nil {
+	err := nds.Get(s.Context(), s.botChatKey(botChatId), botChatEntity)
+	if err == datastore.ErrNoSuchEntity {
+		return nil, bots.ErrEntityNotFound
+	}
+	if err == nil {
 		s.botChats[botChatId] = botChatEntity
 	}
 	return botChatEntity, err
@@ -35,8 +38,16 @@ func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotC
 
 func (s *GaeBotChatStore) SaveBotChat(chatId interface{}, chatEntity bots.BotChat) error { // Former SaveBotChatEntity
 	s.validateBotChatEntityType(chatEntity)
-	_, err := nds.Put(s.c, s.botChatKey(chatId), chatEntity)
+	_, err := nds.Put(s.Context(), s.botChatKey(chatId), chatEntity)
 	return err
+}
+
+func (s *GaeBotChatStore) CreateBotChat(appUserID int64, botUserID interface{}, isAccessGranted bool) bots.BotChat {
+	botChat := s.newBotChatEntity()
+	botChat.SetAppUserID(appUserID)
+	botChat.SetBotUserID(botUserID)
+	botChat.SetAccessGranted(isAccessGranted)
+	return botChat
 }
 
 func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
@@ -46,6 +57,6 @@ func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
 		chatEntity.SetDtUpdatedToNow()
 		chatKeys = append(chatKeys, s.botChatKey(chatId))
 	}
-	_, err := nds.PutMulti(s.c, chatKeys, s.botChats)
+	_, err := nds.PutMulti(s.Context(), chatKeys, s.botChats)
 	return err
 }

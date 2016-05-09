@@ -6,8 +6,8 @@ type BotChat interface {
 	GetAppUserID() int64
 	SetAppUserID(id int64)
 
-	GetBotUserID() int64
-	SetBotUserID(id int64)
+	GetBotUserID() interface{}
+	SetBotUserID(id interface{})
 
 	IsAccessGranted() bool
 	SetAccessGranted(value bool)
@@ -28,6 +28,7 @@ type BotChat interface {
 type BotChatStore interface {
 	GetBotChatEntityById(botChatId interface{}) (BotChat, error)
 	SaveBotChat(botChatId interface{}, chatEntity BotChat) error
+	CreateBotChat(appUserID int64, botUserID interface{}, isAccessGranted bool) BotChat
 	//AddChat(chat BotChat)
 	//RemoveChat(chat BotChat)
 	io.Closer

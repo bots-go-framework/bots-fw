@@ -97,8 +97,8 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 	nil
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) bots.WebhookContext {
-	return NewTelegramWebhookContext(r, botContext, webhookInput, translator)
+func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) bots.WebhookContext {
+	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, translator)
 }
 
 func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {

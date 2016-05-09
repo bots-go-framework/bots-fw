@@ -1,13 +1,15 @@
 package bots
 
 type BotUser interface {
-	GetUserID() int64
+	GetAppUserID() int64
 	IsAccessGranted() bool
+	SetAppUserID(appUserID int64)
 }
 
 type BotUserStore interface {
-	GetBotUserById(botUserId string) (BotUser, error)
-	SaveBotUser(botUserId string, botUserEntity BotUser) error
+	GetBotUserById(botUserID interface{}) (BotUser, error)
+	SaveBotUser(botUserID interface{}, botUserEntity BotUser) error
+	CreateBotUser(apiUser WebhookActor) (BotUser, error)
 	//io.Closer
 }
 

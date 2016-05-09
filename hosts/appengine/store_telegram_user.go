@@ -4,8 +4,9 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
 	"fmt"
+	"net/http"
+	"google.golang.org/appengine"
 )
 
 type GaeTelegramUserStore struct {
@@ -13,10 +14,11 @@ type GaeTelegramUserStore struct {
 }
 var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramUserStore(c context.Context) GaeTelegramUserStore {
+func NewGaeTelegramUserStore(log bots.Logger, r *http.Request, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
 	return GaeTelegramUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore: GaeBaseStore{c: c, entityKind: telegram_bot.TelegramUserKind},
+			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramUserKind),
+			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func() bots.BotUser { return &telegram_bot.TelegramChat{} },
 			validateBotUserEntityType: func(entity bots.BotUser) {
 				if _, ok := entity.(*telegram_bot.TelegramUser); !ok {
@@ -24,10 +26,10 @@ func NewGaeTelegramUserStore(c context.Context) GaeTelegramUserStore {
 				}
 			},
 			botUserKey: func(botUserId interface{}) *datastore.Key {
-				if intID, ok := botUserId.(int64); ok {
-					return datastore.NewKey(c, telegram_bot.TelegramUserKind, "", intID, nil)
+				if intID, ok := botUserId.(int); ok {
+					return datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramUserKind, "", (int64)(intID), nil)
 				} else {
-					panic(fmt.Sprintf("Expected botUserId as int64, got: %t", botUserId))
+					panic(fmt.Sprintf("Expected botUserId as int, got: %t", botUserId))
 				}
 			},
 		},

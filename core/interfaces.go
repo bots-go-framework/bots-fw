@@ -21,7 +21,7 @@ type Logger interface {
 type BotHost interface {
 	GetLogger(r *http.Request) Logger
 	GetHttpClient(r *http.Request) *http.Client
-	GetBotChatStore(platform string, r *http.Request) BotChatStore
+	GetBotCoreStores(appContext AppContext, platform string, r *http.Request) BotCoreStores
 }
 
 type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
@@ -33,14 +33,14 @@ type WebhookHandler interface {
 	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateWebhookContext(r *http.Request, botContext BotContext, webhookInput WebhookInput, translator Translator) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
+	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, translator Translator) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
 	GetTranslator(r *http.Request) Translator
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
 
 type WebhookEntry interface {
-	GetID() int64
+	GetID() interface{}
 	GetTime() time.Time
 }
 
@@ -68,7 +68,10 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 }
 
 type WebhookActor interface {
-	GetID() int64
+	GetID() interface{}
+	GetFirstName() string
+	GetLastName() string
+	GetUserName() string
 }
 
 type WebhookSender interface {
@@ -112,4 +115,10 @@ type WebhookResponder interface {
 
 type InputMessage interface {
 	Text() string
+}
+
+type BotCoreStores struct {
+	BotChatStore
+	BotUserStore
+	AppUserStore
 }

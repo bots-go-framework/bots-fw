@@ -2,7 +2,7 @@ package bots
 
 import "errors"
 
-var NotImplementedError = errors.New("No implemented")
+var NotImplementedError = errors.New("Not implemented")
 
 type InviteBy string
 

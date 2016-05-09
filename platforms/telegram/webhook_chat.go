@@ -11,7 +11,7 @@ type TelegramWebhookChat struct {
 var _ bots.WebhookChat = (*TelegramWebhookChat)(nil)
 
 func (wh TelegramWebhookChat) GetID() interface{} {
-	return (int64)(wh.chat.ID)
+	return wh.chat.ID
 }
 
 func (wh TelegramWebhookChat) GetTitle() string {

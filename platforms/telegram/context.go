@@ -8,6 +8,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"net/http"
+	"fmt"
 )
 
 type TelegramWebhookContext struct {
@@ -17,10 +18,13 @@ type TelegramWebhookContext struct {
 }
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
-func NewTelegramWebhookContext(r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) *TelegramWebhookContext {
+func NewTelegramWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) *TelegramWebhookContext {
 	return &TelegramWebhookContext{
 		//update: update,
-		WebhookContextBase: bots.NewWebhookContextBase(r, botContext, webhookInput, botContext.BotHost.GetBotChatStore("telegram", r), translator),
+		WebhookContextBase: bots.NewWebhookContextBase(r, botContext,
+			webhookInput, botContext.BotHost.GetBotCoreStores(appContext, "telegram", r, ),
+			translator,
+		),
 	}
 }
 
@@ -46,10 +50,6 @@ func (tc TelegramBotApiUser) LastName() string {
 
 func (tc TelegramBotApiUser) IdAsInt64() int64 {
 	return int64(tc.user.ID)
-}
-
-func (tc TelegramWebhookContext) ApiUser() bots.BotApiUser {
-	return TelegramBotApiUser{user: tc.TelegramApiUser()}
 }
 
 func (whc *TelegramWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
@@ -79,7 +79,11 @@ func (whc *TelegramWebhookContext) BotChatID() interface {} {
 }
 
 func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
-	return whc.WebhookContextBase.ChatEntity(whc)
+	botChatEntity, err := whc.WebhookContextBase.ChatEntity(whc)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to get BotChat entity: %v", err))
+	}
+	return botChatEntity
 }
 
 func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
@@ -89,12 +93,8 @@ func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	return false
 }
 
-func (whc *TelegramWebhookContext) TelegramApiUser() tgbotapi.User {
-	panic("Not implemented yet") //return whc.update.Message.From
-}
-
-func (whc *TelegramWebhookContext) GetUser() (*datastore.Key, bots.AppUser, error) {
-	return whc.getUserByTelegramID(whc.Context(), whc.TelegramApiUser().ID, true)
+func (whc *TelegramWebhookContext) GetAppUser() (*datastore.Key, bots.AppUser, error) {
+	return whc.getUserByTelegramID(whc.Context(), whc.getTelegramSenderID(), true)
 }
 
 func (whc *TelegramWebhookContext) getUserByTelegramID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, bots.AppUser, error) {
@@ -115,6 +115,14 @@ func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
 	return new(TelegramChat)
 }
 
+func (whc *TelegramWebhookContext) getTelegramSenderID() int {
+	senderID := whc.GetSender().GetID()
+	if tgUserID, ok := senderID.(int); ok {
+		return tgUserID
+	}
+	panic("int expected")
+}
+
 func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 	telegramChat := whc.InputMessage().Chat()
 	chatEntity := TelegramChat{
@@ -122,26 +130,18 @@ func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 			Type:  telegramChat.GetType(),
 			Title: telegramChat.GetTitle(),
 		},
-		TelegramUserID: (int64)(whc.TelegramApiUser().ID),
+		TelegramUserID: whc.getTelegramSenderID(),
 	}
 	return &chatEntity
 }
 
-func (whc *TelegramWebhookContext) GetOrCreateUserEntity() (bots.BotUser, error) {
-	return nil, bots.NotImplementedError
-	//return gae_host.GetOrCreateUserEntity(whc.Context(), whc.update)
-}
-
-func (whc *TelegramWebhookContext) GetOrCreateUser() (*datastore.Key, bots.AppUser, error) {
-	return whc.getUserByTelegramID(whc.Context(), whc.TelegramApiUser().ID, true)
-}
-
 func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
 	log.Infof(tc.Context(), "NewTgMessage(): tc.update.Message.Chat.ID: %v", tc.InputMessage().Chat().GetID())
-	if intID, ok := tc.BotChatID().(int64); ok {
-		return tgbotapi.NewMessage((int)(intID), text)
+	botChatID := tc.BotChatID()
+	if intID, ok := botChatID.(int); ok {
+		return tgbotapi.NewMessage(intID, text)
 	} else {
-		panic("tc.BotChatID.(int64) is not OK")
+		panic(fmt.Sprintf("Expected int, got: %t", botChatID))
 	}
 }
 

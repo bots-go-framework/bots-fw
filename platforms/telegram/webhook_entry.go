@@ -12,8 +12,8 @@ type TelegramWebhookEntry struct {
 
 var _ bots.WebhookEntry = (*TelegramWebhookEntry)(nil)
 
-func (e TelegramWebhookEntry) GetID() int64 {
-	return (int64)(e.update.UpdateID)
+func (e TelegramWebhookEntry) GetID() interface{} {
+	return e.update.UpdateID
 }
 
 func (e TelegramWebhookEntry) GetTime() time.Time {
