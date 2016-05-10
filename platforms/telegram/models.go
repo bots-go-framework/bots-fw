@@ -33,6 +33,6 @@ func(chat *TelegramChat) SetBotUserID(id interface{}){
 	if intId, ok := id.(int); ok {
 		chat.TelegramUserID = intId
 	} else {
-		panic(fmt.Sprintf("Expected int, got: %t", id))
+		panic(fmt.Sprintf("Expected int, got: %T", id))
 	}
 }

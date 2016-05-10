@@ -21,7 +21,7 @@ type Logger interface {
 type BotHost interface {
 	GetLogger(r *http.Request) Logger
 	GetHttpClient(r *http.Request) *http.Client
-	GetBotCoreStores(appContext AppContext, platform string, r *http.Request) BotCoreStores
+	GetBotCoreStores(platform string, appContext AppContext, r *http.Request) BotCoreStores
 }
 
 type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
@@ -33,8 +33,8 @@ type WebhookHandler interface {
 	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, translator Translator) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
-	GetTranslator(r *http.Request) Translator
+	CreateBotCoreStores(appContext AppContext, r *http.Request) BotCoreStores
+	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput,  botCoreStores BotCoreStores) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }

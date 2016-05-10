@@ -20,7 +20,7 @@ func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
 	return &http.Client{Transport: &urlfetch.Transport{Context: appengine.NewContext(r)}}
 }
 
-func (h GaeBotHost) GetBotCoreStores(appContext bots.AppContext, platform string, r *http.Request) bots.BotCoreStores {
+func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
 	switch platform {
 	case "telegram":
 		log := h.GetLogger(r)

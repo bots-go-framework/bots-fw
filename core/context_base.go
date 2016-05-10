@@ -12,6 +12,7 @@ type WebhookContextBase struct {
 	//w          http.ResponseWriter
 	r          *http.Request
 
+	AppContext AppContext
 	BotContext BotContext
 	WebhookInput
 
@@ -23,19 +24,21 @@ type WebhookContextBase struct {
 	BotUserKey *datastore.Key
 	appUser    AppUser
 	Translator
-	Locales    LocalesProvider
+	//Locales    LocalesProvider
 
 	BotCoreStores
 }
 
-func NewWebhookContextBase(r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, translator Translator) *WebhookContextBase {
-	return &WebhookContextBase{
+func NewWebhookContextBase(r *http.Request, appContext AppContext, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
+	whcb := WebhookContextBase{
 		r: r,
+		AppContext: appContext,
 		BotContext: botContext,
 		WebhookInput: webhookInput,
 		BotCoreStores: botCoreStores,
-		Translator: translator,
 	}
+	whcb.Translator = appContext.GetTranslator(whcb.GetLogger())
+	return &whcb
 }
 
 func (whcb *WebhookContextBase) GetLogger() Logger {
@@ -57,6 +60,18 @@ func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
 func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
 }
+
+func (whcb *WebhookContextBase) GetAppUser() (AppUser, error) {
+	appUserID := whcb.chatEntity.GetAppUserID()
+	appUser := whcb.AppContext.NewAppUserEntity()
+	err := whcb.AppUserStore.GetAppUserByID(appUserID, appUser)
+	return appUser, err
+}
+
+func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity AppUser) error {
+	return whcb.AppUserStore.SaveAppUser(appUserID, appUserEntity)
+}
+
 
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity
@@ -87,10 +102,11 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 		log.Debugf("Loaded botChatEntity: %v", botChatEntity)
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
-		log.Infof("Creating new BotChat entity...")
+		log.Infof("BotChat not found so creating new BotUser & BotChat entities...")
 		botUser, err := whcb.CreateBotUser(whcb.GetSender())
 		if err == nil {
-			botChatEntity = whcb.BotChatStore.CreateBotChat(botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
+			log.Infof("BotUser entity created")
+			botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
 		} else {
 			return err
 		}
@@ -132,7 +148,7 @@ func (whcb *WebhookContextBase) Locale() Locale {
 }
 
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
-	locale, err := whcb.Locales.GetLocaleByCode5(code5)
+	locale, err := whcb.AppContext.SupportedLocales().GetLocaleByCode5(code5)
 	if err == nil {
 		whcb.locale = locale
 	}

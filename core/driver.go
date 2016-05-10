@@ -56,6 +56,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		return
 	}
 
+	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
+	defer func(){
+		log.Debugf("Closing BotChatStore...")
+		if err := botCoreStores.BotChatStore.Close(); err != nil {
+			log.Errorf("Failed to close BotChatStore: %v", err)
+		}
+	}()
+
 	for i, entryWithInputs := range entriesWithInputs {
 		log.Infof("Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for j, input := range entryWithInputs.Inputs {
@@ -66,9 +74,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				log.Infof("Input[%v].InputType(): %v", j, input.InputType())
 			}
 
-			whc := webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, webhookHandler.GetTranslator(r))
+			whc := webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores)
 			responder := webhookHandler.GetResponder(w, whc)
 			d.router.Dispatch(responder, whc)
 		}
 	}
+
+
 }

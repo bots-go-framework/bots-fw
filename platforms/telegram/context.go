@@ -4,8 +4,6 @@ import (
 	"errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"net/http"
 	"fmt"
@@ -18,13 +16,17 @@ type TelegramWebhookContext struct {
 }
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
-func NewTelegramWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, translator bots.Translator) *TelegramWebhookContext {
+func NewTelegramWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
+	whcb := bots.NewWebhookContextBase(
+			r,
+			appContext,
+			botContext,
+			webhookInput,
+			botCoreStores,
+		)
 	return &TelegramWebhookContext{
 		//update: update,
-		WebhookContextBase: bots.NewWebhookContextBase(r, botContext,
-			webhookInput, botContext.BotHost.GetBotCoreStores(appContext, "telegram", r, ),
-			translator,
-		),
+		WebhookContextBase: whcb,
 	}
 }
 
@@ -93,24 +95,6 @@ func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	return false
 }
 
-func (whc *TelegramWebhookContext) GetAppUser() (*datastore.Key, bots.AppUser, error) {
-	return whc.getUserByTelegramID(whc.Context(), whc.getTelegramSenderID(), true)
-}
-
-func (whc *TelegramWebhookContext) getUserByTelegramID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, bots.AppUser, error) {
-	//telegramUser := TelegramUser{}
-	//gae_host.NewGaeTelegramChatStore()
-	//err := GetBotUserEntity(ctx, NewTelegramUserEntityKey(ctx, telegramUserID), &telegramUser)
-	//if err != nil {
-	//	return nil, nil, err
-	//}
-	//userKey := datastore.NewKey(ctx, common.AppUserKind, "", telegramUser.UserID, nil)
-	//user := common.AppUser{}
-	//err = nds.Get(ctx, userKey, &user)
-	//return userKey, &user, err
-	return nil, nil, nil
-}
-
 func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
 	return new(TelegramChat)
 }
@@ -141,7 +125,7 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 	if intID, ok := botChatID.(int); ok {
 		return tgbotapi.NewMessage(intID, text)
 	} else {
-		panic(fmt.Sprintf("Expected int, got: %t", botChatID))
+		panic(fmt.Sprintf("Expected int, got: %T", botChatID))
 	}
 }
 

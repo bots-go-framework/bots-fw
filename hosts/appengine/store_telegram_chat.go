@@ -20,8 +20,8 @@ func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatS
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),
 			newBotChatEntity: func() bots.BotChat { return &telegram_bot.TelegramChat{} },
 			validateBotChatEntityType: func(entity bots.BotChat) {
-				if _, ok := entity.(*telegram_bot.TelegramChat); ok {
-					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %t", entity))
+				if _, ok := entity.(*telegram_bot.TelegramChat); !ok {
+					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))
 				}
 			},
 			botChatKey: func(botChatId interface{}) *datastore.Key {
@@ -30,7 +30,7 @@ func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatS
 					log.Infof("BotChatKey: %v", key)
 					return key
 				} else {
-					panic(fmt.Sprintf("Expected botChatId as int, got: %t", botChatId))
+					panic(fmt.Sprintf("Expected botChatId as int, got: %T", botChatId))
 				}
 			},
 		},

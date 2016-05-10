@@ -28,7 +28,7 @@ type BotChat interface {
 type BotChatStore interface {
 	GetBotChatEntityById(botChatId interface{}) (BotChat, error)
 	SaveBotChat(botChatId interface{}, chatEntity BotChat) error
-	CreateBotChat(appUserID int64, botUserID interface{}, isAccessGranted bool) BotChat
+	NewBotChatEntity(botChatId interface{}, appUserID int64, botUserID interface{}, isAccessGranted bool) BotChat
 	//AddChat(chat BotChat)
 	//RemoveChat(chat BotChat)
 	io.Closer

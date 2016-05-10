@@ -2,7 +2,6 @@ package bots
 
 import (
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
 	"net/http"
 )
 
@@ -32,7 +31,8 @@ type WebhookContext interface {
 	UpdateLastProcessed(chatEntity BotChat) error
 
 	AppUserID() int64
-	GetAppUser() (*datastore.Key, AppUser, error)
+	GetAppUser() (AppUser, error)
+	SaveAppUser(appUserID int64, appUserEntity AppUser) error
 
 	BotState
 	BotChatStore
