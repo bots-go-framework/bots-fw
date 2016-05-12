@@ -65,6 +65,7 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 	InputMessage() WebhookMessage
 	InputPostback() WebhookPostback
 	InputDelivery() WebhookDelivery
+	InputInlineQuery() WebhookInlineQuery
 }
 
 type WebhookActor interface {
@@ -102,6 +103,15 @@ type WebhookPostback interface {
 
 type WebhookDelivery interface {
 	Payload() string
+}
+
+
+type WebhookInlineQuery interface {
+	GetID() interface{}
+	GetFrom() WebhookSender
+	GetQuery() string
+	GetOffset() string
+	//GetLocation() - TODO: Not implemented yet
 }
 
 type WebhookAttachment interface {

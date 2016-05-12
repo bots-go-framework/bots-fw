@@ -13,7 +13,7 @@ type GaeBotUserStore struct {
 	//botUsers 					  map[interface{}]bots.BotUser
 	botUserKey                func(botUserID interface{}) *datastore.Key
 	validateBotUserEntityType func(entity bots.BotUser)
-	newBotUserEntity          func() bots.BotUser
+	newBotUserEntity          func(apiUser bots.WebhookActor) bots.BotUser
 	gaeAppUserStore           GaeAppUserStore
 }
 var _ bots.BotUserStore = (*GaeBotUserStore)(nil) // Check for interface implementation at compile time
@@ -24,7 +24,7 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 	//if s.botUsers == nil {
 	//	s.botUsers = make(map[int]bots.BotUser, 1)
 	//}
-	botUserEntity := s.newBotUserEntity()
+	botUserEntity := s.newBotUserEntity(nil)
 	ctx := s.Context()
 	err := nds.Get(ctx, s.botUserKey(botUserId), botUserEntity)
 	return botUserEntity, err
@@ -32,6 +32,7 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 
 func (s GaeBotUserStore) SaveBotUser(botUserID interface{}, userEntity bots.BotUser) error { // Former SaveBotUserEntity
 	s.validateBotUserEntityType(userEntity)
+	userEntity.SetDtUpdatedToNow()
 	_, err := nds.Put(s.Context(), s.botUserKey(botUserID), userEntity)
 	return err
 }
@@ -40,7 +41,7 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 	s.log.Debugf("CreateBotUser() started...")
 	botUserID := apiUser.GetID()
 	botUserKey := s.botUserKey(botUserID)
-	botUserEntity := s.newBotUserEntity()
+	botUserEntity := s.newBotUserEntity(apiUser)
 
 	err := datastore.RunInTransaction(s.Context(), func(ctx context.Context) error {
 		err := nds.Get(ctx, botUserKey, botUserEntity)
@@ -51,6 +52,7 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 				return err
 			}
 			botUserEntity.SetAppUserID(appUserId)
+			botUserEntity.SetDtUpdatedToNow()
 			nds.Put(ctx, botUserKey, botUserEntity)
 		} else if err != nil {
 			return err

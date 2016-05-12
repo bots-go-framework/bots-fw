@@ -95,6 +95,10 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	return
 }
 
+func (r *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
+
+}
+
 func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
 	log := whc.GetLogger()
 	chatEntity := whc.ChatEntity()

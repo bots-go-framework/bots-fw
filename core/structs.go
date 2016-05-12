@@ -1,5 +1,7 @@
 package bots
 
+import "github.com/strongo/bots-api-telegram"
+
 type EntryInputs struct {
 	Entry  WebhookEntry
 	Inputs []WebhookInput
@@ -31,15 +33,36 @@ type MessageFromBot struct {
 	Text                  string
 	Format                MessageFormat
 	DisableWebPagePreview bool
-	Keyboard              Keyboard
+	//Keyboard              Keyboard
+	TelegramKeyboard		 tgbotapi.TelegramKeyboard
 	IsReplyToInputMessage bool
 }
 
-type Keyboard struct {
-	HideKeyboard    bool
-	ResizeKeyboard  bool
-	ForceReply      bool
-	Selective       bool
-	OneTimeKeyboard bool
-	Buttons         [][]string
-}
+//type Keyboard interface {
+//	IsKeyboard()
+//}
+//
+//type KeyboardSelective struct {
+//	Selective       bool
+//}
+//func (kb KeyboardSelective) IsKeyboard() {}
+//
+//type ForceReply struct {
+//	KeyboardSelective
+//	ForceReply      bool
+//}
+//var _ Keyboard = (*ForceReply)(nil)
+//
+//type ReplyKeyboardHide struct {
+//	KeyboardSelective
+//	HideKeyboard    bool
+//}
+//var _ Keyboard = (*ReplyKeyboardHide)(nil)
+//
+//type ReplyKeyboardMarkup struct {
+//	KeyboardSelective
+//	ResizeKeyboard  bool
+//	OneTimeKeyboard bool
+//	Buttons         [][]KeyboardButton
+//}
+//var _ Keyboard = (*ReplyKeyboardMarkup)(nil)

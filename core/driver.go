@@ -70,13 +70,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			switch input.InputType() {
 			case WebhookInputMessage:
 				log.Infof("Input[%v].Message().Text(): %v", j, input.InputMessage().Text())
+				whc := webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores)
+				responder := webhookHandler.GetResponder(w, whc)
+				d.router.Dispatch(responder, whc)
+			case WebhookInputInlineQuery:
+				log.Infof("Input[%v].nputInlineQuery().GetQuery(): |%v|", j, input.InputInlineQuery().GetQuery())
 			default:
 				log.Infof("Input[%v].InputType(): %v", j, input.InputType())
 			}
 
-			whc := webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores)
-			responder := webhookHandler.GetResponder(w, whc)
-			d.router.Dispatch(responder, whc)
 		}
 	}
 

@@ -3,7 +3,6 @@ package telegram_bot
 import (
 	"github.com/strongo/bots-framework/core"
 	"encoding/json"
-	"github.com/strongo/bots-api-telegram"
 	"net/http"
 )
 
@@ -24,29 +23,36 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 	log := r.whc.GetLogger()
 	messageConfig := r.whc.NewTgMessage(m.Text)
 	switch m.Format {
+	case bots.MessageFormatText:
+		// messageConfig.ParseMode = ""
 	case bots.MessageFormatHTML:
 		messageConfig.ParseMode = "HTML"
 	case bots.MessageFormatMarkdown:
 		messageConfig.ParseMode = "Markdown"
 	}
-	if m.Keyboard.HideKeyboard {
-		if len(m.Keyboard.Buttons) > 0 {
-			log.Errorf("Got both 'HideKeyboard=true' & len(m.Keyboard.Buttons):%v > 0. Buttons: %v", len(m.Keyboard.Buttons), m.Keyboard.Buttons)
-		}
-		messageConfig.ReplyMarkup = tgbotapi.ReplyKeyboardHide{HideKeyboard: m.Keyboard.HideKeyboard, Selective: m.Keyboard.Selective}
-	} else if m.Keyboard.ForceReply {
-		if len(m.Keyboard.Buttons) > 0 {
-			log.Errorf("Got both 'ForceReply=true' & len(m.Keyboard.Buttons):%v > 0. Buttons: %v", len(m.Keyboard.Buttons), m.Keyboard.Buttons)
-		}
-		messageConfig.ReplyMarkup = tgbotapi.ForceReply{ForceReply: true, Selective: m.Keyboard.Selective}
-	} else if len(m.Keyboard.Buttons) > 0 {
-		messageConfig.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-			Keyboard:        m.Keyboard.Buttons,
-			ResizeKeyboard:  m.Keyboard.ResizeKeyboard,
-			OneTimeKeyboard: m.Keyboard.OneTimeKeyboard,
-			Selective:       m.Keyboard.Selective,
-		}
-	}
+	messageConfig.ReplyMarkup = m.TelegramKeyboard
+	//if hideKeyboard, ok := m.TelegramKeyboard.(tgbotapi.ReplyKeyboardHide); ok {
+	//	messageConfig.ReplyMarkup = hideKeyboard
+	//} else if forceReply, ok := m.TelegramKeyboard.(bots.ForceReply); ok {
+	//	messageConfig.ReplyMarkup = forceReply
+	//} else if markup, ok := m.TelegramKeyboard.(bots.ReplyKeyboardMarkup); ok {
+	//	buttons := make([][]string, len(markup.Buttons))
+	//	for i, sourceRow := range markup.Buttons {
+	//		destRow := make([]string, len(sourceRow))
+	//		for j, srcBtn := range sourceRow {
+	//			destRow[j] = srcBtn.Text
+	//		}
+	//		buttons[i] = destRow
+	//	}
+	//	messageConfig.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
+	//		Keyboard: buttons,
+	//		ResizeKeyboard:  markup.ResizeKeyboard,
+	//		OneTimeKeyboard: markup.OneTimeKeyboard,
+	//		Selective:       markup.Selective,
+	//	}
+	//} else if inline, ok := m.Keyboard.(tgbotapi.InlineKeyboardMarkup); ok {
+	//	messageConfig.ReplyMarkup = inline
+	//}
 	mcJson, err := json.Marshal(messageConfig)
 	if err == nil {
 		log.Infof("Message for sending to Telegram: %v", string(mcJson))

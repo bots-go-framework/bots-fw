@@ -7,19 +7,38 @@ import (
 	"fmt"
 	"net/http"
 	"google.golang.org/appengine"
+	"time"
 )
 
 type GaeTelegramUserStore struct {
 	GaeBotUserStore
 }
-var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
+var _ bots.BotUserStore = (*GaeTelegramUserStore)(nil) // Check for interface implementation at compile time
 
 func NewGaeTelegramUserStore(log bots.Logger, r *http.Request, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
 	return GaeTelegramUserStore{
 		GaeBotUserStore: GaeBotUserStore{
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramUserKind),
 			gaeAppUserStore: gaeAppUserStore,
-			newBotUserEntity: func() bots.BotUser { return &telegram_bot.TelegramChat{} },
+			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
+				if apiUser == nil {
+					return &telegram_bot.TelegramUser{
+					}
+				} else {
+					return &telegram_bot.TelegramUser{
+						BotUserEntity: bots.BotUserEntity{
+							BotEntity: bots.BotEntity{
+								OwnedByUser: bots.OwnedByUser{
+									DtCreated: time.Now(),
+								},
+							},
+							FirstName: apiUser.GetFirstName(),
+							LastName: apiUser.GetLastName(),
+							UserName: apiUser.GetUserName(),
+						},
+					}
+				}
+			},
 			validateBotUserEntityType: func(entity bots.BotUser) {
 				if _, ok := entity.(*telegram_bot.TelegramUser); !ok {
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramUser but received %T", entity))

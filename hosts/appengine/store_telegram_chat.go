@@ -18,7 +18,10 @@ func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatS
 	return &GaeTelegramChatStore{
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),
-			newBotChatEntity: func() bots.BotChat { return &telegram_bot.TelegramChat{} },
+			newBotChatEntity: func() bots.BotChat {
+				telegramChat := telegram_bot.NewTelegramChat()
+				return &telegramChat
+			},
 			validateBotChatEntityType: func(entity bots.BotChat) {
 				if _, ok := entity.(*telegram_bot.TelegramChat); !ok {
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))

@@ -130,14 +130,9 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
-	telegramChat, ok := chatEntity.(*TelegramChat)
-	if !ok {
-		return errors.New("Failed to cast: chatEntity.(*TelegramChat)")
+	if telegramChat, ok := chatEntity.(*TelegramChat); ok {
+		telegramChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
+		return nil
 	}
-	telegramChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
-	return nil
-}
-
-func (tc *TelegramWebhookContext) ReplyByBot(w http.ResponseWriter, m bots.MessageFromBot) error {
-	return nil
+	return errors.New(fmt.Sprintf("Expected *TelegramChat, got: %T", chatEntity))
 }

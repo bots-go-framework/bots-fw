@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+type WebhookInlineQueryContext interface {
+
+}
+
 type WebhookContext interface {
 	GetLogger() Logger
 	BotInputProvider
@@ -17,7 +21,6 @@ type WebhookContext interface {
 	BotChatID() interface{}
 
 	ChatEntity() BotChat
-	ReplyByBot(w http.ResponseWriter, m MessageFromBot) error
 
 	CommandTitle(title, icon string) string
 

@@ -43,6 +43,10 @@ func (whi TelegramWebhookInput) InputMessage() bots.WebhookMessage {
 	return NewTelegramWebhookMessage(update.UpdateID, update.Message)
 }
 
+func (whi TelegramWebhookInput) InputInlineQuery() bots.WebhookInlineQuery {
+	panic("Not implemented")
+}
+
 func (whi TelegramWebhookInput) InputPostback() bots.WebhookPostback {
 	panic("Not implemented")
 }
