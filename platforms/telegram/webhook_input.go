@@ -15,15 +15,22 @@ var _ bots.WebhookInput = (*TelegramWebhookInput)(nil)
 func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {
 	result := TelegramWebhookInput{update: update}
 	switch {
-	case update.Message.MessageID > 0: result.inputType = bots.WebhookInputMessage
-	case update.InlineQuery.ID != "": result.inputType = bots.WebhookInputInlineQuery
-	case update.ChosenInlineResult.ResultID != "": result.inputType = bots.WebhookInputChoosenInlineResult
+	case update.Message != nil: result.inputType = bots.WebhookInputMessage
+	case update.InlineQuery != nil: result.inputType = bots.WebhookInputInlineQuery
+	case update.CallbackQuery != nil: result.inputType = bots.WebhookInputCallbackQuery
+	case update.ChosenInlineResult != nil: result.inputType = bots.WebhookInputChosenInlineResult
 	}
 	return result
 }
 
 func (whi TelegramWebhookInput) GetSender() bots.WebhookSender{
-	return TelegramSender{tgUser: whi.update.Message.From}
+	switch whi.InputType() {
+	case bots.WebhookInputMessage: return TelegramSender{tgUser: whi.update.Message.From}
+	case bots.WebhookInputChosenInlineResult: return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
+	case bots.WebhookInputInlineQuery: return TelegramSender{tgUser: whi.update.InlineQuery.From}
+	case bots.WebhookInputCallbackQuery: return TelegramSender{tgUser: whi.update.CallbackQuery.From}
+	}
+	return nil
 }
 
 func (whi TelegramWebhookInput) GetRecipient() bots.WebhookRecipient {
@@ -44,7 +51,18 @@ func (whi TelegramWebhookInput) InputMessage() bots.WebhookMessage {
 }
 
 func (whi TelegramWebhookInput) InputInlineQuery() bots.WebhookInlineQuery {
-	panic("Not implemented")
+	update := whi.update
+	return NewTelegramWebhookInlineQuery(update.UpdateID, update.InlineQuery)
+}
+
+func (whi TelegramWebhookInput) InputChosenInlineResult() bots.WebhookChosenInlineResult {
+	update := whi.update
+	return NewTelegramWebhookChosenInlineResult(update.UpdateID, update.ChosenInlineResult)
+}
+
+func (whi TelegramWebhookInput) InputCallbackQuery() bots.WebhookCallbackQuery {
+	update := whi.update
+	return NewTelegramWebhookCallbackQuery(update.UpdateID, update.CallbackQuery)
 }
 
 func (whi TelegramWebhookInput) InputPostback() bots.WebhookPostback {

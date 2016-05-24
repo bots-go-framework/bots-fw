@@ -7,11 +7,11 @@ import (
 
 type TelegramWebhookMessage struct {
 	updateID int
-	message tgbotapi.Message
+	message *tgbotapi.Message
 }
 var _ bots.WebhookMessage = (*TelegramWebhookMessage)(nil)
 
-func NewTelegramWebhookMessage(updateID int, message tgbotapi.Message) TelegramWebhookMessage {
+func NewTelegramWebhookMessage(updateID int, message *tgbotapi.Message) TelegramWebhookMessage {
 	return TelegramWebhookMessage{updateID: updateID, message: message}
 }
 

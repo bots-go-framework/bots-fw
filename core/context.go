@@ -20,6 +20,9 @@ type WebhookContext interface {
 
 	BotChatID() interface{}
 
+	GetBotCode() string
+	GetBotToken() string
+
 	ChatEntity() BotChat
 
 	CommandTitle(title, icon string) string

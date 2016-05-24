@@ -28,10 +28,12 @@ func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotC
 	}
 	botChatEntity := s.newBotChatEntity()
 	err := nds.Get(s.Context(), s.botChatKey(botChatId), botChatEntity)
-	if err == datastore.ErrNoSuchEntity {
-		return nil, bots.ErrEntityNotFound
-	}
-	if err == nil {
+	if err != nil {
+		s.log.Errorf("Failed to get bot chat entity by ID: %v - %T(%v)", botChatId, err, err)
+		if err == datastore.ErrNoSuchEntity {
+			return nil, bots.ErrEntityNotFound
+		}
+	} else {
 		s.botChats[botChatId] = botChatEntity
 	}
 	return botChatEntity, err

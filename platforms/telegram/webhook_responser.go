@@ -4,6 +4,9 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"encoding/json"
 	"net/http"
+	"github.com/strongo/bots-api-telegram"
+	"errors"
+	"fmt"
 )
 
 type TelegramWebhookResponder struct {
@@ -20,48 +23,64 @@ func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookCont
 
 func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 	//ctx := tc.Context()
-	log := r.whc.GetLogger()
-	messageConfig := r.whc.NewTgMessage(m.Text)
-	switch m.Format {
-	case bots.MessageFormatText:
-		// messageConfig.ParseMode = ""
-	case bots.MessageFormatHTML:
-		messageConfig.ParseMode = "HTML"
-	case bots.MessageFormatMarkdown:
-		messageConfig.ParseMode = "Markdown"
+	logger := r.whc.GetLogger()
+
+	var chattable tgbotapi.Chattable
+	if m.TelegramInlineAnswer != nil {
+		logger.Debugf("Inline answer")
+		chattable = m.TelegramInlineAnswer
+		inlineAnswer := *m.TelegramInlineAnswer
+		input, ok := r.whc.WebhookInput.(TelegramWebhookInput)
+		if !ok {
+			return errors.New(fmt.Sprintf("Expected TelegramWebhookInput, got %T", r.whc.WebhookInput))
+		}
+		inlineAnswer.InlineQueryID = input.update.InlineQuery.ID
+
+		jsonStr, err := json.Marshal(inlineAnswer)
+		if err == nil {
+			logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
+		} else {
+			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
+		}
+
+		botApi := &tgbotapi.BotAPI{
+			Token: r.whc.BotContext.BotSettings.Token,
+			Debug: true,
+			Client: r.whc.GetHttpClient(),
+		}
+		apiResponse, err := botApi.AnswerInlineQuery(inlineAnswer)
+
+		if err != nil {
+			s, err := json.Marshal(apiResponse)
+			if err != nil {
+				logger.Debugf("apiResponse: %v", s)
+			}
+		}
+		return err
+	} else if m.Text != "" {
+		logger.Debugf("Not inline answer")
+		messageConfig := r.whc.NewTgMessage(m.Text)
+		switch m.Format {
+		case bots.MessageFormatHTML:
+			messageConfig.ParseMode = "HTML"
+		case bots.MessageFormatMarkdown:
+			messageConfig.ParseMode = "Markdown"
+		}
+		messageConfig.ReplyMarkup = m.TelegramKeyboard
+
+		chattable = messageConfig
+
+		jsonStr, err := json.Marshal(chattable)
+		if err == nil {
+			logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
+		} else {
+			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, jsonStr)
+		}
+		s, err := tgbotapi.ReplyToResponse(chattable, r.w)
+		logger.Debugf("Sent to response: %v", s)
+		return err
 	}
-	messageConfig.ReplyMarkup = m.TelegramKeyboard
-	//if hideKeyboard, ok := m.TelegramKeyboard.(tgbotapi.ReplyKeyboardHide); ok {
-	//	messageConfig.ReplyMarkup = hideKeyboard
-	//} else if forceReply, ok := m.TelegramKeyboard.(bots.ForceReply); ok {
-	//	messageConfig.ReplyMarkup = forceReply
-	//} else if markup, ok := m.TelegramKeyboard.(bots.ReplyKeyboardMarkup); ok {
-	//	buttons := make([][]string, len(markup.Buttons))
-	//	for i, sourceRow := range markup.Buttons {
-	//		destRow := make([]string, len(sourceRow))
-	//		for j, srcBtn := range sourceRow {
-	//			destRow[j] = srcBtn.Text
-	//		}
-	//		buttons[i] = destRow
-	//	}
-	//	messageConfig.ReplyMarkup = tgbotapi.ReplyKeyboardMarkup{
-	//		Keyboard: buttons,
-	//		ResizeKeyboard:  markup.ResizeKeyboard,
-	//		OneTimeKeyboard: markup.OneTimeKeyboard,
-	//		Selective:       markup.Selective,
-	//	}
-	//} else if inline, ok := m.Keyboard.(tgbotapi.InlineKeyboardMarkup); ok {
-	//	messageConfig.ReplyMarkup = inline
-	//}
-	mcJson, err := json.Marshal(messageConfig)
-	if err == nil {
-		log.Infof("Message for sending to Telegram: %v", string(mcJson))
-	} else {
-		log.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, messageConfig)
-	}
-	s, err := messageConfig.ReplyToResponse(r.w)
-	log.Infof("Sending to Telegram: %v", s)
-	return err
+	return nil
 }
 
 

@@ -75,16 +75,31 @@ func (e *BotChatEntity) SetPreferredLanguage(value string) {
 	e.PreferredLanguage = value
 }
 
-func (e *BotChatEntity) IsAwaitingReplyTo(code string) bool {
-	return strings.HasSuffix(e.AwaitingReplyTo, code)
+func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger Logger) bool {
+	awaitingReplyToPath := e.getAwaitingReplyToPath()
+	logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
+	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + code)
+}
+
+func (e *BotChatEntity) getAwaitingReplyToPath() string {
+	pathAndQuery := strings.SplitN(e.AwaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
+	if len(pathAndQuery) > 1 {
+		return pathAndQuery[0]
+	}
+	return e.AwaitingReplyTo
 }
 
 func (e *BotChatEntity) AddStepToAwaitingReplyTo(step string) {
-	pathAndQuery := strings.SplitN(e.AwaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
+	awaitingReplyTo := e.AwaitingReplyTo
+	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
 	if len(pathAndQuery) > 1 {
-		e.SetAwaitingReplyTo(fmt.Sprintf("%v%v%v?%v", pathAndQuery[0], AWAITING_REPLY_TO_PATH_SEPARATOR, step, pathAndQuery[1]))
+		path := pathAndQuery[0]
+		suffix := AWAITING_REPLY_TO_PATH_SEPARATOR + step
+		if !strings.HasSuffix(path, suffix) {
+			e.SetAwaitingReplyTo(fmt.Sprintf("%v%v?%v", path, suffix, pathAndQuery[1]))
+		}
 	} else {
-		e.SetAwaitingReplyTo(e.GetAwaitingReplyTo() + AWAITING_REPLY_TO_PATH_SEPARATOR + step)
+		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PATH_SEPARATOR + step)
 	}
 }
 

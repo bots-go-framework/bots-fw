@@ -10,6 +10,7 @@ const SHORT_TITLE = "short_title"
 //const LONG_TITLE = "long_title"
 
 type Command struct {
+	InputType  WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputType()
 	Icon       string
 	Replies    []Command
 	Code       string

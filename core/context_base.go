@@ -45,6 +45,14 @@ func (whcb *WebhookContextBase) GetLogger() Logger {
 	return whcb.BotContext.BotHost.GetLogger(whcb.r)
 }
 
+func (whcb *WebhookContextBase) GetBotCode() string {
+	return whcb.BotContext.BotSettings.Code
+}
+
+func (whcb *WebhookContextBase) GetBotToken() string {
+	return whcb.BotContext.BotSettings.Token
+}
+
 func (whcb *WebhookContextBase) Translate(key string) string {
 	return whcb.Translator.Translate(key, whcb.Locale().Code5)
 }
@@ -87,37 +95,56 @@ func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) 
 	return whcb.chatEntity, nil
 }
 
+func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
+	botUser, err := whcb.GetBotUserById(whcb.GetSender().GetID())
+	if err != nil {
+		return nil, err
+	}
+	logger := whcb.GetLogger()
+	if botUser == nil {
+		logger.Infof("Bot user entity not found, creating a new one...")
+		botUser, err = whcb.CreateBotUser(whcb.GetSender())
+		if err != nil {
+			return nil, err
+		}
+		logger.Infof("Bot user entity created")
+	} else {
+		logger.Infof("Found existing bot user entity")
+	}
+	return botUser, err
+}
+
 func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
-	log := whcb.GetLogger()
+	logger := whcb.GetLogger()
 	if whcb.HasChatEntity() {
-		log.Warningf("Duplicate call of func (whc *bot.WebhookContext) _getChat()")
+		logger.Warningf("Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return nil
 	}
 
 	botChatID := whc.BotChatID()
-	log.Infof("botChatID: %v", botChatID)
+	logger.Infof("botChatID: %v", botChatID)
 	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
 	switch err {
 	case nil: // Nothing to do
-		log.Debugf("Loaded botChatEntity: %v", botChatEntity)
+		logger.Debugf("Loaded botChatEntity: %v", botChatEntity)
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
-		log.Infof("BotChat not found so creating new BotUser & BotChat entities...")
-		botUser, err := whcb.CreateBotUser(whcb.GetSender())
-		if err == nil {
-			log.Infof("BotUser entity created")
-			botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
-		} else {
+		logger.Infof("BotChat not found, first check for bot user entity...")
+		botUser, err := whcb.GetOrCreateBotUserEntityBase()
+		if err != nil {
 			return err
 		}
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
 	default:
 		return err
 	}
-	log.Debugf(`chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
+	logger.Debugf(`chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
 	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err == nil {
-			log.Debugf("whc.locale cahged to: %v", whc.Locale)
+			logger.Debugf("whc.locale cahged to: %v", whc.Locale)
+		} else {
+			logger.Errorf("Failed to set locate: %v")
 		}
 	}
 	whcb.chatEntity = botChatEntity

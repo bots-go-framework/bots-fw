@@ -6,7 +6,7 @@ import (
 )
 
 type TelegramWebhookChat struct {
-	chat tgbotapi.Chat
+	chat *tgbotapi.Chat
 }
 var _ bots.WebhookChat = (*TelegramWebhookChat)(nil)
 

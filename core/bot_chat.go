@@ -19,7 +19,7 @@ type BotChat interface {
 
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(string)
-	IsAwaitingReplyTo(code string) bool
+	IsAwaitingReplyTo(code string, logger Logger) bool
 	AddWizardParam(name, value string)
 	AddStepToAwaitingReplyTo(code string)
 }

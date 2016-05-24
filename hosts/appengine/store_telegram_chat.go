@@ -28,7 +28,7 @@ func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatS
 				}
 			},
 			botChatKey: func(botChatId interface{}) *datastore.Key {
-				if intId, ok := botChatId.(int); ok {
+				if intId, ok := botChatId.(int64); ok {
 					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, "", (int64)(intId), nil)
 					log.Infof("BotChatKey: %v", key)
 					return key

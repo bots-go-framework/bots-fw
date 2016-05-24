@@ -6,7 +6,7 @@ import (
 )
 
 type TelegramSender struct {
-	tgUser tgbotapi.User
+	tgUser *tgbotapi.User
 }
 
 var _ bots.WebhookSender = (*TelegramSender)(nil)

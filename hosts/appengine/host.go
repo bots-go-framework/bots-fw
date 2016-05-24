@@ -23,11 +23,11 @@ func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
 	switch platform {
 	case "telegram":
-		log := h.GetLogger(r)
-		appUserStore := NewGaeAppUserStore(log, r, appContext.AppUserEntityKind(), appContext.NewAppUserEntity)
+		logger := h.GetLogger(r)
+		appUserStore := NewGaeAppUserStore(logger, r, appContext.AppUserEntityKind(), appContext.NewAppUserEntity)
 		return bots.BotCoreStores{
-			BotChatStore: NewGaeTelegramChatStore(log, r),
-			BotUserStore: NewGaeTelegramUserStore(log, r, appUserStore),
+			BotChatStore: NewGaeTelegramChatStore(logger, r),
+			BotUserStore: NewGaeTelegramUserStore(logger, r, appUserStore),
 			AppUserStore: appUserStore,
 		}
 	default: panic("Unknown platform: " + platform)

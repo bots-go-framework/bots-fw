@@ -34,7 +34,8 @@ type MessageFromBot struct {
 	Format                MessageFormat
 	DisableWebPagePreview bool
 	//Keyboard              Keyboard
-	TelegramKeyboard		 tgbotapi.TelegramKeyboard
+	TelegramKeyboard		 interface{}
+	TelegramInlineAnswer  *tgbotapi.InlineConfig
 	IsReplyToInputMessage bool
 }
 

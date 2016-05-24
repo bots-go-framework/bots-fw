@@ -53,8 +53,19 @@ const (
 	WebhookInputDelivery
 	WebhookInputAttachment
 	WebhookInputInlineQuery // Telegram only?
-	WebhookInputChoosenInlineResult // Telegram only?
+	WebhookInputCallbackQuery
+	WebhookInputChosenInlineResult // Telegram only?
 )
+var WebhookInputTypeNames = map[WebhookInputType]string{
+	WebhookInputUnknown: "unknown",
+	WebhookInputMessage: "Message",
+	WebhookInputPostback: "Postback",
+	WebhookInputDelivery: "Delivery",
+	WebhookInputAttachment: "Attachment",
+	WebhookInputInlineQuery: "InlineQuery",
+	WebhookInputCallbackQuery: "CallbackQuery",
+	WebhookInputChosenInlineResult: "ChosenInlineResult",
+}
 
 type WebhookInput interface { // '/entry/messaging' for Facebook
 	GetSender() WebhookSender
@@ -66,6 +77,8 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 	InputPostback() WebhookPostback
 	InputDelivery() WebhookDelivery
 	InputInlineQuery() WebhookInlineQuery
+	InputCallbackQuery() WebhookCallbackQuery
+	InputChosenInlineResult() WebhookChosenInlineResult
 }
 
 type WebhookActor interface {
@@ -108,10 +121,27 @@ type WebhookDelivery interface {
 
 type WebhookInlineQuery interface {
 	GetID() interface{}
+	GetInlineQueryID() string
 	GetFrom() WebhookSender
 	GetQuery() string
 	GetOffset() string
 	//GetLocation() - TODO: Not implemented yet
+}
+
+type WebhookChosenInlineResult interface {
+	GetResultID() string
+	GetInlineMessageID() string // Telegram only?
+	GetFrom() WebhookSender
+	GetQuery() string
+	//GetLocation() - TODO: Not implemented yet
+}
+
+type WebhookCallbackQuery interface {
+	GetID() interface{}
+	GetInlineMessageID() string // Telegram only?
+	GetFrom() WebhookSender
+	GetMessage() WebhookMessage
+	GetData() string
 }
 
 type WebhookAttachment interface {

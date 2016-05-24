@@ -17,5 +17,8 @@ func AwaitingReplyToPath(awaitingReplyTo string) string {
 
 func AwaitingReplyToQuery(awaitingReplyTo string) string {
 	s := strings.Split(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR)
-	return s[1]
+	if len(s) > 1 {
+		return s[1]
+	}
+	return ""
 }

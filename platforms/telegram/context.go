@@ -66,21 +66,42 @@ func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
 	return botApi
 }
 
-func (whc *TelegramWebhookContext) AppUserID() int64 {
-	return whc.ChatEntity().GetAppUserID()
+func (whc *TelegramWebhookContext) AppUserID() (appUserID int64) {
+	inputType := whc.InputType()
+	switch inputType {
+	case bots.WebhookInputMessage:
+		return whc.ChatEntity().GetAppUserID()
+	case bots.WebhookInputChosenInlineResult:
+		botUser, err := whc.GetOrCreateBotUserEntityBase()
+		if err != nil {
+			panic("Failed to get bot user entity")
+		}
+		return botUser.GetAppUserID()
+	default:
+		panic(fmt.Sprintf("Not implemented for inptut type: %v=%v", inputType, bots.WebhookInputTypeNames[inputType]))
+	}
 }
 
 func (whc *TelegramWebhookContext) MessageText() string {
-	return whc.WebhookInput.InputMessage().Text()
+	inputMessage := whc.WebhookInput.InputMessage()
+	if inputMessage != nil {
+		return inputMessage.Text()
+	}
+	return ""
 }
 
 func (whc *TelegramWebhookContext) BotChatID() interface {} {
 	chatId := whc.WebhookInput.InputMessage().Chat().GetID()
-	whc.GetLogger().Infof("BotChatID(): %v", chatId)
+	if chatId == 0 {
+		return nil
+	}
 	return chatId
 }
 
 func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
+	if whc.BotChatID() == nil {
+		return nil
+	}
 	botChatEntity, err := whc.WebhookContextBase.ChatEntity(whc)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to get BotChat entity: %v", err))
@@ -120,13 +141,17 @@ func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 }
 
 func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
-	log.Infof(tc.Context(), "NewTgMessage(): tc.update.Message.Chat.ID: %v", tc.InputMessage().Chat().GetID())
-	botChatID := tc.BotChatID()
-	if intID, ok := botChatID.(int); ok {
-		return tgbotapi.NewMessage(intID, text)
-	} else {
-		panic(fmt.Sprintf("Expected int, got: %T", botChatID))
+	inputMessage := tc.InputMessage()
+	if inputMessage != nil {
+		log.Infof(tc.Context(), "NewTgMessage(): tc.update.Message.Chat.ID: %v", inputMessage.Chat().GetID())
+		botChatID := tc.BotChatID()
+		if intID, ok := botChatID.(int64); ok {
+			return tgbotapi.NewMessage(intID, text)
+		} else {
+			panic(fmt.Sprintf("Expected int, got: %T", botChatID))
+		}
 	}
+	panic(fmt.Sprintf("Expected to be called just for inputType == Message"))
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
