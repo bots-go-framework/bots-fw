@@ -30,6 +30,7 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.AppContext
 			BotUserStore: NewGaeTelegramUserStore(logger, r, appUserStore),
 			AppUserStore: appUserStore,
 		}
-	default: panic("Unknown platform: " + platform)
+	default:
+		panic("Unknown platform: " + platform)
 	}
 }

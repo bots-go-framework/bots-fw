@@ -1,21 +1,21 @@
 package telegram_bot
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/http"
 	"io/ioutil"
-	"encoding/json"
+	"net/http"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
 	return TelegramWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
-			BotPlatform:   TelegramPlatform{},
-			BotHost:       botHost,
-			WebhookDriver: webhookDriver,
+			BotPlatform:        TelegramPlatform{},
+			BotHost:            botHost,
+			WebhookDriver:      webhookDriver,
 			TranslatorProvider: translatorProvider,
 		},
 	}
@@ -27,9 +27,9 @@ type TelegramWebhookHandler struct {
 }
 
 func (h TelegramWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix + "/telegram/webhook", h.HandleWebhookRequest)
-	http.HandleFunc(pathPrefix + "/telegram/webhook/", notFound)
-	http.HandleFunc(pathPrefix + "/telegram/setwebhook", h.SetWebhook)
+	http.HandleFunc(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest)
+	http.HandleFunc(pathPrefix+"/telegram/webhook/", notFound)
+	http.HandleFunc(pathPrefix+"/telegram/setwebhook", h.SetWebhook)
 }
 
 func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
@@ -98,19 +98,19 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		return
 	}
 	return bots.BotContext{
-		BotHost: h.BotHost,
-		BotSettings: botSettings,
-	},
-	[]bots.EntryInputs{
-		bots.EntryInputs{
-			Entry: TelegramWebhookEntry{update: update},
-			Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
+			BotHost:     h.BotHost,
+			BotSettings: botSettings,
 		},
-	},
-	nil
+		[]bots.EntryInputs{
+			bots.EntryInputs{
+				Entry:  TelegramWebhookEntry{update: update},
+				Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
+			},
+		},
+		nil
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput,  botCoreStores bots.BotCoreStores) bots.WebhookContext {
+func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
 	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores)
 }
 
@@ -122,7 +122,6 @@ func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.Web
 	}
 }
 
-func (h TelegramWebhookHandler) CreateBotCoreStores (appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
+func (h TelegramWebhookHandler) CreateBotCoreStores(appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
 	return h.BotHost.GetBotCoreStores(TelegramPlatformID, appContext, r)
 }
-

@@ -2,11 +2,11 @@ package telegram_bot
 
 import (
 	"errors"
+	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/log"
 	"net/http"
-	"fmt"
 )
 
 type TelegramWebhookContext struct {
@@ -14,16 +14,17 @@ type TelegramWebhookContext struct {
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 }
+
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func NewTelegramWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
 	whcb := bots.NewWebhookContextBase(
-			r,
-			appContext,
-			botContext,
-			webhookInput,
-			botCoreStores,
-		)
+		r,
+		appContext,
+		botContext,
+		webhookInput,
+		botCoreStores,
+	)
 	return &TelegramWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
@@ -90,7 +91,7 @@ func (whc *TelegramWebhookContext) MessageText() string {
 	return ""
 }
 
-func (whc *TelegramWebhookContext) BotChatID() interface {} {
+func (whc *TelegramWebhookContext) BotChatID() interface{} {
 	chatId := whc.WebhookInput.InputMessage().Chat().GetID()
 	if chatId == 0 {
 		return nil

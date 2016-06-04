@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	"runtime/debug"
 )
 
@@ -13,9 +13,9 @@ type WebhookDriver interface {
 }
 
 type BotDriver struct {
-	botHost BotHost
+	botHost    BotHost
 	appContext AppContext
-	router  *WebhooksRouter
+	router     *WebhooksRouter
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
@@ -57,7 +57,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 
 	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
-	defer func(){
+	defer func() {
 		logger.Debugf("Closing BotChatStore...")
 		if err := botCoreStores.BotChatStore.Close(); err != nil {
 			logger.Errorf("Failed to close BotChatStore: %v", err)

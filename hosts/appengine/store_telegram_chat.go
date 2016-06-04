@@ -1,17 +1,18 @@
 package gae_host
 
 import (
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine/datastore"
 	"fmt"
-	"net/http"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"net/http"
 )
 
 type GaeTelegramChatStore struct {
 	GaeBotChatStore
 }
+
 var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
 
 func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatStore {

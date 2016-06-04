@@ -33,9 +33,9 @@ type BotSettingsBy struct { // TODO: Decide if it should have map[string]*BotSet
 func NewBotSettingsBy(bots ...BotSettings) BotSettingsBy {
 	count := len(bots)
 	botsBy := BotSettingsBy{
-		Code: make(map[string]BotSettings, count),
+		Code:     make(map[string]BotSettings, count),
 		ApiToken: make(map[string]BotSettings, count),
-		Locale: make(map[string]BotSettings, count),
+		Locale:   make(map[string]BotSettings, count),
 	}
 	for _, bot := range bots {
 		botsBy.Code[bot.Code] = bot

@@ -4,6 +4,7 @@ import "github.com/strongo/bots-framework/core"
 
 type TelegramPlatform struct {
 }
+
 var _ bots.BotPlatform = (*TelegramPlatform)(nil)
 
 const TelegramPlatformID = "telegram"

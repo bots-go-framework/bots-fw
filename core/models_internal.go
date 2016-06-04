@@ -17,7 +17,7 @@ func (e *OwnedByUser) GetAppUserID() int64 {
 	return e.AppUserID
 }
 
-func(e *OwnedByUser) SetAppUserID(appUserID int64){
+func (e *OwnedByUser) SetAppUserID(appUserID int64) {
 	e.AppUserID = appUserID
 }
 
@@ -78,7 +78,7 @@ func (e *BotChatEntity) SetPreferredLanguage(value string) {
 func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger Logger) bool {
 	awaitingReplyToPath := e.getAwaitingReplyToPath()
 	logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
-	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + code)
+	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+code)
 }
 
 func (e *BotChatEntity) getAwaitingReplyToPath() string {

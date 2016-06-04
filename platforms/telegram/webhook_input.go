@@ -1,34 +1,43 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 	"time"
 )
 
 type TelegramWebhookInput struct {
 	inputType bots.WebhookInputType
-	update tgbotapi.Update
+	update    tgbotapi.Update
 }
+
 var _ bots.WebhookInput = (*TelegramWebhookInput)(nil)
 
 func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {
 	result := TelegramWebhookInput{update: update}
 	switch {
-	case update.Message != nil: result.inputType = bots.WebhookInputMessage
-	case update.InlineQuery != nil: result.inputType = bots.WebhookInputInlineQuery
-	case update.CallbackQuery != nil: result.inputType = bots.WebhookInputCallbackQuery
-	case update.ChosenInlineResult != nil: result.inputType = bots.WebhookInputChosenInlineResult
+	case update.Message != nil:
+		result.inputType = bots.WebhookInputMessage
+	case update.InlineQuery != nil:
+		result.inputType = bots.WebhookInputInlineQuery
+	case update.CallbackQuery != nil:
+		result.inputType = bots.WebhookInputCallbackQuery
+	case update.ChosenInlineResult != nil:
+		result.inputType = bots.WebhookInputChosenInlineResult
 	}
 	return result
 }
 
-func (whi TelegramWebhookInput) GetSender() bots.WebhookSender{
+func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
 	switch whi.InputType() {
-	case bots.WebhookInputMessage: return TelegramSender{tgUser: whi.update.Message.From}
-	case bots.WebhookInputChosenInlineResult: return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
-	case bots.WebhookInputInlineQuery: return TelegramSender{tgUser: whi.update.InlineQuery.From}
-	case bots.WebhookInputCallbackQuery: return TelegramSender{tgUser: whi.update.CallbackQuery.From}
+	case bots.WebhookInputMessage:
+		return TelegramSender{tgUser: whi.update.Message.From}
+	case bots.WebhookInputChosenInlineResult:
+		return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
+	case bots.WebhookInputInlineQuery:
+		return TelegramSender{tgUser: whi.update.InlineQuery.From}
+	case bots.WebhookInputCallbackQuery:
+		return TelegramSender{tgUser: whi.update.CallbackQuery.From}
 	}
 	return nil
 }

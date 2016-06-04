@@ -1,14 +1,15 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 type TelegramWebhookChosenInlineResult struct {
-	updateID int
+	updateID           int
 	chosenInlineResult *tgbotapi.ChosenInlineResult
 }
+
 var _ bots.WebhookChosenInlineResult = (*TelegramWebhookChosenInlineResult)(nil)
 
 func NewTelegramWebhookChosenInlineResult(updateID int, chosenInlineResult *tgbotapi.ChosenInlineResult) TelegramWebhookChosenInlineResult {
@@ -38,4 +39,3 @@ func (q TelegramWebhookChosenInlineResult) GetInlineMessageID() string {
 func (iq TelegramWebhookChosenInlineResult) GetFrom() bots.WebhookSender {
 	return TelegramSender{tgUser: iq.chosenInlineResult.From}
 }
-

@@ -1,8 +1,8 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"fmt"
+	"github.com/strongo/bots-framework/core"
 	"time"
 )
 
@@ -14,13 +14,15 @@ const (
 type TelegramUser struct {
 	bots.BotUserEntity
 }
+
 var _ bots.BotUser = (*TelegramUser)(nil)
 
 type TelegramChat struct {
 	bots.BotChatEntity
-	TelegramUserID             int
+	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
 }
+
 var _ bots.BotChat = (*TelegramChat)(nil)
 
 func NewTelegramChat() TelegramChat {
@@ -39,15 +41,14 @@ func (chat *TelegramChat) SetAppUserID(id int64) {
 	chat.AppUserID = id
 }
 
-func(chat *TelegramChat) GetBotUserID() interface{} {
+func (chat *TelegramChat) GetBotUserID() interface{} {
 	return chat.TelegramUserID
 }
 
-func(chat *TelegramChat) SetBotUserID(id interface{}){
+func (chat *TelegramChat) SetBotUserID(id interface{}) {
 	if intId, ok := id.(int); ok {
 		chat.TelegramUserID = intId
 	} else {
 		panic(fmt.Sprintf("Expected int, got: %T", id))
 	}
 }
-

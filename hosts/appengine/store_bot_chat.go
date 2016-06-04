@@ -2,12 +2,11 @@ package gae_host
 
 import (
 	"github.com/qedus/nds"
-	"google.golang.org/appengine/datastore"
 	"github.com/strongo/bots-framework/core"
+	"google.golang.org/appengine/datastore"
 )
 
 type EntityTypeValidator interface {
-
 }
 
 // Persist chat to GAE datastore
@@ -18,6 +17,7 @@ type GaeBotChatStore struct {
 	validateBotChatEntityType func(entity bots.BotChat)
 	newBotChatEntity          func() bots.BotChat
 }
+
 var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.ChatStore **************************

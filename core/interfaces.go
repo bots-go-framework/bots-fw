@@ -25,7 +25,7 @@ type BotHost interface {
 }
 
 type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
-	BotHost BotHost
+	BotHost     BotHost
 	BotSettings BotSettings
 }
 
@@ -34,7 +34,7 @@ type WebhookHandler interface {
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
 	CreateBotCoreStores(appContext AppContext, r *http.Request) BotCoreStores
-	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput,  botCoreStores BotCoreStores) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
+	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
@@ -56,14 +56,15 @@ const (
 	WebhookInputCallbackQuery
 	WebhookInputChosenInlineResult // Telegram only?
 )
+
 var WebhookInputTypeNames = map[WebhookInputType]string{
-	WebhookInputUnknown: "unknown",
-	WebhookInputMessage: "Message",
-	WebhookInputPostback: "Postback",
-	WebhookInputDelivery: "Delivery",
-	WebhookInputAttachment: "Attachment",
-	WebhookInputInlineQuery: "InlineQuery",
-	WebhookInputCallbackQuery: "CallbackQuery",
+	WebhookInputUnknown:            "unknown",
+	WebhookInputMessage:            "Message",
+	WebhookInputPostback:           "Postback",
+	WebhookInputDelivery:           "Delivery",
+	WebhookInputAttachment:         "Attachment",
+	WebhookInputInlineQuery:        "InlineQuery",
+	WebhookInputCallbackQuery:      "CallbackQuery",
 	WebhookInputChosenInlineResult: "ChosenInlineResult",
 }
 
@@ -117,7 +118,6 @@ type WebhookPostback interface {
 type WebhookDelivery interface {
 	Payload() string
 }
-
 
 type WebhookInlineQuery interface {
 	GetID() interface{}

@@ -2,9 +2,9 @@ package gae_host
 
 import (
 	"github.com/qedus/nds"
-	"google.golang.org/appengine/datastore"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 )
 
 // Persist user to GAE datastore
@@ -16,8 +16,8 @@ type GaeBotUserStore struct {
 	newBotUserEntity          func(apiUser bots.WebhookActor) bots.BotUser
 	gaeAppUserStore           GaeAppUserStore
 }
-var _ bots.BotUserStore = (*GaeBotUserStore)(nil) // Check for interface implementation at compile time
 
+var _ bots.BotUserStore = (*GaeBotUserStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.BotUserStore **************************
 func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, error) { // Former LoadBotUserEntity

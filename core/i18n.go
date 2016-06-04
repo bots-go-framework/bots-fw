@@ -7,6 +7,12 @@ type Translator interface {
 	TranslateNoWarning(key, locale string) string
 }
 
+type SingleLocaleTranslator interface {
+	Locale() Locale
+	Translate(key string) string
+	TranslateNoWarning(key string) string
+}
+
 type LocalesProvider interface {
 	GetLocaleByCode5(code5 string) (Locale, error)
 }

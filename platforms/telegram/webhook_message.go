@@ -1,14 +1,15 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 type TelegramWebhookMessage struct {
 	updateID int
-	message *tgbotapi.Message
+	message  *tgbotapi.Message
 }
+
 var _ bots.WebhookMessage = (*TelegramWebhookMessage)(nil)
 
 func NewTelegramWebhookMessage(updateID int, message *tgbotapi.Message) TelegramWebhookMessage {

@@ -13,9 +13,9 @@ import (
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
 	return FbmWebhookHandler{
 		BaseHandler: bots.BaseHandler{
-			BotPlatform:   FbmPlatform{},
-			BotHost:       botHost,
-			WebhookDriver: webhookDriver,
+			BotPlatform:        FbmPlatform{},
+			BotHost:            botHost,
+			WebhookDriver:      webhookDriver,
 			TranslatorProvider: translatorProvider,
 		},
 		botsBy: botsBy,
@@ -28,9 +28,9 @@ type FbmWebhookHandler struct {
 }
 
 func (h FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix + "/fbm/webhook", h.HandleWebhookRequest)
-	http.HandleFunc(pathPrefix + "/fbm/webhook/", notFound) // TODO: Try to get rid?
-	http.HandleFunc(pathPrefix + "/fbm/subscribe", h.Subscribe)
+	http.HandleFunc(pathPrefix+"/fbm/webhook", h.HandleWebhookRequest)
+	http.HandleFunc(pathPrefix+"/fbm/webhook/", notFound) // TODO: Try to get rid?
+	http.HandleFunc(pathPrefix+"/fbm/subscribe", h.Subscribe)
 }
 
 func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +110,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 	return
 }
 
-func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput,  botCoreStores bots.BotCoreStores) bots.WebhookContext {
+func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
 	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }
 
@@ -118,6 +118,6 @@ func (h FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookC
 	panic("Not implemented yet") //return NewTelegramWebhookResponder(w, r)
 }
 
-func (h FbmWebhookHandler) CreateBotCoreStores (appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
+func (h FbmWebhookHandler) CreateBotCoreStores(appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
 	panic("Not implemented yet")
 }

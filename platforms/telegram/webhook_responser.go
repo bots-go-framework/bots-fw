@@ -1,16 +1,16 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"encoding/json"
-	"net/http"
-	"github.com/strongo/bots-api-telegram"
 	"errors"
 	"fmt"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"net/http"
 )
 
 type TelegramWebhookResponder struct {
-	w http.ResponseWriter
+	w   http.ResponseWriter
 	whc *TelegramWebhookContext
 }
 
@@ -19,7 +19,6 @@ var _ bots.WebhookResponder = (*TelegramWebhookResponder)(nil)
 func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookContext) TelegramWebhookResponder {
 	return TelegramWebhookResponder{w: w, whc: whc}
 }
-
 
 func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 	//ctx := tc.Context()
@@ -44,8 +43,8 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 		}
 
 		botApi := &tgbotapi.BotAPI{
-			Token: r.whc.BotContext.BotSettings.Token,
-			Debug: true,
+			Token:  r.whc.BotContext.BotSettings.Token,
+			Debug:  true,
 			Client: r.whc.GetHttpClient(),
 		}
 		apiResponse, err := botApi.AnswerInlineQuery(inlineAnswer)
@@ -82,5 +81,3 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 	}
 	return nil
 }
-
-

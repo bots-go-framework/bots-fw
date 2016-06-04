@@ -8,6 +8,7 @@ import (
 type TelegramWebhookChat struct {
 	chat *tgbotapi.Chat
 }
+
 var _ bots.WebhookChat = (*TelegramWebhookChat)(nil)
 
 func (wh TelegramWebhookChat) GetID() interface{} {

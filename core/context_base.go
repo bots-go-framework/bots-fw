@@ -10,13 +10,13 @@ import (
 
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
-	r          *http.Request
+	r *http.Request
 
 	AppContext AppContext
 	BotContext BotContext
 	WebhookInput
 
-	locale     Locale
+	locale Locale
 
 	//update      tgbotapi.Update
 	chatEntity BotChat
@@ -31,10 +31,10 @@ type WebhookContextBase struct {
 
 func NewWebhookContextBase(r *http.Request, appContext AppContext, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
 	whcb := WebhookContextBase{
-		r: r,
-		AppContext: appContext,
-		BotContext: botContext,
-		WebhookInput: webhookInput,
+		r:             r,
+		AppContext:    appContext,
+		BotContext:    botContext,
+		WebhookInput:  webhookInput,
 		BotCoreStores: botCoreStores,
 	}
 	whcb.Translator = appContext.GetTranslator(whcb.GetLogger())
@@ -79,7 +79,6 @@ func (whcb *WebhookContextBase) GetAppUser() (AppUser, error) {
 func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity AppUser) error {
 	return whcb.AppUserStore.SaveAppUser(appUserID, appUserEntity)
 }
-
 
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity

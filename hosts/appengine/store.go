@@ -1,17 +1,18 @@
 package gae_host
 
 import (
-	"net/http"
-	"google.golang.org/appengine"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
+	"net/http"
 )
 
 type GaeBaseStore struct {
-	log bots.Logger
-	r *http.Request
-	entityKind                string
+	log        bots.Logger
+	r          *http.Request
+	entityKind string
 }
+
 func (s *GaeBaseStore) Context() context.Context {
 	return appengine.NewContext(s.r)
 }

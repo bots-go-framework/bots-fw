@@ -1,29 +1,29 @@
 package gae_host
 
 import (
-	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine/datastore"
 	"fmt"
-	"net/http"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"net/http"
 	"time"
 )
 
 type GaeTelegramUserStore struct {
 	GaeBotUserStore
 }
+
 var _ bots.BotUserStore = (*GaeTelegramUserStore)(nil) // Check for interface implementation at compile time
 
 func NewGaeTelegramUserStore(log bots.Logger, r *http.Request, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
 	return GaeTelegramUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramUserKind),
+			GaeBaseStore:    NewGaeBaseStore(log, r, telegram_bot.TelegramUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {
-					return &telegram_bot.TelegramUser{
-					}
+					return &telegram_bot.TelegramUser{}
 				} else {
 					return &telegram_bot.TelegramUser{
 						BotUserEntity: bots.BotUserEntity{
@@ -33,8 +33,8 @@ func NewGaeTelegramUserStore(log bots.Logger, r *http.Request, gaeAppUserStore G
 								},
 							},
 							FirstName: apiUser.GetFirstName(),
-							LastName: apiUser.GetLastName(),
-							UserName: apiUser.GetUserName(),
+							LastName:  apiUser.GetLastName(),
+							UserName:  apiUser.GetUserName(),
 						},
 					}
 				}

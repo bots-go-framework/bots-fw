@@ -13,5 +13,3 @@ type BotUserStore interface {
 	CreateBotUser(apiUser WebhookActor) (BotUser, error)
 	//io.Closer
 }
-
-

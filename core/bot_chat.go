@@ -24,7 +24,6 @@ type BotChat interface {
 	AddStepToAwaitingReplyTo(code string)
 }
 
-
 type BotChatStore interface {
 	GetBotChatEntityById(botChatId interface{}) (BotChat, error)
 	SaveBotChat(botChatId interface{}, chatEntity BotChat) error
@@ -33,4 +32,3 @@ type BotChatStore interface {
 	//RemoveChat(chat BotChat)
 	io.Closer
 }
-

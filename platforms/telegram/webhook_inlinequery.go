@@ -1,14 +1,15 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 type TelegramWebhookInlineQuery struct {
-	updateID int
+	updateID    int
 	inlineQuery *tgbotapi.InlineQuery
 }
+
 var _ bots.WebhookInlineQuery = (*TelegramWebhookInlineQuery)(nil)
 
 func NewTelegramWebhookInlineQuery(updateID int, inlineQuery *tgbotapi.InlineQuery) TelegramWebhookInlineQuery {

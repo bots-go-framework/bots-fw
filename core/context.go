@@ -6,14 +6,11 @@ import (
 )
 
 type WebhookInlineQueryContext interface {
-
 }
 
 type WebhookContext interface {
 	GetLogger() Logger
 	BotInputProvider
-	Translate(key string) string
-	TranslateNoWarning(key string) string
 
 	Init(w http.ResponseWriter, r *http.Request) error
 	Context() context.Context
@@ -27,7 +24,7 @@ type WebhookContext interface {
 
 	CommandTitle(title, icon string) string
 
-	Locale() Locale
+	//Locale() Locale
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot
@@ -44,6 +41,7 @@ type WebhookContext interface {
 	BotChatStore
 	BotUserStore
 	WebhookInput
+	SingleLocaleTranslator
 }
 
 type BotState interface {
