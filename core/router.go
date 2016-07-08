@@ -51,24 +51,27 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	messageText := whc.MessageText()
 	messageTextLowerCase := strings.ToLower(messageText)
 
+	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
+	logger.Debugf("awaitingReplyTo: %v", awaitingReplyTo)
+
+	var awaitingReplyCommandFound bool
+
 	for _, command := range commands {
 
-		if len(command.Replies) > 0 || parentPath != "" {
-			var awaitingReplyPrefix string
-			if parentPath == "" {
-				awaitingReplyPrefix = command.Code
-			} else {
-				awaitingReplyPrefix = strings.Join([]string{parentPath, command.Code}, AWAITING_REPLY_TO_PATH_SEPARATOR)
-			}
-			awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
-			logger.Debugf("awaitingReplyPrefix: %v; awaitingReplyTo: %v", awaitingReplyPrefix, awaitingReplyTo)
+		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
+			awaitingReplyPrefix := strings.TrimLeft(parentPath + AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
+
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
-				awaitingReplyCommand = command
-				logger.Debugf("awaitingReplyCommand: %v", awaitingReplyCommand.Code)
+				logger.Debugf("[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+				logger.Debugf("awaitingReplyCommand: %v", command.Code)
 				if matchedCommand = r.matchCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					logger.Debugf("%v matched my command.replies", command.Code)
-					return
+					awaitingReplyCommand = *matchedCommand
+					awaitingReplyCommandFound = true
+					continue
 				}
+			} else {
+				logger.Debugf("[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 			}
 		}
 
@@ -97,14 +100,29 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 			matchedCommand = &command
 			return
 		}
+
+		if !awaitingReplyCommandFound {
+			awaitingReplyToPath := AwaitingReplyToPath(awaitingReplyTo)
+			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code) {
+				awaitingReplyCommand = command
+				switch {
+				case awaitingReplyToPath == command.Code:
+					logger.Debugf("%v matched by: awaitingReplyToPath == command.Code", command.Code)
+				case strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code):
+					logger.Debugf("%v matched by: strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code)", command.Code)
+				}
+				awaitingReplyCommandFound = true
+				continue
+			}
+		}
 		logger.Debugf("%v - not matched, matchedCommand: %v", command.Code, matchedCommand)
 	}
-	if awaitingReplyCommand.Code != "" {
+	if awaitingReplyCommandFound {
 		matchedCommand = &awaitingReplyCommand
-		logger.Debugf("Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand)
+		logger.Debugf("Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.Code)
 	} else {
 		matchedCommand = nil
-		logger.Debugf("Cleanin up matchedCommand: %v", matchedCommand)
+		logger.Debugf("Cleaning up matchedCommand: %v", matchedCommand)
 	}
 
 	logger.Debugf("matchedCommand: %v", matchedCommand)
@@ -156,14 +174,14 @@ func processCommandResponse(responder WebhookResponder, whc WebhookContext, m Me
 	logger := whc.GetLogger()
 	if err == nil {
 		logger.Infof("Bot response message: %v", m)
-		err = responder.SendMessage(m)
+		err = responder.SendMessage(m, BotApiSendMessageOverResponse)
 		if err != nil {
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 	} else {
 		logger.Errorf(err.Error())
 		if whc.InputType() == WebhookInputMessage { // Todo: Try to get chat ID from user?
-			err = responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)))
+			err = responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if err != nil {
 				logger.Errorf("Failed to report to user a server error: %v", err)
 			}

@@ -46,6 +46,7 @@ func (s *GaeBotChatStore) SaveBotChat(chatId interface{}, chatEntity bots.BotCha
 }
 
 func (s *GaeBotChatStore) NewBotChatEntity(botChatId interface{}, appUserID int64, botUserID interface{}, isAccessGranted bool) bots.BotChat {
+	s.log.Debugf("NewBotChatEntity(botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botChatId, appUserID, botUserID, isAccessGranted)
 	botChat := s.newBotChatEntity()
 	botChat.SetAppUserID(appUserID)
 	botChat.SetBotUserID(botUserID)

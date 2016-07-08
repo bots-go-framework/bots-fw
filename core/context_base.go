@@ -14,6 +14,7 @@ type WebhookContextBase struct {
 
 	AppContext AppContext
 	BotContext BotContext
+	botPlatform BotPlatform
 	WebhookInput
 
 	locale Locale
@@ -29,16 +30,21 @@ type WebhookContextBase struct {
 	BotCoreStores
 }
 
-func NewWebhookContextBase(r *http.Request, appContext AppContext, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
+func NewWebhookContextBase(r *http.Request, appContext AppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
 	whcb := WebhookContextBase{
 		r:             r,
 		AppContext:    appContext,
+		botPlatform:   botPlatform,
 		BotContext:    botContext,
 		WebhookInput:  webhookInput,
 		BotCoreStores: botCoreStores,
 	}
 	whcb.Translator = appContext.GetTranslator(whcb.GetLogger())
 	return &whcb
+}
+
+func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
+	return whcb.botPlatform
 }
 
 func (whcb *WebhookContextBase) GetLogger() Logger {
@@ -95,11 +101,12 @@ func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) 
 }
 
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
+	logger := whcb.GetLogger()
+	logger.Debugf("GetOrCreateBotUserEntityBase()")
 	botUser, err := whcb.GetBotUserById(whcb.GetSender().GetID())
 	if err != nil {
 		return nil, err
 	}
-	logger := whcb.GetLogger()
 	if botUser == nil {
 		logger.Infof("Bot user entity not found, creating a new one...")
 		botUser, err = whcb.CreateBotUser(whcb.GetSender())

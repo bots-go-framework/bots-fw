@@ -25,6 +25,12 @@ func (iq TelegramWebhookCallbackQuery) GetID() interface{} {
 	return iq.updateID
 }
 
+func (iq TelegramWebhookCallbackQuery) Chat() bots.WebhookChat {
+	return TelegramWebhookChat{
+		chat: iq.callbackQuery.Message.Chat,
+	}
+}
+
 func (iq TelegramWebhookCallbackQuery) Sequence() int {
 	return iq.updateID
 }

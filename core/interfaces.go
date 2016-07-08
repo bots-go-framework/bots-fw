@@ -10,6 +10,10 @@ type BotPlatform interface {
 	Version() string
 }
 
+func UtmSource(p BotPlatform) string {
+	return "bot-" + p.Id()
+}
+
 type Logger interface {
 	Debugf(format string, args ...interface{})
 	Infof(format string, args ...interface{})
@@ -52,12 +56,14 @@ const (
 	WebhookInputPostback
 	WebhookInputDelivery
 	WebhookInputAttachment
+	//WebhookInputContact
 	WebhookInputInlineQuery // Telegram only?
 	WebhookInputCallbackQuery
 	WebhookInputChosenInlineResult // Telegram only?
 )
 
 var WebhookInputTypeNames = map[WebhookInputType]string{
+	//WebhookInputContact:				  "Contact",
 	WebhookInputUnknown:            "unknown",
 	WebhookInputMessage:            "Message",
 	WebhookInputPostback:           "Postback",
@@ -74,6 +80,7 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 	GetTime() time.Time
 
 	InputType() WebhookInputType
+
 	InputMessage() WebhookMessage
 	InputPostback() WebhookPostback
 	InputDelivery() WebhookDelivery
@@ -87,6 +94,7 @@ type WebhookActor interface {
 	GetFirstName() string
 	GetLastName() string
 	GetUserName() string
+	Platform() string
 }
 
 type WebhookSender interface {
@@ -103,6 +111,14 @@ type WebhookMessage interface {
 	Sequence() int // 'seq' for Facebook, '???' for Telegram
 	Text() string
 	Chat() WebhookChat
+	Contact() WebhookContact
+}
+
+type WebhookContact interface {
+	PhoneNumber() string
+	FirstName() string
+	LastName() string
+	UserID() interface{}
 }
 
 type WebhookChat interface {
@@ -142,6 +158,7 @@ type WebhookCallbackQuery interface {
 	GetFrom() WebhookSender
 	GetMessage() WebhookMessage
 	GetData() string
+	Chat() WebhookChat
 }
 
 type WebhookAttachment interface {
@@ -150,7 +167,7 @@ type WebhookAttachment interface {
 }
 
 type WebhookResponder interface {
-	SendMessage(m MessageFromBot) error
+	SendMessage(m MessageFromBot, channel BotApiSendMessageChannel) error
 }
 
 type InputMessage interface {
@@ -162,3 +179,10 @@ type BotCoreStores struct {
 	BotUserStore
 	AppUserStore
 }
+
+type BotApiSendMessageChannel string
+
+const (
+	BotApiSendMessageOverHTTPS = BotApiSendMessageChannel("https")
+	BotApiSendMessageOverResponse = BotApiSendMessageChannel("response")
+)

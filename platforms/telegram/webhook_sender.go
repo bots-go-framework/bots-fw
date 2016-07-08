@@ -26,3 +26,7 @@ func (s TelegramSender) GetLastName() string {
 func (s TelegramSender) GetUserName() string {
 	return s.tgUser.UserName
 }
+
+func (s TelegramSender) Platform() string {
+	return TelegramPlatformID
+}

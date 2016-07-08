@@ -64,7 +64,7 @@ func (e *BotChatEntity) GetAwaitingReplyTo() string {
 }
 
 func (e *BotChatEntity) SetAwaitingReplyTo(value string) {
-	e.AwaitingReplyTo = value
+	e.AwaitingReplyTo = strings.TrimLeft(value, "/")
 }
 
 func (e *BotChatEntity) GetPreferredLanguage() string {
@@ -77,7 +77,9 @@ func (e *BotChatEntity) SetPreferredLanguage(value string) {
 
 func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger Logger) bool {
 	awaitingReplyToPath := e.getAwaitingReplyToPath()
-	logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
+	if logger != nil {
+		logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
+	}
 	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+code)
 }
 
@@ -89,27 +91,61 @@ func (e *BotChatEntity) getAwaitingReplyToPath() string {
 	return e.AwaitingReplyTo
 }
 
-func (e *BotChatEntity) AddStepToAwaitingReplyTo(step string) {
+func (e *BotChatEntity) PopStepsFromAwaitingReplyToUpTo(step string, logger Logger) {
+	logger.Infof("PopStepsFromAwaitingReplyToUpTo(%v)", step)
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
-	if len(pathAndQuery) > 1 {
-		path := pathAndQuery[0]
-		suffix := AWAITING_REPLY_TO_PATH_SEPARATOR + step
-		if !strings.HasSuffix(path, suffix) {
-			e.SetAwaitingReplyTo(fmt.Sprintf("%v%v?%v", path, suffix, pathAndQuery[1]))
+	path := pathAndQuery[0]
+	logger.Infof("path: %v", path)
+	steps := strings.Split(path, AWAITING_REPLY_TO_PATH_SEPARATOR)
+	for i := len(steps)-1; i >= 0; i-- {
+		if steps[i] == step {
+			logger.Infof("steps[%v] == [%v]", i, step)
+			if i < len(steps)-1 {
+				path = strings.Join(steps[:i+1], AWAITING_REPLY_TO_PATH_SEPARATOR)
+				logger.Infof("path: %v", path)
+				if len(pathAndQuery) > 1 {
+					query := pathAndQuery[1]
+					e.SetAwaitingReplyTo(path + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + query)
+				} else {
+					e.SetAwaitingReplyTo(path)
+				}
+			}
+			steps = steps[:i]
+			break
+		} else {
+			logger.Infof("steps[%v]: %v != %v:", i, steps[i], step)
 		}
-	} else {
-		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PATH_SEPARATOR + step)
 	}
 }
 
-func (e *BotChatEntity) AddWizardParam(name, value string) {
+func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger Logger) {
+	logger.Infof("PushStepToAwaitingReplyTo(%v)", step)
+	awaitingReplyTo := e.AwaitingReplyTo
+	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
+	if len(pathAndQuery) > 1 { // Has query part - something after "?" character
+		if !e.IsAwaitingReplyTo(step, logger) {
+			path := pathAndQuery[0]
+			query := pathAndQuery[1]
+			awaitingReplyTo = strings.Join([]string{path, AWAITING_REPLY_TO_PATH_SEPARATOR, step, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, query}, "")
+			e.SetAwaitingReplyTo(awaitingReplyTo)
+		}
+	} else { // Has no query - no "?" character
+		if !e.IsAwaitingReplyTo(step, logger) {
+			awaitingReplyTo = awaitingReplyTo + AWAITING_REPLY_TO_PATH_SEPARATOR + step
+			e.SetAwaitingReplyTo(awaitingReplyTo)
+		}
+	}
+	logger.Infof("AwaitingReplyTo: %v", awaitingReplyTo)
+}
+
+func (e *BotChatEntity) AddWizardParam(name, value string, logger Logger) {
 	s := fmt.Sprintf("%v=%v", name, url.QueryEscape(value))
-	awaitignReplyTo := e.GetAwaitingReplyTo()
-	if strings.Contains(awaitignReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR) {
-		e.SetAwaitingReplyTo(awaitignReplyTo + AWAITING_REPLY_TO_PARAMS_SEPARATOR + s)
+	awaitingReplyTo := e.GetAwaitingReplyTo()
+	if strings.Contains(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR) {
+		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PARAMS_SEPARATOR + s)
 	} else {
-		e.SetAwaitingReplyTo(awaitignReplyTo + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + s)
+		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + s)
 	}
 
 }

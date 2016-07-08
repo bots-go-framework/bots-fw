@@ -41,6 +41,7 @@ func (s GaeAppUserStore) CreateAppUser(actor bots.WebhookActor) (int64, bots.App
 
 func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.AppUser, error) {
 	appUserEntity := s.newUserEntity()
+	appUserEntity.SetBotUserID(actor.Platform(), actor.GetID())
 	appUserEntity.SetNames(actor.GetFirstName(), actor.GetLastName(), actor.GetUserName())
 	key, err := nds.Put(c, s.appUserKey(0), appUserEntity)
 	return key.IntID(), appUserEntity, err

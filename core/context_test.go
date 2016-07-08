@@ -4,10 +4,85 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"time"
 )
 
 type TestWebhookContext struct {
+	*WebhookContextBase
 }
+
+func (whc TestWebhookContext) AppUserID() int64 {
+	return 0
+}
+
+func (whc TestWebhookContext) BotChatID() interface{} {
+	return nil
+}
+
+func (tc TestWebhookContext) Close() error {
+	return nil
+}
+
+func (whc TestWebhookContext) CreateBotUser(apiUser WebhookActor) (BotUser, error) {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetBotChatEntityById(botChatId interface{}) (BotChat, error) {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetBotCode() string {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetBotToken() string {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetBotUserById(botUserId interface{}) (BotUser, error) {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetRecipient() WebhookRecipient {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetSender() WebhookSender {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) GetTime() time.Time {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputChosenInlineResult() WebhookChosenInlineResult {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputCallbackQuery() WebhookCallbackQuery {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputDelivery() WebhookDelivery {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputInlineQuery() WebhookInlineQuery {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputMessage() WebhookMessage {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputPostback() WebhookPostback {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) InputType() WebhookInputType {
+	panic("Not implemented")
+}
+
 
 func (whc TestWebhookContext) MessageText() string {
 	return "test message"
@@ -33,8 +108,8 @@ func (whc TestWebhookContext) ChatKey() *datastore.Key                     { pan
 func (whc TestWebhookContext) NewChatKey(c context.Context) *datastore.Key { panic("Not implemented") }
 func (whc TestWebhookContext) ChatEntity() BotChat                         { panic("Not implemented") }
 
-func (whc TestWebhookContext) CommandTitle(title, icon string) string        { panic("Not implemented") }
-func (whc TestWebhookContext) CommandTitleNoTrans(title, icon string) string { panic("Not implemented") }
+func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
+func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
 
 func (whc TestWebhookContext) Locale() Locale               { panic("Not implemented") }
 func (whc TestWebhookContext) SetLocale(code5 string) error { panic("Not implemented") }
@@ -50,7 +125,7 @@ func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { pa
 
 func (whc TestWebhookContext) UserID() int64                                { panic("Not implemented") }
 func (whc TestWebhookContext) CurrentUserKey() *datastore.Key               { panic("Not implemented") }
-func (whc TestWebhookContext) GetAppUser() (*datastore.Key, AppUser, error) { panic("Not implemented") }
+func (whc TestWebhookContext) GetAppUser() (AppUser, error) { panic("Not implemented") }
 
 func (whc TestWebhookContext) GetLogger() Logger { panic("Not implemented") }
 

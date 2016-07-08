@@ -22,12 +22,12 @@ type Command struct {
 	Action     CommandAction
 }
 
-func (whcb *WebhookContextBase) CommandTitle(title, icon string) string {
+func (whcb *WebhookContextBase) CommandText(title, icon string) string {
 	title = whcb.Translate(title)
-	return CommandTitleNoTrans(title, icon)
+	return CommandTextNoTrans(title, icon)
 }
 
-func CommandTitleNoTrans(title, icon string) string {
+func CommandTextNoTrans(title, icon string) string {
 	if title == "" && icon != "" {
 		return icon
 	} else if title != "" && icon == "" {
@@ -59,9 +59,9 @@ func (c Command) TitleByKey(key string, whc WebhookContext) string {
 		}
 	} else {
 		if title == "" {
-			title = CommandTitleNoTrans("", c.Icon)
+			title = CommandTextNoTrans("", c.Icon)
 		} else {
-			title = whc.CommandTitle(title, c.Icon)
+			title = whc.CommandText(title, c.Icon)
 		}
 	}
 	return title

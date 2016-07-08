@@ -20,6 +20,7 @@ func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatS
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),
 			newBotChatEntity: func() bots.BotChat {
+				log.Debugf("NewGaeTelegramChatStore.newBotChatEntity()")
 				telegramChat := telegram_bot.NewTelegramChat()
 				return &telegramChat
 			},

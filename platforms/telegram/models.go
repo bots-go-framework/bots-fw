@@ -48,7 +48,12 @@ func (chat *TelegramChat) GetBotUserID() interface{} {
 func (chat *TelegramChat) SetBotUserID(id interface{}) {
 	if intId, ok := id.(int); ok {
 		chat.TelegramUserID = intId
-	} else {
-		panic(fmt.Sprintf("Expected int, got: %T", id))
+		return
 	}
+	if intId64, ok := id.(int64); ok {
+		chat.TelegramUserID = int(intId64)
+		return
+	}
+	panic(fmt.Sprintf("Expected int, got: %T", id))
+
 }

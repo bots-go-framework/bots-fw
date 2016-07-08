@@ -27,6 +27,9 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 	botUserEntity := s.newBotUserEntity(nil)
 	ctx := s.Context()
 	err := nds.Get(ctx, s.botUserKey(botUserId), botUserEntity)
+	if err == datastore.ErrNoSuchEntity {
+		return nil, nil
+	}
 	return botUserEntity, err
 }
 

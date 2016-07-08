@@ -1,6 +1,9 @@
 package bots
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Translator interface {
 	Translate(key, locale string) string
@@ -23,6 +26,10 @@ type Locale struct {
 	NativeTitle  string
 	EnglishTitle string
 	FlagIcon     string
+}
+
+func (l Locale) SiteCode() string {
+	return strings.ToLower(l.Code5)
 }
 
 func (l Locale) String() string {

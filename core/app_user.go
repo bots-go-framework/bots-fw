@@ -8,6 +8,7 @@ type AppUser interface {
 	PreferredLocale() string
 
 	SetNames(firs, last, user string)
+	SetBotUserID(platform string, id interface{})
 }
 
 type AppUserStore interface {

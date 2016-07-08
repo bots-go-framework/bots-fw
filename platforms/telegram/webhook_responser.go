@@ -17,14 +17,24 @@ type TelegramWebhookResponder struct {
 var _ bots.WebhookResponder = (*TelegramWebhookResponder)(nil)
 
 func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookContext) TelegramWebhookResponder {
-	return TelegramWebhookResponder{w: w, whc: whc}
+	responder := TelegramWebhookResponder{w: w, whc: whc}
+	whc.responder = responder
+	return responder
 }
 
-func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
+func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) error {
+	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
+		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
+	}
 	//ctx := tc.Context()
 	logger := r.whc.GetLogger()
 
 	var chattable tgbotapi.Chattable
+	botApi := &tgbotapi.BotAPI{
+		Token:  r.whc.BotContext.BotSettings.Token,
+		Debug:  true,
+		Client: r.whc.GetHttpClient(),
+	}
 	if m.TelegramInlineAnswer != nil {
 		logger.Debugf("Inline answer")
 		chattable = m.TelegramInlineAnswer
@@ -42,11 +52,6 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
 		}
 
-		botApi := &tgbotapi.BotAPI{
-			Token:  r.whc.BotContext.BotSettings.Token,
-			Debug:  true,
-			Client: r.whc.GetHttpClient(),
-		}
 		apiResponse, err := botApi.AnswerInlineQuery(inlineAnswer)
 
 		if err != nil {
@@ -75,9 +80,19 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot) error {
 		} else {
 			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, jsonStr)
 		}
-		s, err := tgbotapi.ReplyToResponse(chattable, r.w)
-		logger.Debugf("Sent to response: %v", s)
-		return err
+		switch channel {
+		case bots.BotApiSendMessageOverResponse:
+			s, err := tgbotapi.ReplyToResponse(chattable, r.w)
+			logger.Debugf("Sent to response: %v", s)
+			return err
+		case bots.BotApiSendMessageOverHTTPS:
+			if _, err := botApi.Send(chattable); err != nil {
+				logger.Errorf("Failed to send message to Telegram using HTTPS API: %v, %v", err)
+			}
+			return err
+		}
+	} else {
+		logger.Warningf("Not inline and text is empty.")
 	}
 	return nil
 }

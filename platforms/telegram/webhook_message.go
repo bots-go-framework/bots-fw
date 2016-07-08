@@ -26,6 +26,13 @@ func (whm TelegramWebhookMessage) Chat() bots.WebhookChat {
 	}
 }
 
+func (whm TelegramWebhookMessage) Contact() bots.WebhookContact {
+	if whm.message.Contact != nil {
+		return NewTelegramWebhookContact(whm.message.Contact)
+	}
+	return nil
+}
+
 func (whm TelegramWebhookMessage) StringID() string {
 	return ""
 }

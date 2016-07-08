@@ -18,10 +18,11 @@ type BotChat interface {
 	SetDtUpdatedToNow()
 
 	GetAwaitingReplyTo() string
-	SetAwaitingReplyTo(string)
+	SetAwaitingReplyTo(path string)
 	IsAwaitingReplyTo(code string, logger Logger) bool
-	AddWizardParam(name, value string)
-	AddStepToAwaitingReplyTo(code string)
+	AddWizardParam(name, value string, logger Logger)
+	PopStepsFromAwaitingReplyToUpTo(code string, logger Logger)
+	PushStepToAwaitingReplyTo(code string, logger Logger)
 }
 
 type BotChatStore interface {
