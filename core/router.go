@@ -4,15 +4,19 @@ import (
 	"fmt"
 	//"net/http"
 	"strings"
+	"github.com/astec/go-ogle-analytics"
+	"strconv"
 )
 
 type WebhooksRouter struct {
+	GaTrackingID string
 	commandsByType map[WebhookInputType][]Command
 	commandsByCode map[string]Command
 }
 
-func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
+func NewWebhookRouter(gaTrackingID string, commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
 	r := &WebhooksRouter{
+		GaTrackingID: gaTrackingID,
 		commandsByType: commandsByType,
 		commandsByCode: make(map[string]Command, len(commandsByType)),
 	}
@@ -52,7 +56,7 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	messageTextLowerCase := strings.ToLower(messageText)
 
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
-	logger.Debugf("awaitingReplyTo: %v", awaitingReplyTo)
+	//logger.Debugf("awaitingReplyTo: %v", awaitingReplyTo)
 
 	var awaitingReplyCommandFound bool
 
@@ -62,8 +66,8 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 			awaitingReplyPrefix := strings.TrimLeft(parentPath + AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
-				logger.Debugf("[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
-				logger.Debugf("awaitingReplyCommand: %v", command.Code)
+				//logger.Debugf("[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+				//logger.Debugf("awaitingReplyCommand: %v", command.Code)
 				if matchedCommand = r.matchCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					logger.Debugf("%v matched my command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
@@ -82,7 +86,7 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 		}
 
 		if command.DefaultTitle(whc) == messageText {
-			logger.Debugf("%v matched my command.Title()", command.Code)
+			logger.Debugf("%v matched my command.FullName()", command.Code)
 			matchedCommand = &command
 			return
 		} else {
@@ -158,11 +162,11 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 			}
 			logger.Infof("No command found for the message: %v", whc.MessageText())
-			processCommandResponse(responder, whc, m, nil)
+			processCommandResponse(r.GaTrackingID, matchedCommand, responder, whc, m, nil)
 		} else {
 			logger.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 			m, err := matchedCommand.Action(whc)
-			processCommandResponse(responder, whc, m, err)
+			processCommandResponse(r.GaTrackingID, matchedCommand, responder, whc, m, err)
 			return
 		}
 	} else {
@@ -170,20 +174,54 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 	}
 }
 
-func processCommandResponse(responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	logger := whc.GetLogger()
+	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
+	gam.ClientID(strconv.FormatInt(whc.AppUserIntID(), 10))
+	if gaErr != nil {
+		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
+		panic(err)
+	}
 	if err == nil {
 		logger.Infof("Bot response message: %v", m)
 		err = responder.SendMessage(m, BotApiSendMessageOverResponse)
 		if err != nil {
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
+		if matchedCommand != nil {
+			if gam != nil {
+				chatEntity := whc.ChatEntity()
+				if chatEntity != nil {
+					path := chatEntity.GetAwaitingReplyTo()
+					if path == "" {
+						path = matchedCommand.Code
+					}
+					gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", path, matchedCommand.Title))
+					if gaErr != nil {
+						logger.Warningf("Failed to send page view to GA: %v", gaErr)
+					}
+				} else {
+					gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", WebhookInputTypeNames[whc.InputType()], matchedCommand.Title))
+					if gaErr != nil {
+						logger.Warningf("Failed to send page view to GA: %v", gaErr)
+					}
+				}
+			}
+		}
 	} else {
 		logger.Errorf(err.Error())
-		if whc.InputType() == WebhookInputMessage { // Todo: Try to get chat ID from user?
-			err = responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
+		if whc.InputType() == WebhookInputMessage {
+			// Todo: Try to get chat ID from user?
+			respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
+			if respErr != nil {
+				logger.Errorf("Failed to report to user a server error: %v", respErr)
+			}
+		}
+		if gam != nil {
+			exceptionMessage := ga.NewException(err.Error(), false)
+			gaErr = gam.Send(exceptionMessage)
 			if err != nil {
-				logger.Errorf("Failed to report to user a server error: %v", err)
+				logger.Warningf("Failed to send page view to GA: %v", gaErr)
 			}
 		}
 	}

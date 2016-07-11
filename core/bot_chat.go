@@ -3,8 +3,8 @@ package bots
 import "io"
 
 type BotChat interface {
-	GetAppUserID() int64
-	SetAppUserID(id int64)
+	GetAppUserIntID() int64
+	SetAppUserIntID(id int64)
 
 	GetBotUserID() interface{}
 	SetBotUserID(id interface{})

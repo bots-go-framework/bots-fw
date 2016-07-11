@@ -45,7 +45,7 @@ package gae_host
 //				log.Errorf(ctx, "Failed to create new User: %v", err)
 //				return err
 //			}
-//			telegramUser.AppUserID = userKey.IntID()
+//			telegramUser.AppUserIntID = userKey.IntID()
 //			_, err = nds.Put(ctx, whc.TelegramUserKey(ctx), telegramUser)
 //			if err != nil {
 //				log.Errorf(ctx, "Failed to create new TelegramUser: %v", err)

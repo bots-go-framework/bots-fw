@@ -15,7 +15,7 @@ func (wh TelegramWebhookChat) GetID() interface{} {
 	return wh.chat.ID
 }
 
-func (wh TelegramWebhookChat) GetTitle() string {
+func (wh TelegramWebhookChat) GetFullName() string {
 	return wh.chat.Type
 }
 

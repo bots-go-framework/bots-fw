@@ -82,8 +82,8 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		}
 		switch channel {
 		case bots.BotApiSendMessageOverResponse:
-			s, err := tgbotapi.ReplyToResponse(chattable, r.w)
-			logger.Debugf("Sent to response: %v", s)
+			_, err := tgbotapi.ReplyToResponse(chattable, r.w)
+			//logger.Debugf("Sent to response: %v", s)
 			return err
 		case bots.BotApiSendMessageOverHTTPS:
 			if _, err := botApi.Send(chattable); err != nil {

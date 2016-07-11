@@ -59,12 +59,20 @@ func (whcb *WebhookContextBase) GetBotToken() string {
 	return whcb.BotContext.BotSettings.Token
 }
 
-func (whcb *WebhookContextBase) Translate(key string) string {
-	return whcb.Translator.Translate(key, whcb.Locale().Code5)
+func (whcb *WebhookContextBase) Translate(key string, args ...interface{}) string {
+	s := whcb.Translator.Translate(key, whcb.Locale().Code5)
+	if len(args) > 0 {
+		s = fmt.Sprintf(s, args...)
+	}
+	return s
 }
 
-func (whcb *WebhookContextBase) TranslateNoWarning(key string) string {
-	return whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5)
+func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface{}) string {
+	s := whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5)
+	if len(args) > 0 {
+		s = fmt.Sprintf(s, args...)
+	}
+	return s
 }
 
 func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
@@ -76,7 +84,7 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 }
 
 func (whcb *WebhookContextBase) GetAppUser() (AppUser, error) {
-	appUserID := whcb.chatEntity.GetAppUserID()
+	appUserID := whcb.chatEntity.GetAppUserIntID()
 	appUser := whcb.AppContext.NewAppUserEntity()
 	err := whcb.AppUserStore.GetAppUserByID(appUserID, appUser)
 	return appUser, err
@@ -140,7 +148,7 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 		if err != nil {
 			return err
 		}
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 	default:
 		return err
 	}

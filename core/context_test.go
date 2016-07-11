@@ -5,13 +5,14 @@ import (
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 type TestWebhookContext struct {
 	*WebhookContextBase
 }
 
-func (whc TestWebhookContext) AppUserID() int64 {
+func (whc TestWebhookContext) AppUserIntID() int64 {
 	return 0
 }
 
@@ -92,7 +93,10 @@ func (whc TestWebhookContext) Translate(key string) string {
 	return key
 }
 
-func (whc TestWebhookContext) TranslateNoWarning(key string) string {
+func (whc TestWebhookContext) TranslateNoWarning(key string, args ...interface{}) string {
+	if len(args) > 0 {
+		return fmt.Sprintf(key, args...)
+	}
 	return key
 }
 

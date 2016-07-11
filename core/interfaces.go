@@ -123,7 +123,7 @@ type WebhookContact interface {
 
 type WebhookChat interface {
 	GetID() interface{}
-	GetTitle() string
+	GetFullName() string
 	GetType() string
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"github.com/astec/go-ogle-analytics"
 )
 
 // The driver is doing initial request & final response processing
@@ -46,6 +47,12 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if recovered := recover(); recovered != nil {
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
 			logger.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
+			gam, gaErr := ga.NewClientWithHttpClient(d.router.GaTrackingID, botContext.BotHost.GetHttpClient(r))
+			if gaErr == nil {
+				gaErr = gam.Send(ga.NewException(messageText, true))
+			} else {
+				logger.Errorf("Failed to send exception details to GA: %v", gaErr)
+			}
 			//whc.ReplyByBot(whc.NewMessage("\xF0\x9F\x9A\xA8 " + messageText))
 		}
 	}()

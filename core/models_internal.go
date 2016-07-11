@@ -8,17 +8,17 @@ import (
 )
 
 type OwnedByUser struct {
-	AppUserID int64 // TODO: Rename to AppUserID?
+	AppUserIntID int64 // TODO: Rename to AppUserIntID?
 	DtCreated time.Time
 	DtUpdated time.Time
 }
 
-func (e *OwnedByUser) GetAppUserID() int64 {
-	return e.AppUserID
+func (e *OwnedByUser) GetAppUserIntID() int64 {
+	return e.AppUserIntID
 }
 
-func (e *OwnedByUser) SetAppUserID(appUserID int64) {
-	e.AppUserID = appUserID
+func (e *OwnedByUser) SetAppUserIntID(appUserID int64) {
+	e.AppUserIntID = appUserID
 }
 
 func (whc *OwnedByUser) SetDtUpdatedToNow() {

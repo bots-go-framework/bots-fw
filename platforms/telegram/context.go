@@ -10,6 +10,8 @@ import (
 	"strings"
 	"net/url"
 	"strconv"
+	"github.com/qedus/nds"
+	"google.golang.org/appengine/datastore"
 )
 
 type TelegramWebhookContext struct {
@@ -76,22 +78,33 @@ func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
 	return botApi
 }
 
-func (whc *TelegramWebhookContext) AppUserID() (appUserID int64) {
+func (whc *TelegramWebhookContext) AppUserIntID() (appUserID int64) {
 	inputType := whc.InputType()
 	switch inputType {
 	case bots.WebhookInputMessage:
-		return whc.ChatEntity().GetAppUserID()
+		return whc.ChatEntity().GetAppUserIntID()
 	case bots.WebhookInputChosenInlineResult:
 		botUser, err := whc.GetOrCreateBotUserEntityBase()
 		if err != nil {
 			panic("Failed to get bot user entity")
 		}
-		return botUser.GetAppUserID()
+		appUserID = botUser.GetAppUserIntID()
 	case bots.WebhookInputCallbackQuery:
-		return whc.ChatEntity().GetAppUserID()
+		appUserID = whc.ChatEntity().GetAppUserIntID()
+	case bots.WebhookInputInlineQuery: // TODO: This suck - need to be moved out of core! Have no time at the moment :(
+		tgUserID := int64(whc.getTelegramSenderID())
+		c := whc.Context()
+		var tgUser TelegramUser
+		err := nds.Get(c, datastore.NewKey(c, TelegramUserKind, "", tgUserID, nil), &tgUser)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to get TelegramUser: %v. TODO: Create user if no such entity.", err.Error()))
+		}
+		appUserID = tgUser.AppUserIntID
 	default:
 		panic(fmt.Sprintf("Not implemented for inptut type: %v=%v", inputType, bots.WebhookInputTypeNames[inputType]))
 	}
+	whc.GetLogger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserID)
+	return
 }
 
 func (whc *TelegramWebhookContext) MessageText() string {
@@ -175,7 +188,7 @@ func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 	chatEntity := TelegramChat{
 		BotChatEntity: bots.BotChatEntity{
 			Type:  telegramChat.GetType(),
-			Title: telegramChat.GetTitle(),
+			Title: telegramChat.GetFullName(),
 		},
 		TelegramUserID: whc.getTelegramSenderID(),
 	}

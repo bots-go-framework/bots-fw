@@ -1,9 +1,9 @@
 package bots
 
-//type AppUserID int64
+//type AppUserIntID int64
 
 type AppUser interface {
-	//GetAppUserID() int64
+	//GetAppUserIntID() int64
 	SetPreferredLocale(code5 string) error
 	PreferredLocale() string
 

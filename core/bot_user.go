@@ -1,9 +1,9 @@
 package bots
 
 type BotUser interface {
-	GetAppUserID() int64
+	GetAppUserIntID() int64
 	IsAccessGranted() bool
-	SetAppUserID(appUserID int64)
+	SetAppUserIntID(appUserID int64)
 	SetDtUpdatedToNow()
 }
 

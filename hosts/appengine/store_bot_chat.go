@@ -29,7 +29,7 @@ func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotC
 	botChatEntity := s.newBotChatEntity()
 	err := nds.Get(s.Context(), s.botChatKey(botChatId), botChatEntity)
 	if err != nil {
-		s.log.Errorf("Failed to get bot chat entity by ID: %v - %T(%v)", botChatId, err, err)
+		s.log.Infof("Failed to get bot chat entity by ID: %v - %T(%v)", botChatId, err, err)
 		if err == datastore.ErrNoSuchEntity {
 			return nil, bots.ErrEntityNotFound
 		}
@@ -41,6 +41,7 @@ func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotC
 
 func (s *GaeBotChatStore) SaveBotChat(chatId interface{}, chatEntity bots.BotChat) error { // Former SaveBotChatEntity
 	s.validateBotChatEntityType(chatEntity)
+	chatEntity.SetDtUpdatedToNow()
 	_, err := nds.Put(s.Context(), s.botChatKey(chatId), chatEntity)
 	return err
 }
@@ -48,7 +49,7 @@ func (s *GaeBotChatStore) SaveBotChat(chatId interface{}, chatEntity bots.BotCha
 func (s *GaeBotChatStore) NewBotChatEntity(botChatId interface{}, appUserID int64, botUserID interface{}, isAccessGranted bool) bots.BotChat {
 	s.log.Debugf("NewBotChatEntity(botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botChatId, appUserID, botUserID, isAccessGranted)
 	botChat := s.newBotChatEntity()
-	botChat.SetAppUserID(appUserID)
+	botChat.SetAppUserIntID(appUserID)
 	botChat.SetBotUserID(botUserID)
 	botChat.SetAccessGranted(isAccessGranted)
 	s.botChats[botChatId] = botChat

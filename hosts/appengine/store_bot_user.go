@@ -54,7 +54,7 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 			if err != nil {
 				return err
 			}
-			botUserEntity.SetAppUserID(appUserId)
+			botUserEntity.SetAppUserIntID(appUserId)
 			botUserEntity.SetDtUpdatedToNow()
 			nds.Put(ctx, botUserKey, botUserEntity)
 		} else if err != nil {

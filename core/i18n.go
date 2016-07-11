@@ -6,14 +6,14 @@ import (
 )
 
 type Translator interface {
-	Translate(key, locale string) string
-	TranslateNoWarning(key, locale string) string
+	Translate(key, locale string, args ...interface{}) string
+	TranslateNoWarning(key, locale string, args ...interface{}) string
 }
 
 type SingleLocaleTranslator interface {
 	Locale() Locale
-	Translate(key string) string
-	TranslateNoWarning(key string) string
+	Translate(key string, args ...interface{}) string
+	TranslateNoWarning(key string, args ...interface{}) string
 }
 
 type LocalesProvider interface {
@@ -29,7 +29,11 @@ type Locale struct {
 }
 
 func (l Locale) SiteCode() string {
-	return strings.ToLower(l.Code5)
+	s := strings.ToLower(l.Code5)
+	if s[:2] == s[3:] {
+		return s[:2]
+	}
+	return s
 }
 
 func (l Locale) String() string {

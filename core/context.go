@@ -34,7 +34,7 @@ type WebhookContext interface {
 	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error
 
-	AppUserID() int64
+	AppUserIntID() int64
 	GetAppUser() (AppUser, error)
 	SaveAppUser(appUserID int64, appUserEntity AppUser) error
 
