@@ -64,6 +64,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 	} else if m.Text != "" {
 		logger.Debugf("Not inline answer")
 		messageConfig := r.whc.NewTgMessage(m.Text)
+		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
 		switch m.Format {
 		case bots.MessageFormatHTML:
 			messageConfig.ParseMode = "HTML"
