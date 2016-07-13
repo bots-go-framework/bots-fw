@@ -11,7 +11,7 @@ type BotPlatform interface {
 }
 
 func UtmSource(p BotPlatform) string {
-	return "bot-" + p.Id()
+	return p.Id()
 }
 
 type Logger interface {
