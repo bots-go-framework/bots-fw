@@ -177,6 +177,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	logger := whc.GetLogger()
 	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
+	//gam.GeographicalOverride()
 	gam.ClientID(strconv.FormatInt(whc.AppUserIntID(), 10))
 	if gaErr != nil {
 		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
@@ -196,15 +197,20 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 					if path == "" {
 						path = matchedCommand.Code
 					}
-					gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", path, matchedCommand.Title))
-					if gaErr != nil {
-						logger.Warningf("Failed to send page view to GA: %v", gaErr)
-					}
+					go func() {
+						gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", path, matchedCommand.Title))
+						if gaErr != nil {
+							logger.Warningf("Failed to send page view to GA: %v", gaErr)
+						}
+					}()
 				} else {
-					gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", WebhookInputTypeNames[whc.InputType()], matchedCommand.Title))
-					if gaErr != nil {
-						logger.Warningf("Failed to send page view to GA: %v", gaErr)
-					}
+					go func() {
+						pageview := ga.NewPageview("telegram.debtstracker.io", WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
+						gaErr = gam.Send(pageview)
+						if gaErr != nil {
+							logger.Warningf("Failed to send page view to GA: %v", gaErr)
+						}
+					}()
 				}
 			}
 		}
@@ -219,10 +225,12 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 		}
 		if gam != nil {
 			exceptionMessage := ga.NewException(err.Error(), false)
-			gaErr = gam.Send(exceptionMessage)
-			if err != nil {
-				logger.Warningf("Failed to send page view to GA: %v", gaErr)
-			}
+			go func(){
+				gaErr = gam.Send(exceptionMessage)
+				if err != nil {
+					logger.Warningf("Failed to send page view to GA: %v", gaErr)
+				}
+			}()
 		}
 	}
 }

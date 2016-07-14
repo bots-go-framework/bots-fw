@@ -49,7 +49,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			logger.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
 			gam, gaErr := ga.NewClientWithHttpClient(d.router.GaTrackingID, botContext.BotHost.GetHttpClient(r))
 			if gaErr == nil {
-				gaErr = gam.Send(ga.NewException(messageText, true))
+				go func(){
+					gaErr = gam.Send(ga.NewException(messageText, true))
+				}()
 			} else {
 				logger.Errorf("Failed to send exception details to GA: %v", gaErr)
 			}

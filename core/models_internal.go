@@ -91,8 +91,8 @@ func (e *BotChatEntity) getAwaitingReplyToPath() string {
 	return e.AwaitingReplyTo
 }
 
-func (e *BotChatEntity) PopStepsFromAwaitingReplyToUpTo(step string, logger Logger) {
-	logger.Infof("PopStepsFromAwaitingReplyToUpTo(%v)", step)
+func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string, logger Logger) {
+	logger.Infof("PopStepsFromAwaitingReplyUpToSpecificParent(%v)", step)
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
 	path := pathAndQuery[0]
@@ -148,4 +148,12 @@ func (e *BotChatEntity) AddWizardParam(name, value string, logger Logger) {
 		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + s)
 	}
 
+}
+
+func (e *BotChatEntity) GetWizardParam(name string) string {
+	if q, err := url.Parse(e.GetAwaitingReplyTo()); err != nil {
+		return ""
+	} else {
+		return  q.Query().Get(name)
+	}
 }

@@ -21,7 +21,8 @@ type BotChat interface {
 	SetAwaitingReplyTo(path string)
 	IsAwaitingReplyTo(code string, logger Logger) bool
 	AddWizardParam(name, value string, logger Logger)
-	PopStepsFromAwaitingReplyToUpTo(code string, logger Logger)
+	GetWizardParam(name string) string
+	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger Logger)
 	PushStepToAwaitingReplyTo(code string, logger Logger)
 }
 
