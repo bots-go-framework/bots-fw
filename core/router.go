@@ -167,7 +167,6 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 			logger.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 			m, err := matchedCommand.Action(whc)
 			processCommandResponse(r.GaTrackingID, matchedCommand, responder, whc, m, err)
-			return
 		}
 	} else {
 		logger.Infof("No commands found byt input type %v=%v", inputType, WebhookInputTypeNames[inputType])
@@ -184,9 +183,8 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 		panic(err)
 	}
 	if err == nil {
-		logger.Infof("Bot response message: %v", m)
-		err = responder.SendMessage(m, BotApiSendMessageOverResponse)
-		if err != nil {
+		logger.Infof("processCommandResponse(): Bot response message: %v", m)
+		if err = responder.SendMessage(m, BotApiSendMessageOverResponse); err != nil {
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
