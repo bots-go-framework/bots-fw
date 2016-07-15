@@ -1,7 +1,7 @@
 package line
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/bot"
+	"github.com/strongo/bots-framework/core"
 )
 
 const (
@@ -10,10 +10,10 @@ const (
 )
 
 type LineUser struct {
-	*bot.BotUserEntity
+	*bots.BotUserEntity
 }
 
 type LineChat struct {
-	*bot.BotChatEntity
+	*bots.BotChatEntity
 	LineUserID int
 }

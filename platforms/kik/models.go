@@ -1,8 +1,8 @@
 package kik
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/bot"
 )
+import "github.com/strongo/bots-framework/core"
 
 const (
 	KikChatKind = "KikChat"
@@ -10,10 +10,10 @@ const (
 )
 
 type KikUser struct {
-	*bot.BotUserEntity
+	*bots.BotUserEntity
 }
 
 type KikChat struct {
-	*bot.BotChatEntity
+	*bots.BotChatEntity
 	KikUserID int
 }
