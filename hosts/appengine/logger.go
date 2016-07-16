@@ -3,9 +3,7 @@ package gae_host
 import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-	"net/http"
 )
 
 type GaeLogger struct {
@@ -32,6 +30,6 @@ func (l GaeLogger) Criticalf(format string, args ...interface{}) {
 	log.Criticalf(l.c, format, args...)
 }
 
-func NewGaeLogger(r *http.Request) GaeLogger {
-	return GaeLogger{c: appengine.NewContext(r)}
+func NewGaeLogger(c context.Context) GaeLogger {
+	return GaeLogger{c: c}
 }

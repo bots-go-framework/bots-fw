@@ -13,7 +13,7 @@ type GaeBotHost struct {
 var _ bots.BotHost = (*GaeBotHost)(nil)
 
 func (h GaeBotHost) GetLogger(r *http.Request) bots.Logger {
-	return NewGaeLogger(r)
+	return NewGaeLogger(appengine.NewContext(r))
 }
 
 func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
