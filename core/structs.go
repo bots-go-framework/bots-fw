@@ -36,6 +36,7 @@ type MessageFromBot struct {
 	//Keyboard              Keyboard
 	TelegramKeyboard      interface{}
 	TelegramInlineAnswer  *tgbotapi.InlineConfig
+	TelegramEditMessageText *tgbotapi.EditMessageTextConfig
 	IsReplyToInputMessage bool
 }
 

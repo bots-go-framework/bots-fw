@@ -61,6 +61,8 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 			}
 		}
 		return err
+	} else if m.TelegramEditMessageText != nil {
+		chattable = m.TelegramEditMessageText
 	} else if m.Text != "" {
 		logger.Debugf("Not inline answer")
 		messageConfig := r.whc.NewTgMessage(m.Text)
@@ -74,26 +76,27 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		messageConfig.ReplyMarkup = m.TelegramKeyboard
 
 		chattable = messageConfig
-
-		jsonStr, err := json.Marshal(chattable)
-		if err == nil {
-			logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
-		} else {
-			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, jsonStr)
-		}
-		switch channel {
-		case bots.BotApiSendMessageOverResponse:
-			_, err := tgbotapi.ReplyToResponse(chattable, r.w)
-			//logger.Debugf("Sent to response: %v", s)
-			return err
-		case bots.BotApiSendMessageOverHTTPS:
-			if _, err := botApi.Send(chattable); err != nil {
-				logger.Errorf("Failed to send message to Telegram using HTTPS API: %v, %v", err)
-			}
-			return err
-		}
 	} else {
 		logger.Warningf("Not inline and text is empty.")
 	}
-	return nil
+	jsonStr, err := json.Marshal(chattable)
+	if err == nil {
+		logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
+	} else {
+		logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, jsonStr)
+	}
+	switch channel {
+	case bots.BotApiSendMessageOverResponse:
+		_, err := tgbotapi.ReplyToResponse(chattable, r.w)
+		//logger.Debugf("Sent to response: %v", s)
+		return err
+	case bots.BotApiSendMessageOverHTTPS:
+		if _, err := botApi.Send(chattable); err != nil {
+			logger.Errorf("Failed to send message to Telegram using HTTPS API: %v, %v", err)
+			return err
+		}
+		return nil
+	default:
+		panic(fmt.Sprintf("Unknown channel: %v", channel))
+	}
 }
