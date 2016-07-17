@@ -190,20 +190,22 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 		if matchedCommand != nil {
 			if gam != nil {
 				chatEntity := whc.ChatEntity()
+				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
+				pathPrefix := "bot/"
 				if chatEntity != nil {
 					path := chatEntity.GetAwaitingReplyTo()
 					if path == "" {
 						path = matchedCommand.Code
 					}
 					go func() {
-						gaErr = gam.Send(ga.NewPageview("telegram.debtstracker.io", path, matchedCommand.Title))
+						gaErr = gam.Send(ga.NewPageview(gaHostName, pathPrefix + path, matchedCommand.Title))
 						if gaErr != nil {
 							logger.Warningf("Failed to send page view to GA: %v", gaErr)
 						}
 					}()
 				} else {
 					go func() {
-						pageview := ga.NewPageview("telegram.debtstracker.io", WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
+						pageview := ga.NewPageview(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 						gaErr = gam.Send(pageview)
 						if gaErr != nil {
 							logger.Warningf("Failed to send page view to GA: %v", gaErr)
