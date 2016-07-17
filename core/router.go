@@ -184,7 +184,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 	}
 	if err == nil {
 		logger.Infof("processCommandResponse(): Bot response message: %v", m)
-		if err = responder.SendMessage(m, BotApiSendMessageOverResponse); err != nil {
+		if _, err = responder.SendMessage(m, BotApiSendMessageOverResponse); err != nil {
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
@@ -218,7 +218,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 		logger.Errorf(err.Error())
 		if whc.InputType() == WebhookInputMessage {
 			// Todo: Try to get chat ID from user?
-			respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
+			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if respErr != nil {
 				logger.Errorf("Failed to report to user a server error: %v", respErr)
 			}

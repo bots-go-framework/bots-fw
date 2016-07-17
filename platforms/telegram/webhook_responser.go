@@ -22,7 +22,7 @@ func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookCont
 	return responder
 }
 
-func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) error {
+func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
 	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
@@ -41,7 +41,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		inlineAnswer := *m.TelegramInlineAnswer
 		input, ok := r.whc.WebhookInput.(TelegramWebhookInput)
 		if !ok {
-			return errors.New(fmt.Sprintf("Expected TelegramWebhookInput, got %T", r.whc.WebhookInput))
+			return resp, errors.New(fmt.Sprintf("Expected TelegramWebhookInput, got %T", r.whc.WebhookInput))
 		}
 		inlineAnswer.InlineQueryID = input.update.InlineQuery.ID
 
@@ -60,7 +60,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 				logger.Debugf("apiResponse: %v", s)
 			}
 		}
-		return err
+		return resp, err
 	} else if m.TelegramEditMessageText != nil {
 		chattable = m.TelegramEditMessageText
 	} else if m.Text != "" {
@@ -89,13 +89,14 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 	case bots.BotApiSendMessageOverResponse:
 		_, err := tgbotapi.ReplyToResponse(chattable, r.w)
 		//logger.Debugf("Sent to response: %v", s)
-		return err
+		return resp, err
 	case bots.BotApiSendMessageOverHTTPS:
-		if _, err := botApi.Send(chattable); err != nil {
+		if message, err := botApi.Send(chattable); err != nil {
 			logger.Errorf("Failed to send message to Telegram using HTTPS API: %v, %v", err)
-			return err
+			return resp, err
+		} else {
+			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 		}
-		return nil
 	default:
 		panic(fmt.Sprintf("Unknown channel: %v", channel))
 	}

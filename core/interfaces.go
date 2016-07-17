@@ -3,6 +3,7 @@ package bots
 import (
 	"net/http"
 	"time"
+	"github.com/strongo/bots-api-telegram"
 )
 
 type BotPlatform interface {
@@ -166,8 +167,12 @@ type WebhookAttachment interface {
 	PayloadUrl() string // 'payload.url' for Facebook
 }
 
+type OnMessageSentResponse struct {
+	TelegramMessage tgbotapi.Message
+}
+
 type WebhookResponder interface {
-	SendMessage(m MessageFromBot, channel BotApiSendMessageChannel) error
+	SendMessage(m MessageFromBot, channel BotApiSendMessageChannel) (OnMessageSentResponse, error)
 }
 
 type InputMessage interface {
