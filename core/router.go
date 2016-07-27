@@ -61,6 +61,16 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	var awaitingReplyCommandFound bool
 
 	for _, command := range commands {
+		for _, commandName := range command.Commands {
+			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
+				logger.Debugf("command(code=%v) matched my command.commands", command.Code)
+				matchedCommand = &command
+				return
+			}
+		}
+	}
+
+	for _, command := range commands {
 
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
 			awaitingReplyPrefix := strings.TrimLeft(parentPath + AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
@@ -91,13 +101,6 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 			return
 		} else {
 			logger.Debugf("command(code=%v).Title(whc): %v", command.Code, command.DefaultTitle(whc))
-		}
-		for _, commandName := range command.Commands {
-			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
-				logger.Debugf("%v matched my command.commands", command.Code)
-				matchedCommand = &command
-				return
-			}
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
 			logger.Debugf("%v matched my command.matcher()", command.Code)

@@ -77,22 +77,25 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 
 		chattable = messageConfig
 	} else {
-		logger.Warningf("Not inline and text is empty.")
+		logger.Errorf("Not inline, Not edit inline, Text is empty.")
+		return
 	}
 	jsonStr, err := json.Marshal(chattable)
 	if err == nil {
 		logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
 	} else {
-		logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, jsonStr)
+		logger.Errorf("Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
+		return resp, err
 	}
 	switch channel {
 	case bots.BotApiSendMessageOverResponse:
-		_, err := tgbotapi.ReplyToResponse(chattable, r.w)
-		//logger.Debugf("Sent to response: %v", s)
+		if _, err := tgbotapi.ReplyToResponse(chattable, r.w); err != nil {
+			logger.Errorf("Failed to send message to Telegram throw HTTP response: %v", err)
+		}
 		return resp, err
 	case bots.BotApiSendMessageOverHTTPS:
 		if message, err := botApi.Send(chattable); err != nil {
-			logger.Errorf("Failed to send message to Telegram using HTTPS API: %v, %v", err)
+			logger.Errorf("Failed to send message to Telegram using HTTPS API: %v", err)
 			return resp, err
 		} else {
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
