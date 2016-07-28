@@ -63,8 +63,12 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		return resp, err
 	} else if m.TelegramEditMessageText != nil {
 		chattable = m.TelegramEditMessageText
+	} else if m.TelegramInlineCongig != nil {
+		chattable = m.TelegramInlineCongig
 	} else if m.Text != "" {
-		logger.Debugf("Not inline answer")
+		if m.Text == bots.NoMessageToSend {
+			return
+		}
 		messageConfig := r.whc.NewTgMessage(m.Text)
 		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
 		switch m.Format {
@@ -77,7 +81,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 
 		chattable = messageConfig
 	} else {
-		logger.Errorf("Not inline, Not edit inline, Text is empty.")
+		logger.Errorf("Not inline answer, Not inline, Not edit inline, Text is empty.")
 		return
 	}
 	jsonStr, err := json.Marshal(chattable)

@@ -3,6 +3,7 @@ package bots
 type BotUser interface {
 	GetAppUserIntID() int64
 	IsAccessGranted() bool
+	SetAccessGranted(value bool)
 	SetAppUserIntID(appUserID int64)
 	SetDtUpdatedToNow()
 }

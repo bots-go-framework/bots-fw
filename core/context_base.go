@@ -83,13 +83,6 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
 }
 
-func (whcb *WebhookContextBase) GetAppUser() (AppUser, error) {
-	appUserID := whcb.chatEntity.GetAppUserIntID()
-	appUser := whcb.AppContext.NewAppUserEntity()
-	err := whcb.AppUserStore.GetAppUserByID(appUserID, appUser)
-	return appUser, err
-}
-
 func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity AppUser) error {
 	return whcb.AppUserStore.SaveAppUser(appUserID, appUserEntity)
 }

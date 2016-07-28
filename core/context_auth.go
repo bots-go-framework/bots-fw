@@ -9,19 +9,28 @@ func IsAccessGranted(whc WebhookContext) bool {
 	return whc.ChatEntity().IsAccessGranted()
 }
 
-func SetAccessGranted(whc WebhookContext, value bool) error {
+func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	ctx := whc.Context()
 	chatEntity := whc.ChatEntity()
-	if chatEntity.IsAccessGranted() == value {
-		log.Infof(ctx, "No need to change chatEntity.AccessGranted, as already is: %v", value)
-	} else {
-		chatEntity.SetAccessGranted(value)
-		if err := whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil {
-			return err
+	if chatEntity != nil {
+		if chatEntity.IsAccessGranted() == value {
+			log.Infof(ctx, "No need to change chatEntity.AccessGranted, as already is: %v", value)
+		} else {
+			chatEntity.SetAccessGranted(value)
+			if err := whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil {
+				return err
+			}
 		}
 	}
+
+	botUserID := whc.GetSender().GetID()
+	if botUser, err := whc.GetBotUserById(botUserID); err != nil {
+		return err
+	} else {
+		botUser.SetAccessGranted(value)
+		return whc.SaveBotUser(botUserID, botUser)
+	}
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
-	return nil
 }
 
 //func SetAccessGrantedForAllUserChats(whc *WebhookContextBase, botUserKey *datastore.Key, value bool) error {

@@ -76,19 +76,26 @@ func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
 	return botApi
 }
 
-func (whc *TelegramWebhookContext) AppUserIntID() (appUserID int64) {
+func (whc *TelegramWebhookContext) AppUserIntID() (appUserIntID int64) {
 	if chatEntity := whc.ChatEntity(); chatEntity != nil {
-		appUserID = chatEntity.GetAppUserIntID()
+		appUserIntID = chatEntity.GetAppUserIntID()
 	}
-	if appUserID == 0 {
+	if appUserIntID == 0 {
 		botUser, err := whc.GetOrCreateBotUserEntityBase()
 		if err != nil {
 			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
 		}
-		appUserID = botUser.GetAppUserIntID()
+		appUserIntID = botUser.GetAppUserIntID()
 	}
-	whc.GetLogger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserID)
+	whc.GetLogger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserIntID)
 	return
+}
+
+func (whc *TelegramWebhookContext) GetAppUser() (bots.AppUser, error) {
+	appUserID := whc.AppUserIntID()
+	appUser := whc.AppContext.NewAppUserEntity()
+	err := whc.AppUserStore.GetAppUserByID(appUserID, appUser)
+	return appUser, err
 }
 
 func (whc *TelegramWebhookContext) MessageText() string {

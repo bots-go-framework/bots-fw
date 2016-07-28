@@ -29,6 +29,8 @@ const (
 	MessageFormatMarkdown
 )
 
+const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
+
 type MessageFromBot struct {
 	Text                  string
 	Format                MessageFormat
@@ -37,6 +39,7 @@ type MessageFromBot struct {
 	TelegramKeyboard      interface{}
 	TelegramInlineAnswer  *tgbotapi.InlineConfig
 	TelegramEditMessageText *tgbotapi.EditMessageTextConfig
+	TelegramInlineCongig *tgbotapi.InlineConfig
 	IsReplyToInputMessage bool
 }
 
