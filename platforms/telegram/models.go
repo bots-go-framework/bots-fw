@@ -13,7 +13,7 @@ const (
 
 type TelegramUser struct {
 	bots.BotUserEntity
-	TgChatID int64
+	//TgChatID int64
 }
 
 var _ bots.BotUser = (*TelegramUser)(nil)
@@ -23,6 +23,10 @@ type TelegramChat struct {
 	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
 	DtLastInteraction time.Time
+}
+
+func (tgChat *TelegramChat) SetDtLastInteractionToNow() {
+	tgChat.DtLastInteraction = time.Now()
 }
 
 var _ bots.BotChat = (*TelegramChat)(nil)

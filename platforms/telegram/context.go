@@ -10,8 +10,6 @@ import (
 	"strings"
 	"net/url"
 	"strconv"
-	"github.com/qedus/nds"
-	"google.golang.org/appengine/datastore"
 )
 
 type TelegramWebhookContext struct {
@@ -79,29 +77,15 @@ func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
 }
 
 func (whc *TelegramWebhookContext) AppUserIntID() (appUserID int64) {
-	inputType := whc.InputType()
-	switch inputType {
-	case bots.WebhookInputMessage:
-		return whc.ChatEntity().GetAppUserIntID()
-	case bots.WebhookInputChosenInlineResult:
+	if chatEntity := whc.ChatEntity(); chatEntity != nil {
+		appUserID = chatEntity.GetAppUserIntID()
+	}
+	if appUserID == 0 {
 		botUser, err := whc.GetOrCreateBotUserEntityBase()
 		if err != nil {
-			panic("Failed to get bot user entity")
+			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
 		}
 		appUserID = botUser.GetAppUserIntID()
-	case bots.WebhookInputCallbackQuery:
-		appUserID = whc.ChatEntity().GetAppUserIntID()
-	case bots.WebhookInputInlineQuery: // TODO: This suck - need to be moved out of core! Have no time at the moment :(
-		tgUserID := int64(whc.getTelegramSenderID())
-		c := whc.Context()
-		var tgUser TelegramUser
-		err := nds.Get(c, datastore.NewKey(c, TelegramUserKind, "", tgUserID, nil), &tgUser)
-		if err != nil {
-			panic(fmt.Sprintf("Failed to get TelegramUser: %v. TODO: Create user if no such entity.", err.Error()))
-		}
-		appUserID = tgUser.AppUserIntID
-	default:
-		panic(fmt.Sprintf("Not implemented for inptut type: %v=%v", inputType, bots.WebhookInputTypeNames[inputType]))
 	}
 	whc.GetLogger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserID)
 	return
@@ -122,6 +106,9 @@ func (whc *TelegramWebhookContext) BotChatID() (chatId interface{}) {
 		chatId = webhookInput.InputMessage().Chat().GetID()
 	case bots.WebhookInputCallbackQuery:
 		callbackQuery := webhookInput.InputCallbackQuery()
+		if callbackQuery == nil {
+			return nil
+		}
 		chat := callbackQuery.Chat()
 		if chat != nil {
 			return chat.GetID()
@@ -204,7 +191,7 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 		//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
 		botChatID := tc.BotChatID()
 		if botChatID == nil {
-			panic("Not able to send message as BotChatID() returned nil.")
+			panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
 		}
 		if int64ID, ok := botChatID.(int64); ok {
 			return tgbotapi.NewMessage(int64ID, text)
@@ -216,7 +203,7 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 			}
 		}
 	}
-	panic(fmt.Sprintf("Expected to be called just for inputType == Message"))
+	panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", tc.InputType()))
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {

@@ -119,6 +119,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		logger.Infof("Bot user entity not found, creating a new one...")
 		botUser, err = whcb.CreateBotUser(whcb.GetSender())
 		if err != nil {
+			logger.Errorf("Failed to create bot user: %v", err)
 			return nil, err
 		}
 		logger.Infof("Bot user entity created")

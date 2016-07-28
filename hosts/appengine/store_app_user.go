@@ -6,18 +6,23 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"errors"
+	"fmt"
+	"reflect"
 )
 
 type GaeAppUserStore struct {
 	appUserEntityKind string
+	appUserEntityType reflect.Type
 	newUserEntity     func() bots.AppUser
 	GaeBaseStore
 }
 
 var _ bots.AppUserStore = (*GaeAppUserStore)(nil)
 
-func NewGaeAppUserStore(log bots.Logger, r *http.Request, appUserEntityKind string, newUserEntity func() bots.AppUser) GaeAppUserStore {
+func NewGaeAppUserStore(log bots.Logger, r *http.Request, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.AppUser) GaeAppUserStore {
 	return GaeAppUserStore{
+		appUserEntityType: appUserEntityType,
 		appUserEntityKind: appUserEntityKind,
 		newUserEntity:     newUserEntity,
 		GaeBaseStore:      NewGaeBaseStore(log, r, appUserEntityKind),
@@ -45,6 +50,24 @@ func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActo
 	appUserEntity.SetNames(actor.GetFirstName(), actor.GetLastName(), actor.GetUserName())
 	key, err := nds.Put(c, s.appUserKey(0), appUserEntity)
 	return key.IntID(), appUserEntity, err
+}
+
+func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey *datastore.Key) (int64, error) {
+	query := datastore.NewQuery(s.appUserEntityKind).Filter("TelegramUserIDs =", botUserKey.IntID()).KeysOnly().Limit(2)
+	//appUsers := reflect.MakeSlice(reflect.SliceOf(s.appUserEntityType), 0, 2)
+	keys, err := query.GetAll(c, nil)
+	if err != nil {
+		s.log.Errorf("Failed to query app users by TelegramUserIDs: %v", err)
+		return 0, err
+	}
+	switch len(keys) {
+	case 0:
+		return 0, nil
+	case 1:
+		return keys[0].IntID(), nil
+	default:
+		return 0, errors.New(fmt.Sprintf("Found few app users by %v", botUserKey))
+	}
 }
 
 func (s GaeAppUserStore) SaveAppUser(appUserId int64, appUserEntity bots.AppUser) error {

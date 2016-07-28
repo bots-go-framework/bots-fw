@@ -13,6 +13,12 @@ type TelegramWebhookMessage struct {
 var _ bots.WebhookMessage = (*TelegramWebhookMessage)(nil)
 
 func NewTelegramWebhookMessage(updateID int, message *tgbotapi.Message) TelegramWebhookMessage {
+	if updateID == 0 {
+		panic("updateID == 0")
+	}
+	if message == nil {
+		panic("message == nil")
+	}
 	return TelegramWebhookMessage{updateID: updateID, message: message}
 }
 

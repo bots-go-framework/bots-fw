@@ -46,17 +46,25 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 	botUserKey := s.botUserKey(botUserID)
 	botUserEntity := s.newBotUserEntity(apiUser)
 
-	err := datastore.RunInTransaction(s.Context(), func(ctx context.Context) error {
+	c := s.Context()
+	err := datastore.RunInTransaction(c, func(ctx context.Context) error {
 		err := nds.Get(ctx, botUserKey, botUserEntity)
 
 		if err == datastore.ErrNoSuchEntity {
-			appUserId, _, err := s.gaeAppUserStore.createAppUser(ctx, apiUser)
+			appUserId, err := s.gaeAppUserStore.getAppUserIdByBotUserKey(c, botUserKey)
 			if err != nil {
 				return err
 			}
+			if appUserId == 0 {
+				appUserId, _, err = s.gaeAppUserStore.createAppUser(ctx, apiUser)
+				if err != nil {
+					s.log.Errorf("Failed to create app user: %v", err)
+					return err
+				}
+			}
 			botUserEntity.SetAppUserIntID(appUserId)
 			botUserEntity.SetDtUpdatedToNow()
-			nds.Put(ctx, botUserKey, botUserEntity)
+			botUserKey, err = nds.Put(ctx, botUserKey, botUserEntity)
 		} else if err != nil {
 			return err
 		}

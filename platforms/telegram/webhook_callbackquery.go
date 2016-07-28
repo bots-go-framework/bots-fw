@@ -14,8 +14,14 @@ type TelegramWebhookCallbackQuery struct {
 var _ bots.WebhookCallbackQuery = (*TelegramWebhookCallbackQuery)(nil)
 
 func NewTelegramWebhookCallbackQuery(updateID int, callbackQuery *tgbotapi.CallbackQuery) TelegramWebhookCallbackQuery {
+	if updateID == 0 {
+		panic("updateID == 0")
+	}
+	if callbackQuery == nil {
+		panic("callbackQuery == nil")
+	}
 	q := TelegramWebhookCallbackQuery{updateID: updateID, callbackQuery: callbackQuery}
-	if callbackQuery.Message.MessageID != 0 {
+	if callbackQuery.Message != nil && callbackQuery.Message.MessageID != 0 {
 		q.message = NewTelegramWebhookMessage(updateID, callbackQuery.Message)
 	}
 	return q
@@ -26,9 +32,12 @@ func (iq TelegramWebhookCallbackQuery) GetID() interface{} {
 }
 
 func (iq TelegramWebhookCallbackQuery) Chat() bots.WebhookChat {
-	return TelegramWebhookChat{
-		chat: iq.callbackQuery.Message.Chat,
+	if iq.callbackQuery != nil && iq.callbackQuery.Message != nil {
+		return TelegramWebhookChat{
+			chat: iq.callbackQuery.Message.Chat,
+		}
 	}
+	return nil
 }
 
 func (iq TelegramWebhookCallbackQuery) Sequence() int {

@@ -180,7 +180,10 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 	logger := whc.GetLogger()
 	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
 	//gam.GeographicalOverride()
-	gam.ClientID(strconv.FormatInt(whc.AppUserIntID(), 10))
+	if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user
+		gam.ClientID(strconv.FormatInt(appUserID, 10))
+	}
+
 	if gaErr != nil {
 		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
 		panic(err)

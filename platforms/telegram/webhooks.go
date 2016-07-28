@@ -66,8 +66,11 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl))
 	if err != nil {
 		logger.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write([]byte("Webhook set"))
 	}
-	w.Write([]byte("Webhook set"))
 }
 
 func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {

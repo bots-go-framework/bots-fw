@@ -83,7 +83,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				case WebhookInputMessage:
 					logger.Infof("Input[%v].Message().Text(): %v", j, input.InputMessage().Text())
 				case WebhookInputCallbackQuery:
-					logger.Infof("Input[%v].InputCallbackQuery().GetData(): %v", j, input.InputCallbackQuery().GetData())
+					callbackQuery := input.InputCallbackQuery()
+					callbackData := callbackQuery.GetData()
+					logger.Infof("Input[%v].InputCallbackQuery().GetData(): %v", j, callbackData)
 				case WebhookInputInlineQuery:
 					logger.Infof("Input[%v].InputInlineQuery().GetQuery(): %v", j, input.InputInlineQuery().GetQuery())
 				case WebhookInputChosenInlineResult:

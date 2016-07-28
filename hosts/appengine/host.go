@@ -24,7 +24,7 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.AppContext
 	switch platform {
 	case "telegram":
 		logger := h.GetLogger(r)
-		appUserStore := NewGaeAppUserStore(logger, r, appContext.AppUserEntityKind(), appContext.NewAppUserEntity)
+		appUserStore := NewGaeAppUserStore(logger, r, appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewAppUserEntity)
 		return bots.BotCoreStores{
 			BotChatStore: NewGaeTelegramChatStore(logger, r),
 			BotUserStore: NewGaeTelegramUserStore(logger, r, appUserStore),

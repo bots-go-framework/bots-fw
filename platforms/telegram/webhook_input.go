@@ -4,6 +4,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"time"
+	"fmt"
 )
 
 type TelegramWebhookInput struct {
@@ -56,22 +57,38 @@ func (whi TelegramWebhookInput) InputType() bots.WebhookInputType {
 
 func (whi TelegramWebhookInput) InputMessage() bots.WebhookMessage {
 	update := whi.update
+	if update.Message == nil {
+		panic(fmt.Sprintf("Telegram update(id=%v).Message == nil", update.UpdateID))
+	}
 	return NewTelegramWebhookMessage(update.UpdateID, update.Message)
 }
 
 func (whi TelegramWebhookInput) InputInlineQuery() bots.WebhookInlineQuery {
 	update := whi.update
+	if update.InlineQuery == nil {
+		panic(fmt.Sprintf("Telegram update(id=%v).InlineQuery == nil", update.UpdateID))
+	}
 	return NewTelegramWebhookInlineQuery(update.UpdateID, update.InlineQuery)
 }
 
 func (whi TelegramWebhookInput) InputChosenInlineResult() bots.WebhookChosenInlineResult {
 	update := whi.update
+	if update.ChosenInlineResult == nil {
+		panic(fmt.Sprintf("Telegram update(id=%v).ChosenInlineResult == nil", update.UpdateID))
+	}
 	return NewTelegramWebhookChosenInlineResult(update.UpdateID, update.ChosenInlineResult)
 }
 
 func (whi TelegramWebhookInput) InputCallbackQuery() bots.WebhookCallbackQuery {
 	update := whi.update
-	return NewTelegramWebhookCallbackQuery(update.UpdateID, update.CallbackQuery)
+	if update.CallbackQuery == nil {
+		panic(fmt.Sprintf("Telegram update(id=%v).CallbackQuery == nil", update.UpdateID))
+	} else {
+		_ = fmt.Sprintf("%v", update.UpdateID)
+		_ = fmt.Sprintf("%v", update.CallbackQuery)
+		_ = fmt.Sprintf("%v", update.CallbackQuery.ID)
+		return NewTelegramWebhookCallbackQuery(update.UpdateID, update.CallbackQuery)
+	}
 }
 
 func (whi TelegramWebhookInput) InputPostback() bots.WebhookPostback {

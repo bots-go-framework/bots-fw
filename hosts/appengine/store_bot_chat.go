@@ -67,12 +67,14 @@ func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
 	for chatId, chatEntity := range s.botChats {
 		s.validateBotChatEntityType(chatEntity)
 		chatEntity.SetDtUpdatedToNow()
+		chatEntity.SetDtLastInteractionToNow()
 		chatKeys = append(chatKeys, s.botChatKey(chatId))
 		chatEntities = append(chatEntities, chatEntity)
 	}
 	_, err := nds.PutMulti(s.Context(), chatKeys, chatEntities)
 	if err == nil {
 		s.log.Infof("Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		s.botChats = nil
 	} else {
 		s.log.Errorf("Failed to save %v BotChat entities: %v", len(chatKeys), err)
 	}

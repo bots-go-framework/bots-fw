@@ -16,6 +16,7 @@ type BotChat interface {
 	SetPreferredLanguage(value string)
 
 	SetDtUpdatedToNow()
+	SetDtLastInteractionToNow()
 
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(path string)
