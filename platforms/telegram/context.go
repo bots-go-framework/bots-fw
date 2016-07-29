@@ -190,27 +190,27 @@ func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
 }
 
 func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
-	inputMessage := tc.InputMessage()
-	if inputMessage != nil {
-		//ctx := tc.Context()
-		//chat := inputMessage.Chat()
-		//chatID := chat.GetID()
-		//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
-		botChatID := tc.BotChatID()
-		if botChatID == nil {
-			panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
-		}
-		if int64ID, ok := botChatID.(int64); ok {
-			return tgbotapi.NewMessage(int64ID, text)
+	//inputMessage := tc.InputMessage()
+	//if inputMessage != nil {
+	//ctx := tc.Context()
+	//chat := inputMessage.Chat()
+	//chatID := chat.GetID()
+	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
+	botChatID := tc.BotChatID()
+	if botChatID == nil {
+		panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
+	}
+	if int64ID, ok := botChatID.(int64); ok {
+		return tgbotapi.NewMessage(int64ID, text)
+	} else {
+		if intID, ok := botChatID.(int); ok {
+			return tgbotapi.NewMessage(int64(intID), text)
 		} else {
-			if intID, ok := botChatID.(int); ok {
-				return tgbotapi.NewMessage(int64(intID), text)
-			} else {
-				panic(fmt.Sprintf("OK=%v;Expected int or int64, got: %T", ok, botChatID))
-			}
+			panic(fmt.Sprintf("OK=%v;Expected int or int64, got: %T", ok, botChatID))
 		}
 	}
-	panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", tc.InputType()))
+	//}
+	//panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", tc.InputType()))
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {

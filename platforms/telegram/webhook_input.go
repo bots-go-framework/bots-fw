@@ -58,7 +58,7 @@ func (whi TelegramWebhookInput) InputType() bots.WebhookInputType {
 func (whi TelegramWebhookInput) InputMessage() bots.WebhookMessage {
 	update := whi.update
 	if update.Message == nil {
-		panic(fmt.Sprintf("Telegram update(id=%v).Message == nil", update.UpdateID))
+		return nil // panic(fmt.Sprintf("Telegram update(id=%v).Message == nil", update.UpdateID))
 	}
 	return NewTelegramWebhookMessage(update.UpdateID, update.Message)
 }
