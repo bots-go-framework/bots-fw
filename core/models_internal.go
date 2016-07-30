@@ -140,21 +140,22 @@ func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger strongo.Lo
 	logger.Infof("AwaitingReplyTo: %v", awaitingReplyTo)
 }
 
-func (e *BotChatEntity) AddWizardParam(name, value string, logger strongo.Logger) {
-	s := fmt.Sprintf("%v=%v", name, url.QueryEscape(value))
+func (e *BotChatEntity) AddWizardParam(key, value string) {
 	awaitingReplyTo := e.GetAwaitingReplyTo()
-	if strings.Contains(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR) {
-		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PARAMS_SEPARATOR + s)
-	} else {
-		e.SetAwaitingReplyTo(awaitingReplyTo + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + s)
+	awaitingUrl, err := url.Parse(awaitingReplyTo)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to call url.Parse(awaitingReplyTo=%v)", awaitingReplyTo))
 	}
-
+	query := awaitingUrl.Query()
+	query.Set(key, value)
+	awaitingUrl.RawQuery = query.Encode()
+	e.SetAwaitingReplyTo(awaitingUrl.String())
 }
 
-func (e *BotChatEntity) GetWizardParam(name string) string {
-	if q, err := url.Parse(e.GetAwaitingReplyTo()); err != nil {
+func (e *BotChatEntity) GetWizardParam(key string) string {
+	if u, err := url.Parse(e.GetAwaitingReplyTo()); err != nil {
 		return ""
 	} else {
-		return  q.Query().Get(name)
+		return  u.Query().Get(key)
 	}
 }

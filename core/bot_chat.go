@@ -24,8 +24,8 @@ type BotChat interface {
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(path string)
 	IsAwaitingReplyTo(code string, logger strongo.Logger) bool
-	AddWizardParam(name, value string, logger strongo.Logger)
-	GetWizardParam(name string) string
+	AddWizardParam(key, value string)
+	GetWizardParam(key string) string
 	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger strongo.Logger)
 	PushStepToAwaitingReplyTo(code string, logger strongo.Logger)
 }
