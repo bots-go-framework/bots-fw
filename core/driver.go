@@ -15,18 +15,18 @@ type WebhookDriver interface {
 
 type BotDriver struct {
 	botHost    BotHost
-	appContext AppContext
+	appContext BotAppContext
 	router     *WebhooksRouter
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
-func NewBotDriver(appContext AppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
+func NewBotDriver(appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
 	return BotDriver{appContext: appContext, botHost: host, router: router}
 }
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
-	logger := d.botHost.GetLogger(r)
+	logger := d.botHost.Logger(r)
 	logger.Infof("HandleWebhook() => webhookHandler: %T", webhookHandler)
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(r)

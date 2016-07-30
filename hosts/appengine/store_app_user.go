@@ -9,18 +9,19 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"github.com/strongo/app"
 )
 
 type GaeAppUserStore struct {
 	appUserEntityKind string
 	appUserEntityType reflect.Type
-	newUserEntity     func() bots.AppUser
+	newUserEntity     func() bots.BotAppUser
 	GaeBaseStore
 }
 
-var _ bots.AppUserStore = (*GaeAppUserStore)(nil)
+var _ bots.BotAppUserStore = (*GaeAppUserStore)(nil)
 
-func NewGaeAppUserStore(log bots.Logger, r *http.Request, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.AppUser) GaeAppUserStore {
+func NewGaeAppUserStore(log strongo.Logger, r *http.Request, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
 	return GaeAppUserStore{
 		appUserEntityType: appUserEntityType,
 		appUserEntityKind: appUserEntityKind,
@@ -36,15 +37,15 @@ func (s GaeAppUserStore) appUserKey(appUserId int64) *datastore.Key {
 }
 
 // ************************** Implementations of  bots.AppUserStore **************************
-func (s GaeAppUserStore) GetAppUserByID(appUserId int64, appUser bots.AppUser) error {
+func (s GaeAppUserStore) GetAppUserByID(appUserId int64, appUser bots.BotAppUser) error {
 	return nds.Get(s.Context(), s.appUserKey(appUserId), appUser)
 }
 
-func (s GaeAppUserStore) CreateAppUser(actor bots.WebhookActor) (int64, bots.AppUser, error) {
+func (s GaeAppUserStore) CreateAppUser(actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
 	return s.createAppUser(s.Context(), actor)
 }
 
-func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.AppUser, error) {
+func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
 	appUserEntity := s.newUserEntity()
 	appUserEntity.SetBotUserID(actor.Platform(), actor.GetID())
 	appUserEntity.SetNames(actor.GetFirstName(), actor.GetLastName(), actor.GetUserName())
@@ -70,7 +71,7 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	}
 }
 
-func (s GaeAppUserStore) SaveAppUser(appUserId int64, appUserEntity bots.AppUser) error {
+func (s GaeAppUserStore) SaveAppUser(appUserId int64, appUserEntity bots.BotAppUser) error {
 	if appUserId == 0 {
 		panic("appUserId == 0")
 	}

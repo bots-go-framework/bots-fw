@@ -27,7 +27,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
 	//ctx := tc.Context()
-	logger := r.whc.GetLogger()
+	logger := r.whc.Logger()
 
 	var chattable tgbotapi.Chattable
 	botApi := &tgbotapi.BotAPI{

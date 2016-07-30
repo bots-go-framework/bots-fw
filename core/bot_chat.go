@@ -1,6 +1,9 @@
 package bots
 
-import "io"
+import (
+	"io"
+	"github.com/strongo/app"
+)
 
 type BotChat interface {
 	GetAppUserIntID() int64
@@ -20,11 +23,11 @@ type BotChat interface {
 
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(path string)
-	IsAwaitingReplyTo(code string, logger Logger) bool
-	AddWizardParam(name, value string, logger Logger)
+	IsAwaitingReplyTo(code string, logger strongo.Logger) bool
+	AddWizardParam(name, value string, logger strongo.Logger)
 	GetWizardParam(name string) string
-	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger Logger)
-	PushStepToAwaitingReplyTo(code string, logger Logger)
+	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger strongo.Logger)
+	PushStepToAwaitingReplyTo(code string, logger strongo.Logger)
 }
 
 type BotChatStore interface {

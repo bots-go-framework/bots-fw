@@ -2,6 +2,7 @@ package bots
 
 import (
 	"testing"
+	"github.com/strongo/app"
 )
 
 func TestNewBotSettings(t *testing.T) {
@@ -10,7 +11,7 @@ func TestNewBotSettings(t *testing.T) {
 		token       = "TestToken2"
 		localeCode5 = "Kode5"
 	)
-	bs := NewBotSettings(code, token, Locale{Code5: localeCode5})
+	bs := NewBotSettings(code, token, strongo.Locale{Code5: localeCode5})
 	if bs.Code != code {
 		t.Errorf("Unexpected code: %v", bs.Code)
 	}
@@ -18,6 +19,6 @@ func TestNewBotSettings(t *testing.T) {
 		t.Errorf("Unexpected token: %v", bs.Token)
 	}
 	if bs.Locale.Code5 != localeCode5 {
-		t.Errorf("Unexpected Locale: %v", bs.Locale.Code5)
+		t.Errorf("Unexpected strongo.Locale: %v", bs.Locale.Code5)
 	}
 }

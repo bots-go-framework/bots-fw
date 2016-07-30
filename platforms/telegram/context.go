@@ -21,7 +21,7 @@ type TelegramWebhookContext struct {
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
-func NewTelegramWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
+func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
@@ -87,14 +87,14 @@ func (whc *TelegramWebhookContext) AppUserIntID() (appUserIntID int64) {
 		}
 		appUserIntID = botUser.GetAppUserIntID()
 	}
-	whc.GetLogger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserIntID)
+	whc.Logger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserIntID)
 	return
 }
 
-func (whc *TelegramWebhookContext) GetAppUser() (bots.AppUser, error) {
+func (whc *TelegramWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 	appUserID := whc.AppUserIntID()
-	appUser := whc.AppContext.NewAppUserEntity()
-	err := whc.AppUserStore.GetAppUserByID(appUserID, appUser)
+	appUser := whc.BotAppContext().NewBotAppUserEntity()
+	err := whc.BotAppUserStore.GetAppUserByID(appUserID, appUser)
 	return appUser, err
 }
 
@@ -124,13 +124,13 @@ func (whc *TelegramWebhookContext) BotChatID() (chatId interface{}) {
 		if strings.Contains(data, "chat=") {
 			values, err := url.ParseQuery(data)
 			if err != nil {
-				whc.GetLogger().Errorf("Failed to GetData() from webhookInput.InputCallbackQuery()")
+				whc.Logger().Errorf("Failed to GetData() from webhookInput.InputCallbackQuery()")
 				return nil
 			}
 			chatIdAsStr := values.Get("chat")
 			chatIdAsInt, err := strconv.Atoi(chatIdAsStr)
 			if err != nil {
-				whc.GetLogger().Errorf("Failed to parse 'chat' parameter to int: %v", err)
+				whc.Logger().Errorf("Failed to parse 'chat' parameter to int: %v", err)
 				return nil
 			}
 			if chatIdAsInt == 0 {

@@ -3,18 +3,23 @@ package bots
 import (
 	"golang.org/x/net/context"
 	"net/http"
+	"github.com/strongo/app"
 )
+
 
 type WebhookInlineQueryContext interface {
 }
 
 type WebhookContext interface {
-	GetLogger() Logger
+	Logger() strongo.Logger
 	BotInputProvider
 	BotPlatform() BotPlatform
 
 	Init(w http.ResponseWriter, r *http.Request) error
 	Context() context.Context
+
+	ExecutionContext() strongo.ExecutionContext
+	BotAppContext() BotAppContext
 
 	BotChatID() interface{}
 
@@ -25,7 +30,7 @@ type WebhookContext interface {
 
 	CommandText(title, icon string) string
 
-	//Locale() Locale
+	//Locale() strongo.Locale
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot
@@ -35,14 +40,14 @@ type WebhookContext interface {
 	UpdateLastProcessed(chatEntity BotChat) error
 
 	AppUserIntID() int64
-	GetAppUser() (AppUser, error)
-	SaveAppUser(appUserID int64, appUserEntity AppUser) error
+	GetAppUser() (BotAppUser, error)
+	SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
 	BotChatStore
 	BotUserStore
 	WebhookInput
-	SingleLocaleTranslator
+	strongo.SingleLocaleTranslator
 
 	Responder() WebhookResponder
 }

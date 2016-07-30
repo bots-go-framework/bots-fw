@@ -42,7 +42,7 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 }
 
 func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
-	logger := h.GetLogger(r)
+	logger := h.Logger(r)
 	client := h.GetHttpClient(r)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
@@ -74,7 +74,7 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 }
 
 func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	logger := h.BotHost.GetLogger(r)
+	logger := h.BotHost.Logger(r)
 	token := r.URL.Query().Get("token")
 	botSettings, ok := h.botsBy.ApiToken[token]
 	if !ok {
@@ -113,7 +113,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		nil
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
+func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
 	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores)
 }
 
@@ -125,6 +125,6 @@ func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.Web
 	}
 }
 
-func (h TelegramWebhookHandler) CreateBotCoreStores(appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
+func (h TelegramWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
 	return h.BotHost.GetBotCoreStores(TelegramPlatformID, appContext, r)
 }

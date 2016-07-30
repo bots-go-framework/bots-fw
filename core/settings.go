@@ -1,13 +1,15 @@
 package bots
 
+import "github.com/strongo/app"
+
 type BotSettings struct {
 	Code        string
 	Token       string
 	VerifyToken string // Used by Facebook
-	Locale      Locale
+	Locale      strongo.Locale
 }
 
-func NewBotSettings(code, token string, locale Locale) BotSettings {
+func NewBotSettings(code, token string, locale strongo.Locale) BotSettings {
 	if code == "" {
 		panic("Missing required parameter: code")
 	}

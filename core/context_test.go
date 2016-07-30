@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"fmt"
+	"github.com/strongo/app"
 )
 
 type TestWebhookContext struct {
@@ -115,7 +116,7 @@ func (whc TestWebhookContext) ChatEntity() BotChat                         { pan
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
 
-func (whc TestWebhookContext) Locale() Locale               { panic("Not implemented") }
+func (whc TestWebhookContext) Locale() strongo.Locale               { panic("Not implemented") }
 func (whc TestWebhookContext) SetLocale(code5 string) error { panic("Not implemented") }
 
 func (whc TestWebhookContext) NewMessage(text string) MessageFromBot { panic("Not implemented") }
@@ -129,8 +130,8 @@ func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { pa
 
 func (whc TestWebhookContext) UserID() int64                                { panic("Not implemented") }
 func (whc TestWebhookContext) CurrentUserKey() *datastore.Key               { panic("Not implemented") }
-func (whc TestWebhookContext) GetAppUser() (AppUser, error) { panic("Not implemented") }
+func (whc TestWebhookContext) GetAppUser() (BotAppUser, error) { panic("Not implemented") }
 
-func (whc TestWebhookContext) GetLogger() Logger { panic("Not implemented") }
+func (whc TestWebhookContext) Logger() strongo.Logger { panic("Not implemented") }
 
 var _ WebhookContext = TestWebhookContext{}

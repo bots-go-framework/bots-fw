@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"github.com/strongo/app"
 )
 
 type OwnedByUser struct {
@@ -75,7 +76,7 @@ func (e *BotChatEntity) SetPreferredLanguage(value string) {
 	e.PreferredLanguage = value
 }
 
-func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger Logger) bool {
+func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger strongo.Logger) bool {
 	awaitingReplyToPath := e.getAwaitingReplyToPath()
 	if logger != nil {
 		logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
@@ -91,7 +92,7 @@ func (e *BotChatEntity) getAwaitingReplyToPath() string {
 	return e.AwaitingReplyTo
 }
 
-func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string, logger Logger) {
+func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string, logger strongo.Logger) {
 	logger.Infof("PopStepsFromAwaitingReplyUpToSpecificParent(%v)", step)
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
@@ -119,7 +120,7 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string,
 	}
 }
 
-func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger Logger) {
+func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger strongo.Logger) {
 	logger.Infof("PushStepToAwaitingReplyTo(%v)", step)
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
@@ -139,7 +140,7 @@ func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger Logger) {
 	logger.Infof("AwaitingReplyTo: %v", awaitingReplyTo)
 }
 
-func (e *BotChatEntity) AddWizardParam(name, value string, logger Logger) {
+func (e *BotChatEntity) AddWizardParam(name, value string, logger strongo.Logger) {
 	s := fmt.Sprintf("%v=%v", name, url.QueryEscape(value))
 	awaitingReplyTo := e.GetAwaitingReplyTo()
 	if strings.Contains(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR) {

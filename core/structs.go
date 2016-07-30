@@ -1,6 +1,9 @@
 package bots
 
-import "github.com/strongo/bots-api-telegram"
+import (
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/app"
+)
 
 type EntryInputs struct {
 	Entry  WebhookEntry
@@ -12,7 +15,7 @@ type EntryInput struct {
 	Input WebhookInput
 }
 
-type TranslatorProvider func(logger Logger) Translator
+type TranslatorProvider func(logger strongo.Logger) strongo.Translator
 
 type BaseHandler struct {
 	WebhookDriver

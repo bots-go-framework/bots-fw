@@ -6,40 +6,50 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"github.com/strongo/app"
 )
 
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
-	r *http.Request
-
-	AppContext AppContext
-	BotContext BotContext
-	botPlatform BotPlatform
+	r             *http.Request
+	logger        strongo.Logger
+	botAppContext BotAppContext
+	BotContext    BotContext
+	botPlatform   BotPlatform
 	WebhookInput
 
-	locale Locale
+	locale        strongo.Locale
 
 	//update      tgbotapi.Update
-	chatEntity BotChat
+	chatEntity    BotChat
 
-	BotUserKey *datastore.Key
-	appUser    AppUser
-	Translator
-	//Locales    LocalesProvider
+	BotUserKey    *datastore.Key
+	appUser       BotAppUser
+	strongo.Translator
+	//Locales    strongo.LocalesProvider
 
 	BotCoreStores
 }
 
-func NewWebhookContextBase(r *http.Request, appContext AppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
+func(whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
+	return whcb
+}
+
+func(whcb *WebhookContextBase) BotAppContext() BotAppContext {
+	return whcb.botAppContext
+}
+
+func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
 	whcb := WebhookContextBase{
 		r:             r,
-		AppContext:    appContext,
+		logger: botContext.BotHost.Logger(r),
+		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
 		BotContext:    botContext,
 		WebhookInput:  webhookInput,
 		BotCoreStores: botCoreStores,
 	}
-	whcb.Translator = appContext.GetTranslator(whcb.GetLogger())
+	whcb.Translator = botAppContext.GetTranslator(whcb.Logger())
 	return &whcb
 }
 
@@ -47,8 +57,8 @@ func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
 
-func (whcb *WebhookContextBase) GetLogger() Logger {
-	return whcb.BotContext.BotHost.GetLogger(whcb.r)
+func (whcb *WebhookContextBase) Logger() strongo.Logger {
+	return whcb.logger
 }
 
 func (whcb *WebhookContextBase) GetBotCode() string {
@@ -83,8 +93,8 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
 }
 
-func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity AppUser) error {
-	return whcb.AppUserStore.SaveAppUser(appUserID, appUserEntity)
+func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
+	return whcb.BotAppUserStore.SaveAppUser(appUserID, appUserEntity)
 }
 
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
@@ -102,7 +112,7 @@ func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) 
 }
 
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
-	logger := whcb.GetLogger()
+	logger := whcb.Logger()
 	logger.Debugf("GetOrCreateBotUserEntityBase()")
 	botUser, err := whcb.GetBotUserById(whcb.GetSender().GetID())
 	if err != nil {
@@ -123,7 +133,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 }
 
 func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
-	logger := whcb.GetLogger()
+	logger := whcb.Logger()
 	if whcb.HasChatEntity() {
 		logger.Warningf("Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return nil
@@ -159,7 +169,7 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 	return err
 }
 
-func (whc *WebhookContextBase) AppUserEntity() AppUser {
+func (whc *WebhookContextBase) AppUserEntity() BotAppUser {
 	return whc.appUser
 }
 
@@ -175,7 +185,7 @@ func (*WebhookContextBase) NewMessage(text string) MessageFromBot {
 	return MessageFromBot{Text: text}
 }
 
-func (whcb *WebhookContextBase) Locale() Locale {
+func (whcb WebhookContextBase) Locale() strongo.Locale {
 	if whcb.locale.Code5 == "" {
 		return whcb.BotContext.BotSettings.Locale
 	}
@@ -183,7 +193,7 @@ func (whcb *WebhookContextBase) Locale() Locale {
 }
 
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
-	locale, err := whcb.AppContext.SupportedLocales().GetLocaleByCode5(code5)
+	locale, err := whcb.botAppContext.SupportedLocales().GetLocaleByCode5(code5)
 	if err == nil {
 		whcb.locale = locale
 	}

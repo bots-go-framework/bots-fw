@@ -1,16 +1,16 @@
 package gae_host
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
+	"github.com/strongo/app"
 )
 
 type GaeLogger struct {
 	c context.Context
 }
 
-var _ bots.Logger = (*GaeLogger)(nil)
+var _ strongo.Logger = (*GaeLogger)(nil)
 
 func (l GaeLogger) Debugf(format string, args ...interface{}) {
 	log.Debugf(l.c, format, args...)

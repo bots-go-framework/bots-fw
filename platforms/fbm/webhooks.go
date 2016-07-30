@@ -80,7 +80,7 @@ func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.R
 
 func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
-	logger := h.BotHost.GetLogger(r)
+	logger := h.BotHost.Logger(r)
 	content := make([]byte, r.ContentLength)
 	_, err = r.Body.Read(content)
 	if err != nil {
@@ -110,7 +110,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 	return
 }
 
-func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.AppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
+func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
 	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }
 
@@ -118,6 +118,6 @@ func (h FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookC
 	panic("Not implemented yet") //return NewTelegramWebhookResponder(w, r)
 }
 
-func (h FbmWebhookHandler) CreateBotCoreStores(appContext bots.AppContext, r *http.Request) bots.BotCoreStores {
+func (h FbmWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
 	panic("Not implemented yet")
 }

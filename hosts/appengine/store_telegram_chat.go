@@ -7,6 +7,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"github.com/strongo/app"
 )
 
 type GaeTelegramChatStore struct {
@@ -15,7 +16,7 @@ type GaeTelegramChatStore struct {
 
 var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramChatStore(log bots.Logger, r *http.Request) *GaeTelegramChatStore {
+func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramChatStore {
 	return &GaeTelegramChatStore{
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),

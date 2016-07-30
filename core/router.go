@@ -39,7 +39,7 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 
 	var awaitingReplyCommand Command
 
-	logger := whc.GetLogger()
+	logger := whc.Logger()
 
 	if inputType != WebhookInputMessage && inputType != WebhookInputUnknown && len(commands) == 1 {
 		command := commands[0]
@@ -141,7 +141,7 @@ func (r *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 }
 
 func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
-	logger := whc.GetLogger()
+	logger := whc.Logger()
 	inputType := whc.InputType()
 	switch inputType {
 	case WebhookInputMessage:
@@ -177,7 +177,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 }
 
 func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
-	logger := whc.GetLogger()
+	logger := whc.Logger()
 	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
 	//gam.GeographicalOverride()
 	if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user

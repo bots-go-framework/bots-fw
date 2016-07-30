@@ -1,11 +1,8 @@
 package bots
 
-import "reflect"
+import "github.com/strongo/app"
 
-type AppContext interface {
-	AppUserEntityKind() string
-	AppUserEntityType() reflect.Type
-	NewAppUserEntity() AppUser
-	GetTranslator(l Logger) Translator
-	SupportedLocales() LocalesProvider
+type BotAppContext interface {
+	strongo.AppContext
+	NewBotAppUserEntity() BotAppUser
 }

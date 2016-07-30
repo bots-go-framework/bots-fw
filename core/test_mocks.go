@@ -3,6 +3,7 @@ package bots
 import (
 	"testing"
 	"fmt"
+	"github.com/strongo/app"
 )
 
 type MockLogger struct {
@@ -29,4 +30,4 @@ func (l *MockLogger) Criticalf(format string, args ...interface{}) {
 	l.T.Logf("CRITICAL: " + format, args...)
 }
 
-var _ Logger = (*MockLogger)(nil)
+var _ strongo.Logger = (*MockLogger)(nil)

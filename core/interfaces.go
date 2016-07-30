@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/app"
 )
 
 type BotPlatform interface {
@@ -15,18 +16,18 @@ func UtmSource(p BotPlatform) string {
 	return p.Id()
 }
 
-type Logger interface {
-	Debugf(format string, args ...interface{})
-	Infof(format string, args ...interface{})
-	Warningf(format string, args ...interface{})
-	Errorf(format string, args ...interface{})
-	Criticalf(format string, args ...interface{})
-}
+//type strongo.Logger interface {
+//	Debugf(format string, args ...interface{})
+//	Infof(format string, args ...interface{})
+//	Warningf(format string, args ...interface{})
+//	Errorf(format string, args ...interface{})
+//	Criticalf(format string, args ...interface{})
+//}
 
 type BotHost interface {
-	GetLogger(r *http.Request) Logger
+	Logger(r *http.Request)  strongo.Logger
 	GetHttpClient(r *http.Request) *http.Client
-	GetBotCoreStores(platform string, appContext AppContext, r *http.Request) BotCoreStores
+	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 }
 
 type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
@@ -38,8 +39,8 @@ type WebhookHandler interface {
 	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
 	GetBotContextAndInputs(r *http.Request) (botContext BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateBotCoreStores(appContext AppContext, r *http.Request) BotCoreStores
-	CreateWebhookContext(appContext AppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
+	CreateBotCoreStores(appContext BotAppContext, r *http.Request) BotCoreStores
+	CreateWebhookContext(appContext BotAppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	//ProcessInput(input WebhookInput, entry *WebhookEntry)
 }
@@ -182,7 +183,7 @@ type InputMessage interface {
 type BotCoreStores struct {
 	BotChatStore
 	BotUserStore
-	AppUserStore
+	BotAppUserStore
 }
 
 type BotApiSendMessageChannel string
