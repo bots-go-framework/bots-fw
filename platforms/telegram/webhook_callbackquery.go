@@ -59,3 +59,18 @@ func (iq TelegramWebhookCallbackQuery) GetData() string {
 func (iq TelegramWebhookCallbackQuery) GetInlineMessageID() string {
 	return iq.callbackQuery.InlineMessageID
 }
+
+func EditMessageOnCallbackQuery(whcbq bots.WebhookCallbackQuery, parseMode, text string) tgbotapi.EditMessageTextConfig {
+	twhcbq := whcbq.(TelegramWebhookCallbackQuery)
+	callbackQuery := twhcbq.callbackQuery
+
+	emc := tgbotapi.EditMessageTextConfig{
+		Text: text,
+		ParseMode: parseMode,
+	}
+	if emc.InlineMessageID = callbackQuery.InlineMessageID; emc.InlineMessageID == "" {
+		emc.ChatID = callbackQuery.Message.Chat.ID
+		emc.MessageID = callbackQuery.Message.MessageID
+	}
+	return emc
+}

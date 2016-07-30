@@ -47,7 +47,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 
 		jsonStr, err := json.Marshal(inlineAnswer)
 		if err == nil {
-			logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
+			logger.Infof("InlineAnswer for sending to Telegram: %v", string(jsonStr))
 		} else {
 			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
 		}
@@ -84,13 +84,21 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		logger.Errorf("Not inline answer, Not inline, Not edit inline, Text is empty.")
 		return
 	}
-	jsonStr, err := json.Marshal(chattable)
-	if err == nil {
-		logger.Infof("Message for sending to Telegram: %v", string(jsonStr))
-	} else {
+
+	if jsonStr, err := json.Marshal(chattable); err != nil {
 		logger.Errorf("Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
 		return resp, err
+	} else {
+		logger.Infof("Message for sending to Telegram as JSON: %v", string(jsonStr))
 	}
+
+	if values, err := chattable.Values(); err != nil {
+		logger.Errorf("Failed to marshal message config to url.Values: %v", err)
+		return resp, err
+	} else {
+		logger.Infof("Message for sending to Telegram as URL values: %v", values)
+	}
+
 	switch channel {
 	case bots.BotApiSendMessageOverResponse:
 		if _, err := tgbotapi.ReplyToResponse(chattable, r.w); err != nil {
