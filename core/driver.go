@@ -55,7 +55,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			} else {
 				logger.Errorf("Failed to send exception details to GA: %v", gaErr)
 			}
-			//whc.ReplyByBot(whc.NewMessage("\xF0\x9F\x9A\xA8 " + messageText))
+			//whc.ReplyByBot(whc.NewMessage(emoji.PANIC_ERROR + " " + messageText))
 		}
 	}()
 

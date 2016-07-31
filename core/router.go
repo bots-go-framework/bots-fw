@@ -6,6 +6,7 @@ import (
 	"strings"
 	"github.com/astec/go-ogle-analytics"
 	"strconv"
+	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
 )
 
 type WebhooksRouter struct {
@@ -224,7 +225,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 		logger.Errorf(err.Error())
 		if whc.InputType() == WebhookInputMessage {
 			// Todo: Try to get chat ID from user?
-			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + fmt.Sprintf("\xF0\x9F\x9A\xA8 Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
+			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + emoji.ERROR_ICON + fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if respErr != nil {
 				logger.Errorf("Failed to report to user a server error: %v", respErr)
 			}
