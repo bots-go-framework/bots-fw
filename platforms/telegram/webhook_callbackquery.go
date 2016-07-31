@@ -67,8 +67,11 @@ func EditMessageOnCallbackQuery(whcbq bots.WebhookCallbackQuery, parseMode, text
 	emc := tgbotapi.EditMessageTextConfig{
 		Text: text,
 		ParseMode: parseMode,
+		BaseEdit: tgbotapi.BaseEdit{
+			InlineMessageID: callbackQuery.InlineMessageID,
+		},
 	}
-	if emc.InlineMessageID = callbackQuery.InlineMessageID; emc.InlineMessageID == "" {
+	if emc.InlineMessageID == "" {
 		emc.ChatID = callbackQuery.Message.Chat.ID
 		emc.MessageID = callbackQuery.Message.MessageID
 	}
