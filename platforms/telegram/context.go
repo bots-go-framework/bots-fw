@@ -69,11 +69,7 @@ func (whc *TelegramWebhookContext) Init(w http.ResponseWriter, r *http.Request) 
 }
 
 func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
-	botApi, err := tgbotapi.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
-	if err != nil {
-		panic(err)
-	}
-	return botApi
+	return tgbotapi.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
 }
 
 func (whc *TelegramWebhookContext) AppUserIntID() (appUserIntID int64) {

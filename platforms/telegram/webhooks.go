@@ -54,17 +54,12 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
 		return
 	}
-	bot, err := tgbotapi.NewBotAPIWithClient(botSettings.Token, client)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create bot[%v]: %v", botCode, err), http.StatusInternalServerError)
-		return
-	}
+	bot := tgbotapi.NewBotAPIWithClient(botSettings.Token, client)
 	//bot.Debug = true
 
 	webhookUrl := fmt.Sprintf("https://%v/bot/telegram/webhook?token=%v", r.Host, bot.Token)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl))
-	if err != nil {
+	if _, err := bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl)); err != nil {
 		logger.Errorf("%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
