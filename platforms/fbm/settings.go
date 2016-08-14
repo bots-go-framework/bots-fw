@@ -5,8 +5,8 @@ import (
 	"github.com/strongo/app"
 )
 
-func NewFbmBot(code, token, verifyToken string, locale strongo.Locale) bots.BotSettings {
-	botSettings := bots.NewBotSettings(code, token, locale)
+func NewFbmBot(mode bots.BotMode, code, token, verifyToken string, locale strongo.Locale) bots.BotSettings {
+	botSettings := bots.NewBotSettings(mode, code, token, locale)
 	botSettings.VerifyToken = verifyToken
 	return botSettings
 }

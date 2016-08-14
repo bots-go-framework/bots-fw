@@ -5,6 +5,6 @@ import (
 	"github.com/strongo/app"
 )
 
-func NewTelegramBot(code, token string, locale strongo.Locale) bots.BotSettings {
-	return bots.NewBotSettings(code, token, locale)
+func NewTelegramBot(mode bots.BotMode, code, token string, locale strongo.Locale) bots.BotSettings {
+	return bots.NewBotSettings(mode, code, token, locale)
 }

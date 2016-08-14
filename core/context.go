@@ -25,6 +25,7 @@ type WebhookContext interface {
 
 	GetBotCode() string
 	GetBotToken() string
+	GetBotSettings() BotSettings
 
 	ChatEntity() BotChat
 

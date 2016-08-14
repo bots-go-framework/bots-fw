@@ -61,6 +61,10 @@ func (whcb *WebhookContextBase) Logger() strongo.Logger {
 	return whcb.logger
 }
 
+func (whcb *WebhookContextBase) GetBotSettings() BotSettings {
+	return whcb.BotContext.BotSettings
+}
+
 func (whcb *WebhookContextBase) GetBotCode() string {
 	return whcb.BotContext.BotSettings.Code
 }

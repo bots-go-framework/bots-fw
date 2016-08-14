@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"github.com/astec/go-ogle-analytics"
+	"strings"
 )
 
 // The driver is doing initial request & final response processing
@@ -92,6 +93,16 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 					logger.Infof("Input[%v].InputChosenInlineResult().GetInlineMessageID(): %v", j, input.InputChosenInlineResult().GetInlineMessageID())
 				}
 				whc := webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores)
+				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
+					logger.Warningf("whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				if whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, "st1") {
+					logger.Warningf("whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
 				responder := webhookHandler.GetResponder(w, whc)
 				d.router.Dispatch(responder, whc)
 			case WebhookInputUnknown:
