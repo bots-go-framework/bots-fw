@@ -164,7 +164,7 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err == nil {
-			logger.Debugf("whc.locale cahged to: %v", whc.Locale)
+			logger.Debugf("whc.locale cahged to: %v", whc.Locale().Code5)
 		} else {
 			logger.Errorf("Failed to set locate: %v")
 		}
@@ -182,11 +182,11 @@ func (whc *WebhookContextBase) Context() context.Context {
 }
 
 func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot {
-	return MessageFromBot{Text: fmt.Sprintf(whcb.Translate(messageCode), a...)}
+	return MessageFromBot{Text: fmt.Sprintf(whcb.Translate(messageCode), a...), Format: MessageFormatHTML}
 }
 
 func (*WebhookContextBase) NewMessage(text string) MessageFromBot {
-	return MessageFromBot{Text: text}
+	return MessageFromBot{Text: text, Format: MessageFormatHTML}
 }
 
 func (whcb WebhookContextBase) Locale() strongo.Locale {
