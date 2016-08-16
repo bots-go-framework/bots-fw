@@ -180,15 +180,19 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	logger := whc.Logger()
 	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
-	//gam.GeographicalOverride()
-	if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user
-		gam.ClientID(strconv.FormatInt(appUserID, 10))
-	}
-
 	if gaErr != nil {
 		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
 		panic(err)
 	}
+	if whc.GetBotSettings().Mode == Production {
+		if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user
+			gam.ClientID(strconv.FormatInt(appUserID, 10))
+		}
+	} else {
+		gam = nil
+	}
+	//gam.GeographicalOverride()
+
 	if err == nil {
 		logger.Infof("processCommandResponse(): Bot response message: %v", m)
 		if _, err = responder.SendMessage(m, BotApiSendMessageOverResponse); err != nil {
