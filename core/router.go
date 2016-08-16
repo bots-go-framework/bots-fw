@@ -179,17 +179,17 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 
 func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	logger := whc.Logger()
-	gam, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
+	gaClient, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
 	if gaErr != nil {
 		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
 		panic(err)
 	}
 	if whc.GetBotSettings().Mode == Production {
 		if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user
-			gam.ClientID(strconv.FormatInt(appUserID, 10))
+			gaClient.ClientID(strconv.FormatInt(appUserID, 10))
 		}
 	} else {
-		gam = nil
+		gaClient = nil
 	}
 	//gam.GeographicalOverride()
 
@@ -199,7 +199,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
-			if gam != nil {
+			if gaClient != nil {
 				chatEntity := whc.ChatEntity()
 				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
 				pathPrefix := "bot/"
@@ -209,7 +209,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 						path = matchedCommand.Code
 					}
 					go func() {
-						gaErr = gam.Send(ga.NewPageview(gaHostName, pathPrefix + path, matchedCommand.Title))
+						gaErr = gaClient.Send(ga.NewPageview(gaHostName, pathPrefix + path, matchedCommand.Title))
 						if gaErr != nil {
 							logger.Warningf("Failed to send page view to GA: %v", gaErr)
 						}
@@ -217,7 +217,7 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 				} else {
 					go func() {
 						pageview := ga.NewPageview(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
-						gaErr = gam.Send(pageview)
+						gaErr = gaClient.Send(pageview)
 						if gaErr != nil {
 							logger.Warningf("Failed to send page view to GA: %v", gaErr)
 						}
@@ -234,10 +234,10 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 				logger.Errorf("Failed to report to user a server error: %v", respErr)
 			}
 		}
-		if gam != nil {
+		if gaClient != nil {
 			exceptionMessage := ga.NewException(err.Error(), false)
 			go func(){
-				gaErr = gam.Send(exceptionMessage)
+				gaErr = gaClient.Send(exceptionMessage)
 				if err != nil {
 					logger.Warningf("Failed to send page view to GA: %v", gaErr)
 				}
