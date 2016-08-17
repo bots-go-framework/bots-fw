@@ -21,6 +21,16 @@ type TelegramWebhookContext struct {
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
+func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
+	chatID, _ := whc.BotChatID().(int64)
+	messageID := whc.InputCallbackQuery().GetMessage().IntID()
+	editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, (int)(messageID), messageText)
+	editMessageTextConfig.ParseMode = "HTML"
+	m := whc.NewMessage("")
+	m.TelegramEditMessageText = editMessageTextConfig
+	return m
+}
+
 func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,

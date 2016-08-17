@@ -185,7 +185,7 @@ func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interf
 	return MessageFromBot{Text: fmt.Sprintf(whcb.Translate(messageCode), a...), Format: MessageFormatHTML}
 }
 
-func (*WebhookContextBase) NewMessage(text string) MessageFromBot {
+func (whcb *WebhookContextBase) NewMessage(text string) MessageFromBot {
 	return MessageFromBot{Text: text, Format: MessageFormatHTML}
 }
 

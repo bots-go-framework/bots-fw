@@ -36,6 +36,7 @@ type WebhookContext interface {
 
 	NewMessage(text string) MessageFromBot
 	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
+	NewEditCallbackMessage(messageText string) MessageFromBot
 
 	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error
