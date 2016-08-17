@@ -198,8 +198,10 @@ func (whcb WebhookContextBase) Locale() strongo.Locale {
 
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	locale, err := whcb.botAppContext.SupportedLocales().GetLocaleByCode5(code5)
-	if err == nil {
-		whcb.locale = locale
+	if err != nil {
+		whcb.logger.Errorf("WebhookContextBase.SetLocate() - %v", err)
+		return err
 	}
-	return err
+	whcb.locale = locale
+	return nil
 }
