@@ -1,5 +1,7 @@
 package bots
 
+import "fmt"
+
 type CommandAction func(WebhookContext) (MessageFromBot, error)
 
 type CommandMatcher func(Command, WebhookContext) bool
@@ -20,6 +22,10 @@ type Command struct {
 	Commands   []string
 	Matcher    CommandMatcher
 	Action     CommandAction
+}
+
+func (c Command) String() string {
+	return fmt.Sprintf("Command{Code: '%v', InputType: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputType, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
 }
 
 func (whcb *WebhookContextBase) CommandText(title, icon string) string {
