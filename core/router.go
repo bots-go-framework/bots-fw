@@ -4,20 +4,17 @@ import (
 	"fmt"
 	//"net/http"
 	"strings"
-	"github.com/astec/go-ogle-analytics"
-	"strconv"
 	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
+	"github.com/strongo/measurement-protocol"
 )
 
 type WebhooksRouter struct {
-	GaTrackingID string
 	commandsByType map[WebhookInputType][]Command
 	commandsByCode map[string]Command
 }
 
-func NewWebhookRouter(gaTrackingID string, commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
+func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
 	r := &WebhooksRouter{
-		GaTrackingID: gaTrackingID,
 		commandsByType: commandsByType,
 		commandsByCode: make(map[string]Command, len(commandsByType)),
 	}
@@ -166,31 +163,20 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 			}
 			logger.Infof("No command found for the message: %v", whc.MessageText())
-			processCommandResponse(r.GaTrackingID, matchedCommand, responder, whc, m, nil)
+			processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			logger.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 			m, err := matchedCommand.Action(whc)
-			processCommandResponse(r.GaTrackingID, matchedCommand, responder, whc, m, err)
+			processCommandResponse(matchedCommand, responder, whc, m, err)
 		}
 	} else {
 		logger.Infof("No commands found byt input type %v=%v", inputType, WebhookInputTypeNames[inputType])
 	}
 }
 
-func processCommandResponse(gaTrackingID string, matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	logger := whc.Logger()
-	gaClient, gaErr := ga.NewClientWithHttpClient(gaTrackingID, whc.GetHttpClient())
-	if gaErr != nil {
-		logger.Errorf("Failed to create client with TrackingID: [%v]", gaTrackingID)
-		panic(err)
-	}
-	if whc.GetBotSettings().Mode == Production {
-		if appUserID := whc.AppUserIntID(); appUserID != 0 { // TODO: Register user
-			gaClient.ClientID(strconv.FormatInt(appUserID, 10))
-		}
-	} else {
-		gaClient = nil
-	}
+	gaMeasurement := whc.GaMeasurement()
 	//gam.GeographicalOverride()
 
 	if err == nil {
@@ -199,49 +185,45 @@ func processCommandResponse(gaTrackingID string, matchedCommand *Command, respon
 			logger.Errorf("Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
-			if gaClient != nil {
+			if gaMeasurement != nil {
 				chatEntity := whc.ChatEntity()
 				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
 				pathPrefix := "bot/"
+				var pageview measurement.Pageview
 				if chatEntity != nil {
 					path := chatEntity.GetAwaitingReplyTo()
 					if path == "" {
 						path = matchedCommand.Code
 					}
-					go func() {
-						gaErr = gaClient.Send(ga.NewPageview(gaHostName, pathPrefix + path, matchedCommand.Title))
-						if gaErr != nil {
-							logger.Warningf("Failed to send page view to GA: %v", gaErr)
-						}
-					}()
+					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + path, matchedCommand.Title)
 				} else {
-					go func() {
-						pageview := ga.NewPageview(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
-						gaErr = gaClient.Send(pageview)
-						if gaErr != nil {
-							logger.Warningf("Failed to send page view to GA: %v", gaErr)
-						}
-					}()
+					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 				}
+				go func() {
+					err := gaMeasurement.Queue(pageview)
+					if err != nil {
+						logger.Warningf("Failed to send page view to GA: %v", err)
+					}
+				}()
 			}
 		}
 	} else {
 		logger.Errorf(err.Error())
+		if gaMeasurement != nil {
+			exceptionMessage := measurement.NewException(err.Error(), false)
+			go func(){
+				err = gaMeasurement.Queue(exceptionMessage)
+				if err != nil {
+					logger.Warningf("Failed to send page view to GA: %v", err)
+				}
+			}()
+		}
 		if whc.InputType() == WebhookInputMessage {
 			// Todo: Try to get chat ID from user?
 			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + emoji.ERROR_ICON + fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if respErr != nil {
 				logger.Errorf("Failed to report to user a server error: %v", respErr)
 			}
-		}
-		if gaClient != nil {
-			exceptionMessage := ga.NewException(err.Error(), false)
-			go func(){
-				gaErr = gaClient.Send(exceptionMessage)
-				if err != nil {
-					logger.Warningf("Failed to send page view to GA: %v", gaErr)
-				}
-			}()
 		}
 	}
 }

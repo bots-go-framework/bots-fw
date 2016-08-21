@@ -10,6 +10,7 @@ import (
 	"strings"
 	"net/url"
 	"strconv"
+	"github.com/strongo/measurement-protocol"
 )
 
 type TelegramWebhookContext struct {
@@ -31,7 +32,7 @@ func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bo
 	return m
 }
 
-func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) *TelegramWebhookContext {
+func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *TelegramWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
@@ -39,6 +40,7 @@ func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, b
 		botContext,
 		webhookInput,
 		botCoreStores,
+		gaMeasurement,
 	)
 	return &TelegramWebhookContext{
 		//update: update,

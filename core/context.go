@@ -4,6 +4,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"github.com/strongo/app"
+	"github.com/strongo/measurement-protocol"
 )
 
 
@@ -11,6 +12,7 @@ type WebhookInlineQueryContext interface {
 }
 
 type WebhookContext interface {
+	GaMeasurement() *measurement.BufferedSender
 	Logger() strongo.Logger
 	BotInputProvider
 	BotPlatform() BotPlatform

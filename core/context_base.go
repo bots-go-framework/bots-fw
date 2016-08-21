@@ -7,6 +7,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"github.com/strongo/app"
+	"github.com/strongo/measurement-protocol"
 )
 
 type WebhookContextBase struct {
@@ -29,6 +30,8 @@ type WebhookContextBase struct {
 	//Locales    strongo.LocalesProvider
 
 	BotCoreStores
+
+	gaMeasurement *measurement.BufferedSender
 }
 
 func(whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
@@ -39,9 +42,10 @@ func(whcb *WebhookContextBase) BotAppContext() BotAppContext {
 	return whcb.botAppContext
 }
 
-func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores) *WebhookContextBase {
+func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, gaMeasurement *measurement.BufferedSender) *WebhookContextBase {
 	whcb := WebhookContextBase{
 		r:             r,
+		gaMeasurement: gaMeasurement,
 		logger: botContext.BotHost.Logger(r),
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
@@ -53,6 +57,9 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 	return &whcb
 }
 
+func(whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
+	return whcb.gaMeasurement
+}
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
@@ -164,7 +171,7 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err == nil {
-			logger.Debugf("whc.locale cahged to: %v", whc.Locale().Code5)
+			logger.Debugf("whc.locale changed to: %v", whc.Locale().Code5)
 		} else {
 			logger.Errorf("Failed to set locate: %v")
 		}

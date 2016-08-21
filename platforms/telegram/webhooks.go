@@ -7,6 +7,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"io/ioutil"
 	"net/http"
+	"github.com/strongo/measurement-protocol"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -108,8 +109,8 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		nil
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
-	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores)
+func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
+	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
 func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {

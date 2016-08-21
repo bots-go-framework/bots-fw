@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"github.com/strongo/measurement-protocol"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
@@ -110,7 +111,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 	return
 }
 
-func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores) bots.WebhookContext {
+func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
 	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
 }
 

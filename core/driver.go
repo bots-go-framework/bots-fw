@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
-	"github.com/astec/go-ogle-analytics"
 	"strings"
 	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
+	"github.com/strongo/measurement-protocol"
 )
 
 // The driver is doing initial request & final response processing
@@ -16,6 +16,7 @@ type WebhookDriver interface {
 }
 
 type BotDriver struct {
+	GaTrackingID string
 	botHost    BotHost
 	appContext BotAppContext
 	router     *WebhooksRouter
@@ -23,8 +24,8 @@ type BotDriver struct {
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
-func NewBotDriver(appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
-	return BotDriver{appContext: appContext, botHost: host, router: router}
+func NewBotDriver(gaTrackingID string, appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
+	return BotDriver{GaTrackingID: gaTrackingID, appContext: appContext, botHost: host, router: router}
 }
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
@@ -46,21 +47,26 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	logger.Infof("Got %v entries", len(entriesWithInputs))
 
 	var whc WebhookContext
+	var gaMeasurement *measurement.BufferedSender
+	gaMeasurement = measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
+
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
 			logger.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
-			gam, gaErr := ga.NewClientWithHttpClient(d.router.GaTrackingID, botContext.BotHost.GetHttpClient(r))
-			if gaErr == nil {
-				go func(){
-					gaErr = gam.Send(ga.NewException(messageText, true))
-				}()
-			} else {
-				logger.Errorf("Failed to send exception details to GA: %v", gaErr)
-			}
+			go func() {
+				gaMeasurement.Queue(measurement.NewException(messageText, true))
+				if err := gaMeasurement.Flush(); err != nil {
+					logger.Errorf("Failed to send exception details to GA: %v", err)
+				} else {
+					logger.Debugf("Exception details sent to GA.")
+				}
+			}()
 			if whc != nil {
 				whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON + " " + messageText), BotApiSendMessageOverResponse)
 			}
+		} else {
+			gaMeasurement.Flush()
 		}
 	}()
 
@@ -96,7 +102,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				case WebhookInputChosenInlineResult:
 					logger.Infof("Input[%v].InputChosenInlineResult().GetInlineMessageID(): %v", j, input.InputChosenInlineResult().GetInlineMessageID())
 				}
-				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores)
+				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement)
 				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
 					logger.Warningf("whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 					w.WriteHeader(http.StatusBadRequest)
