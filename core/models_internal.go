@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"github.com/strongo/app"
+	"github.com/satori/go.uuid"
 )
 
 type OwnedByUser struct {
@@ -50,11 +51,38 @@ type BotUserEntity struct {
 type BotChatEntity struct {
 	BotEntity
 	//
-	Type  string `datastore:",noindex"`
-	Title string `datastore:",noindex"`
+	Type              string `datastore:",noindex"`
+	Title             string `datastore:",noindex"`
 	//
 	AwaitingReplyTo   string `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
+	GaClientID        []byte `datastore:",noindex"`
+	DtLastInteraction time.Time
+}
+
+var _ BotChat = (*BotChatEntity)(nil)
+
+func (e *BotChatEntity) GetBotUserID() interface{} {
+	panic("Should be overwritted in subclass")
+}
+func (e *BotChatEntity) SetBotUserID(id interface{}) {
+	panic("Should be overwritted in subclass")
+}
+
+func (e *BotChatEntity) SetDtLastInteractionToNow() {
+	e.DtLastInteraction = time.Now()
+}
+
+func (e *BotChatEntity) GetGaClientID() uuid.UUID {
+	var v uuid.UUID
+	var err error
+	if len(e.GaClientID) == 0 {
+		v = uuid.NewV4()
+		e.GaClientID = v.Bytes()
+	} else if v, err = uuid.FromBytes(e.GaClientID); err != nil {
+		panic(fmt.Sprintf("Failed to create UUID from bytes: len(%v)=%v", e.GaClientID, len(e.GaClientID)))
+	}
+	return v
 }
 
 func (e *BotChatEntity) SetDtUpdateToNow() {

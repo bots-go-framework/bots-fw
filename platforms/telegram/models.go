@@ -22,11 +22,6 @@ type TelegramChat struct {
 	bots.BotChatEntity
 	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
-	DtLastInteraction time.Time
-}
-
-func (tgChat *TelegramChat) SetDtLastInteractionToNow() {
-	tgChat.DtLastInteraction = time.Now()
 }
 
 var _ bots.BotChat = (*TelegramChat)(nil)

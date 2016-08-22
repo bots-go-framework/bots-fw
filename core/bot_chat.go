@@ -3,6 +3,7 @@ package bots
 import (
 	"io"
 	"github.com/strongo/app"
+	"github.com/satori/go.uuid"
 )
 
 type BotChat interface {
@@ -28,6 +29,7 @@ type BotChat interface {
 	GetWizardParam(key string) string
 	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger strongo.Logger)
 	PushStepToAwaitingReplyTo(code string, logger strongo.Logger)
+	GetGaClientID() uuid.UUID
 }
 
 type BotChatStore interface {

@@ -13,6 +13,7 @@ type WebhookInlineQueryContext interface {
 
 type WebhookContext interface {
 	GaMeasurement() *measurement.BufferedSender
+	GaCommon() measurement.Common
 	Logger() strongo.Logger
 	BotInputProvider
 	BotPlatform() BotPlatform

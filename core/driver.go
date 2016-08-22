@@ -56,7 +56,16 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
 			logger.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
 
-			if err := gaMeasurement.Queue(measurement.NewException(messageText, true)); err != nil {
+			gaMessage := measurement.NewException(messageText, true)
+
+			if whc != nil {
+				gaMessage.Common = whc.GaCommon()
+			} else {
+				gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371"
+				gaMessage.Common.DataSource = "bot"
+			}
+
+			if err := gaMeasurement.Queue(gaMessage); err != nil {
 				logger.Errorf("Failed to queue exception details for GA: %v", err)
 			} else {
 				logger.Debugf("Exception details queued for GA.")

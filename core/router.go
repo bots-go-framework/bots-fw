@@ -241,6 +241,8 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 				} else {
 					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 				}
+				pageview.Common = whc.GaCommon()
+
 				go func() {
 					err := gaMeasurement.Queue(pageview)
 					if err != nil {
@@ -253,6 +255,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		logger.Errorf(err.Error())
 		if gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
+			exceptionMessage.Common = whc.GaCommon()
 			go func(){
 				err = gaMeasurement.Queue(exceptionMessage)
 				if err != nil {

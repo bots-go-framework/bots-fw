@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"github.com/strongo/app"
 	"github.com/strongo/measurement-protocol"
+	"strings"
+	"strconv"
 )
 
 type WebhookContextBase struct {
@@ -60,6 +62,25 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 func(whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
 	return whcb.gaMeasurement
 }
+
+func(whcb *WebhookContextBase) GaCommon() measurement.Common {
+	if whcb.chatEntity != nil {
+		c := whcb.Context()
+		return measurement.Common{
+			UserID: strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
+			UserLanguage: strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
+			ClientID: whcb.chatEntity.GetGaClientID().String(),
+			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.Id(), whcb.GetBotCode()),
+			UserAgent: fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.Id(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
+			DataSource: "bot",
+		}
+	}
+	return measurement.Common{
+		DataSource: "bot",
+		ClientID: "c7ea15eb-3333-4d47-a002-9d1a14996371",
+	}
+}
+
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
@@ -125,7 +146,8 @@ func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) 
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
 	logger := whcb.Logger()
 	logger.Debugf("GetOrCreateBotUserEntityBase()")
-	botUser, err := whcb.GetBotUserById(whcb.GetSender().GetID())
+	botUserID := whcb.GetSender().GetID()
+	botUser, err := whcb.GetBotUserById(botUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -137,6 +159,10 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 			return nil, err
 		}
 		logger.Infof("Bot user entity created")
+
+		gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
+		gaEvent.Label = fmt.Sprintf("%v", botUserID)
+		whcb.GaMeasurement().Queue(gaEvent)
 	} else {
 		logger.Infof("Found existing bot user entity")
 	}
@@ -163,7 +189,13 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 		if err != nil {
 			return err
 		}
+
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
+
+		gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whc.GaCommon())
+		gaEvent.Label = fmt.Sprintf("%v", botChatID)
+		whc.GaMeasurement().Queue(gaEvent)
+
 	default:
 		return err
 	}
