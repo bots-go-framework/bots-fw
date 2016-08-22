@@ -51,21 +51,27 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	gaMeasurement = measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
 
 	defer func() {
+		logger.Debugf("driver.deferred(recover) - checking for panic & flush GA")
 		if recovered := recover(); recovered != nil {
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
 			logger.Criticalf("Panic recovered: %s\n%s", messageText, debug.Stack())
-			go func() {
-				gaMeasurement.Queue(measurement.NewException(messageText, true))
-				if err := gaMeasurement.Flush(); err != nil {
-					logger.Errorf("Failed to send exception details to GA: %v", err)
-				} else {
-					logger.Debugf("Exception details sent to GA.")
-				}
-			}()
+
+			if err := gaMeasurement.Queue(measurement.NewException(messageText, true)); err != nil {
+				logger.Errorf("Failed to queue exception details for GA: %v", err)
+			} else {
+				logger.Debugf("Exception details queued for GA.")
+			}
+			logger.Debugf("Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
+			if err = gaMeasurement.Flush(); err != nil {
+				logger.Errorf("Failed to send exception details to GA: %v", err)
+			} else {
+				logger.Debugf("Exception details sent to GA.")
+			}
 			if whc != nil {
 				whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON + " " + messageText), BotApiSendMessageOverResponse)
 			}
 		} else {
+			logger.Debugf("Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
 			gaMeasurement.Flush()
 		}
 	}()
