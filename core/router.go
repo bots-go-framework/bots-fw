@@ -6,6 +6,7 @@ import (
 	"strings"
 	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
 	"github.com/strongo/measurement-protocol"
+	"net/url"
 )
 
 type WebhooksRouter struct {
@@ -30,6 +31,27 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 		}
 	}
 	return r
+}
+
+func matchCallbackCommands (whc WebhookContext, commands []Command) (matchedCommand *Command, callbackUrl *url.URL, err error) {
+	if len(commands) > 0 {
+		callbackData := whc.InputCallbackQuery().GetData()
+		callbackUrl, err = url.Parse(callbackData)
+		if err != nil {
+			whc.Logger().Errorf("Failed to parse callback data to URL: %v", err.Error())
+		} else {
+			callbackPath := callbackUrl.Path
+			for _, command := range commands {
+				if command.Code == callbackPath {
+					return &command, callbackUrl, nil
+				}
+			}
+		}
+		if commands[len(commands) - 1].Code == "callback" {
+			return &commands[len(commands) - 1], callbackUrl, err
+		}
+	}
+	return nil, callbackUrl, err
 }
 
 func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
@@ -154,10 +176,30 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 	}
 
 	if commands, found := r.commandsByType[inputType]; found {
-		matchedCommand := r.matchCommands(whc, "", commands)
+		var matchedCommand *Command
+		var commandAction CommandAction
+		var err error
+		var m MessageFromBot
+		switch inputType {
+		case WebhookInputCallbackQuery:
+			var callbackUrl *url.URL
+			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, commands)
+			commandAction = func(whc WebhookContext) (MessageFromBot, error) {
+				return matchedCommand.CallbackAction(whc, callbackUrl)
+			}
+		default:
+			matchedCommand = r.matchCommands(whc, "", commands)
+			if matchedCommand != nil {
+				commandAction = matchedCommand.Action
+			}
+		}
+		if err != nil {
+			processCommandResponse(matchedCommand, responder, whc, m, err)
+			return
+		}
 
 		if matchedCommand == nil {
-			m := MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+			m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
 			chatEntity := whc.ChatEntity()
 			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
@@ -166,7 +208,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 			processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			logger.Infof("Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
-			m, err := matchedCommand.Action(whc)
+			m, err := commandAction(whc)
 			processCommandResponse(matchedCommand, responder, whc, m, err)
 		}
 	} else {

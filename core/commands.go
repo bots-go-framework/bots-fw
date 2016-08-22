@@ -1,8 +1,12 @@
 package bots
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
-type CommandAction func(WebhookContext) (MessageFromBot, error)
+type CommandAction func(whc WebhookContext) (MessageFromBot, error)
+type CallbackAction func(whc WebhookContext, callbackURL *url.URL) (MessageFromBot, error)
 
 type CommandMatcher func(Command, WebhookContext) bool
 
@@ -12,16 +16,17 @@ const SHORT_TITLE = "short_title"
 //const LONG_TITLE = "long_title"
 
 type Command struct {
-	InputType  WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputType()
-	Icon       string
-	Replies    []Command
-	Code       string
-	Title      string
-	Titles     map[string]string
-	ExactMatch string
-	Commands   []string
-	Matcher    CommandMatcher
-	Action     CommandAction
+	InputType      WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputType()
+	Icon           string
+	Replies        []Command
+	Code           string
+	Title          string
+	Titles         map[string]string
+	ExactMatch     string
+	Commands       []string
+	Matcher        CommandMatcher
+	Action         CommandAction
+	CallbackAction CallbackAction
 }
 
 func (c Command) String() string {
