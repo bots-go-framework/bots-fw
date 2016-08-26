@@ -34,7 +34,9 @@ func (c Command) String() string {
 }
 
 func (whcb *WebhookContextBase) CommandText(title, icon string) string {
-	title = whcb.Translate(title)
+	if title != "" {
+		title = whcb.Translate(title)
+	}
 	return CommandTextNoTrans(title, icon)
 }
 

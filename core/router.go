@@ -7,6 +7,7 @@ import (
 	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
 	"github.com/strongo/measurement-protocol"
 	"net/url"
+	"github.com/pkg/errors"
 )
 
 type WebhooksRouter struct {
@@ -184,6 +185,12 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		case WebhookInputCallbackQuery:
 			var callbackUrl *url.URL
 			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, commands)
+			if matchedCommand.Code == "" {
+				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
+			}
+			if matchedCommand.CallbackAction == nil {
+				err = errors.New(fmt.Sprintf("matchedCommand(%v).CallbackAction == nil", matchedCommand.Code))
+			}
 			commandAction = func(whc WebhookContext) (MessageFromBot, error) {
 				return matchedCommand.CallbackAction(whc, callbackUrl)
 			}
