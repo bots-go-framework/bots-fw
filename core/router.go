@@ -10,46 +10,45 @@ import (
 	"github.com/pkg/errors"
 )
 
+type TypeCommands struct {
+	all    []Command
+	byCode map[string]Command
+}
+
 type WebhooksRouter struct {
-	commandsByType map[WebhookInputType][]Command
-	commandsByCode map[string]Command
+	commandsByType map[WebhookInputType]TypeCommands
 }
 
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
-	r := &WebhooksRouter{
-		commandsByType: commandsByType,
-		commandsByCode: make(map[string]Command, len(commandsByType)),
-	}
-	for _, commands := range commandsByType {
+	r := &WebhooksRouter{}
+	for commandType, commands := range commandsByType {
+		typeCommands := TypeCommands{}
+		r.commandsByType[commandType] = typeCommands
 		for _, command := range commands {
 			if command.Code == "" {
 				panic(fmt.Sprintf("Command %v is missing required property Code", command))
 			}
-			if _, ok := r.commandsByCode[command.Code]; ok {
+			if _, ok := typeCommands.byCode[command.Code]; ok {
 				panic(fmt.Sprintf("Command with code '%v' defined multiple times", command.Code))
 			}
-			r.commandsByCode[command.Code] = command
+			typeCommands.all = append(typeCommands.all, command)
+			typeCommands.byCode[command.Code] = command
 		}
 	}
 	return r
 }
 
-func matchCallbackCommands (whc WebhookContext, commands []Command) (matchedCommand *Command, callbackUrl *url.URL, err error) {
-	if len(commands) > 0 {
+func matchCallbackCommands (whc WebhookContext, typeCommands TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
+	if len(typeCommands.all) > 0 {
 		callbackData := whc.InputCallbackQuery().GetData()
 		callbackUrl, err = url.Parse(callbackData)
 		if err != nil {
 			whc.Logger().Errorf("Failed to parse callback data to URL: %v", err.Error())
 		} else {
 			callbackPath := callbackUrl.Path
-			for _, command := range commands {
-				if command.Code == callbackPath {
-					return &command, callbackUrl, nil
-				}
+			if command, ok := typeCommands.byCode[callbackPath]; ok {
+				return &command, callbackUrl, nil
 			}
-		}
-		if commands[len(commands) - 1].Code == "callback" {
-			return &commands[len(commands) - 1], callbackUrl, err
 		}
 	}
 	return nil, callbackUrl, err
@@ -176,7 +175,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		logger.Debugf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
 	}
 
-	if commands, found := r.commandsByType[inputType]; found {
+	if typeCommands, found := r.commandsByType[inputType]; found {
 		var matchedCommand *Command
 		var commandAction CommandAction
 		var err error
@@ -184,7 +183,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		switch inputType {
 		case WebhookInputCallbackQuery:
 			var callbackUrl *url.URL
-			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, commands)
+			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, typeCommands)
 			if matchedCommand.Code == "" {
 				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
 			}
@@ -195,7 +194,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 				return matchedCommand.CallbackAction(whc, callbackUrl)
 			}
 		default:
-			matchedCommand = r.matchCommands(whc, "", commands)
+			matchedCommand = r.matchCommands(whc, "", typeCommands.all)
 			if matchedCommand != nil {
 				commandAction = matchedCommand.Action
 			}

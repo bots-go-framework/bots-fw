@@ -29,6 +29,13 @@ type Command struct {
 	CallbackAction CallbackAction
 }
 
+func NewCallbackCommand(code string, action CallbackAction) Command {
+	return Command{
+		Code: code,
+		CallbackAction: action,
+	}
+}
+
 func (c Command) String() string {
 	return fmt.Sprintf("Command{Code: '%v', InputType: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputType, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
 }
