@@ -20,9 +20,9 @@ type WebhooksRouter struct {
 }
 
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
-	r := &WebhooksRouter{}
+	r := &WebhooksRouter{commandsByType: make(map[WebhookInputType]TypeCommands, len(commandsByType))}
 	for commandType, commands := range commandsByType {
-		typeCommands := TypeCommands{}
+		typeCommands := TypeCommands{byCode: make(map[string]Command, len(commands))}
 		r.commandsByType[commandType] = typeCommands
 		for _, command := range commands {
 			if command.Code == "" {
