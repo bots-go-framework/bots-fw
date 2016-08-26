@@ -22,8 +22,11 @@ type WebhooksRouter struct {
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
 	r := &WebhooksRouter{commandsByType: make(map[WebhookInputType]TypeCommands, len(commandsByType))}
 	for commandType, commands := range commandsByType {
-		typeCommands := TypeCommands{byCode: make(map[string]Command, len(commands))}
-		r.commandsByType[commandType] = typeCommands
+		commandsCount := len(commands)
+		typeCommands := TypeCommands{
+			byCode: make(map[string]Command, commandsCount),
+			all: make([]Command, commandsCount, commandsCount),
+		}
 		for _, command := range commands {
 			if command.Code == "" {
 				panic(fmt.Sprintf("Command %v is missing required property Code", command))
@@ -34,6 +37,7 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 			typeCommands.all = append(typeCommands.all, command)
 			typeCommands.byCode[command.Code] = command
 		}
+		r.commandsByType[commandType] = typeCommands
 	}
 	return r
 }
@@ -54,23 +58,15 @@ func matchCallbackCommands (whc WebhookContext, typeCommands TypeCommands) (matc
 	return nil, callbackUrl, err
 }
 
-func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
-	inputType := whc.InputType()
+func (r *WebhooksRouter) matchFirstCommand(commands []Command) (matchedCommand *Command) {
+	matchedCommand = &commands[0]
+	return
+}
 
+func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
 	var awaitingReplyCommand Command
 
 	logger := whc.Logger()
-
-	if inputType != WebhookInputMessage && inputType != WebhookInputUnknown && len(commands) == 1 {
-		command := commands[0]
-		if command.InputType == inputType { //TODO: it should refactored - we match 1st by type for now
-			logger.Debugf("%v matched my command.InputType", command.Code)
-			matchedCommand = &command
-			return
-		} else {
-			logger.Warningf("inputType: %v, commandInputType: %v, commandCode: %v", WebhookInputTypeNames[inputType], WebhookInputTypeNames[command.InputType], command.Code)
-		}
-	}
 
 	messageText := whc.MessageText()
 	messageTextLowerCase := strings.ToLower(messageText)
@@ -91,14 +87,13 @@ func (r *WebhooksRouter) matchCommands(whc WebhookContext, parentPath string, co
 	}
 
 	for _, command := range commands {
-
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
 			awaitingReplyPrefix := strings.TrimLeft(parentPath + AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				//logger.Debugf("[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				//logger.Debugf("awaitingReplyCommand: %v", command.Code)
-				if matchedCommand = r.matchCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matchedCommand = r.matchMessageCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					logger.Debugf("%v matched my command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
@@ -163,19 +158,31 @@ func (r *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
 	logger := whc.Logger()
 	inputType := whc.InputType()
+
+	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch(): inputType: %v=%v, ", inputType, WebhookInputTypeNames[inputType])
 	switch inputType {
 	case WebhookInputMessage:
-		logger.Debugf("message text: [%v]", whc.InputMessage().Text())
+		logMessage += fmt.Sprintf("message text: [%v]", whc.InputMessage().Text())
 	case WebhookInputInlineQuery:
-		logger.Debugf("inline query: [%v]", whc.InputInlineQuery().GetQuery())
+		logMessage += fmt.Sprintf("inline query: [%v]", whc.InputInlineQuery().GetQuery())
 	case WebhookInputCallbackQuery:
-		logger.Debugf("callback data: [%v]", whc.InputCallbackQuery().GetData())
+		logMessage += fmt.Sprintf("callback data: [%v]", whc.InputCallbackQuery().GetData())
 	case WebhookInputChosenInlineResult:
 		chosenResult := whc.InputChosenInlineResult()
-		logger.Debugf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
+		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
 	}
 
-	if typeCommands, found := r.commandsByType[inputType]; found {
+
+	if typeCommands, found := r.commandsByType[inputType]; !found {
+		logMessage += "no commands to match"
+		logger.Warningf(logMessage)
+		err := errors.New(logMessage)
+		var m MessageFromBot
+		processCommandResponse(nil, responder, whc, m, err)
+	} else {
+		logMessage += fmt.Sprintf(", len(commandsToMatch): %v", len(typeCommands.all))
+		logger.Debugf(logMessage)
+
 		var matchedCommand *Command
 		var commandAction CommandAction
 		var err error
@@ -184,20 +191,28 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		case WebhookInputCallbackQuery:
 			var callbackUrl *url.URL
 			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, typeCommands)
-			if matchedCommand.Code == "" {
-				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
+			if err == nil {
+				if matchedCommand.Code == "" {
+					err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
+				} else {
+					if matchedCommand.CallbackAction == nil {
+						err = errors.New(fmt.Sprintf("matchedCommand(%v).CallbackAction == nil", matchedCommand.Code))
+					} else {
+						commandAction = func(whc WebhookContext) (MessageFromBot, error) {
+							return matchedCommand.CallbackAction(whc, callbackUrl)
+						}
+					}
+				}
 			}
-			if matchedCommand.CallbackAction == nil {
-				err = errors.New(fmt.Sprintf("matchedCommand(%v).CallbackAction == nil", matchedCommand.Code))
-			}
-			commandAction = func(whc WebhookContext) (MessageFromBot, error) {
-				return matchedCommand.CallbackAction(whc, callbackUrl)
-			}
-		default:
-			matchedCommand = r.matchCommands(whc, "", typeCommands.all)
+		case WebhookInputMessage:
+			matchedCommand = r.matchMessageCommands(whc, "", typeCommands.all)
 			if matchedCommand != nil {
 				commandAction = matchedCommand.Action
 			}
+		case WebhookInputUnknown:
+			panic("Unknown input type")
+		default:
+			matchedCommand = r.matchFirstCommand(typeCommands.all)
 		}
 		if err != nil {
 			processCommandResponse(matchedCommand, responder, whc, m, err)
@@ -217,8 +232,6 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 			m, err := commandAction(whc)
 			processCommandResponse(matchedCommand, responder, whc, m, err)
 		}
-	} else {
-		logger.Infof("No commands found byt input type %v=%v", inputType, WebhookInputTypeNames[inputType])
 	}
 }
 
