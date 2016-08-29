@@ -30,7 +30,7 @@ package gae_host
 //		telegramUser.LastName = lastName
 //		telegramUser.UserName = userName
 //
-//		err = datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+//		err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
 //			userKey := datastore.NewIncompleteKey(ctx, common.AppUserKind, nil)
 //			user := common.AppUser{
 //				DtCreated:      telegramUser.DtCreated,

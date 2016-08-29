@@ -27,14 +27,14 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 			byCode: make(map[string]Command, commandsCount),
 			all: make([]Command, commandsCount, commandsCount),
 		}
-		for _, command := range commands {
+		for i, command := range commands {
 			if command.Code == "" {
 				panic(fmt.Sprintf("Command %v is missing required property Code", command))
 			}
 			if _, ok := typeCommands.byCode[command.Code]; ok {
 				panic(fmt.Sprintf("Command with code '%v' defined multiple times", command.Code))
 			}
-			typeCommands.all = append(typeCommands.all, command)
+			typeCommands.all[i] = command
 			typeCommands.byCode[command.Code] = command
 		}
 		r.commandsByType[commandType] = typeCommands
@@ -78,7 +78,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 
 	for _, command := range commands {
 		for _, commandName := range command.Commands {
-			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
+			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName + " ") {
 				logger.Debugf("command(code=%v) matched my command.commands", command.Code)
 				matchedCommand = &command
 				return

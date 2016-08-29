@@ -47,7 +47,7 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 	botUserEntity := s.newBotUserEntity(apiUser)
 
 	c := s.Context()
-	err := datastore.RunInTransaction(c, func(ctx context.Context) error {
+	err := nds.RunInTransaction(c, func(ctx context.Context) error {
 		err := nds.Get(ctx, botUserKey, botUserEntity)
 
 		if err == datastore.ErrNoSuchEntity {
