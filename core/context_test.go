@@ -90,7 +90,7 @@ func (whc TestWebhookContext) MessageText() string {
 	return "test message"
 }
 
-func (whc TestWebhookContext) Translate(key string) string {
+func (whc TestWebhookContext) Translate(key string, args ...interface{}) string {
 	return key
 }
 
@@ -121,6 +121,14 @@ func (whc TestWebhookContext) SetLocale(code5 string) error { panic("Not impleme
 
 func (whc TestWebhookContext) NewMessage(text string) MessageFromBot { panic("Not implemented") }
 func (whc TestWebhookContext) NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) NewEditCallbackMessage(messageText string) MessageFromBot {
+	panic("Not implemented")
+}
+
+func (whc TestWebhookContext) Responder() WebhookResponder {
 	panic("Not implemented")
 }
 
