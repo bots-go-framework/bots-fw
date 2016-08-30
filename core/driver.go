@@ -77,7 +77,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				logger.Debugf("Exception details sent to GA.")
 			}
 			if whc != nil {
-				whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON + " " + messageText), BotApiSendMessageOverResponse)
+				if whc.BotChatID() != nil {
+					whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON + " " + messageText), BotApiSendMessageOverResponse)
+				}
 			}
 		} else {
 			logger.Debugf("Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())

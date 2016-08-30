@@ -54,6 +54,11 @@ func matchCallbackCommands (whc WebhookContext, typeCommands TypeCommands) (matc
 				return &command, callbackUrl, nil
 			}
 		}
+		if err == nil && matchedCommand == nil {
+			err = errors.New(fmt.Sprintf("No commands matchet to callback: [%v]", callbackData))
+		}
+	} else {
+		panic("len(typeCommands.all) == 0")
 	}
 	return nil, callbackUrl, err
 }
@@ -213,6 +218,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 			panic("Unknown input type")
 		default:
 			matchedCommand = r.matchFirstCommand(typeCommands.all)
+			commandAction = matchedCommand.Action
 		}
 		if err != nil {
 			processCommandResponse(matchedCommand, responder, whc, m, err)
