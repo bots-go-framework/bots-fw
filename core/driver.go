@@ -119,7 +119,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				case WebhookInputChosenInlineResult:
 					logger.Infof("Input[%v].InputChosenInlineResult().GetInlineMessageID(): %v", j, input.InputChosenInlineResult().GetInlineMessageID())
 				}
-				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement)
+				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement.New(botContext.BotSettings.Mode != Production))
 				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
 					logger.Warningf("whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 					w.WriteHeader(http.StatusBadRequest)

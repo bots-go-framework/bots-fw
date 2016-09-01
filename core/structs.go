@@ -35,15 +35,16 @@ const (
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
-	Text                  string
-	Format                MessageFormat
-	DisableWebPagePreview bool
+	Text                    string
+	Format                  MessageFormat
+	DisableWebPagePreview   bool
 	//Keyboard              Keyboard
-	TelegramKeyboard      interface{}
-	TelegramInlineAnswer  *tgbotapi.InlineConfig
+	TelegramKeyboard        interface{}
+	TelegramInlineAnswer    *tgbotapi.InlineConfig
 	TelegramEditMessageText *tgbotapi.EditMessageTextConfig
-	TelegramInlineCongig *tgbotapi.InlineConfig
-	IsReplyToInputMessage bool
+	TelegramInlineCongig    *tgbotapi.InlineConfig
+	TelegramChatID          int64
+	IsReplyToInputMessage   bool
 }
 
 //type Keyboard interface {

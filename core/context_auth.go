@@ -3,6 +3,8 @@ package bots
 import (
 	"google.golang.org/appengine/log"
 	//"google.golang.org/appengine/datastore"
+	"github.com/pkg/errors"
+	"fmt"
 )
 
 func IsAccessGranted(whc WebhookContext) bool {
@@ -10,6 +12,8 @@ func IsAccessGranted(whc WebhookContext) bool {
 }
 
 func SetAccessGranted(whc WebhookContext, value bool) (err error) {
+	logger := whc.Logger()
+	logger.Debugf("SetAccessGranted(value=%v)", value)
 	ctx := whc.Context()
 	chatEntity := whc.ChatEntity()
 	if chatEntity != nil {
@@ -24,11 +28,15 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	}
 
 	botUserID := whc.GetSender().GetID()
+	logger.Debugf("SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserById(botUserID); err != nil {
 		return err
 	} else {
 		botUser.SetAccessGranted(value)
-		return whc.SaveBotUser(botUserID, botUser)
+		if err = whc.SaveBotUser(botUserID, botUser); err != nil {
+			err = errors.Wrap(err, fmt.Sprintf("Failed to call whc.SaveBotUser(botUserID=%v)", botUserID))
+		}
+		return err
 	}
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
 }

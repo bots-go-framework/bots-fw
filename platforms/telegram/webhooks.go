@@ -8,9 +8,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/strongo/measurement-protocol"
+	"google.golang.org/appengine"
 )
 
-func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
+func NewTelegramWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
 	return TelegramWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
@@ -24,7 +25,7 @@ func NewTelegramWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.Web
 
 type TelegramWebhookHandler struct {
 	bots.BaseHandler
-	botsBy bots.BotSettingsBy
+	botsBy bots.BotSettingsProvider
 }
 
 func (h TelegramWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
@@ -50,7 +51,8 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
 		return
 	}
-	botSettings, ok := h.botsBy.Code[botCode]
+	c := appengine.NewContext(r)
+	botSettings, ok := h.botsBy(c).Code[botCode]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
 		return
@@ -72,7 +74,8 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	logger := h.BotHost.Logger(r)
 	token := r.URL.Query().Get("token")
-	botSettings, ok := h.botsBy.ApiToken[token]
+	c := appengine.NewContext(r)  //TODO: Remove dependency on AppEngine, should be passed indside.
+	botSettings, ok := h.botsBy(c).ApiToken[token]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown token: [%v]", token)
 		err = bots.AuthFailedError(errMess)

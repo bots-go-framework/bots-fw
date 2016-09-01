@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"github.com/pkg/errors"
 )
 
 // Persist user to GAE datastore
@@ -37,6 +38,9 @@ func (s GaeBotUserStore) SaveBotUser(botUserID interface{}, userEntity bots.BotU
 	s.validateBotUserEntityType(userEntity)
 	userEntity.SetDtUpdatedToNow()
 	_, err := nds.Put(s.Context(), s.botUserKey(botUserID), userEntity)
+	if err != nil {
+		err = errors.Wrap(err, "SaveBotUser(): Failed to put user entity to datastore")
+	}
 	return err
 }
 

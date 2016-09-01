@@ -160,9 +160,11 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		}
 		logger.Infof("Bot user entity created")
 
-		gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
-		gaEvent.Label = fmt.Sprintf("%v", botUserID)
-		whcb.GaMeasurement().Queue(gaEvent)
+		if whcb.GetBotSettings().Mode == Production {
+			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
+			gaEvent.Label = fmt.Sprintf("%v", botUserID)
+			whcb.GaMeasurement().Queue(gaEvent)
+		}
 	} else {
 		logger.Infof("Found existing bot user entity")
 	}
@@ -192,9 +194,11 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
-		gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whc.GaCommon())
-		gaEvent.Label = fmt.Sprintf("%v", botChatID)
-		whc.GaMeasurement().Queue(gaEvent)
+		if whc.GetBotSettings().Mode == Production {
+			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whc.GaCommon())
+			gaEvent.Label = fmt.Sprintf("%v", botChatID)
+			whc.GaMeasurement().Queue(gaEvent)
+		}
 
 	default:
 		return err

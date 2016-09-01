@@ -70,6 +70,9 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 			return
 		}
 		messageConfig := r.whc.NewTgMessage(m.Text)
+		if m.TelegramChatID != 0 {
+			messageConfig.ChatID = m.TelegramChatID
+		}
 		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
 		switch m.Format {
 		case bots.MessageFormatHTML:

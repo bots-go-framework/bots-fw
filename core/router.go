@@ -246,6 +246,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 	gaMeasurement := whc.GaMeasurement()
 	//gam.GeographicalOverride()
 
+	mode := whc.GetBotSettings().Mode
 	if err == nil {
 		logger.Infof("processCommandResponse(): Bot response message: %v", m)
 		if _, err = responder.SendMessage(m, BotApiSendMessageOverResponse); err != nil {
@@ -266,19 +267,21 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 				} else {
 					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 				}
-				pageview.Common = whc.GaCommon()
 
-				go func() {
-					err := gaMeasurement.Queue(pageview)
-					if err != nil {
-						logger.Warningf("Failed to send page view to GA: %v", err)
-					}
-				}()
+				if mode == Production {
+					go func() {
+						pageview.Common = whc.GaCommon()
+						err := gaMeasurement.Queue(pageview)
+						if err != nil {
+							logger.Warningf("Failed to send page view to GA: %v", err)
+						}
+					}()
+				}
 			}
 		}
 	} else {
 		logger.Errorf(err.Error())
-		if gaMeasurement != nil {
+		if mode == Production && gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
 			go func(){

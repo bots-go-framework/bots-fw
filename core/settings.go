@@ -1,6 +1,9 @@
 package bots
 
-import "github.com/strongo/app"
+import (
+	"github.com/strongo/app"
+	"golang.org/x/net/context"
+)
 
 type BotMode int8
 
@@ -35,6 +38,8 @@ func NewBotSettings(mode BotMode, code, token string, locale strongo.Locale) Bot
 		Locale: locale,
 	}
 }
+
+type BotSettingsProvider func(c context.Context) BotSettingsBy
 
 type BotSettingsBy struct { // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 	Code     map[string]BotSettings

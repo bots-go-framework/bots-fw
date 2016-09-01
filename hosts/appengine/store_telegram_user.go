@@ -47,6 +47,9 @@ func NewGaeTelegramUserStore(log strongo.Logger, r *http.Request, gaeAppUserStor
 			},
 			botUserKey: func(botUserId interface{}) *datastore.Key {
 				if intID, ok := botUserId.(int); ok {
+					if intID == 0 {
+						panic("botUserKey(): intID == 0")
+					}
 					return datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramUserKind, "", (int64)(intID), nil)
 				} else {
 					panic(fmt.Sprintf("Expected botUserId as int, got: %T", botUserId))
