@@ -1,15 +1,15 @@
 package gae_host
 
 import (
+	"errors"
+	"fmt"
 	"github.com/qedus/nds"
+	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
-	"errors"
-	"fmt"
 	"reflect"
-	"github.com/strongo/app"
 )
 
 type GaeAppUserStore struct {

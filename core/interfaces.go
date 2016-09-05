@@ -1,11 +1,11 @@
 package bots
 
 import (
+	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"time"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/app"
-	"github.com/strongo/measurement-protocol"
 )
 
 type BotPlatform interface {
@@ -26,7 +26,7 @@ func UtmSource(p BotPlatform) string {
 //}
 
 type BotHost interface {
-	Logger(r *http.Request)  strongo.Logger
+	Logger(r *http.Request) strongo.Logger
 	GetHttpClient(r *http.Request) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 }
@@ -190,6 +190,6 @@ type BotCoreStores struct {
 type BotApiSendMessageChannel string
 
 const (
-	BotApiSendMessageOverHTTPS = BotApiSendMessageChannel("https")
+	BotApiSendMessageOverHTTPS    = BotApiSendMessageChannel("https")
 	BotApiSendMessageOverResponse = BotApiSendMessageChannel("response")
 )

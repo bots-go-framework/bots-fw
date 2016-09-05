@@ -1,10 +1,10 @@
 package telegram_bot
 
 import (
+	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"time"
-	"fmt"
 )
 
 type TelegramWebhookInput struct {

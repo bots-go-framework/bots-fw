@@ -2,14 +2,14 @@ package bots
 
 import (
 	"fmt"
+	"github.com/strongo/app"
+	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
-	"github.com/strongo/app"
-	"github.com/strongo/measurement-protocol"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type WebhookContextBase struct {
@@ -21,13 +21,13 @@ type WebhookContextBase struct {
 	botPlatform   BotPlatform
 	WebhookInput
 
-	locale        strongo.Locale
+	locale strongo.Locale
 
 	//update      tgbotapi.Update
-	chatEntity    BotChat
+	chatEntity BotChat
 
-	BotUserKey    *datastore.Key
-	appUser       BotAppUser
+	BotUserKey *datastore.Key
+	appUser    BotAppUser
 	strongo.Translator
 	//Locales    strongo.LocalesProvider
 
@@ -36,11 +36,11 @@ type WebhookContextBase struct {
 	gaMeasurement *measurement.BufferedSender
 }
 
-func(whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
+func (whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
 	return whcb
 }
 
-func(whcb *WebhookContextBase) BotAppContext() BotAppContext {
+func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
 	return whcb.botAppContext
 }
 
@@ -48,7 +48,7 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 	whcb := WebhookContextBase{
 		r:             r,
 		gaMeasurement: gaMeasurement,
-		logger: botContext.BotHost.Logger(r),
+		logger:        botContext.BotHost.Logger(r),
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
 		BotContext:    botContext,
@@ -59,25 +59,25 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 	return &whcb
 }
 
-func(whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
+func (whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
 	return whcb.gaMeasurement
 }
 
-func(whcb *WebhookContextBase) GaCommon() measurement.Common {
+func (whcb *WebhookContextBase) GaCommon() measurement.Common {
 	if whcb.chatEntity != nil {
 		c := whcb.Context()
 		return measurement.Common{
-			UserID: strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
-			UserLanguage: strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
-			ClientID: whcb.chatEntity.GetGaClientID().String(),
+			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
+			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
+			ClientID:      whcb.chatEntity.GetGaClientID().String(),
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.Id(), whcb.GetBotCode()),
-			UserAgent: fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.Id(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
-			DataSource: "bot",
+			UserAgent:     fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.Id(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
+			DataSource:    "bot",
 		}
 	}
 	return measurement.Common{
 		DataSource: "bot",
-		ClientID: "c7ea15eb-3333-4d47-a002-9d1a14996371",
+		ClientID:   "c7ea15eb-3333-4d47-a002-9d1a14996371",
 	}
 }
 

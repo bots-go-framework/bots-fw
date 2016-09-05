@@ -1,9 +1,9 @@
 package bots
 
 import (
-	"testing"
 	"fmt"
 	"github.com/strongo/app"
+	"testing"
 )
 
 type MockLogger struct {
@@ -13,21 +13,21 @@ type MockLogger struct {
 }
 
 func (l *MockLogger) Debugf(format string, args ...interface{}) {
-	l.T.Logf("DEBUG: " + format, args...)
+	l.T.Logf("DEBUG: "+format, args...)
 }
 func (l *MockLogger) Infof(format string, args ...interface{}) {
 	l.Infos = append(l.Infos, fmt.Sprintf(format, args...))
-	l.T.Logf("INFO: " + format, args...)
+	l.T.Logf("INFO: "+format, args...)
 }
 func (l *MockLogger) Warningf(format string, args ...interface{}) {
-	l.T.Logf("WARNING: " + format, args...)
+	l.T.Logf("WARNING: "+format, args...)
 	l.Warnings = append(l.Warnings, fmt.Sprintf(format, args...))
 }
 func (l *MockLogger) Errorf(format string, args ...interface{}) {
-	l.T.Logf("ERROR: " + format, args...)
+	l.T.Logf("ERROR: "+format, args...)
 }
 func (l *MockLogger) Criticalf(format string, args ...interface{}) {
-	l.T.Logf("CRITICAL: " + format, args...)
+	l.T.Logf("CRITICAL: "+format, args...)
 }
 
 var _ strongo.Logger = (*MockLogger)(nil)

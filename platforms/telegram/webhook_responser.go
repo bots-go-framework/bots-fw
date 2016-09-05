@@ -62,9 +62,14 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		}
 		return resp, err
 	} else if m.TelegramEditMessageText != nil {
+		if m.TelegramEditMessageText.ReplyMarkup == nil && m.TelegramKeyboard != nil {
+			m.TelegramEditMessageText.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+		}
 		chattable = m.TelegramEditMessageText
-	} else if m.TelegramInlineCongig != nil {
-		chattable = m.TelegramInlineCongig
+	} else if m.TelegramEditMessageMarkup != nil {
+		chattable = m.TelegramEditMessageMarkup
+	} else if m.TelegramInlineConfig != nil {
+		chattable = m.TelegramInlineConfig
 	} else if m.Text != "" {
 		if m.Text == bots.NoMessageToSend {
 			return

@@ -1,12 +1,13 @@
 package bots
 
 import (
+	"fmt"
+	"github.com/strongo/app"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
-	"fmt"
-	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
 )
 
 type TestWebhookContext struct {
@@ -85,7 +86,6 @@ func (whc TestWebhookContext) InputType() WebhookInputType {
 	panic("Not implemented")
 }
 
-
 func (whc TestWebhookContext) MessageText() string {
 	return "test message"
 }
@@ -116,7 +116,7 @@ func (whc TestWebhookContext) ChatEntity() BotChat                         { pan
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
 
-func (whc TestWebhookContext) Locale() strongo.Locale               { panic("Not implemented") }
+func (whc TestWebhookContext) Locale() strongo.Locale       { panic("Not implemented") }
 func (whc TestWebhookContext) SetLocale(code5 string) error { panic("Not implemented") }
 
 func (whc TestWebhookContext) NewMessage(text string) MessageFromBot { panic("Not implemented") }
@@ -128,6 +128,10 @@ func (whc TestWebhookContext) NewEditCallbackMessage(messageText string) Message
 	panic("Not implemented")
 }
 
+func (whc TestWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot {
+	panic("Not implemented")
+}
+
 func (whc TestWebhookContext) Responder() WebhookResponder {
 	panic("Not implemented")
 }
@@ -136,8 +140,8 @@ func (whc TestWebhookContext) GetHttpClient() *http.Client                  { pa
 func (whc TestWebhookContext) IsNewerThen(chatEntity BotChat) bool          { panic("Not implemented") }
 func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { panic("Not implemented") }
 
-func (whc TestWebhookContext) UserID() int64                                { panic("Not implemented") }
-func (whc TestWebhookContext) CurrentUserKey() *datastore.Key               { panic("Not implemented") }
+func (whc TestWebhookContext) UserID() int64                   { panic("Not implemented") }
+func (whc TestWebhookContext) CurrentUserKey() *datastore.Key  { panic("Not implemented") }
 func (whc TestWebhookContext) GetAppUser() (BotAppUser, error) { panic("Not implemented") }
 
 func (whc TestWebhookContext) Logger() strongo.Logger { panic("Not implemented") }

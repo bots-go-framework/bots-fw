@@ -65,7 +65,7 @@ func EditMessageOnCallbackQuery(whcbq bots.WebhookCallbackQuery, parseMode, text
 	callbackQuery := twhcbq.callbackQuery
 
 	emc := tgbotapi.EditMessageTextConfig{
-		Text: text,
+		Text:      text,
 		ParseMode: parseMode,
 		BaseEdit: tgbotapi.BaseEdit{
 			InlineMessageID: callbackQuery.InlineMessageID,

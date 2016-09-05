@@ -1,9 +1,9 @@
 package bots
 
 import (
-	"io"
-	"github.com/strongo/app"
 	"github.com/satori/go.uuid"
+	"github.com/strongo/app"
+	"io"
 )
 
 type BotChat interface {

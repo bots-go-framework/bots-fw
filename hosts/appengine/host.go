@@ -1,11 +1,11 @@
 package gae_host
 
 import (
+	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
-	"github.com/strongo/app"
 )
 
 type GaeBotHost struct {
@@ -27,8 +27,8 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 		logger := h.Logger(r)
 		appUserStore := NewGaeAppUserStore(logger, r, appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)
 		return bots.BotCoreStores{
-			BotChatStore: NewGaeTelegramChatStore(logger, r),
-			BotUserStore: NewGaeTelegramUserStore(logger, r, appUserStore),
+			BotChatStore:    NewGaeTelegramChatStore(logger, r),
+			BotUserStore:    NewGaeTelegramUserStore(logger, r, appUserStore),
 			BotAppUserStore: appUserStore,
 		}
 	default:

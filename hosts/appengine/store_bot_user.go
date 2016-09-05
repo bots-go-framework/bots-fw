@@ -1,11 +1,11 @@
 package gae_host
 
 import (
+	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"github.com/pkg/errors"
 )
 
 // Persist user to GAE datastore

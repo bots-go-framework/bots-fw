@@ -1,12 +1,12 @@
 package bots
 
 import (
+	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
 	"fmt"
+	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"runtime/debug"
 	"strings"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
-	"github.com/strongo/measurement-protocol"
 )
 
 // The driver is doing initial request & final response processing
@@ -17,9 +17,9 @@ type WebhookDriver interface {
 
 type BotDriver struct {
 	GaTrackingID string
-	botHost    BotHost
-	appContext BotAppContext
-	router     *WebhooksRouter
+	botHost      BotHost
+	appContext   BotAppContext
+	router       *WebhooksRouter
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
@@ -78,7 +78,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 			if whc != nil {
 				if whc.BotChatID() != nil {
-					whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON + " " + messageText), BotApiSendMessageOverResponse)
+					whc.Responder().SendMessage(whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse)
 				}
 			}
 		} else {

@@ -3,11 +3,11 @@ package bots
 import (
 	"fmt"
 	//"net/http"
-	"strings"
 	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
+	"github.com/pkg/errors"
 	"github.com/strongo/measurement-protocol"
 	"net/url"
-	"github.com/pkg/errors"
+	"strings"
 )
 
 type TypeCommands struct {
@@ -25,7 +25,7 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 		commandsCount := len(commands)
 		typeCommands := TypeCommands{
 			byCode: make(map[string]Command, commandsCount),
-			all: make([]Command, commandsCount, commandsCount),
+			all:    make([]Command, commandsCount, commandsCount),
 		}
 		for i, command := range commands {
 			if command.Code == "" {
@@ -42,7 +42,7 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 	return r
 }
 
-func matchCallbackCommands (whc WebhookContext, typeCommands TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
+func matchCallbackCommands(whc WebhookContext, typeCommands TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
 	if len(typeCommands.all) > 0 {
 		callbackData := whc.InputCallbackQuery().GetData()
 		callbackUrl, err = url.Parse(callbackData)
@@ -83,7 +83,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 
 	for _, command := range commands {
 		for _, commandName := range command.Commands {
-			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName + " ") {
+			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
 				logger.Debugf("command(code=%v) matched my command.commands", command.Code)
 				matchedCommand = &command
 				return
@@ -93,7 +93,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 
 	for _, command := range commands {
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
-			awaitingReplyPrefix := strings.TrimLeft(parentPath + AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
+			awaitingReplyPrefix := strings.TrimLeft(parentPath+AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				//logger.Debugf("[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
@@ -130,12 +130,12 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 
 		if !awaitingReplyCommandFound {
 			awaitingReplyToPath := AwaitingReplyToPath(awaitingReplyTo)
-			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code) {
+			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code) {
 				awaitingReplyCommand = command
 				switch {
 				case awaitingReplyToPath == command.Code:
 					logger.Debugf("%v matched by: awaitingReplyToPath == command.Code", command.Code)
-				case strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code):
+				case strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code):
 					logger.Debugf("%v matched by: strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.Code)", command.Code)
 				}
 				awaitingReplyCommandFound = true
@@ -176,7 +176,6 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		chosenResult := whc.InputChosenInlineResult()
 		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
 	}
-
 
 	if typeCommands, found := r.commandsByType[inputType]; !found {
 		logMessage += "no commands to match"
@@ -263,9 +262,9 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 					if path == "" {
 						path = matchedCommand.Code
 					}
-					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + path, matchedCommand.Title)
+					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 				} else {
-					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix + WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
+					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 				}
 
 				if mode == Production {
@@ -284,7 +283,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		if mode == Production && gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
-			go func(){
+			go func() {
 				err = gaMeasurement.Queue(exceptionMessage)
 				if err != nil {
 					logger.Warningf("Failed to send page view to GA: %v", err)
@@ -293,7 +292,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		}
 		if whc.InputType() == WebhookInputMessage {
 			// Todo: Try to get chat ID from user?
-			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) + "\n\n" + emoji.ERROR_ICON + fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
+			_, respErr := responder.SendMessage(whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG)+"\n\n"+emoji.ERROR_ICON+fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if respErr != nil {
 				logger.Errorf("Failed to report to user a server error: %v", respErr)
 			}

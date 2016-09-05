@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"io/ioutil"
-	"net/http"
 	"github.com/strongo/measurement-protocol"
 	"google.golang.org/appengine"
+	"io/ioutil"
+	"net/http"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -74,7 +74,7 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	logger := h.BotHost.Logger(r)
 	token := r.URL.Query().Get("token")
-	c := appengine.NewContext(r)  //TODO: Remove dependency on AppEngine, should be passed indside.
+	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
 	botSettings, ok := h.botsBy(c).ApiToken[token]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown token: [%v]", token)

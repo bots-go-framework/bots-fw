@@ -6,18 +6,18 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	//"google.golang.org/appengine/log"
+	"github.com/strongo/measurement-protocol"
 	"net/http"
-	"strings"
 	"net/url"
 	"strconv"
-	"github.com/strongo/measurement-protocol"
+	"strings"
 )
 
 type TelegramWebhookContext struct {
 	*bots.WebhookContextBase
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
-	responder bots.WebhookResponder
+	responder      bots.WebhookResponder
 }
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
@@ -29,6 +29,15 @@ func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bo
 	editMessageTextConfig.ParseMode = "HTML"
 	m := whc.NewMessage("")
 	m.TelegramEditMessageText = editMessageTextConfig
+	return m
+}
+
+func (whc *TelegramWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) bots.MessageFromBot {
+	chatID, _ := whc.BotChatID().(int64)
+	messageID := whc.InputCallbackQuery().GetMessage().IntID()
+	editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
+	m := whc.NewMessage("")
+	m.TelegramEditMessageMarkup = &editMessageMarkupConfig
 	return m
 }
 

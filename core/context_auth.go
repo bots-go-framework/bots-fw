@@ -3,8 +3,8 @@ package bots
 import (
 	"google.golang.org/appengine/log"
 	//"google.golang.org/appengine/datastore"
-	"github.com/pkg/errors"
 	"fmt"
+	"github.com/pkg/errors"
 )
 
 func IsAccessGranted(whc WebhookContext) bool {

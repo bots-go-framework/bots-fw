@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/measurement-protocol"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"github.com/strongo/measurement-protocol"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {

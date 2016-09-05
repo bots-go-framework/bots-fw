@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"testing"
 	"github.com/strongo/app"
+	"testing"
 )
 
 func TestNewBotSettings(t *testing.T) {

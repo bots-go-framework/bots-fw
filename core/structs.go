@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
 )
 
 type EntryInputs struct {
@@ -35,16 +35,17 @@ const (
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
-	Text                    string
-	Format                  MessageFormat
-	DisableWebPagePreview   bool
+	Text                      string
+	Format                    MessageFormat
+	DisableWebPagePreview     bool
 	//Keyboard              Keyboard
-	TelegramKeyboard        interface{}
-	TelegramInlineAnswer    *tgbotapi.InlineConfig
-	TelegramEditMessageText *tgbotapi.EditMessageTextConfig
-	TelegramInlineCongig    *tgbotapi.InlineConfig
-	TelegramChatID          int64
-	IsReplyToInputMessage   bool
+	TelegramKeyboard          interface{}
+	TelegramInlineAnswer      *tgbotapi.InlineConfig
+	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig
+	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig
+	TelegramInlineConfig      *tgbotapi.InlineConfig
+	TelegramChatID            int64
+	IsReplyToInputMessage     bool
 }
 
 //type Keyboard interface {

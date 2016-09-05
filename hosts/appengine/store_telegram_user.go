@@ -2,13 +2,13 @@ package gae_host
 
 import (
 	"fmt"
+	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
-	"github.com/strongo/app"
 )
 
 type GaeTelegramUserStore struct {

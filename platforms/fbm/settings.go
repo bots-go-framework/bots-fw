@@ -1,8 +1,8 @@
 package fbm_strongo_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app"
+	"github.com/strongo/bots-framework/core"
 )
 
 func NewFbmBot(mode bots.BotMode, code, token, verifyToken string, locale strongo.Locale) bots.BotSettings {

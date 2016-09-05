@@ -2,17 +2,17 @@ package bots
 
 import (
 	"fmt"
+	"github.com/satori/go.uuid"
+	"github.com/strongo/app"
 	"net/url"
 	"strings"
 	"time"
-	"github.com/strongo/app"
-	"github.com/satori/go.uuid"
 )
 
 type OwnedByUser struct {
 	AppUserIntID int64 // TODO: Rename to AppUserIntID?
-	DtCreated time.Time
-	DtUpdated time.Time
+	DtCreated    time.Time
+	DtUpdated    time.Time
 }
 
 func (e *OwnedByUser) GetAppUserIntID() int64 {
@@ -51,8 +51,8 @@ type BotUserEntity struct {
 type BotChatEntity struct {
 	BotEntity
 	//
-	Type              string `datastore:",noindex"`
-	Title             string `datastore:",noindex"`
+	Type  string `datastore:",noindex"`
+	Title string `datastore:",noindex"`
 	//
 	AwaitingReplyTo   string `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
@@ -127,7 +127,7 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string,
 	path := pathAndQuery[0]
 	logger.Infof("path: %v", path)
 	steps := strings.Split(path, AWAITING_REPLY_TO_PATH_SEPARATOR)
-	for i := len(steps)-1; i >= 0; i-- {
+	for i := len(steps) - 1; i >= 0; i-- {
 		if steps[i] == step {
 			logger.Infof("steps[%v] == [%v]", i, step)
 			if i < len(steps)-1 {
@@ -184,6 +184,6 @@ func (e *BotChatEntity) GetWizardParam(key string) string {
 	if u, err := url.Parse(e.GetAwaitingReplyTo()); err != nil {
 		return ""
 	} else {
-		return  u.Query().Get(key)
+		return u.Query().Get(key)
 	}
 }
