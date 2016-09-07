@@ -102,19 +102,11 @@ func (whcb *WebhookContextBase) GetBotToken() string {
 }
 
 func (whcb *WebhookContextBase) Translate(key string, args ...interface{}) string {
-	s := whcb.Translator.Translate(key, whcb.Locale().Code5)
-	if len(args) > 0 {
-		s = fmt.Sprintf(s, args...)
-	}
-	return s
+	return whcb.Translator.Translate(key, whcb.Locale().Code5, args...)
 }
 
 func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface{}) string {
-	s := whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5)
-	if len(args) > 0 {
-		s = fmt.Sprintf(s, args...)
-	}
-	return s
+	return whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5, args...)
 }
 
 func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
