@@ -96,6 +96,10 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	defer func() {
 		logger.Debugf("Closing BotChatStore...")
+		chatEntity := whc.ChatEntity()
+		if chatEntity.GetPreferredLanguage() == "" {
+			chatEntity.SetPreferredLanguage(whc.Locale().Code5)
+		}
 		if err := botCoreStores.BotChatStore.Close(); err != nil {
 			logger.Errorf("Failed to close BotChatStore: %v", err)
 		}

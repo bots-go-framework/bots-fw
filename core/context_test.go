@@ -3,11 +3,11 @@ package bots
 import (
 	"fmt"
 	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
-	"github.com/strongo/bots-api-telegram"
 )
 
 type TestWebhookContext struct {

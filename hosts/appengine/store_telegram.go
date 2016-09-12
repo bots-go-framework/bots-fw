@@ -31,8 +31,8 @@ package gae_host
 //		telegramUser.UserName = userName
 //
 //		err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
-//			userKey := datastore.NewIncompleteKey(ctx, common.AppUserKind, nil)
-//			user := common.AppUser{
+//			userKey := datastore.NewIncompleteKey(ctx, models.AppUserKind, nil)
+//			user := models.AppUser{
 //				DtCreated:      telegramUser.DtCreated,
 //				IsTelegramUser: true,
 //				//TelegramUserIDs: []int64{int64(from.ID)},

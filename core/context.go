@@ -2,10 +2,10 @@ package bots
 
 import (
 	"github.com/strongo/app"
+	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/strongo/bots-api-telegram"
 )
 
 type WebhookInlineQueryContext interface {
