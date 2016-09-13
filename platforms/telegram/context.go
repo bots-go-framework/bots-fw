@@ -123,44 +123,44 @@ func (whc *TelegramWebhookContext) MessageText() string {
 	return ""
 }
 
-func (whc *TelegramWebhookContext) BotChatID() (chatId interface{}) {
+func (whc *TelegramWebhookContext) BotChatID() interface{} {
+	id := whc.BotChatIntID()
+	if id == 0 {
+		return nil
+	}
+	return id
+}
+
+func (whc *TelegramWebhookContext) BotChatIntID() (chatId int64) {
 	webhookInput := whc.WebhookInput
 	switch webhookInput.InputType() {
 	case bots.WebhookInputMessage:
-		chatId = webhookInput.InputMessage().Chat().GetID()
+		chatId = webhookInput.InputMessage().Chat().GetID().(int64)
 	case bots.WebhookInputCallbackQuery:
 		callbackQuery := webhookInput.InputCallbackQuery()
 		if callbackQuery == nil {
-			return nil
+			return 0
 		}
 		chat := callbackQuery.Chat()
 		if chat != nil {
-			return chat.GetID()
+			chatId = chat.GetID().(int64)
+		} else {
+			data := callbackQuery.GetData()
+			if strings.Contains(data, "chat=") {
+				values, err := url.ParseQuery(data)
+				if err != nil {
+					whc.Logger().Errorf("Failed to GetData() from webhookInput.InputCallbackQuery()")
+					return 0
+				}
+				chatIdAsStr := values.Get("chat")
+				if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
+					whc.Logger().Errorf("Failed to parse 'chat' parameter to int: %v", err)
+					return 0
+				}
+			}
 		}
-		data := callbackQuery.GetData()
-		if strings.Contains(data, "chat=") {
-			values, err := url.ParseQuery(data)
-			if err != nil {
-				whc.Logger().Errorf("Failed to GetData() from webhookInput.InputCallbackQuery()")
-				return nil
-			}
-			chatIdAsStr := values.Get("chat")
-			chatIdAsInt, err := strconv.Atoi(chatIdAsStr)
-			if err != nil {
-				whc.Logger().Errorf("Failed to parse 'chat' parameter to int: %v", err)
-				return nil
-			}
-			if chatIdAsInt == 0 {
-				return nil
-			}
-			return chatIdAsInt
-		}
-		return nil
 	}
 
-	if chatId == 0 {
-		return nil
-	}
 	return chatId
 }
 

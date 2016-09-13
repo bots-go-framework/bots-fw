@@ -21,6 +21,9 @@ func (whc TestWebhookContext) AppUserIntID() int64 {
 func (whc TestWebhookContext) BotChatID() interface{} {
 	return nil
 }
+func (whc TestWebhookContext) BotChatIntID() int64 {
+	return 0
+}
 
 func (tc TestWebhookContext) Close() error {
 	return nil

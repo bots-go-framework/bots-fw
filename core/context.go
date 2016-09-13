@@ -25,6 +25,7 @@ type WebhookContext interface {
 	BotAppContext() BotAppContext
 
 	BotChatID() interface{}
+	BotChatIntID() int64
 
 	GetBotCode() string
 	GetBotToken() string
