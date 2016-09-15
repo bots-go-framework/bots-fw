@@ -8,7 +8,7 @@ This is a [Go language](https://golang.org/) framework for building multilingual
 The best way to learn is to see examples of usage. Here is few:
   * [strongo/bots-example-calculator](http://github.com/strongo/bots-example-calculator) — a simple bot that calculates math expressions
   * [strongo/bots-example-rock-paper-scissors](http://github.com/strongo/bots-example-rock-paper-scissors) — a bot to play [Rock-Paper-Scissors](https://en.wikipedia.org/wiki/Rock-paper-scissors) with your friends or against AI
-  * [**DebtsTracker.io**](http://debtstracker.io/) —  a bot & a reminder service that helps to track your debts & credits. Sends automated email & SMS notifications to your debtors.
+  * [**DebtsTracker.io**](http://debtstracker.io/) —  a bot & a reminder service that helps to track your debts & credits. Sends automated email & SMS reminders to your debtors.
 
 We would be happy to place a link to your example / bot that is implemented using this framework.
 

@@ -184,7 +184,7 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 			return err
 		}
 
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
 		if whc.GetBotSettings().Mode == Production {
 			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whc.GaCommon())

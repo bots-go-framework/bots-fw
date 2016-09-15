@@ -50,6 +50,7 @@ type BotUserEntity struct {
 
 type BotChatEntity struct {
 	BotEntity
+	BotID string `datastore:",noindex"`
 	//
 	Type  string `datastore:",noindex"`
 	Title string `datastore:",noindex"`
@@ -61,6 +62,15 @@ type BotChatEntity struct {
 }
 
 var _ BotChat = (*BotChatEntity)(nil)
+
+func (e *BotChatEntity) GetBotID() string {
+	return e.BotID
+}
+
+func (e *BotChatEntity) SetBotID(botID string) {
+	e.BotID = botID
+}
+
 
 func (e *BotChatEntity) GetBotUserID() interface{} {
 	panic("Should be overwritted in subclass")

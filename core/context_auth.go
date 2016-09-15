@@ -3,7 +3,6 @@ package bots
 import (
 	"google.golang.org/appengine/log"
 	//"google.golang.org/appengine/datastore"
-	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +21,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 		} else {
 			chatEntity.SetAccessGranted(value)
 			if err := whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil {
-				return err
+				return errors.Wrap(err, "Failed to save bot chat entity to db")
 			}
 		}
 	}
@@ -30,11 +29,11 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserID := whc.GetSender().GetID()
 	logger.Debugf("SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserById(botUserID); err != nil {
-		return err
+		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else {
 		botUser.SetAccessGranted(value)
 		if err = whc.SaveBotUser(botUserID, botUser); err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("Failed to call whc.SaveBotUser(botUserID=%v)", botUserID))
+			err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
 		}
 		return err
 	}
