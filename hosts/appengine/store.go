@@ -8,7 +8,7 @@ import (
 )
 
 type GaeBaseStore struct {
-	log        strongo.Logger
+	logger     strongo.Logger
 	r          *http.Request
 	entityKind string
 }
@@ -17,6 +17,6 @@ func (s *GaeBaseStore) Context() context.Context {
 	return appengine.NewContext(s.r)
 }
 
-func NewGaeBaseStore(log strongo.Logger, r *http.Request, entityKind string) GaeBaseStore {
-	return GaeBaseStore{log: log, r: r, entityKind: entityKind}
+func NewGaeBaseStore(logger strongo.Logger, r *http.Request, entityKind string) GaeBaseStore {
+	return GaeBaseStore{logger: logger, r: r, entityKind: entityKind}
 }

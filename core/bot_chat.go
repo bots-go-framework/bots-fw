@@ -2,12 +2,10 @@ package bots
 
 import (
 	"github.com/satori/go.uuid"
-	"github.com/strongo/app"
 	"io"
 )
 
 type BotChat interface {
-
 	GetBotID() string
 	SetBotID(botID string)
 
@@ -28,11 +26,11 @@ type BotChat interface {
 
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(path string)
-	IsAwaitingReplyTo(code string, logger strongo.Logger) bool
+	IsAwaitingReplyTo(code string) bool
 	AddWizardParam(key, value string)
 	GetWizardParam(key string) string
-	PopStepsFromAwaitingReplyUpToSpecificParent(code string, logger strongo.Logger)
-	PushStepToAwaitingReplyTo(code string, logger strongo.Logger)
+	PopStepsFromAwaitingReplyUpToSpecificParent(code string)
+	PushStepToAwaitingReplyTo(code string)
 	GetGaClientID() uuid.UUID
 }
 

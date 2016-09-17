@@ -82,17 +82,18 @@ func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.R
 func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
 	logger := h.BotHost.Logger(r)
+	c := h.BotHost.Context(r)
 	content := make([]byte, r.ContentLength)
 	_, err = r.Body.Read(content)
 	if err != nil {
 		return
 	}
-	logger.Infof("Request.Body: %v", string(content))
+	logger.Infof(c, "Request.Body: %v", string(content))
 	err = json.Unmarshal(content, &receivedMessage)
 	if err != nil {
 		return
 	}
-	logger.Infof("Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
+	logger.Infof(c, "Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
 	entriesWithInputs = make([]bots.EntryInputs, len(receivedMessage.Entries))
 	for i, entry := range receivedMessage.Entries {
 		entryWithInputs := bots.EntryInputs{

@@ -58,7 +58,7 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	//appUsers := reflect.MakeSlice(reflect.SliceOf(s.appUserEntityType), 0, 2)
 	keys, err := query.GetAll(c, nil)
 	if err != nil {
-		s.log.Errorf("Failed to query app users by TelegramUserIDs: %v", err)
+		s.logger.Errorf(c, "Failed to query app users by TelegramUserIDs: %v", err)
 		return 0, err
 	}
 	switch len(keys) {

@@ -4,6 +4,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/measurement-protocol"
+	"golang.org/x/net/context"
 	"net/http"
 	"time"
 )
@@ -27,6 +28,7 @@ func UtmSource(p BotPlatform) string {
 
 type BotHost interface {
 	Logger(r *http.Request) strongo.Logger
+	Context(r *http.Request) context.Context
 	GetHttpClient(r *http.Request) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 }
@@ -174,7 +176,7 @@ type OnMessageSentResponse struct {
 }
 
 type WebhookResponder interface {
-	SendMessage(m MessageFromBot, channel BotApiSendMessageChannel) (OnMessageSentResponse, error)
+	SendMessage(c context.Context, m MessageFromBot, channel BotApiSendMessageChannel) (OnMessageSentResponse, error)
 }
 
 type InputMessage interface {

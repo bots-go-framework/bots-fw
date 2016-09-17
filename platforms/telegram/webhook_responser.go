@@ -7,6 +7,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"net/http"
+	"golang.org/x/net/context"
 )
 
 type TelegramWebhookResponder struct {
@@ -22,7 +23,7 @@ func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookCont
 	return responder
 }
 
-func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
+func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
 	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
@@ -36,7 +37,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		Client: r.whc.GetHttpClient(),
 	}
 	if m.TelegramInlineAnswer != nil {
-		logger.Debugf("Inline answer")
+		logger.Debugf(c, "Inline answer")
 		chattable = m.TelegramInlineAnswer
 		inlineAnswer := *m.TelegramInlineAnswer
 		input, ok := r.whc.WebhookInput.(TelegramWebhookInput)
@@ -47,9 +48,9 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 
 		jsonStr, err := json.Marshal(inlineAnswer)
 		if err == nil {
-			logger.Infof("InlineAnswer for sending to Telegram: %v", string(jsonStr))
+			logger.Infof(c, "InlineAnswer for sending to Telegram: %v", string(jsonStr))
 		} else {
-			logger.Errorf("Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
+			logger.Errorf(c, "Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
 		}
 
 		apiResponse, err := botApi.AnswerInlineQuery(inlineAnswer)
@@ -57,7 +58,7 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 		if err != nil {
 			s, err := json.Marshal(apiResponse)
 			if err != nil {
-				logger.Debugf("apiResponse: %v", s)
+				logger.Debugf(c, "apiResponse: %v", s)
 			}
 		}
 		return resp, err
@@ -89,33 +90,33 @@ func (r TelegramWebhookResponder) SendMessage(m bots.MessageFromBot, channel bot
 
 		chattable = messageConfig
 	} else {
-		logger.Errorf("Not inline answer, Not inline, Not edit inline, Text is empty.")
+		logger.Errorf(c, "Not inline answer, Not inline, Not edit inline, Text is empty.")
 		return
 	}
 
 	if jsonStr, err := json.Marshal(chattable); err != nil {
-		logger.Errorf("Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
+		logger.Errorf(c, "Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
 		return resp, err
 	} else {
-		logger.Infof("Message for sending to Telegram as JSON: %v", string(jsonStr))
+		logger.Infof(c, "Message for sending to Telegram as JSON: %v", string(jsonStr))
 	}
 
 	if values, err := chattable.Values(); err != nil {
-		logger.Errorf("Failed to marshal message config to url.Values: %v", err)
+		logger.Errorf(c, "Failed to marshal message config to url.Values: %v", err)
 		return resp, err
 	} else {
-		logger.Infof("Message for sending to Telegram as URL values: %v", values)
+		logger.Infof(c, "Message for sending to Telegram as URL values: %v", values)
 	}
 
 	switch channel {
 	case bots.BotApiSendMessageOverResponse:
 		if _, err := tgbotapi.ReplyToResponse(chattable, r.w); err != nil {
-			logger.Errorf("Failed to send message to Telegram throw HTTP response: %v", err)
+			logger.Errorf(c, "Failed to send message to Telegram throw HTTP response: %v", err)
 		}
 		return resp, err
 	case bots.BotApiSendMessageOverHTTPS:
 		if message, err := botApi.Send(chattable); err != nil {
-			logger.Errorf("Failed to send message to Telegram using HTTPS API: %v", err)
+			logger.Errorf(c, "Failed to send message to Telegram using HTTPS API: %v", err)
 			return resp, err
 		} else {
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil

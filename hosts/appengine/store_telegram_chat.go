@@ -21,7 +21,6 @@ func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramCh
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),
 			newBotChatEntity: func() bots.BotChat {
-				log.Debugf("NewGaeTelegramChatStore.newBotChatEntity()")
 				telegramChat := telegram_bot.NewTelegramChat()
 				return &telegramChat
 			},
@@ -33,7 +32,6 @@ func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramCh
 			botChatKey: func(botChatId interface{}) *datastore.Key {
 				if intId, ok := botChatId.(int64); ok {
 					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, "", (int64)(intId), nil)
-					log.Infof("BotChatKey: %v", key)
 					return key
 				} else {
 					panic(fmt.Sprintf("Expected botChatId as int, got: %T", botChatId))

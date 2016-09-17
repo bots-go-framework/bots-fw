@@ -3,7 +3,6 @@ package bots
 import (
 	"fmt"
 	"github.com/satori/go.uuid"
-	"github.com/strongo/app"
 	"net/url"
 	"strings"
 	"time"
@@ -71,7 +70,6 @@ func (e *BotChatEntity) SetBotID(botID string) {
 	e.BotID = botID
 }
 
-
 func (e *BotChatEntity) GetBotUserID() interface{} {
 	panic("Should be overwritted in subclass")
 }
@@ -114,11 +112,8 @@ func (e *BotChatEntity) SetPreferredLanguage(value string) {
 	e.PreferredLanguage = value
 }
 
-func (e *BotChatEntity) IsAwaitingReplyTo(code string, logger strongo.Logger) bool {
+func (e *BotChatEntity) IsAwaitingReplyTo(code string) bool {
 	awaitingReplyToPath := e.getAwaitingReplyToPath()
-	if logger != nil {
-		logger.Debugf("IsAwaitingReplyTo(%v), awaitingReplyToPath: %v", code, awaitingReplyToPath)
-	}
 	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+code)
 }
 
@@ -130,19 +125,15 @@ func (e *BotChatEntity) getAwaitingReplyToPath() string {
 	return e.AwaitingReplyTo
 }
 
-func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string, logger strongo.Logger) {
-	logger.Infof("PopStepsFromAwaitingReplyUpToSpecificParent(%v)", step)
+func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string) {
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
 	path := pathAndQuery[0]
-	logger.Infof("path: %v", path)
 	steps := strings.Split(path, AWAITING_REPLY_TO_PATH_SEPARATOR)
 	for i := len(steps) - 1; i >= 0; i-- {
 		if steps[i] == step {
-			logger.Infof("steps[%v] == [%v]", i, step)
 			if i < len(steps)-1 {
 				path = strings.Join(steps[:i+1], AWAITING_REPLY_TO_PATH_SEPARATOR)
-				logger.Infof("path: %v", path)
 				if len(pathAndQuery) > 1 {
 					query := pathAndQuery[1]
 					e.SetAwaitingReplyTo(path + AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR + query)
@@ -152,30 +143,28 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string,
 			}
 			steps = steps[:i]
 			break
-		} else {
-			logger.Infof("steps[%v]: %v != %v:", i, steps[i], step)
+			//} else {
+			//logger.Infof(c, "steps[%v]: %v != %v:", i, steps[i], step)
 		}
 	}
 }
 
-func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string, logger strongo.Logger) {
-	logger.Infof("PushStepToAwaitingReplyTo(%v)", step)
+func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string) {
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, 2)
 	if len(pathAndQuery) > 1 { // Has query part - something after "?" character
-		if !e.IsAwaitingReplyTo(step, logger) {
+		if !e.IsAwaitingReplyTo(step) {
 			path := pathAndQuery[0]
 			query := pathAndQuery[1]
 			awaitingReplyTo = strings.Join([]string{path, AWAITING_REPLY_TO_PATH_SEPARATOR, step, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR, query}, "")
 			e.SetAwaitingReplyTo(awaitingReplyTo)
 		}
 	} else { // Has no query - no "?" character
-		if !e.IsAwaitingReplyTo(step, logger) {
+		if !e.IsAwaitingReplyTo(step) {
 			awaitingReplyTo = awaitingReplyTo + AWAITING_REPLY_TO_PATH_SEPARATOR + step
 			e.SetAwaitingReplyTo(awaitingReplyTo)
 		}
 	}
-	logger.Infof("AwaitingReplyTo: %v", awaitingReplyTo)
 }
 
 func (e *BotChatEntity) AddWizardParam(key, value string) {

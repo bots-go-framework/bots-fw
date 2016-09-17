@@ -22,14 +22,14 @@ var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface impleme
 
 // ************************** Implementations of  bots.ChatStore **************************
 func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotChat, error) { // Former LoadBotChatEntity
-	s.log.Debugf("GaeBotChatStore.GetBotChatEntityById(%v)", botChatId)
+	s.logger.Debugf(s.Context(), "GaeBotChatStore.GetBotChatEntityById(%v)", botChatId)
 	if s.botChats == nil {
 		s.botChats = make(map[interface{}]bots.BotChat, 1)
 	}
 	botChatEntity := s.newBotChatEntity()
 	err := nds.Get(s.Context(), s.botChatKey(botChatId), botChatEntity)
 	if err != nil {
-		s.log.Infof("Failed to get bot chat entity by ID: %v - %T(%v)", botChatId, err, err)
+		s.logger.Infof(s.Context(), "Failed to get bot chat entity by ID: %v - %T(%v)", botChatId, err, err)
 		if err == datastore.ErrNoSuchEntity {
 			return nil, bots.ErrEntityNotFound
 		}
@@ -47,7 +47,7 @@ func (s *GaeBotChatStore) SaveBotChat(chatId interface{}, chatEntity bots.BotCha
 }
 
 func (s *GaeBotChatStore) NewBotChatEntity(botID string, botChatId interface{}, appUserID int64, botUserID interface{}, isAccessGranted bool) bots.BotChat {
-	s.log.Debugf("NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
+	s.logger.Debugf(s.Context(), "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
 	botChat := s.newBotChatEntity()
 	botChat.SetAppUserIntID(appUserID)
 	botChat.SetBotUserID(botUserID)
@@ -59,10 +59,10 @@ func (s *GaeBotChatStore) NewBotChatEntity(botID string, botChatId interface{}, 
 
 func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
 	if len(s.botChats) == 0 {
-		s.log.Debugf("GaeBotChatStore.Close(): Nothing to save")
+		s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): Nothing to save")
 		return nil
 	}
-	s.log.Debugf("GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
+	s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
 	var chatKeys []*datastore.Key
 	var chatEntities []bots.BotChat
 	for chatId, chatEntity := range s.botChats {
@@ -74,10 +74,10 @@ func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
 	}
 	_, err := nds.PutMulti(s.Context(), chatKeys, chatEntities)
 	if err == nil {
-		s.log.Infof("Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		s.logger.Infof(s.Context(), "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
 		s.botChats = nil
 	} else {
-		s.log.Errorf("Failed to save %v BotChat entities: %v", len(chatKeys), err)
+		s.logger.Errorf(s.Context(), "Failed to save %v BotChat entities: %v", len(chatKeys), err)
 	}
 	return err
 }

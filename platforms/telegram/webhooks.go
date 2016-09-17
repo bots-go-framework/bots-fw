@@ -63,7 +63,7 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 	webhookUrl := fmt.Sprintf("https://%v/bot/telegram/webhook?token=%v", r.Host, bot.Token)
 
 	if _, err := bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl)); err != nil {
-		logger.Errorf("%v", err)
+		logger.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
@@ -83,19 +83,19 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 	}
 	bytes, _ := ioutil.ReadAll(r.Body)
 	if len(bytes) < 1024 {
-		logger.Debugf("Request body: %v", (string)(bytes))
+		logger.Debugf(c, "Request body: %v", (string)(bytes))
 	} else {
-		logger.Debugf("Request len(body): %v", len(bytes))
+		logger.Debugf(c, "Request len(body): %v", len(bytes))
 	}
 	var update tgbotapi.Update
 	err = json.Unmarshal(bytes, &update)
 	if err != nil {
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
-			logger.Errorf("json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
+			logger.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
 		} else if se, ok := err.(*json.SyntaxError); ok {
-			logger.Errorf("json.SyntaxError: Offset=%v", se.Offset)
+			logger.Errorf(c, "json.SyntaxError: Offset=%v", se.Offset)
 		} else {
-			logger.Errorf("json.Error: %T: %v", err, err.Error())
+			logger.Errorf(c, "json.Error: %T: %v", err, err.Error())
 		}
 		return
 	}

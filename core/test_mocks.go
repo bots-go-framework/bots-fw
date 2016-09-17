@@ -3,6 +3,7 @@ package bots
 import (
 	"fmt"
 	"github.com/strongo/app"
+	"golang.org/x/net/context"
 	"testing"
 )
 
@@ -12,21 +13,21 @@ type MockLogger struct {
 	Infos    []string
 }
 
-func (l *MockLogger) Debugf(format string, args ...interface{}) {
+func (l *MockLogger) Debugf(c context.Context, format string, args ...interface{}) {
 	l.T.Logf("DEBUG: "+format, args...)
 }
-func (l *MockLogger) Infof(format string, args ...interface{}) {
+func (l *MockLogger) Infof(c context.Context, format string, args ...interface{}) {
 	l.Infos = append(l.Infos, fmt.Sprintf(format, args...))
 	l.T.Logf("INFO: "+format, args...)
 }
-func (l *MockLogger) Warningf(format string, args ...interface{}) {
+func (l *MockLogger) Warningf(c context.Context, format string, args ...interface{}) {
 	l.T.Logf("WARNING: "+format, args...)
 	l.Warnings = append(l.Warnings, fmt.Sprintf(format, args...))
 }
-func (l *MockLogger) Errorf(format string, args ...interface{}) {
+func (l *MockLogger) Errorf(c context.Context, format string, args ...interface{}) {
 	l.T.Logf("ERROR: "+format, args...)
 }
-func (l *MockLogger) Criticalf(format string, args ...interface{}) {
+func (l *MockLogger) Criticalf(c context.Context, format string, args ...interface{}) {
 	l.T.Logf("CRITICAL: "+format, args...)
 }
 

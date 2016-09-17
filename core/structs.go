@@ -3,6 +3,7 @@ package bots
 import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
+	"golang.org/x/net/context"
 )
 
 type EntryInputs struct {
@@ -15,7 +16,7 @@ type EntryInput struct {
 	Input WebhookInput
 }
 
-type TranslatorProvider func(logger strongo.Logger) strongo.Translator
+type TranslatorProvider func(c context.Context, logger strongo.Logger) strongo.Translator
 
 type BaseHandler struct {
 	WebhookDriver

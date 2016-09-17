@@ -104,7 +104,6 @@ func (whc *TelegramWebhookContext) AppUserIntID() (appUserIntID int64) {
 		}
 		appUserIntID = botUser.GetAppUserIntID()
 	}
-	whc.Logger().Debugf("*TelegramWebhookContext.AppUserIntID(): %v", appUserIntID)
 	return
 }
 
@@ -147,14 +146,15 @@ func (whc *TelegramWebhookContext) BotChatIntID() (chatId int64) {
 		} else {
 			data := callbackQuery.GetData()
 			if strings.Contains(data, "chat=") {
+				c := whc.Context()
 				values, err := url.ParseQuery(data)
 				if err != nil {
-					whc.Logger().Errorf("Failed to GetData() from webhookInput.InputCallbackQuery()")
+					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
 					return 0
 				}
 				chatIdAsStr := values.Get("chat")
 				if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
-					whc.Logger().Errorf("Failed to parse 'chat' parameter to int: %v", err)
+					whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
 					return 0
 				}
 			}

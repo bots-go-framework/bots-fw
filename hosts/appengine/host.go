@@ -3,6 +3,7 @@ package gae_host
 import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
@@ -14,7 +15,11 @@ type GaeBotHost struct {
 var _ bots.BotHost = (*GaeBotHost)(nil)
 
 func (h GaeBotHost) Logger(r *http.Request) strongo.Logger {
-	return NewGaeLogger(appengine.NewContext(r))
+	return GaeLogger
+}
+
+func (h GaeBotHost) Context(r *http.Request) context.Context {
+	return appengine.NewContext(r)
 }
 
 func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {

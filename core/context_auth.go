@@ -12,7 +12,8 @@ func IsAccessGranted(whc WebhookContext) bool {
 
 func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	logger := whc.Logger()
-	logger.Debugf("SetAccessGranted(value=%v)", value)
+	c := whc.Context()
+	logger.Debugf(c, "SetAccessGranted(value=%v)", value)
 	ctx := whc.Context()
 	chatEntity := whc.ChatEntity()
 	if chatEntity != nil {
@@ -27,7 +28,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	}
 
 	botUserID := whc.GetSender().GetID()
-	logger.Debugf("SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
+	logger.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserById(botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else {
@@ -40,7 +41,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
 }
 
-//func SetAccessGrantedForAllUserChats(whc *WebhookContextBase, botUserKey *datastore.Key, value bool) error {
+//func SetAccessGrantedForAllUserChats(whcb *WebhookContextBase, botUserKey *datastore.Key, value bool) error {
 //	//ctx := whc.Context()
 //	//var telegramUserEntity TelegramUser
 //	//if err := whc.GetOrCreateTelegramUserEntity(&telegramUserEntity); err != nil {
