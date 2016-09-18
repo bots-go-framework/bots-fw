@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	"net/http"
 	"golang.org/x/net/context"
+	"net/http"
 )
 
 type TelegramWebhookResponder struct {
