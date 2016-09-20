@@ -98,7 +98,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	defer func() {
 		logger.Debugf(c, "Closing BotChatStore...")
 		chatEntity := whc.ChatEntity()
-		if chatEntity.GetPreferredLanguage() == "" {
+		if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
 			chatEntity.SetPreferredLanguage(whc.Locale().Code5)
 		}
 		if err := botCoreStores.BotChatStore.Close(); err != nil {
