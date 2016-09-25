@@ -33,6 +33,9 @@ func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramCh
 				if intId, ok := botChatId.(int64); ok {
 					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, "", (int64)(intId), nil)
 					return key
+				} else if strId, ok := botChatId.(string); ok {
+					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, strId, 0, nil)
+					return key
 				} else {
 					panic(fmt.Sprintf("Expected botChatId as int, got: %T", botChatId))
 				}
