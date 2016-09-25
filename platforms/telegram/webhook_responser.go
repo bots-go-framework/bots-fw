@@ -90,7 +90,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 
 		chattable = messageConfig
 	} else {
-		logger.Errorf(c, "Not inline answer, Not inline, Not edit inline, Text is empty.")
+		switch r.whc.InputType() {
+		case bots.WebhookInputInlineQuery: // pass
+		case bots.WebhookInputChosenInlineResult: // pass
+		default:
+			logger.Warningf(c, "Not inline answer, Not inline, Not edit inline, Text is empty.")
+		}
 		return
 	}
 

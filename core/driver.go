@@ -40,7 +40,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			logger.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		} else {
-			logger.Errorf(c, "Failed to call webhookHandler.GetBotContext(r): %v", err)
+			logger.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(r): %v", err)
 			//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
@@ -48,8 +48,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	logger.Infof(c, "Got %v entries", len(entriesWithInputs))
 
 	var whc WebhookContext
-	var gaMeasurement *measurement.BufferedSender
-	gaMeasurement = measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
+	gaMeasurement := measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
 
 	defer func() {
 		logger.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
@@ -96,13 +95,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	defer func() {
-		logger.Debugf(c, "Closing BotChatStore...")
-		chatEntity := whc.ChatEntity()
-		if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
-			chatEntity.SetPreferredLanguage(whc.Locale().Code5)
-		}
-		if err := botCoreStores.BotChatStore.Close(); err != nil {
-			logger.Errorf(c, "Failed to close BotChatStore: %v", err)
+		if whc != nil {
+			logger.Debugf(c, "Closing BotChatStore...")
+			chatEntity := whc.ChatEntity()
+			if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
+				chatEntity.SetPreferredLanguage(whc.Locale().Code5)
+			}
+			if err := botCoreStores.BotChatStore.Close(); err != nil {
+				logger.Errorf(c, "Failed to close BotChatStore: %v", err)
+			}
 		}
 	}()
 

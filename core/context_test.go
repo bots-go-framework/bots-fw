@@ -3,7 +3,6 @@ package bots
 import (
 	"fmt"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"net/http"
@@ -128,10 +127,6 @@ func (whc TestWebhookContext) NewMessageByCode(messageCode string, a ...interfac
 }
 
 func (whc TestWebhookContext) NewEditCallbackMessage(messageText string) MessageFromBot {
-	panic("Not implemented")
-}
-
-func (whc TestWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot {
 	panic("Not implemented")
 }
 

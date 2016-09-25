@@ -26,12 +26,6 @@ func (whm TelegramWebhookMessage) IntID() int64 {
 	return (int64)(whm.message.MessageID)
 }
 
-func (whm TelegramWebhookMessage) Chat() bots.WebhookChat {
-	return TelegramWebhookChat{
-		chat: whm.message.Chat,
-	}
-}
-
 func (whm TelegramWebhookMessage) Contact() bots.WebhookContact {
 	if whm.message.Contact != nil {
 		return NewTelegramWebhookContact(whm.message.Contact)

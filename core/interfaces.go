@@ -86,6 +86,8 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 
 	InputType() WebhookInputType
 
+	Chat() WebhookChat
+
 	InputMessage() WebhookMessage
 	InputPostback() WebhookPostback
 	InputDelivery() WebhookDelivery
@@ -115,7 +117,6 @@ type WebhookMessage interface {
 	StringID() string
 	Sequence() int // 'seq' for Facebook, '???' for Telegram
 	Text() string
-	Chat() WebhookChat
 	Contact() WebhookContact
 }
 

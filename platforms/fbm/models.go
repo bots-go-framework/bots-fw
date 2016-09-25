@@ -10,12 +10,13 @@ const (
 )
 
 type FbmUser struct {
-	*bots.BotUserEntity
+	bots.BotUserEntity
 }
 
 type FbmChat struct {
-	*bots.BotChatEntity
-	FbmUserID int //TODO: Is it Facebook User ID?
+	bots.BotChatEntity
+	FbmUserID string //TODO: Is it Facebook User ID?
+	LastSeq int
 }
 
 //func GetUserByFbmUserID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, *common.User, error) {

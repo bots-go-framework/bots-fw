@@ -12,6 +12,15 @@ import (
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
+	if webhookDriver == nil {
+		panic("webhookDriver == nil")
+	}
+	if botHost == nil {
+		panic("botHost == nil")
+	}
+	if translatorProvider == nil {
+		panic("translatorProvider == nil")
+	}
 	return TelegramWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
@@ -104,7 +113,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 			BotSettings: botSettings,
 		},
 		[]bots.EntryInputs{
-			bots.EntryInputs{
+			{
 				Entry:  TelegramWebhookEntry{update: update},
 				Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
 			},

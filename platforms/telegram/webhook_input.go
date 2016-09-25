@@ -29,6 +29,13 @@ func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {
 	return result
 }
 
+func (whi TelegramWebhookInput) Chat() bots.WebhookChat {
+	return TelegramWebhookChat{
+		chat: whi.update.Message.Chat,
+	}
+}
+
+
 func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
 	switch whi.InputType() {
 	case bots.WebhookInputMessage:

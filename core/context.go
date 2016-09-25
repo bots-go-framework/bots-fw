@@ -2,7 +2,6 @@ package bots
 
 import (
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
@@ -41,7 +40,7 @@ type WebhookContext interface {
 	NewMessage(text string) MessageFromBot
 	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
 	NewEditCallbackMessage(messageText string) MessageFromBot
-	NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
+	//NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
 	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error
@@ -69,7 +68,7 @@ type BotInputProvider interface {
 
 type BotApiUser interface {
 	//IdAsString() string
-	IdAsInt64() int64
+	//IdAsInt64() int64
 	FirstName() string
 	LastName() string
 }

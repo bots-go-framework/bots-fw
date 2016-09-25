@@ -9,9 +9,21 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"google.golang.org/appengine/log"
+	"google.golang.org/appengine"
+	"github.com/pkg/errors"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
+	if webhookDriver == nil {
+		panic("webhookDriver == nil")
+	}
+	if botHost == nil {
+		panic("botHost == nil")
+	}
+	if translatorProvider == nil {
+		panic("translatorProvider == nil")
+	}
 	return FbmWebhookHandler{
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:        FbmPlatform{},
@@ -56,20 +68,25 @@ func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	log.Debugf(c, "FbmWebhookHandler.HandleWebhookRequest()")
 	switch r.Method {
 	case http.MethodGet:
 		q := r.URL.Query()
 		botCode := r.URL.Query().Get("bot")
 		if botSettings, ok := h.botsBy.Code[botCode]; ok {
 			var responseText string
-			if q.Get("hub.verify_token") == botSettings.VerifyToken {
+			verifyToken := q.Get("hub.verify_token")
+			if verifyToken == botSettings.VerifyToken {
 				responseText = q.Get("hub.challenge")
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
-				responseText = "Error, wrong validation token"
+				responseText = "Wrong verify_token"
+				log.Debugf(c, responseText + fmt.Sprintf(". Got: '%v', expected[bot=%v]: '%v'.", verifyToken, botCode, botSettings.VerifyToken))
 			}
 			w.Write([]byte(responseText))
 		} else {
+			log.Debugf(c, "Unkown bot '%v'", botCode)
 			w.WriteHeader(http.StatusForbidden)
 		}
 	case http.MethodPost:
@@ -91,6 +108,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 	logger.Infof(c, "Request.Body: %v", string(content))
 	err = json.Unmarshal(content, &receivedMessage)
 	if err != nil {
+		err = errors.Wrap(err, "Failed to deserialize FB json message")
 		return
 	}
 	logger.Infof(c, "Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
@@ -101,7 +119,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 			Inputs: make([]bots.WebhookInput, len(entry.Messaging)),
 		}
 		for j, messaging := range entry.Messaging {
-			entryWithInputs.Inputs[j] = bots.WebhookInput(messaging)
+			entryWithInputs.Inputs[j] = FbmWebhookInput{messaging: messaging}
 		}
 		entriesWithInputs[i] = entryWithInputs
 	}
@@ -113,7 +131,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 }
 
 func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
-	panic("Not implemented yet") //return NewTelegramWebhookContext(r, botContext, webhookInput)
+	return NewFbmWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
 func (h FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
@@ -121,5 +139,5 @@ func (h FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookC
 }
 
 func (h FbmWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	panic("Not implemented yet")
+	return h.BotHost.GetBotCoreStores(FbmPlatformID, appContext, r)
 }

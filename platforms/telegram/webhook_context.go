@@ -32,7 +32,8 @@ func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bo
 	return m
 }
 
-func (whc *TelegramWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) bots.MessageFromBot {
+func NewEditCallbackMessageKeyboard(whc bots.WebhookContext, kbMarkup tgbotapi.InlineKeyboardMarkup) bots.MessageFromBot {
+	//whct := whc.(*TelegramWebhookContext)
 	chatID, _ := whc.BotChatID().(int64)
 	messageID := whc.InputCallbackQuery().GetMessage().IntID()
 	editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
@@ -81,9 +82,9 @@ func (tc TelegramBotApiUser) LastName() string {
 //	return ""
 //}
 
-func (tc TelegramBotApiUser) IdAsInt64() int64 {
-	return int64(tc.user.ID)
-}
+//func (tc TelegramBotApiUser) IdAsInt64() int64 {
+//	return int64(tc.user.ID)
+//}
 
 func (whc *TelegramWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
 	return nil
@@ -134,7 +135,7 @@ func (whc *TelegramWebhookContext) BotChatIntID() (chatId int64) {
 	webhookInput := whc.WebhookInput
 	switch webhookInput.InputType() {
 	case bots.WebhookInputMessage:
-		chatId = webhookInput.InputMessage().Chat().GetID().(int64)
+		chatId = webhookInput.Chat().GetID().(int64)
 	case bots.WebhookInputCallbackQuery:
 		callbackQuery := webhookInput.InputCallbackQuery()
 		if callbackQuery == nil {
@@ -195,7 +196,7 @@ func (whc *TelegramWebhookContext) getTelegramSenderID() int {
 }
 
 func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
-	telegramChat := whc.InputMessage().Chat()
+	telegramChat := whc.Chat()
 	chatEntity := TelegramChat{
 		BotChatEntity: bots.BotChatEntity{
 			Type:  telegramChat.GetType(),
