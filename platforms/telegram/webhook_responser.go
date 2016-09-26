@@ -124,6 +124,11 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			logger.Errorf(c, "Failed to send message to Telegram using HTTPS API: %v", err)
 			return resp, err
 		} else {
+			if messageJson, err := json.Marshal(message); err != nil {
+				logger.Warningf(c, "Telegram API response as raw: %v", message)
+			} else {
+				logger.Debugf(c, "Telegram API response as JSON: %v", messageJson)
+			}
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 		}
 	default:
