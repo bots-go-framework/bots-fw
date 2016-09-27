@@ -82,8 +82,13 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				}
 			}
 		} else {
-			logger.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
-			gaMeasurement.Flush()
+			queueDepth := gaMeasurement.QueueDepth()
+			if queueDepth == 0 {
+				logger.Debugf(c, "Nothing to flush in gaMeasurement as len(queue) == 0")
+			} else {
+				logger.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", queueDepth)
+				gaMeasurement.Flush()
+			}
 		}
 	}()
 
@@ -96,7 +101,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	defer func() {
 		if whc != nil {
-			logger.Debugf(c, "Closing BotChatStore...")
+			//logger.Debugf(c, "Closing BotChatStore...")
 			chatEntity := whc.ChatEntity()
 			if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
 				chatEntity.SetPreferredLanguage(whc.Locale().Code5)
@@ -107,8 +112,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 	}()
 
-	for i, entryWithInputs := range entriesWithInputs {
-		logger.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
+	for _, entryWithInputs := range entriesWithInputs {
+		//logger.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for j, input := range entryWithInputs.Inputs {
 			inputType := input.InputType()
 			switch inputType {

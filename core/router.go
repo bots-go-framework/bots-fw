@@ -85,7 +85,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 	for _, command := range commands {
 		for _, commandName := range command.Commands {
 			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
-				logger.Debugf(c, "command(code=%v) matched my command.commands", command.Code)
+				logger.Debugf(c, "command(code=%v) matched by command.commands", command.Code)
 				matchedCommand = &command
 				return
 			}
@@ -100,31 +100,31 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 				//logger.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				//logger.Debugf(c, "awaitingReplyCommand: %v", command.Code)
 				if matchedCommand = r.matchMessageCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
-					logger.Debugf(c, "%v matched my command.replies", command.Code)
+					logger.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
 					continue
 				}
 			} else {
-				logger.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+				//logger.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 			}
 		}
 
 		if command.ExactMatch != "" && (command.ExactMatch == messageText || whc.TranslateNoWarning(command.ExactMatch) == messageText) {
-			logger.Debugf(c, "%v matched my command.exactMatch", command.Code)
+			logger.Debugf(c, "%v matched by command.exactMatch", command.Code)
 			matchedCommand = &command
 			return
 		}
 
 		if command.DefaultTitle(whc) == messageText {
-			logger.Debugf(c, "%v matched my command.FullName()", command.Code)
+			logger.Debugf(c, "%v matched by command.FullName()", command.Code)
 			matchedCommand = &command
 			return
 		} else {
 			logger.Debugf(c, "command(code=%v).Title(whc): %v", command.Code, command.DefaultTitle(whc))
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
-			logger.Debugf(c, "%v matched my command.matcher()", command.Code)
+			logger.Debugf(c, "%v matched by command.matcher()", command.Code)
 			matchedCommand = &command
 			return
 		}
@@ -143,17 +143,17 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 				continue
 			}
 		}
-		logger.Debugf(c, "%v - not matched, matchedCommand: %v", command.Code, matchedCommand)
+		//logger.Debugf(c, "%v - not matched, matchedCommand: %v", command.Code, matchedCommand)
 	}
 	if awaitingReplyCommandFound {
 		matchedCommand = &awaitingReplyCommand
-		logger.Debugf(c, "Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.Code)
+		//logger.Debugf(c, "Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.Code)
 	} else {
 		matchedCommand = nil
-		logger.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
+		//logger.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
 	}
 
-	logger.Debugf(c, "matchedCommand: %v", matchedCommand)
+	//logger.Debugf(c, "matchedCommand: %v", matchedCommand)
 	return
 }
 

@@ -22,7 +22,7 @@ var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface impleme
 
 // ************************** Implementations of  bots.ChatStore **************************
 func (s *GaeBotChatStore) GetBotChatEntityById(botChatId interface{}) (bots.BotChat, error) { // Former LoadBotChatEntity
-	s.logger.Debugf(s.Context(), "GaeBotChatStore.GetBotChatEntityById(%v)", botChatId)
+	//s.logger.Debugf(s.Context(), "GaeBotChatStore.GetBotChatEntityById(%v)", botChatId)
 	if s.botChats == nil {
 		s.botChats = make(map[interface{}]bots.BotChat, 1)
 	}
@@ -59,10 +59,10 @@ func (s *GaeBotChatStore) NewBotChatEntity(botID string, botChatId interface{}, 
 
 func (s *GaeBotChatStore) Close() error { // Former SaveBotChatEntity
 	if len(s.botChats) == 0 {
-		s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): Nothing to save")
+		//s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): Nothing to save")
 		return nil
 	}
-	s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
+	//s.logger.Debugf(s.Context(), "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
 	var chatKeys []*datastore.Key
 	var chatEntities []bots.BotChat
 	for chatId, chatEntity := range s.botChats {

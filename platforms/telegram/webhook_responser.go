@@ -106,12 +106,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		logger.Infof(c, "Message for sending to Telegram as JSON: %v", string(jsonStr))
 	}
 
-	if values, err := chattable.Values(); err != nil {
-		logger.Errorf(c, "Failed to marshal message config to url.Values: %v", err)
-		return resp, err
-	} else {
-		logger.Infof(c, "Message for sending to Telegram as URL values: %v", values)
-	}
+	//if values, err := chattable.Values(); err != nil {
+	//	logger.Errorf(c, "Failed to marshal message config to url.Values: %v", err)
+	//	return resp, err
+	//} else {
+	//	logger.Infof(c, "Message for sending to Telegram as URL values: %v", values)
+	//}
 
 	switch channel {
 	case bots.BotApiSendMessageOverResponse:

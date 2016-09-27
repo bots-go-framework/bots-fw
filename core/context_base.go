@@ -175,11 +175,11 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 	}
 
 	botChatID := whc.BotChatID()
-	logger.Infof(c, "botChatID: %v", botChatID)
+	//logger.Infof(c, "botChatID: %v", botChatID)
 	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
 	switch err {
 	case nil: // Nothing to do
-		logger.Debugf(c, "Loaded botChatEntity: %v", botChatEntity)
+		//logger.Debugf(c, "Loaded botChatEntity: %v", botChatEntity)
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		logger.Infof(c, "BotChat not found, first check for bot user entity...")
