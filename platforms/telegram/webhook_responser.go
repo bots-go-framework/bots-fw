@@ -127,7 +127,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			if messageJson, err := json.Marshal(message); err != nil {
 				logger.Warningf(c, "Telegram API response as raw: %v", message)
 			} else {
-				logger.Debugf(c, "Telegram API response as JSON: %v", messageJson)
+				logger.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
 			}
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 		}
