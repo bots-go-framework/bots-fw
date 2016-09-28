@@ -121,7 +121,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 			matchedCommand = &command
 			return
 		} else {
-			logger.Debugf(c, "command(code=%v).Title(whc): %v", command.Code, command.DefaultTitle(whc))
+			//logger.Debugf(c, "command(code=%v).Title(whc): %v", command.Code, command.DefaultTitle(whc))
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
 			logger.Debugf(c, "%v matched by command.matcher()", command.Code)
