@@ -120,15 +120,19 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			case WebhookInputMessage, WebhookInputInlineQuery, WebhookInputCallbackQuery, WebhookInputChosenInlineResult:
 				switch inputType {
 				case WebhookInputMessage:
-					logger.Infof(c, "Input[%v].Message().Text(): %v", j, input.InputMessage().Text())
+					sender := input.GetSender()
+					logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputMessage().Text())
 				case WebhookInputCallbackQuery:
 					callbackQuery := input.InputCallbackQuery()
 					callbackData := callbackQuery.GetData()
-					logger.Infof(c, "Input[%v].InputCallbackQuery().GetData(): %v", j, callbackData)
+					sender := input.GetSender()
+					logger.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 				case WebhookInputInlineQuery:
-					logger.Infof(c, "Input[%v].InputInlineQuery().GetQuery(): %v", j, input.InputInlineQuery().GetQuery())
+					sender := input.GetSender()
+					logger.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputInlineQuery().GetQuery())
 				case WebhookInputChosenInlineResult:
-					logger.Infof(c, "Input[%v].InputChosenInlineResult().GetInlineMessageID(): %v", j, input.InputChosenInlineResult().GetInlineMessageID())
+					sender := input.GetSender()
+					logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputChosenInlineResult().GetInlineMessageID())
 				}
 				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement.New(botContext.BotSettings.Mode != Production))
 				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {

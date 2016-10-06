@@ -103,7 +103,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		logger.Errorf(c, "Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
 		return resp, err
 	} else {
-		logger.Infof(c, "Message for sending to Telegram as JSON: %v", string(jsonStr))
+		logger.Infof(c, "Sending to Telegram, Text: %v\n\n------------------------\nAs JSON: %v", m.Text, string(jsonStr))
 	}
 
 	//if values, err := chattable.Values(); err != nil {
@@ -124,11 +124,13 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			logger.Errorf(c, "Failed to send message to Telegram using HTTPS API: %v", err)
 			return resp, err
 		} else {
-			if messageJson, err := json.Marshal(message); err != nil {
-				logger.Warningf(c, "Telegram API response as raw: %v", message)
-			} else {
-				logger.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
-			}
+			logger.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
+			//if messageJson, err := json.Marshal(message); err != nil {
+			//	logger.Warningf(c, "Telegram API response as raw: %v", message)
+			//} else {
+			//	logger.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
+			//	logger.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
+			//}
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 		}
 	default:

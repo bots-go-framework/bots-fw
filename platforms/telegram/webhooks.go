@@ -91,7 +91,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		return
 	}
 	bytes, _ := ioutil.ReadAll(r.Body)
-	if len(bytes) < 1024 {
+	if len(bytes) < 1024 * 3 {
 		logger.Debugf(c, "Request body: %v", (string)(bytes))
 	} else {
 		logger.Debugf(c, "Request len(body): %v", len(bytes))
