@@ -9,8 +9,9 @@ type BotMode int8
 
 const (
 	Production BotMode = iota
-	Development
 	Staging
+	Development
+	Local
 )
 
 type BotSettings struct {
