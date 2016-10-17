@@ -270,14 +270,10 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[whc.InputType()], matchedCommand.Title)
 				}
 
-				if mode == Production {
-					go func() {
-						pageview.Common = whc.GaCommon()
-						err := gaMeasurement.Queue(pageview)
-						if err != nil {
-							logger.Warningf(c, "Failed to send page view to GA: %v", err)
-						}
-					}()
+				pageview.Common = whc.GaCommon()
+				err := gaMeasurement.Queue(pageview)
+				if err != nil {
+					logger.Warningf(c, "Failed to send page view to GA: %v", err)
 				}
 			}
 		}
@@ -286,12 +282,10 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		if mode == Production && gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
-			go func() {
-				err = gaMeasurement.Queue(exceptionMessage)
-				if err != nil {
-					logger.Warningf(c, "Failed to send page view to GA: %v", err)
-				}
-			}()
+			err = gaMeasurement.Queue(exceptionMessage)
+			if err != nil {
+				logger.Warningf(c, "Failed to send page view to GA: %v", err)
+			}
 		}
 		if whc.InputType() == WebhookInputMessage {
 			// Todo: Try to get chat ID from user?

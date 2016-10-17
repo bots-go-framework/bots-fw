@@ -47,8 +47,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 	logger.Infof(c, "Got %v entries", len(entriesWithInputs))
 
-	var whc WebhookContext
-	gaMeasurement := measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
+	var (
+		whc WebhookContext
+		gaMeasurement *measurement.BufferedSender
+	)
+	if botContext.BotSettings.Mode == Production {
+		gaMeasurement = measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
+	} else {
+		gaMeasurement = measurement.NewDiscardingBufferedSender()
+	}
 
 	defer func() {
 		logger.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
@@ -134,7 +141,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 					sender := input.GetSender()
 					logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputChosenInlineResult().GetInlineMessageID())
 				}
-				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement.New(botContext.BotSettings.Mode != Production))
+
+				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement)
 				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
 					logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 					w.WriteHeader(http.StatusBadRequest)
