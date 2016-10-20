@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 // The driver is doing initial request & final response processing
@@ -16,19 +17,25 @@ type WebhookDriver interface {
 }
 
 type BotDriver struct {
-	GaTrackingID string
-	botHost      BotHost
-	appContext   BotAppContext
-	router       *WebhooksRouter
+	GaSettings GaSettings
+	botHost    BotHost
+	appContext BotAppContext
+	router     *WebhooksRouter
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
-func NewBotDriver(gaTrackingID string, appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
-	return BotDriver{GaTrackingID: gaTrackingID, appContext: appContext, botHost: host, router: router}
+type GaSettings struct {
+	TrackingID string
+	Enabled func(r *http.Request) bool
+}
+
+func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
+	return BotDriver{GaSettings: gaSettings, appContext: appContext, botHost: host, router: router}
 }
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
+	started := time.Now()
 	logger := d.botHost.Logger(r)
 	c := d.botHost.Context(r) // TODO: It's wrong to have dependency on appengine here
 	logger.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
@@ -51,51 +58,62 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		whc WebhookContext
 		gaMeasurement *measurement.BufferedSender
 	)
-	sendStats := true //botContext.BotSettings.Mode == Production
-	if sendStats {
-		gaMeasurement = measurement.NewBufferedSender([]string{d.GaTrackingID}, true, botContext.BotHost.GetHttpClient(r))
-	} else {
-		gaMeasurement = measurement.NewDiscardingBufferedSender()
+	{  // Initiate Google Analytics Measurement API client
+		var sendStats bool
+		if d.GaSettings.Enabled == nil {
+			sendStats = botContext.BotSettings.Mode == Production
+		} else {
+			sendStats = d.GaSettings.Enabled(r)
+		}
+		if sendStats {
+			gaMeasurement = measurement.NewBufferedSender([]string{d.GaSettings.TrackingID}, true, botContext.BotHost.GetHttpClient(r))
+		} else {
+			gaMeasurement = measurement.NewDiscardingBufferedSender()
+		}
 	}
 
 	defer func() {
 		logger.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
+		gaMeasurement.Queue(measurement.NewTiming(time.Now().Sub(started)))
 		if recovered := recover(); recovered != nil {
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
 			logger.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
-			gaMessage := measurement.NewException(messageText, true)
+			if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
+				gaMessage := measurement.NewException(messageText, true)
 
-			if whc != nil {
-				gaMessage.Common = whc.GaCommon()
-			} else {
-				gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371"
-				gaMessage.Common.DataSource = "bot"
+				if whc != nil {
+					gaMessage.Common = whc.GaCommon()
+				} else {
+					gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371"
+					gaMessage.Common.DataSource = "bot"
+				}
+
+				if err := gaMeasurement.Queue(gaMessage); err != nil {
+					logger.Errorf(c, "Failed to queue exception details for GA: %v", err)
+				} else {
+					logger.Debugf(c, "Exception details queued for GA.")
+				}
+
+				logger.Debugf(c, "Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
+				if err = gaMeasurement.Flush(); err != nil {
+					logger.Errorf(c, "Failed to send exception details to GA: %v", err)
+				} else {
+					logger.Debugf(c, "Exception details sent to GA.")
+				}
 			}
 
-			if err := gaMeasurement.Queue(gaMessage); err != nil {
-				logger.Errorf(c, "Failed to queue exception details for GA: %v", err)
-			} else {
-				logger.Debugf(c, "Exception details queued for GA.")
-			}
-			logger.Debugf(c, "Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
-			if err = gaMeasurement.Flush(); err != nil {
-				logger.Errorf(c, "Failed to send exception details to GA: %v", err)
-			} else {
-				logger.Debugf(c, "Exception details sent to GA.")
-			}
 			if whc != nil {
 				if whc.BotChatID() != nil {
 					whc.Responder().SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse)
 				}
 			}
-		} else {
-			queueDepth := gaMeasurement.QueueDepth()
-			if queueDepth == 0 {
-				logger.Debugf(c, "Nothing to flush in gaMeasurement as len(queue) == 0")
+		} else if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
+			logger.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
+			if err = gaMeasurement.Flush(); err != nil {
+				logger.Errorf(c, "Failed to send to GA: %v", err)
 			} else {
-				logger.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", queueDepth)
-				gaMeasurement.Flush()
+				logger.Debugf(c, "Data sent to GA")
 			}
 		}
 	}()
