@@ -41,10 +41,13 @@ type MessageFromBot struct {
 	DisableWebPagePreview bool
 	//Keyboard              Keyboard
 	TelegramKeyboard          interface{}
+	// TODO: One of this 2 is duplicate!?
+	TelegramInlineConfig      *tgbotapi.InlineConfig
 	TelegramInlineAnswer      *tgbotapi.InlineConfig
+	TelegramCallbackAnswer     *tgbotapi.CallbackConfig
+	//
 	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig
 	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig
-	TelegramInlineConfig      *tgbotapi.InlineConfig
 	TelegramChatID            int64
 	IsReplyToInputMessage     bool
 }
