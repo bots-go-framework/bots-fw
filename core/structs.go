@@ -43,7 +43,7 @@ type MessageFromBot struct {
 	TelegramKeyboard          interface{}
 	// TODO: One of this 2 is duplicate!?
 	TelegramInlineConfig      *tgbotapi.InlineConfig
-	TelegramInlineAnswer      *tgbotapi.InlineConfig
+	//TelegramInlineAnswer      *tgbotapi.InlineConfig
 	TelegramCallbackAnswer     *tgbotapi.CallbackConfig
 	//
 	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig

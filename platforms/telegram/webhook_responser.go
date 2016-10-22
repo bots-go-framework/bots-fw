@@ -36,32 +36,30 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		Debug:  true,
 		Client: r.whc.GetHttpClient(),
 	}
-	if m.TelegramInlineAnswer != nil {
+	if m.TelegramCallbackAnswer != nil {
 		logger.Debugf(c, "Inline answer")
-		chattable = m.TelegramInlineAnswer
-		inlineAnswer := *m.TelegramInlineAnswer
 		input, ok := r.whc.WebhookInput.(TelegramWebhookInput)
 		if !ok {
 			return resp, errors.New(fmt.Sprintf("Expected TelegramWebhookInput, got %T", r.whc.WebhookInput))
 		}
-		inlineAnswer.InlineQueryID = input.update.InlineQuery.ID
+		m.TelegramCallbackAnswer.CallbackQueryID = input.update.CallbackQuery.ID
 
-		jsonStr, err := json.Marshal(inlineAnswer)
+		chattable = m.TelegramCallbackAnswer
+		jsonStr, err := json.Marshal(chattable)
 		if err == nil {
-			logger.Infof(c, "InlineAnswer for sending to Telegram: %v", string(jsonStr))
+			logger.Infof(c, "CallbackAnswer for sending to Telegram: %v", string(jsonStr))
 		} else {
-			logger.Errorf(c, "Failed to marshal message config to json: %v\n\tInput: %v", err, inlineAnswer)
+			logger.Errorf(c, "Failed to marshal message config to json: %v\n\tInput: %v", err, chattable)
 		}
-
-		apiResponse, err := botApi.AnswerInlineQuery(inlineAnswer)
-
-		if err != nil {
-			s, err := json.Marshal(apiResponse)
-			if err != nil {
-				logger.Debugf(c, "apiResponse: %v", s)
-			}
-		}
-		return resp, err
+		//apiResponse, err := botApi.Send(chattable)
+		//
+		//if err != nil {
+		//	s, err := json.Marshal(apiResponse)
+		//	if err != nil {
+		//		logger.Debugf(c, "apiResponse: %v", s)
+		//	}
+		//}
+		//return resp, err
 	} else if m.TelegramEditMessageText != nil {
 		if m.TelegramEditMessageText.ReplyMarkup == nil && m.TelegramKeyboard != nil {
 			m.TelegramEditMessageText.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
