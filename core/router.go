@@ -252,7 +252,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 	if err == nil {
 		logger.Infof(c, "processCommandResponse(): Bot response message: %v", m)
 		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverResponse); err != nil {
-			logger.Errorf(c, "Failed to send message to Telegram\n\tError: %v\n\tMessage text: %v", err, m.Text) //TODO: Decide how do we handle it
+			logger.Errorf(c, errors.Wrap(err, "Failed to send a message to messenger").Error()) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
 			if gaMeasurement != nil {
