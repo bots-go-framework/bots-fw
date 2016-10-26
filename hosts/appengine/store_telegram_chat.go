@@ -8,6 +8,9 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"github.com/qedus/nds"
+	"time"
+	"golang.org/x/net/context"
 )
 
 type GaeTelegramChatStore struct {
@@ -42,4 +45,30 @@ func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramCh
 			},
 		},
 	}
+}
+
+
+func MarkTelegramChatAsForbidden(c context.Context, tgChatID int64, dtForbidden time.Time) error {
+	return nds.RunInTransaction(c, func(c context.Context) (err error) {
+		key := datastore.NewKey(c, telegram_bot.TelegramChatKind, "", tgChatID, nil)
+		var chat telegram_bot.TelegramChat
+		if err = nds.Get(c, key, &chat); err != nil {
+			return
+		}
+		var changed bool
+		if chat.DtForbidden.IsZero() {
+			chat.DtForbidden = dtForbidden
+			changed = true
+		}
+
+		if chat.DtForbiddenLast.IsZero() || chat.DtForbiddenLast.Before(dtForbidden) {
+			chat.DtForbiddenLast = dtForbidden
+			changed = true
+		}
+
+		if changed {
+			_, err = nds.Put(c, key, &chat)
+		}
+		return
+	}, nil)
 }
