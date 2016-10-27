@@ -6,13 +6,14 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"fmt"
 )
 
 // Persist user to GAE datastore
 type GaeBotUserStore struct {
 	GaeBaseStore
 	//botUsers 					  map[interface{}]bots.BotUser
-	botUserKey                func(botUserID interface{}) *datastore.Key
+	botUserKey                func(c context.Context, botUserID interface{}) *datastore.Key
 	validateBotUserEntityType func(entity bots.BotUser)
 	newBotUserEntity          func(apiUser bots.WebhookActor) bots.BotUser
 	gaeAppUserStore           GaeAppUserStore
@@ -26,8 +27,8 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 	//	s.botUsers = make(map[int]bots.BotUser, 1)
 	//}
 	botUserEntity := s.newBotUserEntity(nil)
-	ctx := s.Context()
-	err := nds.Get(ctx, s.botUserKey(botUserId), botUserEntity)
+	c := s.Context()
+	err := nds.Get(c, s.botUserKey(c, botUserId), botUserEntity)
 	if err == datastore.ErrNoSuchEntity {
 		return nil, nil
 	}
@@ -35,23 +36,45 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 }
 
 func (s GaeBotUserStore) SaveBotUser(botUserID interface{}, userEntity bots.BotUser) error { // Former SaveBotUserEntity
+	// TODO: Architecture needs refactoring as it not transactional save
+	// We load bot user entity outside of here (out of transaction) and save here. It can change since then.
 	s.validateBotUserEntityType(userEntity)
 	userEntity.SetDtUpdatedToNow()
-	_, err := nds.Put(s.Context(), s.botUserKey(botUserID), userEntity)
-	if err != nil {
-		err = errors.Wrap(err, "SaveBotUser(): Failed to put user entity to datastore")
-	}
+	c := s.Context()
+	err := nds.RunInTransaction(c, func(c context.Context) error {
+		key := s.botUserKey(c, botUserID)
+		existingBotUser := s.newBotUserEntity(nil)
+		err := nds.Get(c, key, existingBotUser)
+		if err != nil {
+			if err == datastore.ErrNoSuchEntity {
+				err = nil
+			}
+		} else {
+			if existingBotUser.GetAppUserIntID() != userEntity.GetAppUserIntID() {
+				return errors.New(fmt.Sprintf(
+					"Data integrity issue, existingBotUser.GetAppUserIntID():%v != userEntity.GetAppUserIntID():%v",
+					existingBotUser.GetAppUserIntID(),
+					userEntity.GetAppUserIntID(),
+				))
+			}
+		}
+		_, err = nds.Put(c, key, userEntity)
+		if err != nil {
+			err = errors.Wrap(err, "SaveBotUser(): Failed to put user entity to datastore")
+		}
+		return err
+	}, nil)
 	return err
 }
 
 func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser, error) {
 	s.logger.Debugf(s.Context(), "CreateBotUser() started...")
 	botUserID := apiUser.GetID()
-	botUserKey := s.botUserKey(botUserID)
 	botUserEntity := s.newBotUserEntity(apiUser)
 
 	c := s.Context()
 	err := nds.RunInTransaction(c, func(ctx context.Context) error {
+		botUserKey := s.botUserKey(ctx, botUserID)
 		err := nds.Get(ctx, botUserKey, botUserEntity)
 
 		if err == datastore.ErrNoSuchEntity {

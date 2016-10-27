@@ -5,10 +5,10 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
+	"golang.org/x/net/context"
 )
 
 type GaeTelegramUserStore struct {
@@ -45,12 +45,12 @@ func NewGaeTelegramUserStore(log strongo.Logger, r *http.Request, gaeAppUserStor
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramUser but received %T", entity))
 				}
 			},
-			botUserKey: func(botUserId interface{}) *datastore.Key {
+			botUserKey: func(c context.Context, botUserId interface{}) *datastore.Key {
 				if intID, ok := botUserId.(int); ok {
 					if intID == 0 {
 						panic("botUserKey(): intID == 0")
 					}
-					return datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramUserKind, "", (int64)(intID), nil)
+					return datastore.NewKey(c, telegram_bot.TelegramUserKind, "", (int64)(intID), nil)
 				} else {
 					panic(fmt.Sprintf("Expected botUserId as int, got: %T", botUserId))
 				}
