@@ -264,6 +264,8 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 					path := chatEntity.GetAwaitingReplyTo()
 					if path == "" {
 						path = matchedCommand.Code
+					} else if pathUrl, err := url.Parse(path); err == nil {
+						path = pathUrl.Path
 					}
 					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 				} else {
