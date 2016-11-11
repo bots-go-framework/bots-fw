@@ -29,7 +29,8 @@ func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
 	switch platform { // TODO: Should not be hardcoded
 	case "telegram":  // pass
-	case "fbm": // pass
+	case "fbm": 		// pass
+	case "viber": 		// pass
 	default:
 		panic("Unknown platform: " + platform)
 	}

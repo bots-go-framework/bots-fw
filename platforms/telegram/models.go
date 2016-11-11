@@ -22,8 +22,6 @@ type TelegramChat struct {
 	bots.BotChatEntity
 	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
-	DtForbidden           time.Time
-	DtForbiddenLast       time.Time `datastore:",noindex"`
 }
 
 var _ bots.BotChat = (*TelegramChat)(nil)
@@ -44,7 +42,7 @@ func (chat *TelegramChat) SetAppUserIntID(id int64) {
 	chat.AppUserIntID = id
 }
 
-func (chat *TelegramChat) GetBotUserID() interface{} {
+func (chat *TelegramChat) GetBotUserIntID() int {
 	return chat.TelegramUserID
 }
 

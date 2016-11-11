@@ -62,11 +62,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		var sendStats bool
 		if d.GaSettings.Enabled == nil {
 			sendStats = botContext.BotSettings.Mode == Production
+			logger.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Mode, sendStats)
 		} else {
 			sendStats = d.GaSettings.Enabled(r)
+			logger.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
-			gaMeasurement = measurement.NewBufferedSender([]string{d.GaSettings.TrackingID}, true, botContext.BotHost.GetHttpClient(r))
+			trackingID := d.GaSettings.TrackingID
+			botHost := botContext.BotHost
+			gaMeasurement = measurement.NewBufferedSender([]string{trackingID}, true, botHost.GetHttpClient(r))
 		} else {
 			gaMeasurement = measurement.NewDiscardingBufferedSender()
 		}
