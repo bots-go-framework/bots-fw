@@ -8,6 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+	"google.golang.org/appengine/log"
 )
 
 // The driver is doing initial request & final response processing
@@ -53,6 +54,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		return
 	}
 	logger.Infof(c, "Got %v entries", len(entriesWithInputs))
+
+	if botContext == nil { // TODO: Make botContext to be *BotContext?
+		if len(entriesWithInputs) == 0 {
+			log.Debugf(c, "botContext == nil, len(entriesWithInputs) == 0")
+		} else {
+			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
+		}
+		return
+	}
 
 	var (
 		whc WebhookContext
@@ -165,7 +175,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 					logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputChosenInlineResult().GetInlineMessageID())
 				}
 
-				whc = webhookHandler.CreateWebhookContext(d.appContext, r, botContext, input, botCoreStores, gaMeasurement)
+				whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
 				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
 					logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 					w.WriteHeader(http.StatusBadRequest)

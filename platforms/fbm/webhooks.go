@@ -96,7 +96,7 @@ func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
 	logger := h.BotHost.Logger(r)
 	c := h.BotHost.Context(r)
@@ -123,7 +123,7 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext b
 		}
 		entriesWithInputs[i] = entryWithInputs
 	}
-	botContext = bots.BotContext{
+	botContext = &bots.BotContext{
 		BotHost: h.BotHost,
 		//BotSettings: nil, // TODO: fill with actual
 	}

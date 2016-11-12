@@ -11,6 +11,12 @@ import (
 	"net/url"
 	"io/ioutil"
 	"strings"
+	"crypto/hmac"
+	"crypto/sha256"
+	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-viber/viberinterface"
+	"google.golang.org/appengine/log"
+	"encoding/hex"
 )
 
 func NewViberWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
@@ -84,7 +90,7 @@ func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) 
 
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
-func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	logger := h.BotHost.Logger(r)
 	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:]
 	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
@@ -94,6 +100,14 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 		err = bots.AuthFailedError(errMess)
 		return
 	}
+
+	sig := r.URL.Query().Get("sig")
+	var sigMAC []byte
+	if sigMAC, err = hex.DecodeString(sig); err != nil {
+		err = errors.Wrapf(err, "Failed to decode sig parameter using 'base64.RawURLEncoding'")
+		return
+	}
+
 	//viberinterface.CallbackBase{}.UnmarshalJSON()
 	body, _ := ioutil.ReadAll(r.Body)
 	if len(body) < 1024 * 3 {
@@ -102,33 +116,47 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 		logger.Debugf(c, "Request len(body): %v", len(body))
 	}
 
-
-	if match := reEvent.FindStringSubmatch(string(body)); len(match) > 0 {
-		logger.Debugf(c, "Viber callback event: %v", match[1])
+	mac := hmac.New(sha256.New, []byte(botSettings.Token))
+	mac.Write(body)
+	expectedMAC := mac.Sum(nil)
+	if !hmac.Equal(expectedMAC, sigMAC) {
+		err = errors.New(fmt.Sprintf("Unexpected signature value:\n\tExpected: %v\n\tGot: %v",
+			hex.EncodeToString(expectedMAC), sig))
+		return
 	}
 
-	//var update viberbotapi.Update
-	//err = json.Unmarshal(bytes, &update)
-	//if err != nil {
-	//	if ute, ok := err.(*json.UnmarshalTypeError); ok {
-	//		logger.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
-	//	} else if se, ok := err.(*json.SyntaxError); ok {
-	//		logger.Errorf(c, "json.SyntaxError: Offset=%v", se.Offset)
-	//	} else {
-	//		logger.Errorf(c, "json.Error: %T: %v", err, err.Error())
-	//	}
-	//	return
-	//}
-	botContext = bots.BotContext{
+	match := reEvent.FindStringSubmatch(string(body))
+	if len(match) == 0 {
+		err = errors.New("Unknown event type")
+		return
+	}
+
+	event := match[1]
+
+	switch event {
+	case "message":
+		textMessage := &viberinterface.TextMessage{}
+		if err = textMessage.UnmarshalJSON(body); err != nil {
+			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+			return
+		}
+		logger.Debugf(c, "TextMessage: %v", textMessage)
+		//entriesWithInputs := append(entriesWithInputs, )
+	case "webhook":
+		setWebhookCallback := &viberinterface.SetWebhookResponse{}
+		if err = setWebhookCallback.UnmarshalJSON(body); err != nil {
+			err = errors.Wrap(err, "Failed to unmarshal request body to 'viberinterface.SetWebhookResponse'")
+			return
+		}
+		logger.Infof(c, "Viber 'set-webhook' callback event")
+		return
+	default:
+		log.Warningf(c, "Unknown callback event: [%v]", event)
+	}
+	botContext = &bots.BotContext{
 			BotHost:     h.BotHost,
 			BotSettings: botSettings,
 		}
-		//, []bots.EntryInputs{
-		//	//{
-		//	//	Entry:  ViberWebhookEntry{update: update},
-		//	//	Inputs: []bots.WebhookInput{NewViberWebhookInput(update)},
-		//	//},
-		//}
 	return
 }
 

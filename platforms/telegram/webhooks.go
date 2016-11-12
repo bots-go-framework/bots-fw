@@ -80,7 +80,7 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	logger := h.BotHost.Logger(r)
 	token := r.URL.Query().Get("token")
 	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
@@ -108,17 +108,17 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		}
 		return
 	}
-	return bots.BotContext{
+	botContext = &bots.BotContext{
 			BotHost:     h.BotHost,
 			BotSettings: botSettings,
-		},
-		[]bots.EntryInputs{
+		}
+	entriesWithInputs = []bots.EntryInputs{
 			{
 				Entry:  TelegramWebhookEntry{update: update},
 				Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
 			},
-		},
-		nil
+		}
+	return
 }
 
 func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
