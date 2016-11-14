@@ -25,7 +25,9 @@ var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
 	chatID, _ := whc.BotChatID().(int64)
-	messageID := whc.Input().(bots.WebhookCallbackQuery).GetMessage().IntID()
+	callbackQuery := whc.Input().(bots.WebhookCallbackQuery)
+	message := callbackQuery.GetMessage()
+	messageID := message.IntID()
 	editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, (int)(messageID), messageText)
 	editMessageTextConfig.ParseMode = "HTML"
 	m := whc.NewMessage("")

@@ -6,13 +6,16 @@ import (
 
 type telegramWebhookMessage struct {
 	telegramWebhookInput
-	message *tgbotapi.Message
+	message *tgbotapi.Message // Can be either input.update.Message or input.update.CallbackQuery.Message
 }
 
 func (whm telegramWebhookMessage) IntID() int64 {
-	return (int64)(whm.update.Message.MessageID)
+	return (int64)(whm.message.MessageID)
 }
 
 func newTelegramWebhookMessage(input telegramWebhookInput, message *tgbotapi.Message) telegramWebhookMessage {
+	if message == nil {
+		panic("message == nil")
+	}
 	return telegramWebhookMessage{telegramWebhookInput: input, message: message}
 }
