@@ -64,7 +64,7 @@ type BotState interface {
 }
 
 type BotInputProvider interface {
-	MessageText() string
+	Input() WebhookInput
 }
 
 type BotApiUser interface {

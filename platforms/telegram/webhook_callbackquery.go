@@ -6,42 +6,37 @@ import (
 )
 
 type TelegramWebhookCallbackQuery struct {
-	updateID      int
-	callbackQuery *tgbotapi.CallbackQuery
+	telegramWebhookInput
+	//callbackQuery *tgbotapi.CallbackQuery
 	message       bots.WebhookMessage
 }
 
 var _ bots.WebhookCallbackQuery = (*TelegramWebhookCallbackQuery)(nil)
 
-func NewTelegramWebhookCallbackQuery(updateID int, callbackQuery *tgbotapi.CallbackQuery) TelegramWebhookCallbackQuery {
-	if updateID == 0 {
-		panic("updateID == 0")
-	}
+func (_ TelegramWebhookCallbackQuery) InputType() bots.WebhookInputType {
+	return bots.WebhookInputCallbackQuery
+}
+
+func NewTelegramWebhookCallbackQuery(input telegramWebhookInput) TelegramWebhookCallbackQuery {
+	callbackQuery := input.update.CallbackQuery
 	if callbackQuery == nil {
-		panic("callbackQuery == nil")
+		panic("update.CallbackQuery == nil")
 	}
-	q := TelegramWebhookCallbackQuery{updateID: updateID, callbackQuery: callbackQuery}
+	q := TelegramWebhookCallbackQuery{
+		telegramWebhookInput: input,
+	}
 	if callbackQuery.Message != nil && callbackQuery.Message.MessageID != 0 {
-		q.message = NewTelegramWebhookMessage(updateID, callbackQuery.Message)
+		q.message = newTelegramWebhookMessage(input, callbackQuery.Message)
 	}
 	return q
 }
 
 func (iq TelegramWebhookCallbackQuery) GetID() interface{} {
-	return iq.updateID
-}
-
-func (iq TelegramWebhookCallbackQuery) Chat() bots.WebhookChat {
-	if iq.callbackQuery != nil && iq.callbackQuery.Message != nil {
-		return TelegramWebhookChat{
-			chat: iq.callbackQuery.Message.Chat,
-		}
-	}
-	return nil
+	return iq.update.UpdateID
 }
 
 func (iq TelegramWebhookCallbackQuery) Sequence() int {
-	return iq.updateID
+	return iq.update.UpdateID
 }
 
 func (q TelegramWebhookCallbackQuery) GetMessage() bots.WebhookMessage {
@@ -49,20 +44,20 @@ func (q TelegramWebhookCallbackQuery) GetMessage() bots.WebhookMessage {
 }
 
 func (iq TelegramWebhookCallbackQuery) GetFrom() bots.WebhookSender {
-	return TelegramSender{tgUser: iq.callbackQuery.From}
+	return TelegramSender{tgUser: iq.update.CallbackQuery.From}
 }
 
 func (iq TelegramWebhookCallbackQuery) GetData() string {
-	return iq.callbackQuery.Data
+	return iq.update.CallbackQuery.Data
 }
 
 func (iq TelegramWebhookCallbackQuery) GetInlineMessageID() string {
-	return iq.callbackQuery.InlineMessageID
+	return iq.update.CallbackQuery.InlineMessageID
 }
 
 func EditMessageOnCallbackQuery(whcbq bots.WebhookCallbackQuery, parseMode, text string) *tgbotapi.EditMessageTextConfig {
 	twhcbq := whcbq.(TelegramWebhookCallbackQuery)
-	callbackQuery := twhcbq.callbackQuery
+	callbackQuery := twhcbq.update.CallbackQuery
 
 	emc := tgbotapi.EditMessageTextConfig{
 		Text:      text,

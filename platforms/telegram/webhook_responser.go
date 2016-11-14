@@ -2,7 +2,6 @@ package telegram_bot
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -38,11 +37,8 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	}
 	if m.TelegramCallbackAnswer != nil {
 		logger.Debugf(c, "Inline answer")
-		input, ok := r.whc.WebhookInput.(TelegramWebhookInput)
-		if !ok {
-			return resp, errors.New(fmt.Sprintf("Expected TelegramWebhookInput, got %T", r.whc.WebhookInput))
-		}
-		m.TelegramCallbackAnswer.CallbackQueryID = input.update.CallbackQuery.ID
+		input := r.whc.Input().(TelegramWebhookUpdateProvider)
+		m.TelegramCallbackAnswer.CallbackQueryID = input.TgUpdate().CallbackQuery.ID
 
 		chattable = m.TelegramCallbackAnswer
 		jsonStr, err := json.Marshal(chattable)

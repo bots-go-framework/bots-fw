@@ -6,10 +6,6 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"github.com/strongo/bots-api-fbm"
 	"fmt"
-	"strings"
-	"net/url"
-	"strconv"
-	"github.com/pkg/errors"
 )
 
 type FbmWebhookContext struct {
@@ -116,50 +112,43 @@ func (whc *FbmWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 	return appUser, err
 }
 
-func (whc *FbmWebhookContext) MessageText() string {
-	inputMessage := whc.WebhookInput.InputMessage()
-	if inputMessage != nil {
-		return inputMessage.Text()
-	}
-	return ""
-}
-
 func (whc *FbmWebhookContext) BotChatID() interface{} {
-	return whc.WebhookInput.Chat().GetID()
+	return whc.Chat().GetID()
 }
 
 func (whc *FbmWebhookContext) BotChatIntID() (chatId int64) {
-	webhookInput := whc.WebhookInput
-	switch webhookInput.InputType() {
-	case bots.WebhookInputMessage:
-		chatId = webhookInput.Chat().GetID().(int64)
-	case bots.WebhookInputCallbackQuery:
-		callbackQuery := webhookInput.InputCallbackQuery()
-		if callbackQuery == nil {
-			return 0
-		}
-		chat := callbackQuery.Chat()
-		if chat != nil {
-			chatId = chat.GetID().(int64)
-		} else {
-			data := callbackQuery.GetData()
-			if strings.Contains(data, "chat=") {
-				c := whc.Context()
-				values, err := url.ParseQuery(data)
-				if err != nil {
-					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-					return 0
-				}
-				chatIdAsStr := values.Get("chat")
-				if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
-					whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
-					return 0
-				}
-			}
-		}
-	}
-
-	return chatId
+	//webhookInput := whc.input
+	//switch webhookInput.InputType() {
+	//case bots.WebhookInputMessage:
+	//	chatId = webhookInput.Chat().GetID().(int64)
+	//case bots.WebhookInputCallbackQuery:
+	//	callbackQuery := webhookInput.InputCallbackQuery()
+	//	if callbackQuery == nil {
+	//		return 0
+	//	}
+	//	chat := callbackQuery.Chat()
+	//	if chat != nil {
+	//		chatId = chat.GetID().(int64)
+	//	} else {
+	//		data := callbackQuery.GetData()
+	//		if strings.Contains(data, "chat=") {
+	//			c := whc.Context()
+	//			values, err := url.ParseQuery(data)
+	//			if err != nil {
+	//				whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+	//				return 0
+	//			}
+	//			chatIdAsStr := values.Get("chat")
+	//			if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
+	//				whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
+	//				return 0
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//return chatId
+	panic("Not implemented")
 }
 
 func (whc *FbmWebhookContext) ChatEntity() bots.BotChat {
@@ -174,10 +163,7 @@ func (whc *FbmWebhookContext) ChatEntity() bots.BotChat {
 }
 
 func (whc *FbmWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
-	if chat, ok := whc.ChatEntity().(*FbmChat); ok && chat != nil {
-		return whc.InputMessage().Sequence() > chat.LastSeq
-	}
-	return false
+	panic("Not implemented")
 }
 
 func (whc *FbmWebhookContext) NewChatEntity() bots.BotChat {
@@ -230,9 +216,10 @@ func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_bot_api.SendMessage 
 }
 
 func (tc *FbmWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
-	if chat, ok := chatEntity.(*FbmChat); ok {
-		chat.LastSeq = tc.InputMessage().Sequence()
-		return nil
-	}
-	return errors.New(fmt.Sprintf("Expected *FbmChat, got: %T", chatEntity))
+	panic("Not implemented")
+	//if chat, ok := chatEntity.(*FbmChat); ok {
+	//	chat.LastSeq = tc.InputMessage().Sequence()
+	//	return nil
+	//}
+	//return errors.New(fmt.Sprintf("Expected *FbmChat, got: %T", chatEntity))
 }

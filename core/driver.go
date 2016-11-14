@@ -155,44 +155,38 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	for _, entryWithInputs := range entriesWithInputs {
 		//logger.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for j, input := range entryWithInputs.Inputs {
-			inputType := input.InputType()
-			switch inputType {
-			case WebhookInputMessage, WebhookInputInlineQuery, WebhookInputCallbackQuery, WebhookInputChosenInlineResult:
-				switch inputType {
-				case WebhookInputMessage:
-					sender := input.GetSender()
-					logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputMessage().Text())
-				case WebhookInputCallbackQuery:
-					callbackQuery := input.InputCallbackQuery()
-					callbackData := callbackQuery.GetData()
-					sender := input.GetSender()
-					logger.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
-				case WebhookInputInlineQuery:
-					sender := input.GetSender()
-					logger.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputInlineQuery().GetQuery())
-				case WebhookInputChosenInlineResult:
-					sender := input.GetSender()
-					logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.InputChosenInlineResult().GetInlineMessageID())
-				}
-
-				whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
-				if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
-					logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-				if whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, "st1") {
-					logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-				responder := webhookHandler.GetResponder(w, whc)
-				d.router.Dispatch(responder, whc)
-			case WebhookInputUnknown:
-				logger.Warningf(c, "Unknown input[%v] type", j)
+			switch input.(type) {
+			case WebhookTextMessage:
+				sender := input.GetSender()
+				logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			case WebhookCallbackQuery:
+				callbackQuery := input.(WebhookCallbackQuery)
+				callbackData := callbackQuery.GetData()
+				sender := input.GetSender()
+				logger.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+			case WebhookInlineQuery:
+				sender := input.GetSender()
+				logger.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+			case WebhookChosenInlineResult:
+				sender := input.GetSender()
+				logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
 			default:
-				logger.Warningf(c, "Unhandled input[%v] type: %v=%v", j, inputType, WebhookInputTypeNames[inputType])
+				logger.Warningf(c, "Unhandled input[%v] type: %T", j, input)
 			}
+
+			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
+			if whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, "dev") {
+				logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			if whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, "st1") {
+				logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			responder := webhookHandler.GetResponder(w, whc)
+			d.router.Dispatch(responder, whc)
 		}
 	}
 }

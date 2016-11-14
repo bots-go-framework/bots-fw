@@ -1,7 +1,7 @@
 package telegram_bot
 
 import (
-	"errors"
+	//"errors"
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -18,13 +18,14 @@ type TelegramWebhookContext struct {
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
+	//input          telegramWebhookInput
 }
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
 	chatID, _ := whc.BotChatID().(int64)
-	messageID := whc.InputCallbackQuery().GetMessage().IntID()
+	messageID := whc.Input().(bots.WebhookCallbackQuery).GetMessage().IntID()
 	editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, (int)(messageID), messageText)
 	editMessageTextConfig.ParseMode = "HTML"
 	m := whc.NewMessage("")
@@ -35,26 +36,27 @@ func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bo
 func NewEditCallbackMessageKeyboard(whc bots.WebhookContext, kbMarkup tgbotapi.InlineKeyboardMarkup) bots.MessageFromBot {
 	//whct := whc.(*TelegramWebhookContext)
 	chatID, _ := whc.BotChatID().(int64)
-	messageID := whc.InputCallbackQuery().GetMessage().IntID()
+	messageID := whc.Input().(bots.WebhookCallbackQuery).GetMessage().IntID()
 	editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
 	m := whc.NewMessage("")
 	m.TelegramEditMessageMarkup = &editMessageMarkupConfig
 	return m
 }
 
-func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *TelegramWebhookContext {
+func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, input bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *TelegramWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
 		TelegramPlatform{},
 		botContext,
-		webhookInput,
+		input,
 		botCoreStores,
 		gaMeasurement,
 	)
 	return &TelegramWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
+		//input: input,
 	}
 }
 
@@ -115,14 +117,6 @@ func (whc *TelegramWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 	return appUser, err
 }
 
-func (whc *TelegramWebhookContext) MessageText() string {
-	inputMessage := whc.WebhookInput.InputMessage()
-	if inputMessage != nil {
-		return inputMessage.Text()
-	}
-	return ""
-}
-
 func (whc *TelegramWebhookContext) BotChatID() interface{} {
 	id := whc.BotChatIntID()
 	if id == 0 {
@@ -132,12 +126,12 @@ func (whc *TelegramWebhookContext) BotChatID() interface{} {
 }
 
 func (whc *TelegramWebhookContext) BotChatIntID() (chatId int64) {
-	webhookInput := whc.WebhookInput
-	switch webhookInput.InputType() {
-	case bots.WebhookInputMessage:
-		chatId = webhookInput.Chat().GetID().(int64)
-	case bots.WebhookInputCallbackQuery:
-		callbackQuery := webhookInput.InputCallbackQuery()
+	input := whc.Input()
+	switch input.(type) {
+	case bots.WebhookTextMessage:
+		chatId = input.Chat().GetID().(int64)
+	case bots.WebhookCallbackQuery:
+		callbackQuery := input.(bots.WebhookCallbackQuery)
 		if callbackQuery == nil {
 			return 0
 		}
@@ -177,10 +171,11 @@ func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
 }
 
 func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
-	if telegramChat, ok := whc.ChatEntity().(*TelegramChat); ok && telegramChat != nil {
-		return whc.InputMessage().Sequence() > telegramChat.LastProcessedUpdateID
-	}
-	return false
+	return true
+	//if telegramChat, ok := whc.ChatEntity().(*TelegramChat); ok && telegramChat != nil {
+	//	return whc.Input().input.update.UpdateID > telegramChat.LastProcessedUpdateID
+	//}
+	//return false
 }
 
 func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
@@ -188,7 +183,7 @@ func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
 }
 
 func (whc *TelegramWebhookContext) getTelegramSenderID() int {
-	senderID := whc.GetSender().GetID()
+	senderID := whc.Input().GetSender().GetID()
 	if tgUserID, ok := senderID.(int); ok {
 		return tgUserID
 	}
@@ -196,7 +191,7 @@ func (whc *TelegramWebhookContext) getTelegramSenderID() int {
 }
 
 func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
-	telegramChat := whc.Chat()
+	telegramChat := whc.Input().Chat()
 	chatEntity := TelegramChat{
 		BotChatEntity: bots.BotChatEntity{
 			Type:  telegramChat.GetType(),
@@ -232,9 +227,10 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
-	if telegramChat, ok := chatEntity.(*TelegramChat); ok {
-		telegramChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
-		return nil
-	}
-	return errors.New(fmt.Sprintf("Expected *TelegramChat, got: %T", chatEntity))
+	return nil
+	//if telegramChat, ok := chatEntity.(*TelegramChat); ok {
+	//	telegramChat.LastProcessedUpdateID = tc.input.update.UpdateID
+	//	return nil
+	//}
+	//return errors.New(fmt.Sprintf("Expected *TelegramChat, got: %T", chatEntity))
 }

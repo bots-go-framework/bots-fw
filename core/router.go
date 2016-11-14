@@ -42,9 +42,9 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRo
 	return r
 }
 
-func matchCallbackCommands(whc WebhookContext, typeCommands TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
+func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeCommands TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
 	if len(typeCommands.all) > 0 {
-		callbackData := whc.InputCallbackQuery().GetData()
+		callbackData := input.GetData()
 		callbackUrl, err = url.Parse(callbackData)
 		if err != nil {
 			whc.Logger().Errorf(whc.Context(), "Failed to parse callback data to URL: %v", err.Error())
@@ -68,14 +68,19 @@ func (r *WebhooksRouter) matchFirstCommand(commands []Command) (matchedCommand *
 	return
 }
 
-func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath string, commands []Command) (matchedCommand *Command) {
-	var awaitingReplyCommand Command
+func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, parentPath string, commands []Command) (matchedCommand *Command) {
+	var (
+		messageText, messageTextLowerCase string
+		awaitingReplyCommand Command
+	)
 
 	logger := whc.Logger()
 	c := whc.Context()
 
-	messageText := whc.MessageText()
-	messageTextLowerCase := strings.ToLower(messageText)
+	if textMessage, ok := input.(WebhookTextMessage); ok {
+		messageText = textMessage.Text()
+		messageTextLowerCase = strings.ToLower(messageText)
+	}
 
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
 	//logger.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
@@ -99,7 +104,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, parentPath str
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				//logger.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				//logger.Debugf(c, "awaitingReplyCommand: %v", command.Code)
-				if matchedCommand = r.matchMessageCommands(whc, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matchedCommand = r.matchMessageCommands(whc, input, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					logger.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
@@ -165,17 +170,20 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 	logger := whc.Logger()
 	c := whc.Context()
 	inputType := whc.InputType()
+	input := whc.Input()
 
 	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch(): inputType: %v=%v, ", inputType, WebhookInputTypeNames[inputType])
-	switch inputType {
-	case WebhookInputMessage:
-		logMessage += fmt.Sprintf("message text: [%v]", whc.InputMessage().Text())
-	case WebhookInputInlineQuery:
-		logMessage += fmt.Sprintf("inline query: [%v]", whc.InputInlineQuery().GetQuery())
-	case WebhookInputCallbackQuery:
-		logMessage += fmt.Sprintf("callback data: [%v]", whc.InputCallbackQuery().GetData())
-	case WebhookInputChosenInlineResult:
-		chosenResult := whc.InputChosenInlineResult()
+	switch input.(type) {
+	case WebhookTextMessage:
+		logMessage += fmt.Sprintf("message text: [%v]", input.(WebhookTextMessage).Text())
+	case WebhookContactMessage:
+		logMessage += fmt.Sprintf("contact number: [%v]", input.(WebhookContactMessage))
+	case WebhookInlineQuery:
+		logMessage += fmt.Sprintf("inline query: [%v]", input.(WebhookInlineQuery).GetQuery())
+	case WebhookCallbackQuery:
+		logMessage += fmt.Sprintf("callback data: [%v]", input.(WebhookCallbackQuery).GetData())
+	case WebhookChosenInlineResult:
+		chosenResult := input.(WebhookChosenInlineResult)
 		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
 	}
 
@@ -189,14 +197,16 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 		logMessage += fmt.Sprintf(", len(commandsToMatch): %v", len(typeCommands.all))
 		logger.Debugf(c, logMessage)
 
-		var matchedCommand *Command
-		var commandAction CommandAction
-		var err error
-		var m MessageFromBot
-		switch inputType {
-		case WebhookInputCallbackQuery:
+		var (
+			matchedCommand *Command
+			commandAction CommandAction
+			err error
+			m MessageFromBot
+		)
+		switch input.(type) {
+		case WebhookCallbackQuery:
 			var callbackUrl *url.URL
-			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, typeCommands)
+			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
 			if err == nil {
 				if matchedCommand.Code == "" {
 					err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
@@ -210,14 +220,15 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 					}
 				}
 			}
-		case WebhookInputMessage:
-			matchedCommand = r.matchMessageCommands(whc, "", typeCommands.all)
+		case WebhookMessage:
+			matchedCommand = r.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
 			if matchedCommand != nil {
 				commandAction = matchedCommand.Action
 			}
-		case WebhookInputUnknown:
-			panic("Unknown input type")
 		default:
+			if inputType == WebhookInputUnknown {
+				panic("Unknown input type")
+			}
 			matchedCommand = r.matchFirstCommand(typeCommands.all)
 			commandAction = matchedCommand.Action
 		}
@@ -232,7 +243,7 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 			}
-			logger.Infof(c, "No command found for the message: %v", whc.MessageText())
+			logger.Infof(c, "No command found for the message: %v", input)
 			processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			logger.Infof(c, "Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
@@ -289,7 +300,8 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 				logger.Warningf(c, "Failed to send page view to GA: %v", err)
 			}
 		}
-		if whc.InputType() == WebhookInputMessage {
+		inputType := whc.InputType()
+		if inputType == WebhookInputText || inputType == WebhookInputContact {
 			// Todo: Try to get chat ID from user?
 			_, respErr := responder.SendMessage(c, whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG)+"\n\n"+emoji.ERROR_ICON+fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
 			if respErr != nil {

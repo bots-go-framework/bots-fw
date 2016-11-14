@@ -1,107 +1,99 @@
 package telegram_bot
 
 import (
-	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"time"
 )
 
-type TelegramWebhookInput struct {
-	inputType bots.WebhookInputType
+type telegramWebhookInput struct {
 	update    tgbotapi.Update
 }
 
-var _ bots.WebhookInput = (*TelegramWebhookInput)(nil)
+type TelegramWebhookUpdateProvider interface {
+	TgUpdate() tgbotapi.Update
+}
 
-func NewTelegramWebhookInput(update tgbotapi.Update) TelegramWebhookInput {
-	result := TelegramWebhookInput{update: update}
+func (i telegramWebhookInput) TgUpdate() tgbotapi.Update {
+	return i.update
+}
+
+var _ bots.WebhookInput = (*TelegramWebhookTextMessage)(nil)
+var _ bots.WebhookInput = (*TelegramWebhookContactMessage)(nil)
+var _ bots.WebhookInput = (*TelegramWebhookInlineQuery)(nil)
+var _ bots.WebhookInput = (*TelegramWebhookChosenInlineResult)(nil)
+var _ bots.WebhookInput = (*TelegramWebhookCallbackQuery)(nil)
+
+func (input telegramWebhookInput) GetID() interface{} {
+	return input.update.UpdateID
+}
+
+func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
+	input := telegramWebhookInput{update: update}
 	switch {
 	case update.Message != nil:
-		result.inputType = bots.WebhookInputMessage
+		switch {
+		case update.Message.Text != "":
+			return NewTelegramWebhookTextMessage(input)
+		case update.Message.Contact != nil:
+			return NewTelegramWebhookContact(input)
+		default:
+			panic("Unexpected content of update.Message (Text is empty and no Contact)")
+		}
 	case update.InlineQuery != nil:
-		result.inputType = bots.WebhookInputInlineQuery
+		return NewTelegramWebhookInlineQuery(input)
 	case update.CallbackQuery != nil:
-		result.inputType = bots.WebhookInputCallbackQuery
+		return NewTelegramWebhookCallbackQuery(input)
 	case update.ChosenInlineResult != nil:
-		result.inputType = bots.WebhookInputChosenInlineResult
-	}
-	return result
-}
-
-func (whi TelegramWebhookInput) Chat() bots.WebhookChat {
-	return TelegramWebhookChat{
-		chat: whi.update.Message.Chat,
+		return NewTelegramWebhookChosenInlineResult(input)
+	default:
+		panic("Unkonwn content of Telegram update message")
 	}
 }
 
-
-func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
-	switch whi.InputType() {
-	case bots.WebhookInputMessage:
+func (whi telegramWebhookInput) GetSender() bots.WebhookSender {
+	switch {
+	case whi.update.Message != nil:
 		return TelegramSender{tgUser: whi.update.Message.From}
-	case bots.WebhookInputChosenInlineResult:
-		return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
-	case bots.WebhookInputInlineQuery:
-		return TelegramSender{tgUser: whi.update.InlineQuery.From}
-	case bots.WebhookInputCallbackQuery:
+	case whi.update.CallbackQuery != nil:
 		return TelegramSender{tgUser: whi.update.CallbackQuery.From}
+	case whi.update.InlineQuery != nil:
+		return TelegramSender{tgUser: whi.update.InlineQuery.From}
+	case whi.update.ChosenInlineResult != nil:
+		return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
+	default:
+		panic("Unknown From sender")
+	}
+}
+
+func (whi telegramWebhookInput) GetRecipient() bots.WebhookRecipient {
+	panic("Not implemented")
+}
+
+func (whi telegramWebhookInput) GetTime() time.Time {
+	if whi.update.Message != nil {
+		return whi.update.Message.Time()
+	}
+	return time.Time{}
+}
+
+func (whi telegramWebhookInput) StringID() string {
+	return ""
+}
+
+func (whi telegramWebhookInput) Chat() bots.WebhookChat {
+	update := whi.update
+	if update.Message != nil {
+		return TelegramWebhookChat{
+			chat: update.Message.Chat,
+		}
+	} else {
+		callbackQuery := update.CallbackQuery
+		if callbackQuery != nil && callbackQuery.Message != nil {
+			return TelegramWebhookChat{
+				chat: callbackQuery.Message.Chat,
+			}
+		}
 	}
 	return nil
-}
-
-func (whi TelegramWebhookInput) GetRecipient() bots.WebhookRecipient {
-	panic("Not implemented")
-}
-
-func (whi TelegramWebhookInput) GetTime() time.Time {
-	return whi.update.Message.Time()
-}
-
-func (whi TelegramWebhookInput) InputType() bots.WebhookInputType {
-	return whi.inputType
-}
-
-func (whi TelegramWebhookInput) InputMessage() bots.WebhookMessage {
-	update := whi.update
-	if update.Message == nil {
-		return nil // panic(fmt.Sprintf("Telegram update(id=%v).Message == nil", update.UpdateID))
-	}
-	return NewTelegramWebhookMessage(update.UpdateID, update.Message)
-}
-
-func (whi TelegramWebhookInput) InputInlineQuery() bots.WebhookInlineQuery {
-	update := whi.update
-	if update.InlineQuery == nil {
-		panic(fmt.Sprintf("Telegram update(id=%v).InlineQuery == nil", update.UpdateID))
-	}
-	return NewTelegramWebhookInlineQuery(update.UpdateID, update.InlineQuery)
-}
-
-func (whi TelegramWebhookInput) InputChosenInlineResult() bots.WebhookChosenInlineResult {
-	update := whi.update
-	if update.ChosenInlineResult == nil {
-		panic(fmt.Sprintf("Telegram update(id=%v).ChosenInlineResult == nil", update.UpdateID))
-	}
-	return NewTelegramWebhookChosenInlineResult(update.UpdateID, update.ChosenInlineResult)
-}
-
-func (whi TelegramWebhookInput) InputCallbackQuery() bots.WebhookCallbackQuery {
-	update := whi.update
-	if update.CallbackQuery == nil {
-		panic(fmt.Sprintf("Telegram update(id=%v).CallbackQuery == nil", update.UpdateID))
-	} else {
-		_ = fmt.Sprintf("%v", update.UpdateID)
-		_ = fmt.Sprintf("%v", update.CallbackQuery)
-		_ = fmt.Sprintf("%v", update.CallbackQuery.ID)
-		return NewTelegramWebhookCallbackQuery(update.UpdateID, update.CallbackQuery)
-	}
-}
-
-func (whi TelegramWebhookInput) InputPostback() bots.WebhookPostback {
-	panic("Not implemented")
-}
-
-func (whi TelegramWebhookInput) InputDelivery() bots.WebhookDelivery {
-	panic("Not implemented")
 }

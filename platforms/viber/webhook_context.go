@@ -8,9 +8,6 @@ import (
 	//"google.golang.org/appengine/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 type ViberWebhookContext struct {
@@ -101,14 +98,6 @@ func (whc *ViberWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 	return appUser, err
 }
 
-func (whc *ViberWebhookContext) MessageText() string {
-	inputMessage := whc.WebhookInput.InputMessage()
-	if inputMessage != nil {
-		return inputMessage.Text()
-	}
-	return ""
-}
-
 func (whc *ViberWebhookContext) BotChatID() interface{} {
 	id := whc.BotChatIntID()
 	if id == 0 {
@@ -118,37 +107,7 @@ func (whc *ViberWebhookContext) BotChatID() interface{} {
 }
 
 func (whc *ViberWebhookContext) BotChatIntID() (chatId int64) {
-	webhookInput := whc.WebhookInput
-	switch webhookInput.InputType() {
-	case bots.WebhookInputMessage:
-		chatId = webhookInput.Chat().GetID().(int64)
-	case bots.WebhookInputCallbackQuery:
-		callbackQuery := webhookInput.InputCallbackQuery()
-		if callbackQuery == nil {
-			return 0
-		}
-		chat := callbackQuery.Chat()
-		if chat != nil {
-			chatId = chat.GetID().(int64)
-		} else {
-			data := callbackQuery.GetData()
-			if strings.Contains(data, "chat=") {
-				c := whc.Context()
-				values, err := url.ParseQuery(data)
-				if err != nil {
-					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-					return 0
-				}
-				chatIdAsStr := values.Get("chat")
-				if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
-					whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
-					return 0
-				}
-			}
-		}
-	}
-
-	return chatId
+	panic("Not implemented")
 }
 
 func (whc *ViberWebhookContext) ChatEntity() bots.BotChat {

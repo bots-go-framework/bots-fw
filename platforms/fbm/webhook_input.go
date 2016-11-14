@@ -57,7 +57,7 @@ func (whi FbmWebhookInput) InputType() bots.WebhookInputType {
 		if len(whi.messaging.Message.Attachments) > 0 {
 			return bots.WebhookInputAttachment
 		} else if len(whi.messaging.Message.MText) > 0 {
-			return bots.WebhookInputMessage
+			return bots.WebhookInputText
 		}
 	case whi.messaging.Postback != nil:
 		return bots.WebhookInputPostback

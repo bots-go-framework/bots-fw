@@ -57,43 +57,41 @@ type WebhookInputType int
 
 const (
 	WebhookInputUnknown WebhookInputType = iota
-	WebhookInputMessage
+	WebhookInputText              // Facebook, Telegram, Viber
+	WebhookInputContact              // Facebook, Telegram, Viber
 	WebhookInputPostback
 	WebhookInputDelivery
 	WebhookInputAttachment
-	//WebhookInputContact
-	WebhookInputInlineQuery // Telegram only?
+	WebhookInputInlineQuery          // Telegram
 	WebhookInputCallbackQuery
-	WebhookInputChosenInlineResult // Telegram only?
+	WebhookInputChosenInlineResult   // Telegram
+	WebhookInputSubscribed           // Viber
+	WebhookInputUnsubscribed         // Viber
+	WebhookInputConversationStarted  // Viber
 )
 
 var WebhookInputTypeNames = map[WebhookInputType]string{
 	//WebhookInputContact:				  "Contact",
 	WebhookInputUnknown:            "unknown",
-	WebhookInputMessage:            "Message",
+	WebhookInputText:               "Text",
+	WebhookInputContact:            "Contact",
 	WebhookInputPostback:           "Postback",
 	WebhookInputDelivery:           "Delivery",
 	WebhookInputAttachment:         "Attachment",
 	WebhookInputInlineQuery:        "InlineQuery",
 	WebhookInputCallbackQuery:      "CallbackQuery",
 	WebhookInputChosenInlineResult: "ChosenInlineResult",
+	WebhookInputSubscribed:          "Subscribed",  // Viber
+	WebhookInputUnsubscribed:        "Unsubscribed", // Viber
+	WebhookInputConversationStarted: "ConversationStarted",
 }
 
 type WebhookInput interface { // '/entry/messaging' for Facebook
 	GetSender() WebhookSender
 	GetRecipient() WebhookRecipient
 	GetTime() time.Time
-
 	InputType() WebhookInputType
-
 	Chat() WebhookChat
-
-	InputMessage() WebhookMessage
-	InputPostback() WebhookPostback
-	InputDelivery() WebhookDelivery
-	InputInlineQuery() WebhookInlineQuery
-	InputCallbackQuery() WebhookCallbackQuery
-	InputChosenInlineResult() WebhookChosenInlineResult
 }
 
 type WebhookActor interface {
@@ -115,12 +113,15 @@ type WebhookRecipient interface {
 type WebhookMessage interface {
 	IntID() int64
 	StringID() string
-	Sequence() int // 'seq' for Facebook, '???' for Telegram
-	Text() string
-	Contact() WebhookContact
+	//Sequence() int // 'seq' for Facebook, '???' for Telegram
 }
 
-type WebhookContact interface {
+type WebhookTextMessage interface {
+	WebhookMessage
+	Text() string
+}
+
+type WebhookContactMessage interface {
 	PhoneNumber() string
 	FirstName() string
 	LastName() string
@@ -134,11 +135,20 @@ type WebhookChat interface {
 }
 
 type WebhookPostback interface {
+	PostbackMessage() interface{}
 	Payload() string
 }
 
-type WebhookDelivery interface {
-	Payload() string
+type WebhookSubscribed interface {
+	SubscribedMessage() interface{}
+}
+
+type WebhookUnsubscribed interface {
+	UnsubscribedMessage() interface{}
+}
+
+type WebhookConversationStarted interface {
+	ConversationStartedMessage() interface{}
 }
 
 type WebhookInlineQuery interface {
@@ -148,6 +158,10 @@ type WebhookInlineQuery interface {
 	GetQuery() string
 	GetOffset() string
 	//GetLocation() - TODO: Not implemented yet
+}
+
+type WebhookDelivery interface {
+	Payload() string
 }
 
 type WebhookChosenInlineResult interface {

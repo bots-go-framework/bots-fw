@@ -3,12 +3,10 @@ package viber_bot
 import (
 	"regexp"
 	"fmt"
-	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/measurement-protocol"
 	"google.golang.org/appengine"
 	"net/http"
-	"net/url"
 	"io/ioutil"
 	"strings"
 	"crypto/hmac"
@@ -60,34 +58,6 @@ func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http
 	}
 }
 
-func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
-	logger := h.Logger(r)
-	client := h.GetHttpClient(r)
-	botCode := r.URL.Query().Get("code")
-	if botCode == "" {
-		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
-		return
-	}
-	c := appengine.NewContext(r)
-	botSettings, ok := h.botsBy(c).Code[botCode]
-	if !ok {
-		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
-		return
-	}
-	bot := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, client)
-	//bot.Debug = true
-
-	webhookUrl := fmt.Sprintf("https://%v/bot/viber/callback/%v", r.Host, url.QueryEscape(botSettings.Code))
-
-	if _, err := bot.SetWebhook(webhookUrl, nil); err != nil {
-		logger.Errorf(c, "%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-	} else {
-		w.Write([]byte("Webhook set"))
-	}
-}
-
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
 func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
@@ -135,13 +105,34 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 
 	switch event {
 	case "message":
-		textMessage := &viberinterface.TextMessage{}
-		if err = textMessage.UnmarshalJSON(body); err != nil {
+		callbackMessage := &viberinterface.CallbackMessage{}
+		if err = callbackMessage.UnmarshalJSON(body); err != nil {
 			err = errors.Wrap(err, "Failed to parse body to TextMessage")
 			return
 		}
-		logger.Debugf(c, "TextMessage: %v", textMessage)
+		logger.Debugf(c, "callbackMessage: %v", callbackMessage)
 		//entriesWithInputs := append(entriesWithInputs, )
+	case "subscribed":
+		subscribedMessage := &viberinterface.CallbackOnSubscribed{}
+		if err = subscribedMessage.UnmarshalJSON(body); err != nil {
+			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+			return
+		}
+		logger.Debugf(c, "subscribedMessage: %v", subscribedMessage)
+	case "unsubscribed":
+		callbackUnsubscribed := &viberinterface.CallbackOnUnsubscribed{}
+		if err = callbackUnsubscribed.UnmarshalJSON(body); err != nil {
+			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+			return
+		}
+		logger.Debugf(c, "unsubscribedMessage: %v", callbackUnsubscribed)
+	case "conversation_started":
+		callbackConversationStarted := &viberinterface.CallbackOnConversationStarted{}
+		if err = callbackConversationStarted.UnmarshalJSON(body); err != nil {
+			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+			return
+		}
+		logger.Debugf(c, "callbackConversationStarted: %v", callbackConversationStarted)
 	case "webhook":
 		setWebhookCallback := &viberinterface.SetWebhookResponse{}
 		if err = setWebhookCallback.UnmarshalJSON(body); err != nil {

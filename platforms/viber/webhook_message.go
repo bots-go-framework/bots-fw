@@ -20,7 +20,7 @@ func (whm ViberWebhookMessage) IntID() int64 {
 	return 0
 }
 
-func (whm ViberWebhookMessage) Contact() bots.WebhookContact {
+func (whm ViberWebhookMessage) Contact() bots.WebhookContactMessage {
 	//if whm.message.Contact != nil {
 	//	return NewViberWebhookContact(whm.message.Contact)
 	//}

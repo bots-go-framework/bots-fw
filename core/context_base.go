@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type WebhookContextBase struct {
@@ -20,7 +21,7 @@ type WebhookContextBase struct {
 	botAppContext BotAppContext
 	BotContext    BotContext
 	botPlatform   BotPlatform
-	WebhookInput
+	input WebhookInput
 
 	locale strongo.Locale
 
@@ -54,11 +55,35 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
 		BotContext:    botContext,
-		WebhookInput:  webhookInput,
+		input:         webhookInput,
 		BotCoreStores: botCoreStores,
 	}
 	whcb.Translator = botAppContext.GetTranslator(whcb.c, whcb.logger)
 	return &whcb
+}
+
+func (whcb *WebhookContextBase)  Input() WebhookInput {
+	return whcb.input
+}
+
+func (whcb *WebhookContextBase)  Chat() WebhookChat {
+	return whcb.input.Chat()
+}
+
+func (whcb *WebhookContextBase)  GetRecipient() WebhookRecipient {
+	return whcb.input.GetRecipient()
+}
+
+func (whcb *WebhookContextBase)  GetSender() WebhookSender {
+	return whcb.input.GetSender()
+}
+
+func (whcb *WebhookContextBase)  GetTime() time.Time {
+	return whcb.input.GetTime()
+}
+
+func (whcb *WebhookContextBase)  InputType() WebhookInputType {
+	return whcb.input.InputType()
 }
 
 func (whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
@@ -141,14 +166,15 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	logger := whcb.Logger()
 	c := whcb.Context()
 	logger.Debugf(c, "GetOrCreateBotUserEntityBase()")
-	botUserID := whcb.GetSender().GetID()
+	sender := whcb.input.GetSender()
+	botUserID := sender.GetID()
 	botUser, err := whcb.GetBotUserById(botUserID)
 	if err != nil {
 		return nil, err
 	}
 	if botUser == nil {
 		logger.Infof(c, "Bot user entity not found, creating a new one...")
-		botUser, err = whcb.CreateBotUser(whcb.GetSender())
+		botUser, err = whcb.CreateBotUser(sender)
 		if err != nil {
 			logger.Errorf(c, "Failed to create bot user: %v", err)
 			return nil, err
@@ -228,6 +254,13 @@ func (whcb *WebhookContextBase) Context() context.Context {
 
 func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot {
 	return MessageFromBot{Text: fmt.Sprintf(whcb.Translate(messageCode), a...), Format: MessageFormatHTML}
+}
+
+func (whcb *WebhookContextBase) MessageText() string {
+	if tm, ok := whcb.Input().(WebhookTextMessage); ok {
+		return tm.Text()
+	}
+	return ""
 }
 
 func (whcb *WebhookContextBase) NewMessage(text string) MessageFromBot {
