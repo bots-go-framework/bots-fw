@@ -1,40 +1,42 @@
 package viber_bot
 
 import (
-	"github.com/strongo/bots-api-viber/viberinterface"
+	"strconv"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/bots-api-viber/viberinterface"
+	"time"
 )
 
-
-type ViberWebhookMessage struct {
-	message  *viberinterface.CallbackMessage
+type viberWebhookMessage struct {
+	ViberWebhookInput
+	m viberinterface.CallbackOnMessage // Can be either input.update.Message or input.update.CallbackQuery.Message
+	chat ViberWebhookChat
 }
 
-var _ bots.WebhookMessage = (*ViberWebhookMessage)(nil)
-
-func NewViberWebhookMessage(message *viberinterface.CallbackMessage) ViberWebhookMessage {
-	return ViberWebhookMessage{message: message}
+func (whm viberWebhookMessage) IntID() int64 {
+	return whm.m.MessageToken
 }
 
-func (whm ViberWebhookMessage) IntID() int64 {
-	return 0
+func (whm viberWebhookMessage) StringID() string {
+	return strconv.FormatInt(whm.m.MessageToken, 10)
 }
 
-func (whm ViberWebhookMessage) Contact() bots.WebhookContactMessage {
-	//if whm.message.Contact != nil {
-	//	return NewViberWebhookContact(whm.message.Contact)
-	//}
-	return nil
+func (whm viberWebhookMessage) Chat() bots.WebhookChat {
+	return whm.chat
 }
 
-func (whm ViberWebhookMessage) StringID() string {
-	return ""
+func (whm viberWebhookMessage) GetRecipient() bots.WebhookRecipient {
+	panic("Not supported (yet?)")
 }
 
-func (whm ViberWebhookMessage) Sequence() int {
-	return 0
+func (whm viberWebhookMessage) GetSender() bots.WebhookSender {
+	return newViberSender(whm.m.Sender)
 }
 
-func (whm ViberWebhookMessage) Text() string {
-	return whm.message.Text
+func (whm viberWebhookMessage) GetTime() time.Time {
+	return time.Unix(whm.m.Timestamp, 0)
+}
+
+func newViberWebhookMessage(m viberinterface.CallbackOnMessage) viberWebhookMessage {
+	return viberWebhookMessage{ViberWebhookInput: newViberWebhookInput(m.CallbackBase), m: m, chat: NewViberWebhookChat(m.Sender.ID)}
 }

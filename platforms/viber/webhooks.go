@@ -62,7 +62,7 @@ var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
 func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	logger := h.BotHost.Logger(r)
-	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:]
+	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/") + 1:]
 	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
 	botSettings, ok := h.botsBy(c).Code[code]
 	if !ok {
@@ -103,51 +103,78 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 
 	event := match[1]
 
+	unmarshal := func(m interface{ UnmarshalJSON(input []byte) error }) (err error) {
+		if err = m.UnmarshalJSON(body); err != nil {
+			err = errors.Wrapf(err, "Failed to unmarshal request body to %T", m)
+		}
+		logger.Debugf(c, "%T: %v", m, m)
+		return
+	}
+
 	switch event {
 	case "message":
-		callbackMessage := &viberinterface.CallbackMessage{}
-		if err = callbackMessage.UnmarshalJSON(body); err != nil {
-			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+		message := viberinterface.CallbackOnMessage{}
+		if err = unmarshal(&message); err != nil {
 			return
 		}
-		logger.Debugf(c, "callbackMessage: %v", callbackMessage)
-		//entriesWithInputs := append(entriesWithInputs, )
+		entriesWithInputs = []bots.EntryInputs{
+			{
+				Entry: ViberWebhookEntry{},
+				Inputs: []bots.WebhookInput{NewViberWebhookTextMessage(message)},
+			},
+		}
+	//entriesWithInputs := append(entriesWithInputs, )
+	case "seen":
+		message := &viberinterface.CallbackOnDelivered{}
+		if err = unmarshal(message); err != nil {
+			return
+		}
+	case "delievered":
+		message := &viberinterface.CallbackOnDelivered{}
+		if err = unmarshal(message); err != nil {
+			return
+		}
+	case "failed":
+		message := &viberinterface.CallbackOnFailed{}
+		if err = unmarshal(message); err != nil {
+			return
+		}
 	case "subscribed":
-		subscribedMessage := &viberinterface.CallbackOnSubscribed{}
-		if err = subscribedMessage.UnmarshalJSON(body); err != nil {
-			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+		message := &viberinterface.CallbackOnSubscribed{}
+		if err = unmarshal(message); err != nil {
 			return
 		}
-		logger.Debugf(c, "subscribedMessage: %v", subscribedMessage)
 	case "unsubscribed":
-		callbackUnsubscribed := &viberinterface.CallbackOnUnsubscribed{}
-		if err = callbackUnsubscribed.UnmarshalJSON(body); err != nil {
-			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+		message := &viberinterface.CallbackOnUnsubscribed{}
+		if err = unmarshal(message); err != nil {
 			return
 		}
-		logger.Debugf(c, "unsubscribedMessage: %v", callbackUnsubscribed)
 	case "conversation_started":
-		callbackConversationStarted := &viberinterface.CallbackOnConversationStarted{}
-		if err = callbackConversationStarted.UnmarshalJSON(body); err != nil {
-			err = errors.Wrap(err, "Failed to parse body to TextMessage")
+		message := viberinterface.CallbackOnConversationStarted{}
+		if err = unmarshal(&message); err != nil {
 			return
 		}
-		logger.Debugf(c, "callbackConversationStarted: %v", callbackConversationStarted)
+		entriesWithInputs = []bots.EntryInputs{
+			{
+				Entry: ViberWebhookEntry{},
+				Inputs: []bots.WebhookInput{NewViberWebhookInputConversationStarted(message)},
+			},
+		}
 	case "webhook":
-		setWebhookCallback := &viberinterface.SetWebhookResponse{}
-		if err = setWebhookCallback.UnmarshalJSON(body); err != nil {
-			err = errors.Wrap(err, "Failed to unmarshal request body to 'viberinterface.SetWebhookResponse'")
+		message := &viberinterface.SetWebhookResponse{}
+		if err = unmarshal(message); err != nil {
 			return
 		}
 		logger.Infof(c, "Viber 'set-webhook' callback event")
-		return
+		return // Do not create bot context
 	default:
 		log.Warningf(c, "Unknown callback event: [%v]", event)
+		return
 	}
 	botContext = &bots.BotContext{
-			BotHost:     h.BotHost,
-			BotSettings: botSettings,
-		}
+		BotHost:     h.BotHost,
+		BotSettings: botSettings,
+	}
 	return
 }
 

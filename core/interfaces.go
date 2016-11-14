@@ -102,7 +102,9 @@ type WebhookActor interface {
 	Platform() string
 }
 
-type WebhookSender interface {
+type WebhookSender interface { // TODO: Extend to support avatar & language (Viber)
+	//GetAvatar() string
+	//GetLanguage() string
 	WebhookActor
 }
 
