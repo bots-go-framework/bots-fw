@@ -9,6 +9,7 @@ import (
 	"google.golang.org/appengine"
 	"io/ioutil"
 	"net/http"
+	"github.com/pkg/errors"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -112,10 +113,15 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 			BotHost:     h.BotHost,
 			BotSettings: botSettings,
 		}
+	input := NewTelegramWebhookInput(update)
+	if input == nil {
+		err = errors.New("Unexpected input")
+		return
+	}
 	entriesWithInputs = []bots.EntryInputs{
 			{
 				Entry:  TelegramWebhookEntry{update: update},
-				Inputs: []bots.WebhookInput{NewTelegramWebhookInput(update)},
+				Inputs: []bots.WebhookInput{input},
 			},
 		}
 	return

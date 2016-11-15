@@ -47,7 +47,7 @@ func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 	case update.ChosenInlineResult != nil:
 		return NewTelegramWebhookChosenInlineResult(input)
 	default:
-		panic("Unkonwn content of Telegram update message")
+		return nil
 	}
 }
 
