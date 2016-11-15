@@ -38,7 +38,8 @@ func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 		case update.Message.Contact != nil:
 			return NewTelegramWebhookContact(input)
 		default:
-			panic("Unexpected content of update.Message (Text is empty and no Contact)")
+			return nil // TODO: Should we log it properly?
+			//panic("Unexpected content of update.Message (Text is empty and no Contact)")
 		}
 	case update.InlineQuery != nil:
 		return NewTelegramWebhookInlineQuery(input)
