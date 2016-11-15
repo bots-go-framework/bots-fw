@@ -8,7 +8,7 @@ type FbmWebhookChat struct {
 
 var _ bots.WebhookChat = (*FbmWebhookChat)(nil)
 
-func (wh FbmWebhookChat) GetID() interface{} {
+func (wh FbmWebhookChat) GetID() string {
 	return wh.ID
 }
 

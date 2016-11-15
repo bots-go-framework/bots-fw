@@ -3,6 +3,7 @@ package telegram_bot
 import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"strconv"
 )
 
 type TelegramWebhookChat struct {
@@ -11,8 +12,8 @@ type TelegramWebhookChat struct {
 
 var _ bots.WebhookChat = (*TelegramWebhookChat)(nil)
 
-func (wh TelegramWebhookChat) GetID() interface{} {
-	return wh.chat.ID
+func (wh TelegramWebhookChat) GetID() string {
+	return strconv.FormatInt(wh.chat.ID, 10)
 }
 
 func (wh TelegramWebhookChat) GetFullName() string {

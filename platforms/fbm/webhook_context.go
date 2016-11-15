@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"github.com/strongo/measurement-protocol"
 	"github.com/strongo/bots-api-fbm"
-	"fmt"
+	"golang.org/x/net/context"
 )
 
 type FbmWebhookContext struct {
@@ -55,7 +55,7 @@ func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) bots.Me
 //}
 
 
-func (tc FbmWebhookContext) Close() error {
+func (tc FbmWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
@@ -90,31 +90,6 @@ func (whc *FbmWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 //func (whc *FbmWebhookContext) BotApi() *fbm_bot_api.BotAPI {
 //	return fbm_bot_api.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
 //}
-
-func (whc *FbmWebhookContext) AppUserIntID() (appUserIntID int64) { // TODO: This method is duplicating telegram
-	if chatEntity := whc.ChatEntity(); chatEntity != nil {
-		appUserIntID = chatEntity.GetAppUserIntID()
-	}
-	if appUserIntID == 0 {
-		botUser, err := whc.GetOrCreateBotUserEntityBase()
-		if err != nil {
-			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
-		}
-		appUserIntID = botUser.GetAppUserIntID()
-	}
-	return
-}
-
-func (whc *FbmWebhookContext) GetAppUser() (bots.BotAppUser, error) {
-	appUserID := whc.AppUserIntID()
-	appUser := whc.BotAppContext().NewBotAppUserEntity()
-	err := whc.BotAppUserStore.GetAppUserByID(appUserID, appUser)
-	return appUser, err
-}
-
-func (whc *FbmWebhookContext) BotChatID() interface{} {
-	return whc.Chat().GetID()
-}
 
 func (whc *FbmWebhookContext) BotChatIntID() (chatId int64) {
 	//webhookInput := whc.input
@@ -151,17 +126,6 @@ func (whc *FbmWebhookContext) BotChatIntID() (chatId int64) {
 	panic("Not implemented")
 }
 
-func (whc *FbmWebhookContext) ChatEntity() bots.BotChat {
-	if whc.BotChatID() == nil {
-		return nil
-	}
-	botChatEntity, err := whc.WebhookContextBase.ChatEntity(whc)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to get BotChat entity: %v", err))
-	}
-	return botChatEntity
-}
-
 func (whc *FbmWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	panic("Not implemented")
 }
@@ -176,18 +140,6 @@ func (whc *FbmWebhookContext) getFbmSenderID() string {
 		return fbmUserID
 	}
 	panic("string expected")
-}
-
-func (whc *FbmWebhookContext) MakeChatEntity() bots.BotChat {
-	fbmChat := whc.Chat()
-	chatEntity := FbmChat{
-		BotChatEntity: bots.BotChatEntity{
-			Type:  fbmChat.GetType(),
-			Title: fbmChat.GetFullName(),
-		},
-		FbmUserID: whc.getFbmSenderID(),
-	}
-	return &chatEntity
 }
 
 func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_bot_api.SendMessage {

@@ -10,7 +10,7 @@ type ViberWebhookChat struct {
 
 var _ bots.WebhookChat = (*ViberWebhookChat)(nil)
 
-func (wh ViberWebhookChat) GetID() interface{} {
+func (wh ViberWebhookChat) GetID() string {
 	return wh.viberUserID
 }
 

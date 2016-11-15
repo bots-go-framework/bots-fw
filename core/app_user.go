@@ -1,6 +1,9 @@
 package bots
 
-import "github.com/strongo/app"
+import (
+	"github.com/strongo/app"
+	"golang.org/x/net/context"
+)
 
 //type AppUserIntID int64
 
@@ -11,7 +14,7 @@ type BotAppUser interface {
 }
 
 type BotAppUserStore interface {
-	GetAppUserByID(appUserId int64, appUser BotAppUser) error
-	CreateAppUser(actor WebhookActor) (appUserId int64, appUserEntity BotAppUser, err error)
-	SaveAppUser(appUserId int64, appUserEntity BotAppUser) error
+	GetAppUserByID(c context.Context, appUserId int64, appUser BotAppUser) error
+	CreateAppUser(c context.Context, actor WebhookActor) (appUserId int64, appUserEntity BotAppUser, err error)
+	SaveAppUser(c context.Context, appUserId int64, appUserEntity BotAppUser) error
 }

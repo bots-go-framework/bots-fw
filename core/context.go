@@ -23,9 +23,7 @@ type WebhookContext interface {
 	ExecutionContext() strongo.ExecutionContext
 	BotAppContext() BotAppContext
 
-	BotChatID() interface{}
-	BotChatIntID() int64
-	//BotChatStringID() string
+	BotChatID() string
 
 	GetBotCode() string
 	GetBotToken() string

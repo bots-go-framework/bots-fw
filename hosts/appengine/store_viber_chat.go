@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"github.com/qedus/nds"
 	"time"
 	"golang.org/x/net/context"
@@ -19,10 +17,10 @@ type GaeViberChatStore struct {
 
 var _ bots.BotChatStore = (*GaeViberChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeViberChatStore(log strongo.Logger, r *http.Request) *GaeViberChatStore {
+func NewGaeViberChatStore(log strongo.Logger) *GaeViberChatStore {
 	return &GaeViberChatStore{
 		GaeBotChatStore: GaeBotChatStore{
-			GaeBaseStore: NewGaeBaseStore(log, r, viber_bot.ViberChatKind),
+			GaeBaseStore: NewGaeBaseStore(log, viber_bot.ViberChatKind),
 			newBotChatEntity: func() bots.BotChat {
 				telegramChat := viber_bot.NewViberChat()
 				return &telegramChat
@@ -32,16 +30,8 @@ func NewGaeViberChatStore(log strongo.Logger, r *http.Request) *GaeViberChatStor
 					panic(fmt.Sprintf("Expected *viber_bot.ViberChat but received %T", entity))
 				}
 			},
-			botChatKey: func(botChatId interface{}) *datastore.Key {
-				if intId, ok := botChatId.(int64); ok {
-					key := datastore.NewKey(appengine.NewContext(r), viber_bot.ViberChatKind, "", (int64)(intId), nil)
-					return key
-				} else if strId, ok := botChatId.(string); ok {
-					key := datastore.NewKey(appengine.NewContext(r), viber_bot.ViberChatKind, strId, 0, nil)
-					return key
-				} else {
-					panic(fmt.Sprintf("Expected botChatId as int, got: %T", botChatId))
-				}
+			botChatKey: func(c context.Context, botID, botChatID string) *datastore.Key {
+				return datastore.NewKey(c, viber_bot.ViberChatKind, botChatID, 0, nil)
 			},
 		},
 	}

@@ -8,6 +8,7 @@ import (
 	//"google.golang.org/appengine/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
+	"golang.org/x/net/context"
 )
 
 type ViberWebhookContext struct {
@@ -39,7 +40,7 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 	}
 }
 
-func (tc ViberWebhookContext) Close() error {
+func (tc ViberWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
@@ -77,50 +78,6 @@ func (whc *ViberWebhookContext) BotApi() *viberbotapi.ViberBotApi {
 	return viberbotapi.NewViberBotApiWithHttpClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
 }
 
-func (whc *ViberWebhookContext) AppUserIntID() (appUserIntID int64) {
-	if chatEntity := whc.ChatEntity(); chatEntity != nil {
-		appUserIntID = chatEntity.GetAppUserIntID()
-	}
-	if appUserIntID == 0 {
-		botUser, err := whc.GetOrCreateBotUserEntityBase()
-		if err != nil {
-			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
-		}
-		appUserIntID = botUser.GetAppUserIntID()
-	}
-	return
-}
-
-func (whc *ViberWebhookContext) GetAppUser() (bots.BotAppUser, error) {
-	appUserID := whc.AppUserIntID()
-	appUser := whc.BotAppContext().NewBotAppUserEntity()
-	err := whc.BotAppUserStore.GetAppUserByID(appUserID, appUser)
-	return appUser, err
-}
-
-func (whc *ViberWebhookContext) BotChatID() interface{} {
-	id := whc.BotChatIntID()
-	if id == 0 {
-		return nil
-	}
-	return id
-}
-
-func (whc *ViberWebhookContext) BotChatIntID() (chatId int64) {
-	panic("Not implemented")
-}
-
-func (whc *ViberWebhookContext) ChatEntity() bots.BotChat {
-	if whc.BotChatID() == nil {
-		return nil
-	}
-	botChatEntity, err := whc.WebhookContextBase.ChatEntity(whc)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to get BotChat entity: %v", err))
-	}
-	return botChatEntity
-}
-
 func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	whc.Logger().Warningf(whc.Context(), "IsNewerThen")
 	//if viberChat, ok := whc.ChatEntity().(*ViberChat); ok && viberChat != nil {
@@ -139,18 +96,6 @@ func (whc *ViberWebhookContext) getViberSenderID() string {
 		return viberUserID
 	}
 	panic("string expected")
-}
-
-func (whc *ViberWebhookContext) MakeChatEntity() bots.BotChat {
-	viberChat := whc.Chat()
-	chatEntity := ViberChat{
-		BotChatEntity: bots.BotChatEntity{
-			Type:  viberChat.GetType(),
-			Title: viberChat.GetFullName(),
-		},
-		ViberUserID: whc.getViberSenderID(),
-	}
-	return &chatEntity
 }
 
 func (tc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {

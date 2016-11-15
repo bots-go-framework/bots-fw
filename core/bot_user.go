@@ -1,5 +1,7 @@
 package bots
 
+import "golang.org/x/net/context"
+
 type BotUser interface {
 	GetAppUserIntID() int64
 	IsAccessGranted() bool
@@ -9,8 +11,8 @@ type BotUser interface {
 }
 
 type BotUserStore interface {
-	GetBotUserById(botUserID interface{}) (BotUser, error)
-	SaveBotUser(botUserID interface{}, botUserEntity BotUser) error
-	CreateBotUser(apiUser WebhookActor) (BotUser, error)
+	GetBotUserById(c context.Context, botUserID interface{}) (BotUser, error)
+	SaveBotUser(c context.Context, botUserID interface{}, botUserEntity BotUser) error
+	CreateBotUser(c context.Context, apiUser WebhookActor) (BotUser, error)
 	//io.Closer
 }

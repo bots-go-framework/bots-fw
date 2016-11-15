@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/strongo/bots-framework/core"
 	"time"
+	"strconv"
 )
 
 const (
@@ -47,14 +48,18 @@ func (chat *TelegramChat) GetBotUserIntID() int {
 }
 
 func (chat *TelegramChat) SetBotUserID(id interface{}) {
-	if intId, ok := id.(int); ok {
-		chat.TelegramUserID = intId
-		return
+	switch id.(type) {
+	case string:
+		var err error
+		chat.TelegramUserID, err = strconv.Atoi(id.(string))
+		if err != nil {
+			panic(err.Error())
+		}
+	case int:
+		chat.TelegramUserID = id.(int)
+	case int64:
+		chat.TelegramUserID = id.(int)
+	default:
+		panic(fmt.Sprintf("Expected int or string, got: %T", id))
 	}
-	if intId64, ok := id.(int64); ok {
-		chat.TelegramUserID = int(intId64)
-		return
-	}
-	panic(fmt.Sprintf("Expected int, got: %T", id))
-
 }

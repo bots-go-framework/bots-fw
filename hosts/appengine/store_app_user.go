@@ -8,7 +8,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"reflect"
 )
 
@@ -21,35 +20,35 @@ type GaeAppUserStore struct {
 
 var _ bots.BotAppUserStore = (*GaeAppUserStore)(nil)
 
-func NewGaeAppUserStore(log strongo.Logger, r *http.Request, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
+func NewGaeAppUserStore(log strongo.Logger, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
 	return GaeAppUserStore{
 		appUserEntityType: appUserEntityType,
 		appUserEntityKind: appUserEntityKind,
 		newUserEntity:     newUserEntity,
-		GaeBaseStore:      NewGaeBaseStore(log, r, appUserEntityKind),
+		GaeBaseStore:      NewGaeBaseStore(log, appUserEntityKind),
 	}
 }
 
 // ************************** Helper functions **************************
 
-func (s GaeAppUserStore) appUserKey(appUserId int64) *datastore.Key {
-	return datastore.NewKey(s.Context(), s.appUserEntityKind, "", appUserId, nil)
+func (s GaeAppUserStore) appUserKey(c context.Context, appUserId int64) *datastore.Key {
+	return datastore.NewKey(c, s.appUserEntityKind, "", appUserId, nil)
 }
 
 // ************************** Implementations of  bots.AppUserStore **************************
-func (s GaeAppUserStore) GetAppUserByID(appUserId int64, appUser bots.BotAppUser) error {
-	return nds.Get(s.Context(), s.appUserKey(appUserId), appUser)
+func (s GaeAppUserStore) GetAppUserByID(c context.Context, appUserId int64, appUser bots.BotAppUser) error {
+	return nds.Get(c, s.appUserKey(c, appUserId), appUser)
 }
 
-func (s GaeAppUserStore) CreateAppUser(actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
-	return s.createAppUser(s.Context(), actor)
+func (s GaeAppUserStore) CreateAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
+	return s.createAppUser(c, actor)
 }
 
 func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
 	appUserEntity := s.newUserEntity()
 	appUserEntity.SetBotUserID(actor.Platform(), actor.GetID())
 	appUserEntity.SetNames(actor.GetFirstName(), actor.GetLastName(), actor.GetUserName())
-	key, err := nds.Put(c, s.appUserKey(0), appUserEntity)
+	key, err := nds.Put(c, s.appUserKey(c, 0), appUserEntity)
 	return key.IntID(), appUserEntity, err
 }
 
@@ -71,10 +70,10 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	}
 }
 
-func (s GaeAppUserStore) SaveAppUser(appUserId int64, appUserEntity bots.BotAppUser) error {
+func (s GaeAppUserStore) SaveAppUser(c context.Context, appUserId int64, appUserEntity bots.BotAppUser) error {
 	if appUserId == 0 {
 		panic("appUserId == 0")
 	}
-	_, err := nds.Put(s.Context(), s.appUserKey(appUserId), appUserEntity)
+	_, err := nds.Put(c, s.appUserKey(c, appUserId), appUserEntity)
 	return err
 }

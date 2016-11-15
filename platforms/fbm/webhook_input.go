@@ -22,19 +22,23 @@ func (whi FbmWebhookInput) Chat() bots.WebhookChat {
 func (whi FbmWebhookInput) GetSender() bots.WebhookSender {
 	return whi.messaging.Sender
 }
+
 func (whi FbmWebhookInput) GetRecipient() bots.WebhookRecipient {
 	return whi.messaging.Recipient
 }
+
 func (whi FbmWebhookInput) GetTime() time.Time {
 	return time.Unix(whi.messaging.Timestamp, 0)
 }
 
 func (whi FbmWebhookInput) InputMessage() bots.WebhookMessage {
-	return whi.messaging.Message
+	panic("Not implemented return whi.messaging.Message") // TODO: Do we really need .Chat() in Message interface?
 }
+
 func (whi FbmWebhookInput) InputPostback() bots.WebhookPostback {
 	return nil
 }
+
 func (whi FbmWebhookInput) InputDelivery() bots.WebhookDelivery {
 	return nil
 }

@@ -5,12 +5,11 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"github.com/qedus/nds"
 	"time"
 	"golang.org/x/net/context"
+	"strconv"
 )
 
 type GaeTelegramChatStore struct {
@@ -19,10 +18,10 @@ type GaeTelegramChatStore struct {
 
 var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramChatStore {
+func NewGaeTelegramChatStore(log strongo.Logger) *GaeTelegramChatStore {
 	return &GaeTelegramChatStore{
 		GaeBotChatStore: GaeBotChatStore{
-			GaeBaseStore: NewGaeBaseStore(log, r, telegram_bot.TelegramChatKind),
+			GaeBaseStore: NewGaeBaseStore(log, telegram_bot.TelegramChatKind),
 			newBotChatEntity: func() bots.BotChat {
 				telegramChat := telegram_bot.NewTelegramChat()
 				return &telegramChat
@@ -32,25 +31,17 @@ func NewGaeTelegramChatStore(log strongo.Logger, r *http.Request) *GaeTelegramCh
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))
 				}
 			},
-			botChatKey: func(botChatId interface{}) *datastore.Key {
-				if intId, ok := botChatId.(int64); ok {
-					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, "", (int64)(intId), nil)
-					return key
-				} else if strId, ok := botChatId.(string); ok {
-					key := datastore.NewKey(appengine.NewContext(r), telegram_bot.TelegramChatKind, strId, 0, nil)
-					return key
-				} else {
-					panic(fmt.Sprintf("Expected botChatId as int, got: %T", botChatId))
-				}
+			botChatKey: func(c context.Context, botID, botChatId string) *datastore.Key {
+				return datastore.NewKey(c, telegram_bot.TelegramChatKind, bots.NewChatID(botID, botChatId), 0, nil)
 			},
 		},
 	}
 }
 
 
-func MarkTelegramChatAsForbidden(c context.Context, tgChatID int64, dtForbidden time.Time) error {
+func MarkTelegramChatAsForbidden(c context.Context, botID string, tgChatID int64, dtForbidden time.Time) error {
 	return nds.RunInTransaction(c, func(c context.Context) (err error) {
-		key := datastore.NewKey(c, telegram_bot.TelegramChatKind, "", tgChatID, nil)
+		key := datastore.NewKey(c, telegram_bot.TelegramChatKind, bots.NewChatID(botID, strconv.FormatInt(tgChatID, 10)), 0, nil)
 		var chat telegram_bot.TelegramChat
 		if err = nds.Get(c, key, &chat); err != nil {
 			return

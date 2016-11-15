@@ -115,6 +115,7 @@ type WebhookRecipient interface {
 type WebhookMessage interface {
 	IntID() int64
 	StringID() string
+	Chat() WebhookChat
 	//Sequence() int // 'seq' for Facebook, '???' for Telegram
 }
 
@@ -131,7 +132,7 @@ type WebhookContactMessage interface {
 }
 
 type WebhookChat interface {
-	GetID() interface{}
+	GetID() string
 	GetFullName() string
 	GetType() string
 }

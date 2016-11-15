@@ -6,7 +6,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/viber"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"time"
 	"golang.org/x/net/context"
 )
@@ -17,10 +16,10 @@ type GaeViberUserStore struct {
 
 var _ bots.BotUserStore = (*GaeViberUserStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeViberUserStore(log strongo.Logger, r *http.Request, gaeAppUserStore GaeAppUserStore) GaeViberUserStore {
+func NewGaeViberUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) GaeViberUserStore {
 	return GaeViberUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore:    NewGaeBaseStore(log, r, viber_bot.ViberUserKind),
+			GaeBaseStore:    NewGaeBaseStore(log, viber_bot.ViberUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {

@@ -8,9 +8,8 @@ import (
 	//"google.golang.org/appengine/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
+	"golang.org/x/net/context"
 )
 
 type TelegramWebhookContext struct {
@@ -24,7 +23,10 @@ type TelegramWebhookContext struct {
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
-	chatID, _ := whc.BotChatID().(int64)
+	chatID, err := strconv.ParseInt(whc.BotChatID(), 10, 64)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to parse whc.BotChatID() to int: %v", err))
+	}
 	callbackQuery := whc.Input().(bots.WebhookCallbackQuery)
 	message := callbackQuery.GetMessage()
 	messageID := message.IntID()
@@ -37,7 +39,10 @@ func (whc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) bo
 
 func NewEditCallbackMessageKeyboard(whc bots.WebhookContext, kbMarkup tgbotapi.InlineKeyboardMarkup) bots.MessageFromBot {
 	//whct := whc.(*TelegramWebhookContext)
-	chatID, _ := whc.BotChatID().(int64)
+	chatID, err := strconv.ParseInt(whc.BotChatID(), 10, 64)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to parse whc.BotChatID() to int: %v", err))
+	}
 	messageID := whc.Input().(bots.WebhookCallbackQuery).GetMessage().IntID()
 	editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
 	m := whc.NewMessage("")
@@ -62,7 +67,7 @@ func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, b
 	}
 }
 
-func (tc TelegramWebhookContext) Close() error {
+func (tc TelegramWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
@@ -98,78 +103,11 @@ func (whc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
 	return tgbotapi.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
 }
 
-func (whc *TelegramWebhookContext) AppUserIntID() (appUserIntID int64) {
-	if chatEntity := whc.ChatEntity(); chatEntity != nil {
-		appUserIntID = chatEntity.GetAppUserIntID()
-	}
-	if appUserIntID == 0 {
-		botUser, err := whc.GetOrCreateBotUserEntityBase()
-		if err != nil {
-			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
-		}
-		appUserIntID = botUser.GetAppUserIntID()
-	}
-	return
-}
-
 func (whc *TelegramWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 	appUserID := whc.AppUserIntID()
 	appUser := whc.BotAppContext().NewBotAppUserEntity()
-	err := whc.BotAppUserStore.GetAppUserByID(appUserID, appUser)
+	err := whc.BotAppUserStore.GetAppUserByID(whc.Context(), appUserID, appUser)
 	return appUser, err
-}
-
-func (whc *TelegramWebhookContext) BotChatID() interface{} {
-	id := whc.BotChatIntID()
-	if id == 0 {
-		return nil
-	}
-	return id
-}
-
-func (whc *TelegramWebhookContext) BotChatIntID() (chatId int64) {
-	input := whc.Input()
-	switch input.(type) {
-	case bots.WebhookTextMessage:
-		chatId = input.Chat().GetID().(int64)
-	case bots.WebhookCallbackQuery:
-		callbackQuery := input.(bots.WebhookCallbackQuery)
-		if callbackQuery == nil {
-			return 0
-		}
-		chat := callbackQuery.Chat()
-		if chat != nil {
-			chatId = chat.GetID().(int64)
-		} else {
-			data := callbackQuery.GetData()
-			if strings.Contains(data, "chat=") {
-				c := whc.Context()
-				values, err := url.ParseQuery(data)
-				if err != nil {
-					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-					return 0
-				}
-				chatIdAsStr := values.Get("chat")
-				if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
-					whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
-					return 0
-				}
-			}
-		}
-	}
-
-	return chatId
-}
-
-func (whc *TelegramWebhookContext) ChatEntity() bots.BotChat {
-	if whc.BotChatID() == nil {
-		return nil
-	}
-	botChatEntity, err := whc.WebhookContextBase.ChatEntity(whc)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to get BotChat entity: %v", err))
-	}
-	return botChatEntity
 }
 
 func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
@@ -192,18 +130,6 @@ func (whc *TelegramWebhookContext) getTelegramSenderID() int {
 	panic("int expected")
 }
 
-func (whc *TelegramWebhookContext) MakeChatEntity() bots.BotChat {
-	telegramChat := whc.Input().Chat()
-	chatEntity := TelegramChat{
-		BotChatEntity: bots.BotChatEntity{
-			Type:  telegramChat.GetType(),
-			Title: telegramChat.GetFullName(),
-		},
-		TelegramUserID: whc.getTelegramSenderID(),
-	}
-	return &chatEntity
-}
-
 func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
 	//inputMessage := tc.InputMessage()
 	//if inputMessage != nil {
@@ -212,20 +138,14 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 	//chatID := chat.GetID()
 	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
 	botChatID := tc.BotChatID()
-	if botChatID == nil {
-		panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
+	if botChatID == "" {
+		panic(fmt.Sprintf("Not able to send message as BotChatID() returned empty string. text: %v", text))
 	}
-	if int64ID, ok := botChatID.(int64); ok {
-		return tgbotapi.NewMessage(int64ID, text)
-	} else {
-		if intID, ok := botChatID.(int); ok {
-			return tgbotapi.NewMessage(int64(intID), text)
-		} else {
-			panic(fmt.Sprintf("OK=%v;Expected int or int64, got: %T", ok, botChatID))
-		}
+	botChatIntID, err := strconv.ParseInt(botChatID, 10, 64)
+	if err != nil {
+		panic(fmt.Sprintf("Not able to parse BotChatID(%v) as int: %v", botChatID, err))
 	}
-	//}
-	//panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", tc.InputType()))
+	return tgbotapi.NewMessage(botChatIntID, text)
 }
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {

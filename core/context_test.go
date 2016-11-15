@@ -13,18 +13,11 @@ type TestWebhookContext struct {
 	*WebhookContextBase
 }
 
-func (whc TestWebhookContext) AppUserIntID() int64 {
-	return 0
-}
-
-func (whc TestWebhookContext) BotChatID() interface{} {
-	return nil
-}
 func (whc TestWebhookContext) BotChatIntID() int64 {
 	return 0
 }
 
-func (tc TestWebhookContext) Close() error {
+func (tc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
@@ -32,7 +25,7 @@ func (whc TestWebhookContext) CreateBotUser(apiUser WebhookActor) (BotUser, erro
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotChatEntityById(botChatId interface{}) (BotChat, error) {
+func (whc TestWebhookContext) GetBotChatEntityById(c context.Context, botID, botChatID string) (BotChat, error) {
 	panic("Not implemented")
 }
 
@@ -103,8 +96,7 @@ func (whc TestWebhookContext) TranslateNoWarning(key string, args ...interface{}
 	return key
 }
 
-func (whc TestWebhookContext) NewChatEntity() BotChat  { panic("Not implemented") }
-func (whc TestWebhookContext) MakeChatEntity() BotChat { panic("Not implemented") }
+func (whc TestWebhookContext) NewChatEntity() BotChat { panic("Not implemented") }
 
 func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
 	panic("Not implemented")
@@ -113,7 +105,7 @@ func (whc TestWebhookContext) Context() context.Context { panic("Not implemented
 
 func (whc TestWebhookContext) ChatKey() *datastore.Key                     { panic("Not implemented") }
 func (whc TestWebhookContext) NewChatKey(c context.Context) *datastore.Key { panic("Not implemented") }
-func (whc TestWebhookContext) ChatEntity() BotChat                         { panic("Not implemented") }
+func (whc TestWebhookContext) ChatEntity() BotChat { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }

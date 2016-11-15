@@ -4,6 +4,8 @@ import (
 	"google.golang.org/appengine/log"
 	//"google.golang.org/appengine/datastore"
 	"github.com/pkg/errors"
+	"github.com/qedus/nds"
+	"golang.org/x/net/context"
 )
 
 func IsAccessGranted(whc WebhookContext) bool {
@@ -14,26 +16,32 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	logger := whc.Logger()
 	c := whc.Context()
 	logger.Debugf(c, "SetAccessGranted(value=%v)", value)
-	ctx := whc.Context()
 	chatEntity := whc.ChatEntity()
 	if chatEntity != nil {
 		if chatEntity.IsAccessGranted() == value {
-			log.Infof(ctx, "No need to change chatEntity.AccessGranted, as already is: %v", value)
+			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 		} else {
-			chatEntity.SetAccessGranted(value)
-			if err := whc.SaveBotChat(whc.BotChatID(), chatEntity); err != nil {
-				return errors.Wrap(err, "Failed to save bot chat entity to db")
-			}
+			nds.RunInTransaction(c, func(c context.Context) (err error) {
+				chatEntity.SetAccessGranted(value)
+				if chatEntity, err = whc.GetBotChatEntityById(c, whc.GetBotCode(), whc.BotChatID()); err != nil {
+					return
+				}
+				chatEntity.SetAccessGranted(value)
+				if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.BotChatID(), chatEntity); err != nil {
+					err = errors.Wrap(err, "Failed to save bot chat entity to db")
+				}
+				return
+			}, nil)
 		}
 	}
 
 	botUserID := whc.GetSender().GetID()
 	logger.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	if botUser, err := whc.GetBotUserById(botUserID); err != nil {
+	if botUser, err := whc.GetBotUserById(c, botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else {
 		botUser.SetAccessGranted(value)
-		if err = whc.SaveBotUser(botUserID, botUser); err != nil {
+		if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
 			err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
 		}
 		return err

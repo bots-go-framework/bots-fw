@@ -6,7 +6,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
-	"net/http"
 	"time"
 	"golang.org/x/net/context"
 )
@@ -17,10 +16,10 @@ type GaeTelegramUserStore struct {
 
 var _ bots.BotUserStore = (*GaeTelegramUserStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramUserStore(log strongo.Logger, r *http.Request, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
+func NewGaeTelegramUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
 	return GaeTelegramUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore:    NewGaeBaseStore(log, r, telegram_bot.TelegramUserKind),
+			GaeBaseStore:    NewGaeBaseStore(log, telegram_bot.TelegramUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {

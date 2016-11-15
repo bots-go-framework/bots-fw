@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"net/url"
+	"github.com/pkg/errors"
 )
 
 type WebhookContextBase struct {
@@ -21,15 +23,15 @@ type WebhookContextBase struct {
 	botAppContext BotAppContext
 	BotContext    BotContext
 	botPlatform   BotPlatform
-	input WebhookInput
+	input         WebhookInput
 
-	locale strongo.Locale
+	locale        strongo.Locale
 
 	//update      tgbotapi.Update
-	chatEntity BotChat
+	chatEntity    BotChat
 
-	BotUserKey *datastore.Key
-	appUser    BotAppUser
+	BotUserKey    *datastore.Key
+	appUser       BotAppUser
 	strongo.Translator
 	//Locales    strongo.LocalesProvider
 
@@ -37,6 +39,56 @@ type WebhookContextBase struct {
 
 	gaMeasurement *measurement.BufferedSender
 }
+
+func (whc *WebhookContextBase) BotChatID() (chatID string) {
+	input := whc.Input()
+	switch input.(type) {
+	case WebhookTextMessage:
+		chatID = input.Chat().GetID()
+	case WebhookCallbackQuery:
+		callbackQuery := input.(WebhookCallbackQuery)
+		chat := callbackQuery.Chat()
+		if chat != nil {
+			chatID = chat.GetID()
+		} else {
+			data := callbackQuery.GetData()
+			if strings.Contains(data, "chat=") {
+				c := whc.Context()
+				values, err := url.ParseQuery(data)
+				if err != nil {
+					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+					return ""
+				}
+				chatID = values.Get("chat")
+			}
+		}
+	}
+
+	return chatID
+}
+
+func (whc *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
+	if chatEntity := whc.ChatEntity(); chatEntity != nil {
+		appUserIntID = chatEntity.GetAppUserIntID()
+	}
+	if appUserIntID == 0 {
+		botUser, err := whc.GetOrCreateBotUserEntityBase()
+		if err != nil {
+			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
+		}
+		appUserIntID = botUser.GetAppUserIntID()
+	}
+	return
+}
+
+
+func (whc *WebhookContextBase) GetAppUser() (BotAppUser, error) {
+	appUserID := whc.AppUserIntID()
+	appUser := whc.BotAppContext().NewBotAppUserEntity()
+	err := whc.BotAppUserStore.GetAppUserByID(whc.Context(), appUserID, appUser)
+	return appUser, err
+}
+
 
 func (whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
 	return whcb
@@ -145,21 +197,23 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 }
 
 func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
-	return whcb.BotAppUserStore.SaveAppUser(appUserID, appUserEntity)
+	return whcb.BotAppUserStore.SaveAppUser(whcb.Context(), appUserID, appUserEntity)
 }
 
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity
 }
 
-func (whcb *WebhookContextBase) ChatEntity(whc WebhookContext) (BotChat, error) {
+func (whcb *WebhookContextBase) ChatEntity() BotChat {
+	if whcb.BotChatID() == "" {
+		return nil
+	}
 	if whcb.chatEntity == nil {
-		err := whcb.getChatEntityBase(whc)
-		if err != nil {
-			return nil, err
+		if err := whcb.getChatEntityBase(); err != nil {
+			panic(errors.Wrap(err, "Failed to call whcb.getChatEntityBase()"))
 		}
 	}
-	return whcb.chatEntity, nil
+	return whcb.chatEntity
 }
 
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
@@ -168,13 +222,13 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	logger.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()
 	botUserID := sender.GetID()
-	botUser, err := whcb.GetBotUserById(botUserID)
+	botUser, err := whcb.GetBotUserById(c, botUserID)
 	if err != nil {
 		return nil, err
 	}
 	if botUser == nil {
 		logger.Infof(c, "Bot user entity not found, creating a new one...")
-		botUser, err = whcb.CreateBotUser(sender)
+		botUser, err = whcb.CreateBotUser(c, sender)
 		if err != nil {
 			logger.Errorf(c, "Failed to create bot user: %v", err)
 			return nil, err
@@ -198,7 +252,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	return botUser, err
 }
 
-func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
+func (whcb *WebhookContextBase) getChatEntityBase() error {
 	logger := whcb.Logger()
 	c := whcb.Context()
 	if whcb.HasChatEntity() {
@@ -206,9 +260,9 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 		return nil
 	}
 
-	botChatID := whc.BotChatID()
+	botChatID := whcb.BotChatID()
 	//logger.Infof(c, "botChatID: %v", botChatID)
-	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(botChatID)
+	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(c, whcb.GetBotCode(), botChatID)
 	switch err {
 	case nil: // Nothing to do
 		//logger.Debugf(c, "Loaded botChatEntity: %v", botChatEntity)
@@ -220,22 +274,25 @@ func (whcb *WebhookContextBase) getChatEntityBase(whc WebhookContext) error {
 			return err
 		}
 
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
-		if whc.GetBotSettings().Mode == Production {
-			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whc.GaCommon())
+		if whcb.GetBotSettings().Mode == Production {
+			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
 			gaEvent.Label = fmt.Sprintf("%v", botChatID)
-			whc.GaMeasurement().Queue(gaEvent)
+			whcb.GaMeasurement().Queue(gaEvent)
 		}
 
 	default:
 		return err
 	}
-	logger.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`, botChatEntity.GetPreferredLanguage(), whc.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage())
-	if botChatEntity.GetPreferredLanguage() != "" && whc.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
-		err = whc.SetLocale(botChatEntity.GetPreferredLanguage())
+
+	logger.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`,
+		botChatEntity.GetPreferredLanguage(), whcb.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage())
+
+	if botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
+		err = whcb.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err == nil {
-			logger.Debugf(c, "whc.locale changed to: %v", whc.Locale().Code5)
+			logger.Debugf(c, "whc.locale changed to: %v", whcb.Locale().Code5)
 		} else {
 			logger.Errorf(c, "Failed to set locate: %v")
 		}

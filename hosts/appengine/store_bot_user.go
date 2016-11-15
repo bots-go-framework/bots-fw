@@ -22,12 +22,11 @@ type GaeBotUserStore struct {
 var _ bots.BotUserStore = (*GaeBotUserStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.BotUserStore **************************
-func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, error) { // Former LoadBotUserEntity
+func (s GaeBotUserStore) GetBotUserById(c context.Context, botUserId interface{}) (bots.BotUser, error) { // Former LoadBotUserEntity
 	//if s.botUsers == nil {
 	//	s.botUsers = make(map[int]bots.BotUser, 1)
 	//}
 	botUserEntity := s.newBotUserEntity(nil)
-	c := s.Context()
 	err := nds.Get(c, s.botUserKey(c, botUserId), botUserEntity)
 	if err == datastore.ErrNoSuchEntity {
 		return nil, nil
@@ -35,12 +34,11 @@ func (s GaeBotUserStore) GetBotUserById(botUserId interface{}) (bots.BotUser, er
 	return botUserEntity, err
 }
 
-func (s GaeBotUserStore) SaveBotUser(botUserID interface{}, userEntity bots.BotUser) error { // Former SaveBotUserEntity
+func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, userEntity bots.BotUser) error { // Former SaveBotUserEntity
 	// TODO: Architecture needs refactoring as it not transactional save
 	// We load bot user entity outside of here (out of transaction) and save here. It can change since then.
 	s.validateBotUserEntityType(userEntity)
 	userEntity.SetDtUpdatedToNow()
-	c := s.Context()
 	err := nds.RunInTransaction(c, func(c context.Context) error {
 		key := s.botUserKey(c, botUserID)
 		existingBotUser := s.newBotUserEntity(nil)
@@ -67,12 +65,11 @@ func (s GaeBotUserStore) SaveBotUser(botUserID interface{}, userEntity bots.BotU
 	return err
 }
 
-func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser, error) {
-	s.logger.Debugf(s.Context(), "CreateBotUser() started...")
+func (s GaeBotUserStore) CreateBotUser(c context.Context, apiUser bots.WebhookActor) (bots.BotUser, error) {
+	s.logger.Debugf(c, "CreateBotUser() started...")
 	botUserID := apiUser.GetID()
 	botUserEntity := s.newBotUserEntity(apiUser)
 
-	c := s.Context()
 	err := nds.RunInTransaction(c, func(ctx context.Context) error {
 		botUserKey := s.botUserKey(ctx, botUserID)
 		err := nds.Get(ctx, botUserKey, botUserEntity)
@@ -85,7 +82,7 @@ func (s GaeBotUserStore) CreateBotUser(apiUser bots.WebhookActor) (bots.BotUser,
 			if appUserId == 0 {
 				appUserId, _, err = s.gaeAppUserStore.createAppUser(ctx, apiUser)
 				if err != nil {
-					s.logger.Errorf(s.Context(), "Failed to create app user: %v", err)
+					s.logger.Errorf(c, "Failed to create app user: %v", err)
 					return err
 				}
 			}
