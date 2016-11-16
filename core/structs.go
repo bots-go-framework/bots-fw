@@ -4,6 +4,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
+	"github.com/strongo/bots-api-viber/viberinterface"
 )
 
 type EntryInputs struct {
@@ -36,16 +37,17 @@ const (
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
-	Text                  string
-	Format                MessageFormat
-	DisableWebPagePreview bool
-	//Keyboard              Keyboard
-	TelegramKeyboard          interface{}
-	// TODO: One of this 2 is duplicate!?
+	Text                      string
+	Format                    MessageFormat
+	DisableWebPagePreview     bool
+													  //Keyboard              Keyboard
+	TelegramKeyboard          interface{} // TODO: cast to a specific interface?
+	ViberKeyboard             *viberinterface.Keyboard
+													  // TODO: One of this 2 is duplicate!?
 	TelegramInlineConfig      *tgbotapi.InlineConfig
-	//TelegramInlineAnswer      *tgbotapi.InlineConfig
-	TelegramCallbackAnswer     *tgbotapi.CallbackConfig
-	//
+													  //TelegramInlineAnswer      *tgbotapi.InlineConfig
+	TelegramCallbackAnswer    *tgbotapi.CallbackConfig
+													  //
 	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig
 	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig
 	TelegramChatID            int64
