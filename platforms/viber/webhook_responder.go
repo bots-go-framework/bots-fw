@@ -27,19 +27,20 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	logger.Debugf(c, "ViberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
 	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.GetHttpClient())
-	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, nil)
+	logger.Debugf(c, "ViberKeyboard: %v", m.ViberKeyboard)
 	if m.ViberKeyboard != nil {
-		textMessage.Keyboard = m.ViberKeyboard
+		m.ViberKeyboard.Type = "keyboard"
 	}
+	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, m.ViberKeyboard)
 	requestBody, response, err := viberBotApi.SendMessage(textMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to send message to Viber")
 		logger.Errorf(c, err.Error())
 	}
+	log.Debugf(c, "Request body: %v", (string)(requestBody))
 	if response.Status == 0 {
 		logger.Debugf(c, "Succesfully sent to Viber")
 	} else {
-		log.Debugf(c, "Request body: %v", (string)(requestBody))
 		switch response.Status { // https://developers.viber.com/customer/en/portal/articles/2541337-error-codes?b_id=15145
 		case 2:
 			logger.Errorf(c, "Viber response.Status=%v: %v: [%v]", response.Status, response.StatusMessage, botSettings.Token)
