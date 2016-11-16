@@ -13,6 +13,6 @@ type BotUser interface {
 type BotUserStore interface {
 	GetBotUserById(c context.Context, botUserID interface{}) (BotUser, error)
 	SaveBotUser(c context.Context, botUserID interface{}, botUserEntity BotUser) error
-	CreateBotUser(c context.Context, apiUser WebhookActor) (BotUser, error)
+	CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (BotUser, error)
 	//io.Closer
 }

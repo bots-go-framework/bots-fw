@@ -65,7 +65,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 	return err
 }
 
-func (s GaeBotUserStore) CreateBotUser(c context.Context, apiUser bots.WebhookActor) (bots.BotUser, error) {
+func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser bots.WebhookActor) (bots.BotUser, error) {
 	s.logger.Debugf(c, "CreateBotUser() started...")
 	botUserID := apiUser.GetID()
 	botUserEntity := s.newBotUserEntity(apiUser)
@@ -80,7 +80,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, apiUser bots.WebhookAc
 				return err
 			}
 			if appUserId == 0 {
-				appUserId, _, err = s.gaeAppUserStore.createAppUser(ctx, apiUser)
+				appUserId, _, err = s.gaeAppUserStore.createAppUser(ctx, botID, 	apiUser)
 				if err != nil {
 					s.logger.Errorf(c, "Failed to create app user: %v", err)
 					return err

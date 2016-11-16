@@ -40,13 +40,13 @@ func (s GaeAppUserStore) GetAppUserByID(c context.Context, appUserId int64, appU
 	return nds.Get(c, s.appUserKey(c, appUserId), appUser)
 }
 
-func (s GaeAppUserStore) CreateAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
-	return s.createAppUser(c, actor)
+func (s GaeAppUserStore) CreateAppUser(c context.Context, botID string, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
+	return s.createAppUser(c, botID, actor)
 }
 
-func (s GaeAppUserStore) createAppUser(c context.Context, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
+func (s GaeAppUserStore) createAppUser(c context.Context, botID string, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
 	appUserEntity := s.newUserEntity()
-	appUserEntity.SetBotUserID(actor.Platform(), actor.GetID())
+	appUserEntity.SetBotUserID(actor.Platform(), botID, fmt.Sprintf("%v", actor.GetID()))
 	appUserEntity.SetNames(actor.GetFirstName(), actor.GetLastName(), actor.GetUserName())
 	key, err := nds.Put(c, s.appUserKey(c, 0), appUserEntity)
 	return key.IntID(), appUserEntity, err

@@ -182,9 +182,9 @@ func (h ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext,
 	return NewViberWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
-func (h ViberWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
-	if twhc, ok := whc.(*ViberWebhookContext); ok {
-		return NewViberWebhookResponder(w, twhc)
+func (h ViberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
+	if viberWhc, ok := whc.(*ViberWebhookContext); ok {
+		return NewViberWebhookResponder(viberWhc)
 	} else {
 		panic(fmt.Sprintf("Expected ViberWebhookContext, got: %T", whc))
 	}

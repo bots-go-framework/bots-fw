@@ -43,17 +43,19 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(r)
 
-	if botContext.BotSettings.Mode == Development && !strings.Contains(r.Host, "dev") {
-		logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if botContext.BotSettings.Mode == Staging && !strings.Contains(r.Host, "st1") {
-		logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
+	if botContext != nil {
+		if botContext.BotSettings.Mode == Development && !strings.Contains(r.Host, "dev") {
+			logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if botContext.BotSettings.Mode == Staging && !strings.Contains(r.Host, "st1") {
+			logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
 
 	if err != nil {
 		if _, ok := err.(AuthFailedError); ok {
@@ -193,7 +195,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//waitGroup.Add(1)
 			//go func(input WebhookInput) {
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
-			responder := webhookHandler.GetResponder(w, whc)
+			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
 			d.router.Dispatch(responder, whc)
 			//waitGroup.Done()
 			//}(input)

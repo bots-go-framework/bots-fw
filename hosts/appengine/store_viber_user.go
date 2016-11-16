@@ -45,13 +45,13 @@ func NewGaeViberUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) G
 				}
 			},
 			botUserKey: func(c context.Context, botUserId interface{}) *datastore.Key {
-				if intID, ok := botUserId.(int); ok {
-					if intID == 0 {
-						panic("botUserKey(): intID == 0")
+				if stringID, ok := botUserId.(string); ok {
+					if stringID == "" {
+						panic("botUserKey(): botUserId is an empty string ")
 					}
-					return datastore.NewKey(c, viber_bot.ViberUserKind, "", (int64)(intID), nil)
+					return datastore.NewKey(c, viber_bot.ViberUserKind, stringID, 0, nil)
 				} else {
-					panic(fmt.Sprintf("Expected botUserId as int, got: %T", botUserId))
+					panic(fmt.Sprintf("Expected botUserId as string, got: %T:%v", botUserId, botUserId))
 				}
 			},
 		},
