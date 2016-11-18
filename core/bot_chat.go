@@ -36,7 +36,7 @@ type BotChat interface {
 }
 
 type BotChatStore interface {
-	GetBotChatEntityById(c context.Context, botID, botChatID string) (BotChat, error)
+	GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error)
 	SaveBotChat(c context.Context, botID, botChatID string, chatEntity BotChat) error
 	NewBotChatEntity(c context.Context, botID string, botChatId string, appUserID int64, botUserID string, isAccessGranted bool) BotChat
 	//AddChat(chat BotChat)

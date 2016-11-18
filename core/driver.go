@@ -171,6 +171,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		case WebhookTextMessage:
 			sender := input.GetSender()
 			logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+		case WebhookContactMessage:
+			sender := input.GetSender()
+			logger.Infof(c, "User#%v(%v %v) phone number: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookContactMessage).PhoneNumber())
 		case WebhookCallbackQuery:
 			callbackQuery := input.(WebhookCallbackQuery)
 			callbackData := callbackQuery.GetData()

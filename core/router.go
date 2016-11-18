@@ -77,6 +77,11 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookM
 	logger := whc.Logger()
 	c := whc.Context()
 
+	if parentPath == "" {
+		logger.Debugf(c, "matchMessageCommands()")
+	}
+
+
 	if textMessage, ok := input.(WebhookTextMessage); ok {
 		messageText = textMessage.Text()
 		messageTextLowerCase = strings.ToLower(messageText)
@@ -158,7 +163,7 @@ func (r *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookM
 		//logger.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
 	}
 
-	//logger.Debugf(c, "matchedCommand: %v", matchedCommand)
+	logger.Debugf(c, "matchedCommand: %v", matchedCommand)
 	return
 }
 

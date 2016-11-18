@@ -24,8 +24,8 @@ type GaeBotChatStore struct {
 var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.ChatStore **************************
-func (s *GaeBotChatStore) GetBotChatEntityById(c context.Context, botID, botChatID string) (bots.BotChat, error) { // Former LoadBotChatEntity
-	//s.logger.Debugf(c, "GaeBotChatStore.GetBotChatEntityById(%v)", botChatId)
+func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChatID string) (bots.BotChat, error) { // Former LoadBotChatEntity
+	//s.logger.Debugf(c, "GaeBotChatStore.GetBotChatEntityByID(%v)", botChatId)
 	if s.botChats == nil {
 		s.botChats = make(map[string]bots.BotChat, 1)
 	}

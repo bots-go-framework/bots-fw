@@ -25,7 +25,7 @@ func (whc TestWebhookContext) CreateBotUser(apiUser WebhookActor) (BotUser, erro
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotChatEntityById(c context.Context, botID, botChatID string) (BotChat, error) {
+func (whc TestWebhookContext) GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error) {
 	panic("Not implemented")
 }
 

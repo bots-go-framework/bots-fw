@@ -13,6 +13,7 @@ import (
 	"time"
 	"net/url"
 	"github.com/pkg/errors"
+	"google.golang.org/appengine/log"
 )
 
 type WebhookContextBase struct {
@@ -42,26 +43,24 @@ type WebhookContextBase struct {
 
 func (whc *WebhookContextBase) BotChatID() (chatID string) {
 	input := whc.Input()
+	if chat := input.Chat(); chat != nil {
+		return chat.GetID()
+	}
 	switch input.(type) {
-	case WebhookTextMessage:
-		chatID = input.Chat().GetID()
 	case WebhookCallbackQuery:
 		callbackQuery := input.(WebhookCallbackQuery)
-		chat := callbackQuery.Chat()
-		if chat != nil {
-			chatID = chat.GetID()
-		} else {
-			data := callbackQuery.GetData()
-			if strings.Contains(data, "chat=") {
-				c := whc.Context()
-				values, err := url.ParseQuery(data)
-				if err != nil {
-					whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-					return ""
-				}
-				chatID = values.Get("chat")
+		data := callbackQuery.GetData()
+		if strings.Contains(data, "chat=") {
+			c := whc.Context()
+			values, err := url.ParseQuery(data)
+			if err != nil {
+				whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+				return ""
 			}
+			chatID = values.Get("chat")
 		}
+	default:
+		whc.logger.Warningf(whc.c, "*.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
 	return chatID
@@ -206,10 +205,11 @@ func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 
 func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.BotChatID() == "" {
+		log.Warningf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
 	if whcb.chatEntity == nil {
-		if err := whcb.getChatEntityBase(); err != nil {
+		if err := whcb.loadChatEntityBase(); err != nil {
 			panic(errors.Wrap(err, "Failed to call whcb.getChatEntityBase()"))
 		}
 	}
@@ -252,7 +252,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	return botUser, err
 }
 
-func (whcb *WebhookContextBase) getChatEntityBase() error {
+func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	logger := whcb.Logger()
 	c := whcb.Context()
 	if whcb.HasChatEntity() {
@@ -261,11 +261,11 @@ func (whcb *WebhookContextBase) getChatEntityBase() error {
 	}
 
 	botChatID := whcb.BotChatID()
-	//logger.Infof(c, "botChatID: %v", botChatID)
-	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityById(c, whcb.GetBotCode(), botChatID)
+	logger.Infof(c, "loadChatEntityBase(): botChatID: %v", botChatID)
+	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityByID(c, whcb.GetBotCode(), botChatID)
 	switch err {
 	case nil: // Nothing to do
-		//logger.Debugf(c, "Loaded botChatEntity: %v", botChatEntity)
+		logger.Debugf(c, "GetBotChatEntityByID() returned nil")
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		logger.Infof(c, "BotChat not found, first check for bot user entity...")
