@@ -13,7 +13,6 @@ import (
 	"time"
 	"net/url"
 	"github.com/pkg/errors"
-	"google.golang.org/appengine/log"
 )
 
 type WebhookContextBase struct {
@@ -205,7 +204,7 @@ func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 
 func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.BotChatID() == "" {
-		log.Warningf(whcb.c, "whcb.BotChatID() is empty string")
+		whcb.logger.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
 	if whcb.chatEntity == nil {
