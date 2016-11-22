@@ -60,6 +60,6 @@ func (chat *TelegramChat) SetBotUserID(id interface{}) {
 	case int64:
 		chat.TelegramUserID = id.(int)
 	default:
-		panic(fmt.Sprintf("Expected int or string, got: %T", id))
+		panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
 	}
 }

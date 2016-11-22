@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-viber/viberinterface"
+	"github.com/strongo/bots-api-fbm"
 )
 
 type EntryInputs struct {
@@ -43,6 +44,7 @@ type MessageFromBot struct {
 													  //Keyboard              Keyboard
 	TelegramKeyboard          interface{} // TODO: cast to a specific interface?
 	ViberKeyboard             *viberinterface.Keyboard
+	FbmAttachment				  *fbm_bot_api.RequestAttachment
 													  // TODO: One of this 2 is duplicate!?
 	TelegramInlineConfig      *tgbotapi.InlineConfig
 													  //TelegramInlineAnswer      *tgbotapi.InlineConfig

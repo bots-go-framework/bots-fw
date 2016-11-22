@@ -46,10 +46,10 @@ func (chat *ViberChat) GetBotUserStringID() string {
 }
 
 func (chat *ViberChat) SetBotUserID(id interface{}) {
-	if intId, ok := id.(string); ok {
-		chat.ViberUserID = intId
+	if stringID, ok := id.(string); ok {
+		chat.ViberUserID = stringID
 		return
 	}
-	panic(fmt.Sprintf("Expected string, got: %T", id))
+	panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
 
 }

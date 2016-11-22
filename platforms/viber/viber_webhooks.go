@@ -42,6 +42,8 @@ type ViberWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.BotSettingsProvider
 }
+var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
+
 
 func (h ViberWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
 	http.HandleFunc(pathPrefix + "/viber/callback/", h.HandleWebhookRequest)
@@ -171,18 +173,15 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 		log.Warningf(c, "Unknown callback event: [%v]", event)
 		return
 	}
-	botContext = &bots.BotContext{
-		BotHost:     h.BotHost,
-		BotSettings: botSettings,
-	}
+	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	return
 }
 
-func (h ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
+func (_ ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
 	return NewViberWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
-func (h ViberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
+func (_ ViberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
 	if viberWhc, ok := whc.(*ViberWebhookContext); ok {
 		return NewViberWebhookResponder(viberWhc)
 	} else {
@@ -190,6 +189,6 @@ func (h ViberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.Webhoo
 	}
 }
 
-func (h ViberWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	return h.BotHost.GetBotCoreStores(ViberPlatformID, appContext, r)
+func (handler ViberWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
+	return handler.BotHost.GetBotCoreStores(ViberPlatformID, appContext, r)
 }

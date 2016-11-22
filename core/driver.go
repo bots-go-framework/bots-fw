@@ -185,6 +185,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		case WebhookChosenInlineResult:
 			sender := input.GetSender()
 			logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+		case WebhookReferralMessage:
+			sender := input.GetSender()
+			logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		default:
 			logger.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 		}

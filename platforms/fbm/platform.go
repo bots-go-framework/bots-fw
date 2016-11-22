@@ -1,4 +1,4 @@
-package fbm_strongo_bot
+package fbm_bot
 
 import "github.com/strongo/bots-framework/core"
 

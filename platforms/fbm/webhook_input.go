@@ -1,10 +1,9 @@
-package fbm_strongo_bot
+package fbm_bot
 
 import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-fbm"
 	"time"
-	"fmt"
 )
 
 type FbmWebhookInput struct {
@@ -12,11 +11,19 @@ type FbmWebhookInput struct {
 }
 
 var _ bots.WebhookInput = (*FbmWebhookInput)(nil)
+var _ bots.WebhookMessage = (*FbmWebhookInput)(nil)
+
+func (_ FbmWebhookInput) IntID() int64 {
+	panic("Not supported")
+}
+
+func (self FbmWebhookInput) StringID() string {
+	return self.messaging.Message.MID
+}
+
 
 func (whi FbmWebhookInput) Chat() bots.WebhookChat {
-	return FbmWebhookChat{
-		ID: fmt.Sprintf("%v-%v", whi.messaging.Sender.ID, whi.messaging.Recipient.ID),
-	}
+	return NewFbmWebhookChat(whi.messaging.Sender.ID)
 }
 
 func (whi FbmWebhookInput) GetSender() bots.WebhookSender {
@@ -69,4 +76,20 @@ func (whi FbmWebhookInput) InputType() bots.WebhookInputType {
 		return bots.WebhookInputDelivery
 	}
 	return bots.WebhookInputUnknown
+}
+
+type FbmTextMessage struct {
+	FbmWebhookInput
+}
+
+func (textMessage FbmTextMessage) Text() string {
+	return textMessage.messaging.Message.Text()
+}
+
+var _ bots.WebhookTextMessage = (*FbmTextMessage)(nil)
+
+
+func NewFbmWebhookInput(messaging fbm_bot_api.Messaging) bots.WebhookInput {
+	fbmInput := FbmWebhookInput{messaging: messaging}
+	return FbmTextMessage{FbmWebhookInput: fbmInput}
 }

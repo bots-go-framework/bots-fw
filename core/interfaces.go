@@ -3,7 +3,6 @@ package bots
 import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
 	"time"
@@ -38,14 +37,14 @@ type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookCon
 	BotSettings BotSettings
 }
 
-type WebhookHandler interface {
-	RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request))
-	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
-	GetBotContextAndInputs(r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateBotCoreStores(appContext BotAppContext, r *http.Request) BotCoreStores
-	CreateWebhookContext(appContext BotAppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, gaMeasurement *measurement.BufferedSender) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHttpClient()
-	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
-	//ProcessInput(input WebhookInput, entry *WebhookEntry)
+func NewBotContext(host BotHost, settings BotSettings) *BotContext {
+	if settings.Code == "" {
+		panic("Bot settings.Code is empty string")
+	}
+	return &BotContext{
+		BotHost: host,
+		BotSettings: settings,
+	}
 }
 
 type WebhookEntry interface {
@@ -64,6 +63,7 @@ const (
 	WebhookInputAttachment
 	WebhookInputInlineQuery          // Telegram
 	WebhookInputCallbackQuery
+	WebhookInputReferral             // FBM
 	WebhookInputChosenInlineResult   // Telegram
 	WebhookInputSubscribed           // Viber
 	WebhookInputUnsubscribed         // Viber
@@ -73,6 +73,7 @@ const (
 var WebhookInputTypeNames = map[WebhookInputType]string{
 	//WebhookInputContact:				  "Contact",
 	WebhookInputUnknown:            "unknown",
+	WebhookInputReferral:           "Referral",
 	WebhookInputText:               "Text",
 	WebhookInputContact:            "Contact",
 	WebhookInputPostback:           "Postback",
@@ -81,7 +82,7 @@ var WebhookInputTypeNames = map[WebhookInputType]string{
 	WebhookInputInlineQuery:        "InlineQuery",
 	WebhookInputCallbackQuery:      "CallbackQuery",
 	WebhookInputChosenInlineResult: "ChosenInlineResult",
-	WebhookInputSubscribed:          "Subscribed",  // Viber
+	WebhookInputSubscribed:          "Subscribed", // Viber
 	WebhookInputUnsubscribed:        "Unsubscribed", // Viber
 	WebhookInputConversationStarted: "ConversationStarted",
 }
@@ -122,6 +123,13 @@ type WebhookMessage interface {
 type WebhookTextMessage interface {
 	WebhookMessage
 	Text() string
+}
+
+type WebhookReferralMessage interface {
+	// https://developers.facebook.com/docs/messenger-platform/webhook-reference/referral
+	Type() string
+	Source() string
+	RefData() string
 }
 
 type WebhookContactMessage interface {

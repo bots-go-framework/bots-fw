@@ -37,6 +37,7 @@ type TelegramWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.BotSettingsProvider
 }
+var _ bots.WebhookHandler = (*TelegramWebhookHandler)(nil)
 
 func (h TelegramWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
 	http.HandleFunc(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest)
@@ -109,10 +110,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 		}
 		return
 	}
-	botContext = &bots.BotContext{
-			BotHost:     h.BotHost,
-			BotSettings: botSettings,
-		}
+	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	input := NewTelegramWebhookInput(update)
 	if input == nil {
 		err = errors.New("Unexpected input")

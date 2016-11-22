@@ -1,4 +1,4 @@
-package fbm_strongo_bot
+package fbm_bot
 
 import "github.com/strongo/bots-framework/core"
 
@@ -20,5 +20,8 @@ func (wh FbmWebhookChat) GetType() string {
 	return "not implemented"
 }
 
-
-
+func NewFbmWebhookChat(id string) FbmWebhookChat {
+	return FbmWebhookChat{
+		ID: id,
+	}
+}

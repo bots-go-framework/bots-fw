@@ -190,6 +190,9 @@ func (r *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext
 	case WebhookChosenInlineResult:
 		chosenResult := input.(WebhookChosenInlineResult)
 		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
+	case WebhookReferralMessage:
+		referralMessage := input.(WebhookReferralMessage)
+		logMessage += fmt.Sprintf("referralMessage: Type=[%v], Source=[%v], Ref=[%v]", referralMessage.Type(), referralMessage.Source(), referralMessage.RefData())
 	}
 
 	if typeCommands, found := r.commandsByType[inputType]; !found {

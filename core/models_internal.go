@@ -49,17 +49,18 @@ type BotUserEntity struct {
 
 type BotChatEntity struct {
 	BotEntity
-	BotID string `datastore:",noindex"`
+	BotID             string `datastore:",noindex"`
 	//
-	Type  string `datastore:",noindex"`
-	Title string `datastore:",noindex"`
+	Type              string `datastore:",noindex"`
+	Title             string `datastore:",noindex"`
 	//
 	AwaitingReplyTo   string `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
 	GaClientID        []byte `datastore:",noindex"`
 	DtLastInteraction time.Time
-	DtForbidden           time.Time
-	DtForbiddenLast       time.Time `datastore:",noindex"`
+	InteractionsCount int
+	DtForbidden       time.Time
+	DtForbiddenLast   time.Time `datastore:",noindex"`
 }
 
 var _ BotChat = (*BotChatEntity)(nil)
@@ -81,11 +82,12 @@ func (e *BotChatEntity) GetBotUserStringID() string {
 }
 
 func (e *BotChatEntity) SetBotUserID(id interface{}) {
-	panic("Should be overwritted in subclass")
+	panic(fmt.Sprintf("Should be overwritted in subclass, got: %T=%v", id, id))
 }
 
 func (e *BotChatEntity) SetDtLastInteractionToNow() {
 	e.DtLastInteraction = time.Now()
+	e.InteractionsCount += 1
 }
 
 func (e *BotChatEntity) GetGaClientID() uuid.UUID {

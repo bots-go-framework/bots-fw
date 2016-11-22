@@ -1,4 +1,4 @@
-package fbm_strongo_bot
+package fbm_bot
 
 import (
 	"encoding/json"
@@ -12,6 +12,7 @@ import (
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine"
 	"github.com/pkg/errors"
+	"bytes"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
@@ -39,18 +40,50 @@ type FbmWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.BotSettingsBy
 }
+var _ bots.WebhookHandler = (*FbmWebhookHandler)(nil)
 
-func (h FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix+"/fbm/webhook", h.HandleWebhookRequest)
+func (handler FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
+	http.HandleFunc(pathPrefix+"/fbm/webhook", handler.HandleWebhookRequest)
 	http.HandleFunc(pathPrefix+"/fbm/webhook/", notFound) // TODO: Try to get rid?
-	http.HandleFunc(pathPrefix+"/fbm/subscribe", h.Subscribe)
+	http.HandleFunc(pathPrefix+"/fbm/subscribe", handler.Subscribe)
+	http.HandleFunc(pathPrefix+"/fbm/whitelist", handler.Whitelist)
 }
 
-func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
-	httpClient := h.GetHttpClient(r)
+func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request) {
+	httpClient := handler.GetHttpClient(r)
 	botCode := r.URL.Query().Get("bot")
 
-	if botSettings, ok := h.botsBy.Code[botCode]; ok {
+	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
+		message := fbm_bot_api.NewRequestWhitelistDomain("add", "https://" + r.URL.Host)
+		requestBody, err := json.Marshal(message)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		log.Debugf(appengine.NewContext(r), "Posting to FB: %v", string(requestBody))
+		res, err := httpClient.Post(fmt.Sprintf("https://graph.facebook.com/v2.6/me/thread_settings?access_token=%v", botSettings.Token), "application/json", bytes.NewReader(requestBody))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf("Error: %v", err)))
+		}
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			w.Write([]byte(fmt.Sprintf("Error reading response body: %v", err)))
+		} else {
+			w.Write(body)
+		}
+	} else {
+		w.WriteHeader(http.StatusForbidden)
+	}
+
+}
+
+func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	httpClient := handler.GetHttpClient(r)
+	botCode := r.URL.Query().Get("bot")
+
+	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
 		res, err := httpClient.Post(fmt.Sprintf("https://graph.facebook.com/v2.6/me/subscribed_apps?access_token=%v", botSettings.Token), "", strings.NewReader(""))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -67,14 +100,14 @@ func (h FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
+func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	log.Debugf(c, "FbmWebhookHandler.HandleWebhookRequest()")
 	switch r.Method {
 	case http.MethodGet:
 		q := r.URL.Query()
 		botCode := r.URL.Query().Get("bot")
-		if botSettings, ok := h.botsBy.Code[botCode]; ok {
+		if botSettings, ok := handler.botsBy.Code[botCode]; ok {
 			var responseText string
 			verifyToken := q.Get("hub.verify_token")
 			if verifyToken == botSettings.VerifyToken {
@@ -90,16 +123,16 @@ func (h FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.R
 			w.WriteHeader(http.StatusForbidden)
 		}
 	case http.MethodPost:
-		h.HandleWebhook(w, r, h)
+		handler.HandleWebhook(w, r, handler)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (handler FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_bot_api.ReceivedMessage
-	logger := h.BotHost.Logger(r)
-	c := h.BotHost.Context(r)
+	logger := handler.BotHost.Logger(r)
+	c := handler.BotHost.Context(r)
 	content := make([]byte, r.ContentLength)
 	_, err = r.Body.Read(content)
 	if err != nil {
@@ -119,25 +152,33 @@ func (h FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *
 			Inputs: make([]bots.WebhookInput, len(entry.Messaging)),
 		}
 		for j, messaging := range entry.Messaging {
-			entryWithInputs.Inputs[j] = FbmWebhookInput{messaging: messaging}
+			entryWithInputs.Inputs[j] = NewFbmWebhookInput(messaging)
 		}
 		entriesWithInputs[i] = entryWithInputs
 	}
-	botContext = &bots.BotContext{
-		BotHost: h.BotHost,
-		//BotSettings: nil, // TODO: fill with actual
+
+	botCode := r.URL.Query().Get("bot")
+	if botSettings, ok := handler.botsBy.Code[botCode]; !ok {
+		err = errors.New(fmt.Sprintf("Bot settings bot found by code: [%v]", botCode))
+		return
+	} else {
+		botContext = bots.NewBotContext(handler.BotHost, botSettings);
 	}
 	return
 }
 
-func (h FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
+func (_ FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
 	return NewFbmWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
-func (h FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
-	panic("Not implemented yet") //return NewTelegramWebhookResponder(w, r)
+func (_ FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
+	if fbmWhc, ok := whc.(*FbmWebhookContext); ok {
+		return NewFbmWebhookResponder(fbmWhc)
+	} else {
+		panic(fmt.Sprintf("Expected FbmWebhookContext, got: %T", whc))
+	}
 }
 
-func (h FbmWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	return h.BotHost.GetBotCoreStores(FbmPlatformID, appContext, r)
+func (handler FbmWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
+	return handler.BotHost.GetBotCoreStores(FbmPlatformID, appContext, r)
 }

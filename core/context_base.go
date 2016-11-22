@@ -261,7 +261,12 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 	botChatID := whcb.BotChatID()
 	logger.Infof(c, "loadChatEntityBase(): botChatID: %v", botChatID)
-	botChatEntity, err := whcb.BotChatStore.GetBotChatEntityByID(c, whcb.GetBotCode(), botChatID)
+	botID := whcb.GetBotCode()
+	botChatStore := whcb.BotChatStore
+	if botChatStore == nil {
+		panic("botChatStore == nil")
+	}
+	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
 		logger.Debugf(c, "GetBotChatEntityByID() returned nil")

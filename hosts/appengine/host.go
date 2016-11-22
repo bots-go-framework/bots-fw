@@ -41,6 +41,8 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 		chatStore = NewGaeTelegramChatStore(logger)
 		userStore = NewGaeTelegramUserStore(logger, appUserStore)
 	case "fbm": 		// pass
+		chatStore = NewGaeFbmChatStore(logger)
+		userStore = NewGaeFacebookUserStore(logger, appUserStore)
 	case "viber": 		// pass
 		chatStore = NewGaeViberChatStore(logger)
 		userStore = NewGaeViberUserStore(logger, appUserStore)
