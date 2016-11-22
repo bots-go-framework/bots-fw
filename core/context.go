@@ -10,9 +10,15 @@ import (
 type WebhookInlineQueryContext interface {
 }
 
-type WebhookContext interface {
+type GaContext interface {
 	GaMeasurement() *measurement.BufferedSender
 	GaCommon() measurement.Common
+	GaEvent(category, action string) measurement.Event
+	GaEventWithLabel(category, action, label string) measurement.Event
+}
+
+type WebhookContext interface {
+	GaContext
 	Logger() strongo.Logger
 	BotInputProvider
 	BotPlatform() BotPlatform

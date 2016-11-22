@@ -158,6 +158,15 @@ func (whcb *WebhookContextBase) GaCommon() measurement.Common {
 	}
 }
 
+func (whcb *WebhookContextBase) GaEvent(category, action string) measurement.Event {
+	return measurement.NewEvent(category, action, whcb.GaCommon())
+}
+
+func (whcb *WebhookContextBase) GaEventWithLabel(category, action, label string) measurement.Event {
+	return measurement.NewEventWithLabel(category, action, label, whcb.GaCommon())
+}
+
+
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
@@ -234,11 +243,9 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		}
 		logger.Infof(c, "Bot user entity created")
 
-		whcb.gaMeasurement.Queue(measurement.NewEvent( //TODO: Should be outside
-			"users", "user-created", whcb.GaCommon()))
+		whcb.gaMeasurement.Queue(whcb.GaEvent("users", "user-created")) //TODO: Should be outside
 
-		whcb.gaMeasurement.Queue(measurement.NewEventWithLabel( //TODO: Should be outside
-			"users", "messenger-linked", whcb.botPlatform.Id(), whcb.GaCommon()))
+		whcb.gaMeasurement.Queue(whcb.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.Id())) // TODO: Should be outside
 
 		if whcb.GetBotSettings().Mode == Production {
 			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
