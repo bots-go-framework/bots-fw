@@ -4,13 +4,13 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-fbm"
-	"encoding/json"
 	"bytes"
 	"io/ioutil"
 	"github.com/pkg/errors"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
 	"fmt"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 type FbmWebhookResponder struct {
@@ -32,16 +32,16 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 
 	//fbmWhc := (FbmWebhookContext{})(r.whc)
 
-	request := fbm_bot_api.Request{
-		NotificationType: fbm_bot_api.RequestNotificationTypeNoPush,
-		Recipient: fbm_bot_api.RequestRecipient{Id: r.whc.BotChatID()},
-		Message: fbm_bot_api.RequestMessage{
+	request := fbm_api.Request{
+		NotificationType: fbm_api.RequestNotificationTypeNoPush,
+		Recipient: fbm_api.RequestRecipient{Id: r.whc.BotChatID()},
+		Message: fbm_api.RequestMessage{
 			Text: m.Text,
 			Attachment: m.FbmAttachment,
 		},
 	}
 
-	data, err := json.Marshal(request)
+	data, err := ffjson.MarshalFast(request)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to marshal request to JSON")
 		return

@@ -44,7 +44,7 @@ type MessageFromBot struct {
 													  //Keyboard              Keyboard
 	TelegramKeyboard          interface{} // TODO: cast to a specific interface?
 	ViberKeyboard             *viberinterface.Keyboard
-	FbmAttachment				  *fbm_bot_api.RequestAttachment
+	FbmAttachment				  *fbm_api.RequestAttachment
 													  // TODO: One of this 2 is duplicate!?
 	TelegramInlineConfig      *tgbotapi.InlineConfig
 													  //TelegramInlineAnswer      *tgbotapi.InlineConfig

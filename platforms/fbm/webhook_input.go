@@ -7,7 +7,7 @@ import (
 )
 
 type FbmWebhookInput struct {
-	messaging fbm_bot_api.Messaging
+	messaging fbm_api.Messaging
 }
 
 var _ bots.WebhookInput = (*FbmWebhookInput)(nil)
@@ -89,7 +89,7 @@ func (textMessage FbmTextMessage) Text() string {
 var _ bots.WebhookTextMessage = (*FbmTextMessage)(nil)
 
 
-func NewFbmWebhookInput(messaging fbm_bot_api.Messaging) bots.WebhookInput {
+func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
 	fbmInput := FbmWebhookInput{messaging: messaging}
 	return FbmTextMessage{FbmWebhookInput: fbmInput}
 }

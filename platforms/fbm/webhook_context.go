@@ -10,7 +10,7 @@ import (
 
 type FbmWebhookContext struct {
 	*bots.WebhookContextBase
-	//update         fbm_bot_api.Update // TODO: Consider removing?
+	//update         fbm_api.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
 }
@@ -36,7 +36,7 @@ func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botCon
 func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
 	//chatID, _ := whc.BotChatID().(int64)
 	//messageID := whc.InputCallbackQuery().GetMessage().IntID()
-	//editMessageTextConfig := fbm_bot_api.NewEditMessageText(chatID, (int)(messageID), messageText)
+	//editMessageTextConfig := fbm_api.NewEditMessageText(chatID, (int)(messageID), messageText)
 	//editMessageTextConfig.ParseMode = "HTML"
 	//m := whc.NewMessage("")
 	//m.FbmEditMessageText = editMessageTextConfig
@@ -44,10 +44,10 @@ func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) bots.Me
 	panic("not implemented")
 }
 
-//func (whc *FbmWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup fbm_bot_api.InlineKeyboardMarkup) bots.MessageFromBot {
+//func (whc *FbmWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup fbm_api.InlineKeyboardMarkup) bots.MessageFromBot {
 //	//chatID, _ := whc.BotChatID().(int64)
 //	//messageID := whc.InputCallbackQuery().GetMessage().IntID()
-//	//editMessageMarkupConfig := fbm_bot_api.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
+//	//editMessageMarkupConfig := fbm_api.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)
 //	//m := whc.NewMessage("")
 //	//m.FbmEditMessageMarkup = &editMessageMarkupConfig
 //	//return m
@@ -64,7 +64,7 @@ func (tc FbmWebhookContext) Responder() bots.WebhookResponder {
 }
 
 type FbmBotApiUser struct {
-	user fbm_bot_api.Sender
+	user fbm_api.Sender
 }
 
 func (tc FbmBotApiUser) FirstName() string {
@@ -87,8 +87,8 @@ func (whc *FbmWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 	return nil
 }
 
-//func (whc *FbmWebhookContext) BotApi() *fbm_bot_api.BotAPI {
-//	return fbm_bot_api.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
+//func (whc *FbmWebhookContext) BotApi() *fbm_api.BotAPI {
+//	return fbm_api.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
 //}
 
 func (whc *FbmWebhookContext) BotChatIntID() (chatId int64) {
@@ -142,7 +142,7 @@ func (whc *FbmWebhookContext) getFbmSenderID() string {
 	panic("string expected")
 }
 
-func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_bot_api.SendMessage {
+func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_api.SendMessage {
 	////inputMessage := tc.InputMessage()
 	////if inputMessage != nil {
 	////ctx := tc.Context()
@@ -154,10 +154,10 @@ func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_bot_api.SendMessage 
 	//	panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
 	//}
 	//if int64ID, ok := botChatID.(int64); ok {
-	//	return fbm_bot_api.NewMessage(int64ID, text)
+	//	return fbm_api.NewMessage(int64ID, text)
 	//} else {
 	//	if intID, ok := botChatID.(int); ok {
-	//		return fbm_bot_api.NewMessage(int64(intID), text)
+	//		return fbm_api.NewMessage(int64(intID), text)
 	//	} else {
 	//		panic(fmt.Sprintf("OK=%v;Expected int or int64, got: %T", ok, botChatID))
 	//	}

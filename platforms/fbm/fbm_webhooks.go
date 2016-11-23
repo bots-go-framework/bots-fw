@@ -1,7 +1,6 @@
 package fbm_bot
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
@@ -13,6 +12,7 @@ import (
 	"google.golang.org/appengine"
 	"github.com/pkg/errors"
 	"bytes"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
@@ -54,8 +54,8 @@ func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Reques
 	botCode := r.URL.Query().Get("bot")
 
 	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
-		message := fbm_bot_api.NewRequestWhitelistDomain("add", "https://" + r.URL.Host)
-		requestBody, err := json.Marshal(message)
+		message := fbm_api.NewRequestWhitelistDomain("add", "https://" + r.URL.Host)
+		requestBody, err := ffjson.MarshalFast(message)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
@@ -130,7 +130,7 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 }
 
 func (handler FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	var receivedMessage fbm_bot_api.ReceivedMessage
+	var receivedMessage fbm_api.ReceivedMessage
 	logger := handler.BotHost.Logger(r)
 	c := handler.BotHost.Context(r)
 	content := make([]byte, r.ContentLength)
@@ -139,7 +139,7 @@ func (handler FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCon
 		return
 	}
 	logger.Infof(c, "Request.Body: %v", string(content))
-	err = json.Unmarshal(content, &receivedMessage)
+	err = ffjson.UnmarshalFast(content, &receivedMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to deserialize FB json message")
 		return
