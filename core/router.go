@@ -267,7 +267,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 	gaMeasurement := whc.GaMeasurement()
 	//gam.GeographicalOverride()
 
-	mode := whc.GetBotSettings().Mode
+	env := whc.GetBotSettings().Env
 	if err == nil {
 		logger.Infof(c, "processCommandResponse(): Bot response message: %v", m)
 		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverResponse); err != nil {
@@ -300,7 +300,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		}
 	} else {
 		logger.Errorf(c, err.Error())
-		if mode == Production && gaMeasurement != nil {
+		if env == EnvProduction && gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
 			err = gaMeasurement.Queue(exceptionMessage)

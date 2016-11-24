@@ -45,12 +45,13 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 
 	if botContext != nil {
-		if botContext.BotSettings.Mode == Development && !strings.Contains(r.Host, "dev") {
+		env := botContext.BotSettings.Env
+		if env == EnvLocal && !strings.Contains(r.Host, "dev") {
 			logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if botContext.BotSettings.Mode == Staging && !strings.Contains(r.Host, "st1") {
+		if botContext.BotSettings.Env == EnvStaging && !strings.Contains(r.Host, "st1") {
 			logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -85,8 +86,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	{  // Initiate Google Analytics Measurement API client
 		var sendStats bool
 		if d.GaSettings.Enabled == nil {
-			sendStats = botContext.BotSettings.Mode == Production
-			logger.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Mode, sendStats)
+			sendStats = botContext.BotSettings.Env == EnvProduction
+			logger.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Env, sendStats)
 		} else {
 			sendStats = d.GaSettings.Enabled(r)
 			logger.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)

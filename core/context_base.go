@@ -40,6 +40,10 @@ type WebhookContextBase struct {
 	gaMeasurement *measurement.BufferedSender
 }
 
+func (whc *WebhookContextBase) Environment() BotEnvironment {
+	return whc.BotContext.BotSettings.Env
+}
+
 func (whc *WebhookContextBase) BotChatID() (chatID string) {
 	input := whc.Input()
 	if chat := input.Chat(); chat != nil {
@@ -247,7 +251,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 
 		whcb.gaMeasurement.Queue(whcb.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.Id())) // TODO: Should be outside
 
-		if whcb.GetBotSettings().Mode == Production {
+		if whcb.GetBotSettings().Env == EnvProduction {
 			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
 			gaEvent.Label = fmt.Sprintf("%v", botUserID)
 			whcb.GaMeasurement().Queue(gaEvent)
@@ -287,7 +291,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
-		if whcb.GetBotSettings().Mode == Production {
+		if whcb.GetBotSettings().Env == EnvProduction {
 			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
 			gaEvent.Label = fmt.Sprintf("%v", botChatID)
 			whcb.GaMeasurement().Queue(gaEvent)
