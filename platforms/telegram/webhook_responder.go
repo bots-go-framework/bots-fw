@@ -85,7 +85,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		case bots.WebhookInputInlineQuery: // pass
 		case bots.WebhookInputChosenInlineResult: // pass
 		default:
-			logger.Warningf(c, "Not inline answer, Not inline, Not edit inline, Text is empty.")
+			mBytes, err := json.Marshal(m)
+			if err != nil {
+				logger.Errorf(c, "Failed to marshal MessageFromBot to JSON: %v", err)
+			}
+			inputTypeName := bots.WebhookInputTypeNames[r.whc.InputType()]
+			logger.Warningf(c, "Not inline answer, Not inline, Not edit inline, Text is empty. r.whc.InputType(): %v\nMessageFromBot:\n%v", inputTypeName, string(mBytes))
 		}
 		return
 	}
