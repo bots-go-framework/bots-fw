@@ -28,7 +28,7 @@ func NewGaeFbmChatStore(log strongo.Logger) *GaeTelegramChatStore {
 					panic(fmt.Sprintf("Expected *fbm_bot.FbmChat but received %T", entity))
 				}
 			},
-			botChatKey: func(c context.Context, botID, botChatId string) *datastore.Key {
+			NewBotChatKey: func(c context.Context, botID, botChatId string) *datastore.Key {
 				return datastore.NewKey(c, fbm_bot.FbmChatKind, bots.NewChatID(botID, botChatId), 0, nil)
 			},
 		},

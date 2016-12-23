@@ -16,7 +16,7 @@ type EntityTypeValidator interface {
 type GaeBotChatStore struct {
 	GaeBaseStore
 	botChats                  map[string]bots.BotChat
-	botChatKey                func(c context.Context, botID, botChatId string) *datastore.Key
+	NewBotChatKey             func(c context.Context, botID, botChatId string) *datastore.Key
 	validateBotChatEntityType func(entity bots.BotChat)
 	newBotChatEntity          func() bots.BotChat
 }
@@ -30,7 +30,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 		s.botChats = make(map[string]bots.BotChat, 1)
 	}
 	botChatEntity := s.newBotChatEntity()
-	botChatKey := s.botChatKey(c, botID, botChatID)
+	botChatKey := s.NewBotChatKey(c, botID, botChatID)
 	err := nds.Get(c, botChatKey, botChatEntity)
 	if err != nil {
 		s.logger.Infof(c, "Failed to get bot chat entity by ID: %v - %T(%v)", botChatID, err, err)
@@ -80,7 +80,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string, chatEntity bots.BotChat) error { // Former SaveBotChatEntity
 	s.validateBotChatEntityType(chatEntity)
 	chatEntity.SetDtUpdatedToNow()
-	_, err := nds.Put(c, s.botChatKey(c, botID, botChatID), chatEntity)
+	_, err := nds.Put(c, s.NewBotChatKey(c, botID, botChatID), chatEntity)
 	return err
 }
 
@@ -91,7 +91,7 @@ func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botC
 	botChat.SetBotUserID(botUserID)
 	botChat.SetAccessGranted(isAccessGranted)
 	botChat.SetBotID(botID)
-	s.botChats[s.botChatKey(c, botID, botChatId).StringID()] = botChat // TODO: No need to create a key instance, create dedicated func to create ID?
+	s.botChats[s.NewBotChatKey(c, botID, botChatId).StringID()] = botChat // TODO: No need to create a key instance, create dedicated func to create ID?
 	return botChat
 }
 

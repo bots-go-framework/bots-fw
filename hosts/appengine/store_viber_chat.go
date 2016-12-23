@@ -30,7 +30,7 @@ func NewGaeViberChatStore(log strongo.Logger) *GaeViberChatStore {
 					panic(fmt.Sprintf("Expected *viber_bot.ViberChat but received %T", entity))
 				}
 			},
-			botChatKey: func(c context.Context, botID, botChatID string) *datastore.Key {
+			NewBotChatKey: func(c context.Context, botID, botChatID string) *datastore.Key {
 				return datastore.NewKey(c, viber_bot.ViberChatKind, botChatID, 0, nil)
 			},
 		},
