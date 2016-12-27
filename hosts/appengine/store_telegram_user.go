@@ -23,9 +23,9 @@ func NewGaeTelegramUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {
-					return &telegram_bot.TelegramUser{}
+					return &telegram_bot.TelegramUserEntity{}
 				} else {
-					return &telegram_bot.TelegramUser{
+					return &telegram_bot.TelegramUserEntity{
 						BotUserEntity: bots.BotUserEntity{
 							BotEntity: bots.BotEntity{
 								OwnedByUser: bots.OwnedByUser{
@@ -40,7 +40,7 @@ func NewGaeTelegramUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore
 				}
 			},
 			validateBotUserEntityType: func(entity bots.BotUser) {
-				if _, ok := entity.(*telegram_bot.TelegramUser); !ok {
+				if _, ok := entity.(*telegram_bot.TelegramUserEntity); !ok {
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramUser but received %T", entity))
 				}
 			},

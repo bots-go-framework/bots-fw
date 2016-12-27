@@ -12,12 +12,33 @@ const (
 	TelegramUserKind = "TgUser"
 )
 
-type TelegramUser struct {
+type TelegramUserEntity struct {
 	bots.BotUserEntity
 	//TgChatID int64
 }
 
-var _ bots.BotUser = (*TelegramUser)(nil)
+var _ bots.BotUser = (*TelegramUserEntity)(nil)
+
+type TelegramUser struct {
+	ID int64
+	TelegramUserEntity
+}
+
+func (u TelegramUserEntity) Name() string {
+	if u.FirstName == "" && u.LastName == "" {
+		return "@" + u.UserName
+	}
+	name := u.FirstName
+	if name != "" {
+		name += " " + u.LastName
+	} else {
+		name = u.LastName
+	}
+	if u.UserName == "" {
+		return name
+	}
+	return "@" + u.UserName + " - " + name
+}
 
 type TelegramChat struct {
 	bots.BotChatEntity
