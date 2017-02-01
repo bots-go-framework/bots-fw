@@ -13,10 +13,6 @@ type BotPlatform interface {
 	Version() string
 }
 
-func UtmSource(p BotPlatform) string {
-	return p.Id()
-}
-
 //type strongo.Logger interface {
 //	Debugf(format string, args ...interface{})
 //	Infof(format string, args ...interface{})
