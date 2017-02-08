@@ -253,7 +253,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 
 		if whcb.GetBotSettings().Env == EnvProduction {
 			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
-			gaEvent.Label = fmt.Sprintf("%v", botUserID)
+			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)
 		}
 	} else {
@@ -293,7 +293,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 		if whcb.GetBotSettings().Env == EnvProduction {
 			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
-			gaEvent.Label = fmt.Sprintf("%v", botChatID)
+			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)
 		}
 
