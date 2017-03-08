@@ -64,9 +64,9 @@ func (chat *TelegramChat) SetAppUserIntID(id int64) {
 	chat.AppUserIntID = id
 }
 
-func (chat *TelegramChat) GetBotUserIntID() int {
-	return chat.TelegramUserID
-}
+//func (chat *TelegramChat) GetBotUserIntID() int {
+//	return chat.TelegramUserID
+//}
 
 func (chat *TelegramChat) SetBotUserID(id interface{}) {
 	switch id.(type) {

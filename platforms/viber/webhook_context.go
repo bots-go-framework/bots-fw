@@ -87,7 +87,7 @@ func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 }
 
 func (whc *ViberWebhookContext) NewChatEntity() bots.BotChat {
-	return new(ViberChat)
+	return new(ViberUserChatEntity)
 }
 
 func (whc *ViberWebhookContext) getViberSenderID() string {
@@ -99,7 +99,7 @@ func (whc *ViberWebhookContext) getViberSenderID() string {
 }
 
 func (tc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
-	if _, ok := chatEntity.(*ViberChat); ok {
+	if _, ok := chatEntity.(*ViberUserChatEntity); ok {
 		//viberChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
 		return nil
 	}

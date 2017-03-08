@@ -27,8 +27,12 @@ func (s ViberSender) GetUserName() string {
 	return s.sender.Name
 }
 
+func (s ViberSender) GetAvatar() string {
+	return s.sender.Avatar
+}
+
 func (_ ViberSender) Platform() string {
-	return "viber"
+	return ViberPlatformID
 }
 
 func newViberSender(sender viberinterface.CallbackSender) ViberSender {

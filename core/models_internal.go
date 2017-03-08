@@ -35,8 +35,12 @@ func (e *BotEntity) IsAccessGranted() bool {
 	return e.AccessGranted
 }
 
-func (e *BotEntity) SetAccessGranted(value bool) {
-	e.AccessGranted = value
+func (e *BotEntity) SetAccessGranted(value bool) bool {
+	if e.AccessGranted != value {
+		e.AccessGranted = value
+		return true
+	}
+	return false
 }
 
 type BotUserEntity struct {
@@ -73,13 +77,13 @@ func (e *BotChatEntity) SetBotID(botID string) {
 	e.BotID = botID
 }
 
-func (e *BotChatEntity) GetBotUserIntID() int {
-	panic("Should be overwritted in subclass")
-}
-
-func (e *BotChatEntity) GetBotUserStringID() string {
-	panic("Should be overwritted in subclass")
-}
+//func (e *BotChatEntity) GetBotUserIntID() int {
+//	panic("Should be overwritted in subclass")
+//}
+//
+//func (e *BotChatEntity) GetBotUserStringID() string {
+//	panic("Should be overwritted in subclass")
+//}
 
 func (e *BotChatEntity) SetBotUserID(id interface{}) {
 	panic(fmt.Sprintf("Should be overwritted in subclass, got: %T=%v", id, id))

@@ -8,11 +8,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func IsAccessGranted(whc WebhookContext) bool {
-	return whc.ChatEntity().IsAccessGranted()
-}
-
-func SetAccessGranted(whc WebhookContext, value bool) (err error) {
+func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Should not use nds.RunInTransaction()
 	logger := whc.Logger()
 	c := whc.Context()
 	logger.Debugf(c, "SetAccessGranted(value=%v)", value)
@@ -26,9 +22,10 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), whc.BotChatID()); err != nil {
 					return
 				}
-				chatEntity.SetAccessGranted(value)
-				if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.BotChatID(), chatEntity); err != nil {
-					err = errors.Wrap(err, "Failed to save bot chat entity to db")
+				if changed := chatEntity.SetAccessGranted(value); changed {
+					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.BotChatID(), chatEntity); err != nil {
+						err = errors.Wrap(err, "Failed to save bot chat entity to db")
+					}
 				}
 				return
 			}, nil)
@@ -40,9 +37,21 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	if botUser, err := whc.GetBotUserById(c, botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else {
-		botUser.SetAccessGranted(value)
-		if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
-			err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
+		if botUser.IsAccessGranted() == value {
+			log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
+		} else {
+			err = nds.RunInTransaction(c, func(c context.Context) error {
+				botUser.SetAccessGranted(value)
+				if botUser, err = whc.GetBotUserById(c, botUserID); err != nil {
+					return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)
+				}
+				if changed := botUser.SetAccessGranted(value); changed {
+					if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
+						err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
+					}
+				}
+				return err
+			}, nil)
 		}
 		return err
 	}

@@ -30,9 +30,9 @@ func (chat *FbmChat) SetBotUserID(id interface{}) {
 	}
 }
 
-func (chat *FbmChat) GetBotUserStringID() string {
-	return chat.FbmUserID
-}
+//func (chat *FbmChat) GetBotUserStringID() string {
+//	return chat.FbmUserID
+//}
 
 
 //func GetUserByFbmUserID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, *common.User, error) {

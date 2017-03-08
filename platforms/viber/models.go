@@ -7,26 +7,37 @@ import (
 )
 
 const (
-	ViberChatKind = "ViberChat"
-	ViberUserKind = "ViberUser"
+	//ViberChatKind = "ViberChat"
+	//ViberUserKind = "ViberUser"
+	ViberUserChatKind = "ViberUserChat"
 )
 
-type ViberUser struct {
-	bots.BotUserEntity
-	//TgChatID int64
-}
-
-var _ bots.BotUser = (*ViberUser)(nil)
-
-type ViberChat struct {
+type ViberUserChatEntity struct {
 	bots.BotChatEntity
-	ViberUserID        string
+	//ViberUserID string `datastore:",noindex"` // Duplicate of key.StringID(), required for GetBotUserStringID()
+	//UserName string `datastore:",noindex"`
+	//Avatar string `datastore:",noindex"`
 }
+var _ bots.BotUser = (*ViberUserChatEntity)(nil)
+var _ bots.BotChat = (*ViberUserChatEntity)(nil)
 
-var _ bots.BotChat = (*ViberChat)(nil)
+//type ViberUser struct { //TODO: Get rid of the entity. Move props like Name to ViberChat entity.
+//	bots.BotUserEntity
+//	//TgChatID int64
+//}
 
-func NewViberChat() ViberChat {
-	return ViberChat{
+
+//var _ bots.BotUser = (*ViberUser)(nil)
+
+//type ViberChat struct {
+//	bots.BotChatEntity
+//	ViberUserID        string
+//}
+//
+//var _ bots.BotChat = (*ViberChat)(nil)
+
+func NewViberUserChat() ViberUserChatEntity {
+	return ViberUserChatEntity{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
 				OwnedByUser: bots.OwnedByUser{
@@ -37,19 +48,18 @@ func NewViberChat() ViberChat {
 	}
 }
 
-func (chat *ViberChat) SetAppUserIntID(id int64) {
+func (chat *ViberUserChatEntity) SetAppUserIntID(id int64) {
 	chat.AppUserIntID = id
 }
 
-func (chat *ViberChat) GetBotUserStringID() string {
-	return chat.ViberUserID
-}
+//func (chat *ViberChat) GetBotUserStringID() string {
+//	return chat.ViberUserID
+//}
 
-func (chat *ViberChat) SetBotUserID(id interface{}) {
-	if stringID, ok := id.(string); ok {
-		chat.ViberUserID = stringID
+func (chat *ViberUserChatEntity) SetBotUserID(id interface{}) {
+	if _, ok := id.(string); ok {
+		// Ignore as stored in the key. chat.ViberUserID = stringID
 		return
 	}
 	panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
-
 }

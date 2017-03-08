@@ -27,6 +27,10 @@ func (s TelegramSender) GetUserName() string {
 	return s.tgUser.UserName
 }
 
-func (s TelegramSender) Platform() string {
+func (TelegramSender) Platform() string {
 	return TelegramPlatformID
+}
+
+func (TelegramSender) GetAvatar() string {
+	return ""
 }

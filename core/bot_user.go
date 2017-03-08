@@ -5,7 +5,7 @@ import "golang.org/x/net/context"
 type BotUser interface {
 	GetAppUserIntID() int64
 	IsAccessGranted() bool
-	SetAccessGranted(value bool)
+	SetAccessGranted(value bool) bool
 	SetAppUserIntID(appUserID int64)
 	SetDtUpdatedToNow()
 }

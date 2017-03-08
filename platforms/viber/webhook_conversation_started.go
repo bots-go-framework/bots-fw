@@ -8,6 +8,7 @@ import (
 type ViberWebhookInputConversationStarted struct {
 	ViberWebhookInput
 	m viberinterface.CallbackOnConversationStarted
+	chat ViberWebhookChat
 }
 
 func (whi ViberWebhookInputConversationStarted) GetSender() bots.WebhookSender {
@@ -15,7 +16,7 @@ func (whi ViberWebhookInputConversationStarted) GetSender() bots.WebhookSender {
 }
 
 func (whi ViberWebhookInputConversationStarted) GetRecipient() bots.WebhookRecipient {
-	panic("No")
+	panic("GetRecipient() is not implemented yet or can not be supported at all.")
 }
 
 func (whi ViberWebhookInputConversationStarted) InputType() bots.WebhookInputType {
@@ -23,12 +24,13 @@ func (whi ViberWebhookInputConversationStarted) InputType() bots.WebhookInputTyp
 }
 
 func (whi ViberWebhookInputConversationStarted) Chat() bots.WebhookChat {
-	panic("")
+	return whi.chat
 }
 
 func NewViberWebhookInputConversationStarted(m viberinterface.CallbackOnConversationStarted) bots.WebhookInput {
 	return ViberWebhookInputConversationStarted{
 		m: m,
+		chat: NewViberWebhookChat(m.User.ID),
 		ViberWebhookInput: ViberWebhookInput{callbackBase: m.CallbackBase},
 	}
 }

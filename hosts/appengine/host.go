@@ -28,31 +28,24 @@ func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
 	return &http.Client{Transport: &urlfetch.Transport{Context: ctxWithDeadline}}
 }
 
-func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	var (
-		chatStore bots.BotChatStore
-		userStore bots.BotUserStore
-	)
+func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) (stores bots.BotCoreStores) {
 	logger := h.Logger(r)
 	appUserStore := NewGaeAppUserStore(logger, appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)
+	stores.BotAppUserStore = appUserStore
 
 	switch platform { // TODO: Should not be hardcoded
 	case "telegram":  // pass
-		chatStore = NewGaeTelegramChatStore(logger)
-		userStore = NewGaeTelegramUserStore(logger, appUserStore)
+		stores.BotChatStore = NewGaeTelegramChatStore(logger)
+		stores.BotUserStore = NewGaeTelegramUserStore(logger, appUserStore)
 	case "fbm": 		// pass
-		chatStore = NewGaeFbmChatStore(logger)
-		userStore = NewGaeFacebookUserStore(logger, appUserStore)
+		stores.BotChatStore = NewGaeFbmChatStore(logger)
+		stores.BotUserStore = NewGaeFacebookUserStore(logger, appUserStore)
 	case "viber": 		// pass
-		chatStore = NewGaeViberChatStore(logger)
-		userStore = NewGaeViberUserStore(logger, appUserStore)
+		userChatStore := NewGaeViberUserChatStore(logger, appUserStore)
+		stores.BotChatStore = userChatStore
+		stores.BotUserStore = userChatStore
 	default:
 		panic("Unknown platform: " + platform)
 	}
-
-	return bots.BotCoreStores{
-		BotChatStore:    chatStore,
-		BotUserStore:    userStore,
-		BotAppUserStore: appUserStore,
-	}
+	return
 }

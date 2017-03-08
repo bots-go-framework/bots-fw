@@ -12,12 +12,12 @@ type BotChat interface {
 	GetAppUserIntID() int64
 	SetAppUserIntID(id int64)
 
-	GetBotUserIntID() int
-	GetBotUserStringID() string
+	//GetBotUserIntID() int
+	//GetBotUserStringID() string
 	SetBotUserID(id interface{})
 
 	IsAccessGranted() bool
-	SetAccessGranted(value bool)
+	SetAccessGranted(value bool) bool
 
 	GetPreferredLanguage() string
 	SetPreferredLanguage(value string)

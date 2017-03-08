@@ -66,7 +66,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 }
 
 func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser bots.WebhookActor) (bots.BotUser, error) {
-	s.logger.Debugf(c, "CreateBotUser() started...")
+	s.logger.Debugf(c, "GaeBotUserStore.CreateBotUser(botID=%v, apiUser=%T) started...", botID, apiUser)
 	botUserID := apiUser.GetID()
 	botUserEntity := s.newBotUserEntity(apiUser)
 
