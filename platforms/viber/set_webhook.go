@@ -27,7 +27,10 @@ func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) 
 
 	webhookUrl := fmt.Sprintf("https://%v/bot/viber/callback/%v", r.Host, url.QueryEscape(botSettings.Code))
 
-	if _, err := bot.SetWebhook(webhookUrl, nil); err != nil {
+	//eventTypes := []string {"delivered", "seen", "failed", "subscribed",  "unsubscribed", "conversation_started"}
+	eventTypes := []string {"failed", "subscribed",  "unsubscribed", "conversation_started"}
+
+	if _, err := bot.SetWebhook(webhookUrl, eventTypes); err != nil {
 		logger.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

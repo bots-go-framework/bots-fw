@@ -15,6 +15,11 @@ func (whi ViberWebhookInputConversationStarted) GetSender() bots.WebhookSender {
 	return ViberSender{sender: whi.m.User.CallbackSender} // TODO: Extend to support User
 }
 
+func (whi ViberWebhookInputConversationStarted) GetContext() string {
+	return whi.m.Context
+}
+
+
 func (whi ViberWebhookInputConversationStarted) GetRecipient() bots.WebhookRecipient {
 	panic("GetRecipient() is not implemented yet or can not be supported at all.")
 }
