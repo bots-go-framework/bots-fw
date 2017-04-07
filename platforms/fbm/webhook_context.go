@@ -110,12 +110,12 @@ func (whc *FbmWebhookContext) BotChatIntID() (chatId int64) {
 	//			c := whc.Context()
 	//			values, err := url.ParseQuery(data)
 	//			if err != nil {
-	//				whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+	//				log.Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
 	//				return 0
 	//			}
 	//			chatIdAsStr := values.Get("chat")
 	//			if chatId, err = strconv.ParseInt(chatIdAsStr, 10, 64); err != nil {
-	//				whc.Logger().Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
+	//				log.Errorf(c, "Failed to parse 'chat' parameter to int: %v", err)
 	//				return 0
 	//			}
 	//		}

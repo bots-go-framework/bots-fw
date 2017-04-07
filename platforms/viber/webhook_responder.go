@@ -6,7 +6,7 @@ import (
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/pkg/errors"
-	"google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 )
 
 type ViberWebhookResponder struct {
@@ -23,11 +23,10 @@ func NewViberWebhookResponder(whc *ViberWebhookContext) ViberWebhookResponder {
 }
 
 func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	logger := r.whc.Logger()
-	logger.Debugf(c, "ViberWebhookResponder.SendMessage()...")
+	log.Debugf(c, "ViberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
 	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.GetHttpClient())
-	logger.Debugf(c, "ViberKeyboard: %v", m.ViberKeyboard)
+	log.Debugf(c, "ViberKeyboard: %v", m.ViberKeyboard)
 	if m.ViberKeyboard != nil {
 		m.ViberKeyboard.Type = "keyboard"
 	}
@@ -35,17 +34,17 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	requestBody, response, err := viberBotApi.SendMessage(textMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to send message to Viber")
-		logger.Errorf(c, err.Error())
+		log.Errorf(c, err.Error())
 	}
 	log.Debugf(c, "Request body: %v", (string)(requestBody))
 	if response.Status == 0 {
-		logger.Debugf(c, "Succesfully sent to Viber")
+		log.Debugf(c, "Succesfully sent to Viber")
 	} else {
 		switch response.Status { // https://developers.viber.com/customer/en/portal/articles/2541337-error-codes?b_id=15145
 		case 2:
-			logger.Errorf(c, "Viber response.Status=%v: %v: [%v]", response.Status, response.StatusMessage, botSettings.Token)
+			log.Errorf(c, "Viber response.Status=%v: %v: [%v]", response.Status, response.StatusMessage, botSettings.Token)
 		default:
-			logger.Errorf(c, "Viber response.Status=%v: %v", response.Status, response.StatusMessage)
+			log.Errorf(c, "Viber response.Status=%v: %v", response.Status, response.StatusMessage)
 		}
 	}
 

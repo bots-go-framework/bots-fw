@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
-	//"google.golang.org/appengine/log"
+	//"github.com/strongo/app/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"golang.org/x/net/context"
+	"github.com/strongo/app/log"
 )
 
 type ViberWebhookContext struct {
@@ -79,7 +80,7 @@ func (whc *ViberWebhookContext) BotApi() *viberbotapi.ViberBotApi {
 }
 
 func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
-	whc.Logger().Warningf(whc.Context(), "IsNewerThen")
+	log.Warningf(whc.Context(), "IsNewerThen")
 	//if viberChat, ok := whc.ChatEntity().(*ViberChat); ok && viberChat != nil {
 	//	return whc.InputMessage().Sequence() > viberChat.LastProcessedUpdateID
 	//}

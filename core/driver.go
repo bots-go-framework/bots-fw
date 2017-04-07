@@ -8,7 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
-	"google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 )
 
 // The driver is doing initial request & final response processing
@@ -37,9 +37,8 @@ func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost,
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
-	logger := d.botHost.Logger(r)
 	c := d.botHost.Context(r) // TODO: It's wrong to have dependency on appengine here
-	logger.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
+	log.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(r)
 
@@ -47,12 +46,12 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	if botContext != nil {
 		env := botContext.BotSettings.Env
 		if env == EnvLocal && !strings.Contains(r.Host, "dev") {
-			logger.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
+			log.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		if botContext.BotSettings.Env == EnvStaging && !strings.Contains(r.Host, "st1") {
-			logger.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
+			log.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -60,15 +59,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	if err != nil {
 		if _, ok := err.(AuthFailedError); ok {
-			logger.Warningf(c, "Auth failed: %v", err)
+			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		} else {
-			logger.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(r): %v", err)
+			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(r): %v", err)
 			//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
 	}
-	logger.Infof(c, "Got %v entries", len(entriesWithInputs))
+	log.Infof(c, "Got %v entries", len(entriesWithInputs))
 
 	if botContext == nil { // TODO: Make botContext to be *BotContext?
 		if len(entriesWithInputs) == 0 {
@@ -87,10 +86,10 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		var sendStats bool
 		if d.GaSettings.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == EnvProduction
-			logger.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Env, sendStats)
+			log.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Env, sendStats)
 		} else {
 			sendStats = d.GaSettings.Enabled(r)
-			logger.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)
+			log.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
 			trackingID := d.GaSettings.TrackingID
@@ -102,11 +101,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 
 	defer func() {
-		logger.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
+		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
 		gaMeasurement.Queue(measurement.NewTiming(time.Now().Sub(started)))
 		if recovered := recover(); recovered != nil {
 			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
-			logger.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
+			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
 			if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
 				gaMessage := measurement.NewException(messageText, true)
@@ -119,16 +118,16 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				}
 
 				if err := gaMeasurement.Queue(gaMessage); err != nil {
-					logger.Errorf(c, "Failed to queue exception details for GA: %v", err)
+					log.Errorf(c, "Failed to queue exception details for GA: %v", err)
 				} else {
-					logger.Debugf(c, "Exception details queued for GA.")
+					log.Debugf(c, "Exception details queued for GA.")
 				}
 
-				logger.Debugf(c, "Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
+				log.Debugf(c, "Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
 				if err = gaMeasurement.Flush(); err != nil {
-					logger.Errorf(c, "Failed to send exception details to GA: %v", err)
+					log.Errorf(c, "Failed to send exception details to GA: %v", err)
 				} else {
-					logger.Debugf(c, "Exception details sent to GA.")
+					log.Debugf(c, "Exception details sent to GA.")
 				}
 			}
 
@@ -136,17 +135,17 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				whc.Responder().SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse)
 			}
 		} else if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
-			logger.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
+			log.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
 			if err = gaMeasurement.Flush(); err != nil {
-				logger.Errorf(c, "Failed to send to GA: %v", err)
+				log.Errorf(c, "Failed to send to GA: %v", err)
 			} else {
-				logger.Debugf(c, "Data sent to GA")
+				log.Debugf(c, "Data sent to GA")
 			}
 		}
 	}()
 
 	if err != nil {
-		logger.Errorf(c, "Failed to create new WebhookContext: %v", err)
+		log.Errorf(c, "Failed to create new WebhookContext: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -154,15 +153,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	defer func() {
 		if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-			//logger.Debugf(c, "Closing BotChatStore...")
+			//log.Debugf(c, "Closing BotChatStore...")
 			chatEntity := whc.ChatEntity()
 			if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
 				chatEntity.SetPreferredLanguage(whc.Locale().Code5)
 			}
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
-				logger.Errorf(c, "Failed to close BotChatStore: %v", err)
+				log.Errorf(c, "Failed to close BotChatStore: %v", err)
 			} else {
-				logger.Infof(c, "Bot chat store closed")
+				log.Infof(c, "Bot chat store closed")
 			}
 		}
 	}()
@@ -171,32 +170,32 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		switch input.(type) {
 		case WebhookTextMessage:
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		case WebhookContactMessage:
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) phone number: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookContactMessage).PhoneNumber())
+			log.Infof(c, "User#%v(%v %v) phone number: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookContactMessage).PhoneNumber())
 		case WebhookCallbackQuery:
 			callbackQuery := input.(WebhookCallbackQuery)
 			callbackData := callbackQuery.GetData()
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+			log.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 		case WebhookInlineQuery:
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+			log.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
 		case WebhookChosenInlineResult:
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+			log.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
 		case WebhookReferralMessage:
 			sender := input.GetSender()
-			logger.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		default:
-			logger.Warningf(c, "Unhandled input[%v] type: %T", i, input)
+			log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 		}
 	}
 
 	//var waitGroup sync.WaitGroup
 	for _, entryWithInputs := range entriesWithInputs {
-		//logger.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
+		//log.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for i, input := range entryWithInputs.Inputs {
 			logInput(i, input)
 			//waitGroup.Add(1)

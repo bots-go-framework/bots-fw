@@ -2,7 +2,6 @@ package gae_host
 
 import (
 	"fmt"
-	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
 	"github.com/qedus/nds"
@@ -19,8 +18,8 @@ type GaeViberUserChatStore struct {
 var _ bots.BotChatStore = (*GaeViberUserChatStore)(nil) // Check for interface implementation at compile time
 var _ bots.BotUserStore = (*GaeViberUserChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeViberUserChatStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) *GaeViberUserChatStore {
-	baseStore := NewGaeBaseStore(log, viber_bot.ViberUserChatKind)
+func NewGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *GaeViberUserChatStore {
+	baseStore := NewGaeBaseStore(viber_bot.ViberUserChatKind)
 	return &GaeViberUserChatStore{
 		GaeBotUserStore: GaeBotUserStore{
 			GaeBaseStore: baseStore,

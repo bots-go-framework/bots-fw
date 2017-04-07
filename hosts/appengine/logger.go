@@ -1,33 +1,34 @@
 package gae_host
 
 import (
-	"github.com/strongo/app"
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/log"
+	logGae "google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 )
 
 type logger struct{}
 
-var _ strongo.Logger = (*logger)(nil)
-
+func (l logger) Name() string {
+	return ""
+}
 func (l logger) Debugf(c context.Context, format string, args ...interface{}) {
-	log.Debugf(c, format, args...)
+	logGae.Debugf(c, format, args...)
 }
 
 func (l logger) Infof(c context.Context, format string, args ...interface{}) {
-	log.Infof(c, format, args...)
+	logGae.Infof(c, format, args...)
 }
 
 func (l logger) Warningf(c context.Context, format string, args ...interface{}) {
-	log.Warningf(c, format, args...)
+	logGae.Warningf(c, format, args...)
 }
 
 func (l logger) Errorf(c context.Context, format string, args ...interface{}) {
-	log.Errorf(c, format, args...)
+	logGae.Errorf(c, format, args...)
 }
 
 func (l logger) Criticalf(c context.Context, format string, args ...interface{}) {
-	log.Criticalf(c, format, args...)
+	logGae.Criticalf(c, format, args...)
 }
 
-var GaeLogger = (strongo.Logger)(logger{})
+var GaeLogger = (log.Logger)(logger{})

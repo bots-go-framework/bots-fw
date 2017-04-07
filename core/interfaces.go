@@ -1,7 +1,6 @@
 package bots
 
 import (
-	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"net/http"
@@ -13,16 +12,7 @@ type BotPlatform interface {
 	Version() string
 }
 
-//type strongo.Logger interface {
-//	Debugf(format string, args ...interface{})
-//	Infof(format string, args ...interface{})
-//	Warningf(format string, args ...interface{})
-//	Errorf(format string, args ...interface{})
-//	Criticalf(format string, args ...interface{})
-//}
-
 type BotHost interface {
-	Logger(r *http.Request) strongo.Logger
 	Context(r *http.Request) context.Context
 	GetHttpClient(r *http.Request) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores

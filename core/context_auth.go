@@ -1,7 +1,7 @@
 package bots
 
 import (
-	"google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 	//"google.golang.org/appengine/datastore"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
@@ -9,9 +9,8 @@ import (
 )
 
 func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Should not use nds.RunInTransaction()
-	logger := whc.Logger()
 	c := whc.Context()
-	logger.Debugf(c, "SetAccessGranted(value=%v)", value)
+	log.Debugf(c, "SetAccessGranted(value=%v)", value)
 	chatEntity := whc.ChatEntity()
 	if chatEntity != nil {
 		if chatEntity.IsAccessGranted() == value {
@@ -33,7 +32,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Sho
 	}
 
 	botUserID := whc.GetSender().GetID()
-	logger.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
+	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserById(c, botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else {

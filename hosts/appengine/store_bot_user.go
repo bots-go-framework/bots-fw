@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"fmt"
+	"github.com/strongo/app/log"
 )
 
 // Persist user to GAE datastore
@@ -66,7 +67,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 }
 
 func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser bots.WebhookActor) (bots.BotUser, error) {
-	s.logger.Debugf(c, "GaeBotUserStore.CreateBotUser(botID=%v, apiUser=%T) started...", botID, apiUser)
+	log.Debugf(c, "GaeBotUserStore.CreateBotUser(botID=%v, apiUser=%T) started...", botID, apiUser)
 	botUserID := apiUser.GetID()
 	botUserEntity := s.newBotUserEntity(apiUser)
 
@@ -82,7 +83,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 			if appUserId == 0 {
 				appUserId, _, err = s.gaeAppUserStore.createAppUser(ctx, botID, 	apiUser)
 				if err != nil {
-					s.logger.Errorf(c, "Failed to create app user: %v", err)
+					log.Errorf(c, "Failed to create app user: %v", err)
 					return err
 				}
 			}

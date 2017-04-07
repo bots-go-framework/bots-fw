@@ -2,7 +2,6 @@ package gae_host
 
 import (
 	"fmt"
-	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
@@ -16,10 +15,10 @@ type GaeTelegramUserStore struct {
 
 var _ bots.BotUserStore = (*GaeTelegramUserStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
+func NewGaeTelegramUserStore(gaeAppUserStore GaeAppUserStore) GaeTelegramUserStore {
 	return GaeTelegramUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore:    NewGaeBaseStore(log, telegram_bot.TelegramUserKind),
+			GaeBaseStore:    NewGaeBaseStore(telegram_bot.TelegramUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {

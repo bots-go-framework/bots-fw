@@ -2,7 +2,6 @@ package gae_host
 
 import (
 	"fmt"
-	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
 	"time"
@@ -16,10 +15,10 @@ type GaeFacebookUserStore struct {
 
 var _ bots.BotUserStore = (*GaeFacebookUserStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeFacebookUserStore(log strongo.Logger, gaeAppUserStore GaeAppUserStore) GaeFacebookUserStore {
+func NewGaeFacebookUserStore(gaeAppUserStore GaeAppUserStore) GaeFacebookUserStore {
 	return GaeFacebookUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore:    NewGaeBaseStore(log, fbm_bot.FbmUserKind),
+			GaeBaseStore:    NewGaeBaseStore(fbm_bot.FbmUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {

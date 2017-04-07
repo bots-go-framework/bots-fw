@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	//"google.golang.org/appengine/log"
+	//"github.com/strongo/app/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"strconv"

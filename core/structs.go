@@ -18,7 +18,7 @@ type EntryInput struct {
 	Input WebhookInput
 }
 
-type TranslatorProvider func(c context.Context, logger strongo.Logger) strongo.Translator
+type TranslatorProvider func(c context.Context) strongo.Translator
 
 type BaseHandler struct {
 	WebhookDriver

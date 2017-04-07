@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/app/log"
 )
 
 type FbmWebhookResponder struct {
@@ -27,8 +28,7 @@ func NewFbmWebhookResponder(whc *FbmWebhookContext) FbmWebhookResponder {
 }
 
 func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	logger := r.whc.Logger()
-	logger.Debugf(c, "FbmWebhookResponder.SendMessage()...")
+	log.Debugf(c, "FbmWebhookResponder.SendMessage()...")
 
 	//fbmWhc := (FbmWebhookContext{})(r.whc)
 
@@ -48,7 +48,7 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 	}
 
 	accessToken := r.whc.GetBotSettings().Token
-	logger.Debugf(c, "Posting to FB Messenger API (accessToken=%v):\n%v", accessToken, string(data))
+	log.Debugf(c, "Posting to FB Messenger API (accessToken=%v):\n%v", accessToken, string(data))
 
 	httpClient := urlfetch.Client(c)
 	apiResponse, err := httpClient.Post(
@@ -75,6 +75,6 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 		err = errors.New(fmt.Sprintf("Bad request: %v", string(respData)))
 		return
 	}
-	logger.Debugf(c, "Gor from response FB Messenger API status=%v: %v", apiResponse.Status, string(respData))
+	log.Debugf(c, "Gor from response FB Messenger API status=%v: %v", apiResponse.Status, string(respData))
 	return
 }

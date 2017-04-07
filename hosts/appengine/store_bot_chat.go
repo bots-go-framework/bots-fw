@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"strconv"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
 )
 
 type EntityTypeValidator interface {
@@ -25,7 +26,7 @@ var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface impleme
 
 // ************************** Implementations of  bots.ChatStore **************************
 func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChatID string) (bots.BotChat, error) { // Former LoadBotChatEntity
-	//s.logger.Debugf(c, "GaeBotChatStore.GetBotChatEntityByID(%v)", botChatId)
+	//log.Debugf(c, "GaeBotChatStore.GetBotChatEntityByID(%v)", botChatId)
 	if s.botChats == nil {
 		s.botChats = make(map[string]bots.BotChat, 1)
 	}
@@ -33,7 +34,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 	botChatKey := s.NewBotChatKey(c, botID, botChatID)
 	err := nds.Get(c, botChatKey, botChatEntity)
 	if err != nil {
-		s.logger.Infof(c, "Failed to get bot chat entity by ID: %v - %T(%v)", botChatID, err, err)
+		log.Infof(c, "Failed to get bot chat entity by ID: %v - %T(%v)", botChatID, err, err)
 		if err == datastore.ErrNoSuchEntity {
 			if s.entityKind == "TgChat" { // TODO: Remove workaround to fix old entities
 				var tgChatID int64
@@ -43,11 +44,11 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 					intKey := datastore.NewKey(c, s.entityKind, "", tgChatID, nil)
 					if err = nds.Get(c, intKey, botChatEntity); err != nil {
 						if err == datastore.ErrNoSuchEntity {
-							s.logger.Infof(c, errors.Wrapf(err, "Failed to get bot chat entity by int ID=%v", intKey.IntID()).Error())
+							log.Infof(c, errors.Wrapf(err, "Failed to get bot chat entity by int ID=%v", intKey.IntID()).Error())
 							return nil, bots.ErrEntityNotFound
 						}
 					} else {
-						s.logger.Infof(c, "Telegram chat entity Found by int ID, will attempt to migrate...")
+						log.Infof(c, "Telegram chat entity Found by int ID, will attempt to migrate...")
 						err = nds.RunInTransaction(c, func(c context.Context) error {
 							if err = nds.Get(c, intKey, botChatEntity); err == nil {
 								if err = nds.Delete(c, intKey); err != nil {
@@ -60,9 +61,9 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 							return err
 						}, &datastore.TransactionOptions{XG: true})
 						if err == nil {
-							s.logger.Infof(c, "Telegram chat entity migrated to new key: [%v]", botChatKey.StringID())
+							log.Infof(c, "Telegram chat entity migrated to new key: [%v]", botChatKey.StringID())
 						} else {
-							s.logger.Errorf(c, errors.Wrap(err, "Failed to migrate Telegram chat entity").Error())
+							log.Errorf(c, errors.Wrap(err, "Failed to migrate Telegram chat entity").Error())
 						}
 					}
 				}
@@ -85,7 +86,7 @@ func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string
 }
 
 func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botChatId string, appUserID int64, botUserID string, isAccessGranted bool) bots.BotChat {
-	s.logger.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
+	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
 	botChat := s.newBotChatEntity()
 	botChat.SetAppUserIntID(appUserID)
 	botChat.SetBotUserID(botUserID)
@@ -97,10 +98,10 @@ func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botC
 
 func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChatEntity
 	if len(s.botChats) == 0 {
-		s.logger.Debugf(c, "GaeBotChatStore.Close(): Nothing to save")
+		log.Debugf(c, "GaeBotChatStore.Close(): Nothing to save")
 		return nil
 	}
-	//s.logger.Debugf(c, "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
+	//log.Debugf(c, "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
 	var chatKeys []*datastore.Key
 	var chatEntities []bots.BotChat
 	for chatId, chatEntity := range s.botChats {
@@ -112,10 +113,10 @@ func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChat
 	}
 	_, err := nds.PutMulti(c, chatKeys, chatEntities)
 	if err == nil {
-		s.logger.Infof(c, "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		log.Infof(c, "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
 		s.botChats = nil
 	} else {
-		s.logger.Errorf(c, "Failed to save %v BotChat entities: %v", len(chatKeys), err)
+		log.Errorf(c, "Failed to save %v BotChat entities: %v", len(chatKeys), err)
 	}
 	return err
 }

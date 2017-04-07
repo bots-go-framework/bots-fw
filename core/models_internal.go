@@ -157,7 +157,7 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string)
 			steps = steps[:i]
 			break
 			//} else {
-			//logger.Infof(c, "steps[%v]: %v != %v:", i, steps[i], step)
+			//log.Infof(c, "steps[%v]: %v != %v:", i, steps[i], step)
 		}
 	}
 }

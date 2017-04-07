@@ -20,7 +20,6 @@ type GaContext interface {
 type WebhookContext interface {
 	GaContext
 	Environment() BotEnvironment
-	Logger() strongo.Logger
 	BotInputProvider
 	BotPlatform() BotPlatform
 

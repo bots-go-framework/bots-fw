@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -55,7 +56,6 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 }
 
 func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
-	logger := h.Logger(r)
 	client := h.GetHttpClient(r)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
@@ -74,7 +74,7 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 	webhookUrl := fmt.Sprintf("https://%v/bot/telegram/webhook?token=%v", r.Host, bot.Token)
 
 	if _, err := bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl)); err != nil {
-		logger.Errorf(c, "%v", err)
+		log.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
@@ -83,7 +83,6 @@ func (h TelegramWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Reques
 }
 
 func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	logger := h.BotHost.Logger(r)
 	token := r.URL.Query().Get("token")
 	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
 	botSettings, ok := h.botsBy(c).ApiToken[token]
@@ -94,19 +93,19 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(r *http.Request) (botCont
 	}
 	bytes, _ := ioutil.ReadAll(r.Body)
 	if len(bytes) < 1024 * 3 {
-		logger.Debugf(c, "Request body: %v", (string)(bytes))
+		log.Debugf(c, "Request body: %v", (string)(bytes))
 	} else {
-		logger.Debugf(c, "Request len(body): %v", len(bytes))
+		log.Debugf(c, "Request len(body): %v", len(bytes))
 	}
 	var update tgbotapi.Update
 	err = json.Unmarshal(bytes, &update)
 	if err != nil {
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
-			logger.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
+			log.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
 		} else if se, ok := err.(*json.SyntaxError); ok {
-			logger.Errorf(c, "json.SyntaxError: Offset=%v", se.Offset)
+			log.Errorf(c, "json.SyntaxError: Offset=%v", se.Offset)
 		} else {
-			logger.Errorf(c, "json.Error: %T: %v", err, err.Error())
+			log.Errorf(c, "json.Error: %T: %v", err, err.Error())
 		}
 		return
 	}

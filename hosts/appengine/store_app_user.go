@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qedus/nds"
-	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"reflect"
+	"github.com/strongo/app/log"
 )
 
 type GaeAppUserStore struct {
@@ -20,12 +20,12 @@ type GaeAppUserStore struct {
 
 var _ bots.BotAppUserStore = (*GaeAppUserStore)(nil)
 
-func NewGaeAppUserStore(log strongo.Logger, appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
+func NewGaeAppUserStore(appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
 	return GaeAppUserStore{
 		appUserEntityType: appUserEntityType,
 		appUserEntityKind: appUserEntityKind,
 		newUserEntity:     newUserEntity,
-		GaeBaseStore:      NewGaeBaseStore(log, appUserEntityKind),
+		GaeBaseStore:      NewGaeBaseStore(appUserEntityKind),
 	}
 }
 
@@ -57,7 +57,7 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	//appUsers := reflect.MakeSlice(reflect.SliceOf(s.appUserEntityType), 0, 2)
 	keys, err := query.GetAll(c, nil)
 	if err != nil {
-		s.logger.Errorf(c, "Failed to query app users by TelegramUserIDs: %v", err)
+		log.Errorf(c, "Failed to query app users by TelegramUserIDs: %v", err)
 		return 0, err
 	}
 	switch len(keys) {

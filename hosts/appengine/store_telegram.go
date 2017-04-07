@@ -16,7 +16,7 @@ package gae_host
 //	"github.com/qedus/nds"
 //)
 
-//func GetOrCreateUserEntity(log strongo.Logger, ctx context.Context, sender bots.WebhookSender) (bots.BotUser, error) {
+//func GetOrCreateUserEntity(ctx context.Context, sender bots.WebhookSender) (bots.BotUser, error) {
 //	var telegramUser telegram_bot.TelegramUser
 //	telegramUser := new(telegram_bot.TelegramUser)
 //	err := bots.LoadBotUserEntity(ctx, whc.UserKey(), &telegramUser)

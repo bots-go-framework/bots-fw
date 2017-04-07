@@ -1,7 +1,6 @@
 package gae_host
 
 import (
-	"github.com/strongo/app"
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -15,10 +14,6 @@ type GaeBotHost struct {
 
 var _ bots.BotHost = (*GaeBotHost)(nil)
 
-func (h GaeBotHost) Logger(r *http.Request) strongo.Logger {
-	return GaeLogger
-}
-
 func (h GaeBotHost) Context(r *http.Request) context.Context {
 	return appengine.NewContext(r)
 }
@@ -29,19 +24,18 @@ func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
 }
 
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) (stores bots.BotCoreStores) {
-	logger := h.Logger(r)
-	appUserStore := NewGaeAppUserStore(logger, appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)
+	appUserStore := NewGaeAppUserStore(appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)
 	stores.BotAppUserStore = appUserStore
 
 	switch platform { // TODO: Should not be hardcoded
 	case "telegram":  // pass
-		stores.BotChatStore = NewGaeTelegramChatStore(logger)
-		stores.BotUserStore = NewGaeTelegramUserStore(logger, appUserStore)
+		stores.BotChatStore = NewGaeTelegramChatStore()
+		stores.BotUserStore = NewGaeTelegramUserStore(appUserStore)
 	case "fbm": 		// pass
-		stores.BotChatStore = NewGaeFbmChatStore(logger)
-		stores.BotUserStore = NewGaeFacebookUserStore(logger, appUserStore)
+		stores.BotChatStore = NewGaeFbmChatStore()
+		stores.BotUserStore = NewGaeFacebookUserStore(appUserStore)
 	case "viber": 		// pass
-		userChatStore := NewGaeViberUserChatStore(logger, appUserStore)
+		userChatStore := NewGaeViberUserChatStore(appUserStore)
 		stores.BotChatStore = userChatStore
 		stores.BotUserStore = userChatStore
 	default:

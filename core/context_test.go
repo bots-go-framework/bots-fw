@@ -134,6 +134,4 @@ func (whc TestWebhookContext) UserID() int64                   { panic("Not impl
 func (whc TestWebhookContext) CurrentUserKey() *datastore.Key  { panic("Not implemented") }
 func (whc TestWebhookContext) GetAppUser() (BotAppUser, error) { panic("Not implemented") }
 
-func (whc TestWebhookContext) Logger() strongo.Logger { panic("Not implemented") }
-
 var _ WebhookContext = TestWebhookContext{}

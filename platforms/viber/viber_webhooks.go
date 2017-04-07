@@ -13,7 +13,7 @@ import (
 	"crypto/sha256"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber/viberinterface"
-	"google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 	"encoding/hex"
 )
 
@@ -63,7 +63,6 @@ func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
 func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	logger := h.BotHost.Logger(r)
 	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/") + 1:]
 	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
 	botSettings, ok := h.botsBy(c).Code[code]
@@ -83,9 +82,9 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 	//viberinterface.CallbackBase{}.UnmarshalJSON()
 	body, _ := ioutil.ReadAll(r.Body)
 	if len(body) < 1024 * 3 {
-		logger.Debugf(c, "Request body: %v", (string)(body))
+		log.Debugf(c, "Request body: %v", (string)(body))
 	} else {
-		logger.Debugf(c, "Request len(body): %v", len(body))
+		log.Debugf(c, "Request len(body): %v", len(body))
 	}
 
 	mac := hmac.New(sha256.New, []byte(botSettings.Token))
@@ -109,7 +108,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 		if err = m.UnmarshalJSON(body); err != nil {
 			err = errors.Wrapf(err, "Failed to unmarshal request body to %T", m)
 		}
-		logger.Debugf(c, "%T: %v", m, m)
+		log.Debugf(c, "%T: %v", m, m)
 		return
 	}
 
@@ -167,7 +166,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext
 		if err = unmarshal(message); err != nil {
 			return
 		}
-		logger.Infof(c, "Viber 'set-webhook' callback event")
+		log.Infof(c, "Viber 'set-webhook' callback event")
 		return // Do not create bot context
 	default:
 		log.Warningf(c, "Unknown callback event: [%v]", event)

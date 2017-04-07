@@ -13,13 +13,13 @@ import (
 	"time"
 	"net/url"
 	"github.com/pkg/errors"
+	"github.com/strongo/app/log"
 )
 
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
 	r             *http.Request
 	c             context.Context
-	logger        strongo.Logger
 	botAppContext BotAppContext
 	BotContext    BotContext
 	botPlatform   BotPlatform
@@ -57,13 +57,13 @@ func (whc *WebhookContextBase) BotChatID() (chatID string) {
 			c := whc.Context()
 			values, err := url.ParseQuery(data)
 			if err != nil {
-				whc.Logger().Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+				log.Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
 				return ""
 			}
 			chatID = values.Get("chat")
 		}
 	default:
-		whc.logger.Warningf(whc.c, "*.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
+		log.Warningf(whc.c, "*.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
 	return chatID
@@ -105,14 +105,13 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 		r:             r,
 		c:             appengine.NewContext(r),
 		gaMeasurement: gaMeasurement,
-		logger:        botContext.BotHost.Logger(r),
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
 		BotContext:    botContext,
 		input:         webhookInput,
 		BotCoreStores: botCoreStores,
 	}
-	whcb.Translator = botAppContext.GetTranslator(whcb.c, whcb.logger)
+	whcb.Translator = botAppContext.GetTranslator(whcb.c)
 	return &whcb
 }
 
@@ -175,10 +174,6 @@ func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
 
-func (whcb *WebhookContextBase) Logger() strongo.Logger {
-	return whcb.logger
-}
-
 func (whcb *WebhookContextBase) GetBotSettings() BotSettings {
 	return whcb.BotContext.BotSettings
 }
@@ -217,7 +212,7 @@ func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 
 func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.BotChatID() == "" {
-		whcb.logger.Debugf(whcb.c, "whcb.BotChatID() is empty string")
+		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
 	if whcb.chatEntity == nil {
@@ -229,9 +224,8 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 }
 
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
-	logger := whcb.Logger()
 	c := whcb.Context()
-	logger.Debugf(c, "GetOrCreateBotUserEntityBase()")
+	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()
 	botUserID := sender.GetID()
 	botUser, err := whcb.GetBotUserById(c, botUserID)
@@ -239,13 +233,13 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		return nil, err
 	}
 	if botUser == nil {
-		logger.Infof(c, "Bot user entity not found, creating a new one...")
+		log.Infof(c, "Bot user entity not found, creating a new one...")
 		botUser, err = whcb.CreateBotUser(c, whcb.GetBotCode(), sender)
 		if err != nil {
-			logger.Errorf(c, "Failed to create bot user: %v", err)
+			log.Errorf(c, "Failed to create bot user: %v", err)
 			return nil, err
 		}
-		logger.Infof(c, "Bot user entity created")
+		log.Infof(c, "Bot user entity created")
 
 		whcb.gaMeasurement.Queue(whcb.GaEvent("users", "user-created")) //TODO: Should be outside
 
@@ -257,21 +251,20 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 			whcb.GaMeasurement().Queue(gaEvent)
 		}
 	} else {
-		logger.Infof(c, "Found existing bot user entity")
+		log.Infof(c, "Found existing bot user entity")
 	}
 	return botUser, err
 }
 
 func (whcb *WebhookContextBase) loadChatEntityBase() error {
-	logger := whcb.Logger()
 	c := whcb.Context()
 	if whcb.HasChatEntity() {
-		logger.Warningf(c, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
+		log.Warningf(c, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return nil
 	}
 
 	botChatID := whcb.BotChatID()
-	logger.Infof(c, "loadChatEntityBase(): botChatID: %v", botChatID)
+	log.Infof(c, "loadChatEntityBase(): botChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
 	botChatStore := whcb.BotChatStore
 	if botChatStore == nil {
@@ -280,10 +273,10 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
-		logger.Debugf(c, "GetBotChatEntityByID() returned nil")
+		log.Debugf(c, "GetBotChatEntityByID() returned nil")
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
-		logger.Infof(c, "BotChat not found, first check for bot user entity...")
+		log.Infof(c, "BotChat not found, first check for bot user entity...")
 		botUser, err := whcb.GetOrCreateBotUserEntityBase()
 		if err != nil {
 			return err
@@ -301,15 +294,15 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return err
 	}
 
-	logger.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`,
+	log.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`,
 		botChatEntity.GetPreferredLanguage(), whcb.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage())
 
 	if botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
 		err = whcb.SetLocale(botChatEntity.GetPreferredLanguage())
 		if err == nil {
-			logger.Debugf(c, "whc.locale changed to: %v", whcb.Locale().Code5)
+			log.Debugf(c, "whc.locale changed to: %v", whcb.Locale().Code5)
 		} else {
-			logger.Errorf(c, "Failed to set locate: %v")
+			log.Errorf(c, "Failed to set locate: %v")
 		}
 	}
 	whcb.chatEntity = botChatEntity
@@ -349,7 +342,7 @@ func (whcb WebhookContextBase) Locale() strongo.Locale {
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	locale, err := whcb.botAppContext.SupportedLocales().GetLocaleByCode5(code5)
 	if err != nil {
-		whcb.logger.Errorf(whcb.c, "WebhookContextBase.SetLocate() - %v", err)
+		log.Errorf(whcb.c, "WebhookContextBase.SetLocate() - %v", err)
 		return err
 	}
 	whcb.locale = locale

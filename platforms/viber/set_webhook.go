@@ -6,10 +6,10 @@ import (
 	"github.com/strongo/bots-api-viber"
 	"net/url"
 	"google.golang.org/appengine"
+	"github.com/strongo/app/log"
 )
 
 func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
-	logger := h.Logger(r)
 	client := h.GetHttpClient(r)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
@@ -31,7 +31,7 @@ func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) 
 	eventTypes := []string {"failed", "subscribed",  "unsubscribed", "conversation_started"}
 
 	if _, err := bot.SetWebhook(webhookUrl, eventTypes); err != nil {
-		logger.Errorf(c, "%v", err)
+		log.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {

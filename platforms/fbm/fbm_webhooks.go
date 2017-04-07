@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"google.golang.org/appengine/log"
+	"github.com/strongo/app/log"
 	"google.golang.org/appengine"
 	"github.com/pkg/errors"
 	"bytes"
@@ -131,20 +131,19 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 
 func (handler FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_api.ReceivedMessage
-	logger := handler.BotHost.Logger(r)
 	c := handler.BotHost.Context(r)
 	content := make([]byte, r.ContentLength)
 	_, err = r.Body.Read(content)
 	if err != nil {
 		return
 	}
-	logger.Infof(c, "Request.Body: %v", string(content))
+	log.Infof(c, "Request.Body: %v", string(content))
 	err = ffjson.UnmarshalFast(content, &receivedMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to deserialize FB json message")
 		return
 	}
-	logger.Infof(c, "Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
+	log.Infof(c, "Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)
 	entriesWithInputs = make([]bots.EntryInputs, len(receivedMessage.Entries))
 	for i, entry := range receivedMessage.Entries {
 		entryWithInputs := bots.EntryInputs{

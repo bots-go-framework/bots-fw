@@ -2,7 +2,7 @@ package bots
 
 import (
 	"fmt"
-	"github.com/strongo/app"
+	"github.com/strongo/app/log"
 	"golang.org/x/net/context"
 	"testing"
 )
@@ -11,6 +11,10 @@ type MockLogger struct {
 	T        *testing.T
 	Warnings []string
 	Infos    []string
+}
+
+func (_ *MockLogger) Name() string {
+	return "MockLogger"
 }
 
 func (l *MockLogger) Debugf(c context.Context, format string, args ...interface{}) {
@@ -31,4 +35,4 @@ func (l *MockLogger) Criticalf(c context.Context, format string, args ...interfa
 	l.T.Logf("CRITICAL: "+format, args...)
 }
 
-var _ strongo.Logger = (*MockLogger)(nil)
+var _ log.Logger = (*MockLogger)(nil)
