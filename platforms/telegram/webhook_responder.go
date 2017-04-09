@@ -30,11 +30,11 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	//ctx := tc.Context()
 
 	var chattable tgbotapi.Chattable
-	botApi := &tgbotapi.BotAPI{
-		Token:  r.whc.BotContext.BotSettings.Token,
-		Debug:  true,
-		Client: r.whc.GetHttpClient(),
-	}
+	botApi := tgbotapi.NewBotAPIWithClient(
+		r.whc.BotContext.BotSettings.Token,
+		r.whc.GetHttpClient(),
+	)
+	botApi.EnableDebug(c)
 	if m.TelegramCallbackAnswer != nil {
 		log.Debugf(c, "Inline answer")
 		input := r.whc.Input().(TelegramWebhookUpdateProvider)
