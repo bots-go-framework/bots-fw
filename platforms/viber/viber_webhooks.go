@@ -17,7 +17,7 @@ import (
 	"encoding/hex"
 )
 
-func NewViberWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
+func NewViberWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
 	if webhookDriver == nil {
 		panic("webhookDriver == nil")
 	}
@@ -40,7 +40,7 @@ func NewViberWebhookHandler(botsBy bots.BotSettingsProvider, webhookDriver bots.
 
 type ViberWebhookHandler struct {
 	bots.BaseHandler
-	botsBy bots.BotSettingsProvider
+	botsBy bots.SettingsProvider
 }
 var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
 

@@ -37,6 +37,9 @@ func (s GaeAppUserStore) appUserKey(c context.Context, appUserId int64) *datasto
 
 // ************************** Implementations of  bots.AppUserStore **************************
 func (s GaeAppUserStore) GetAppUserByID(c context.Context, appUserId int64, appUser bots.BotAppUser) error {
+	if appUserId == 0 {
+		panic("appUserId == 0")
+	}
 	return nds.Get(c, s.appUserKey(c, appUserId), appUser)
 }
 

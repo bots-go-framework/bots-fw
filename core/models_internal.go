@@ -6,12 +6,28 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"github.com/pkg/errors"
 )
 
 type OwnedByUser struct {
 	AppUserIntID int64 // TODO: Rename to AppUserIntID?
 	DtCreated    time.Time
 	DtUpdated    time.Time
+}
+
+func (o OwnedByUser) Validate() error {
+	if o.AppUserIntID == 0 {
+		return errors.New("AppUserIntID == 0")
+	}
+	if o.DtCreated.IsZero() {
+		return errors.New("DtCreated.IsZero()")
+	}
+	if o.DtUpdated.IsZero() {
+		o.DtUpdated = o.DtCreated
+	} else if o.DtUpdated.Before(o.DtCreated) {
+		return errors.New("DtUpdated.Before(DtCreated) is true")
+	}
+	return nil
 }
 
 func (e *OwnedByUser) GetAppUserIntID() int64 {

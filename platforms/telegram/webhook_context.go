@@ -134,8 +134,8 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 	//inputMessage := tc.InputMessage()
 	//if inputMessage != nil {
 	//ctx := tc.Context()
-	//chat := inputMessage.Chat()
-	//chatID := chat.GetID()
+	//entity := inputMessage.Chat()
+	//chatID := entity.GetID()
 	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
 	botChatID := tc.BotChatID()
 	if botChatID == "" {

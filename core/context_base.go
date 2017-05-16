@@ -40,7 +40,7 @@ type WebhookContextBase struct {
 	gaMeasurement *measurement.BufferedSender
 }
 
-func (whc *WebhookContextBase) Environment() BotEnvironment {
+func (whc *WebhookContextBase) Environment() strongo.Environment {
 	return whc.BotContext.BotSettings.Env
 }
 
@@ -84,7 +84,7 @@ func (whc *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 }
 
 
-func (whc *WebhookContextBase) GetAppUser() (BotAppUser, error) {
+func (whc *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
 	appUserID := whc.AppUserIntID()
 	appUser := whc.BotAppContext().NewBotAppUserEntity()
 	err := whc.BotAppUserStore.GetAppUserByID(whc.Context(), appUserID, appUser)
@@ -245,7 +245,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 
 		whcb.gaMeasurement.Queue(whcb.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.Id())) // TODO: Should be outside
 
-		if whcb.GetBotSettings().Env == EnvProduction {
+		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
 			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)
@@ -264,7 +264,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	}
 
 	botChatID := whcb.BotChatID()
-	log.Infof(c, "loadChatEntityBase(): botChatID: %v", botChatID)
+	log.Debugf(c, "loadChatEntityBase(): botChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
 	botChatStore := whcb.BotChatStore
 	if botChatStore == nil {
@@ -273,7 +273,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
-		log.Debugf(c, "GetBotChatEntityByID() returned nil")
+		log.Debugf(c, "GetBotChatEntityByID() returned err == nil")
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")
@@ -284,7 +284,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
-		if whcb.GetBotSettings().Env == EnvProduction {
+		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
 			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)

@@ -25,57 +25,60 @@ type GaeBotChatStore struct {
 var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.ChatStore **************************
-func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChatID string) (bots.BotChat, error) { // Former LoadBotChatEntity
+func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChatID string) (botChatEntity bots.BotChat, err error) { // Former LoadBotChatEntity
 	//log.Debugf(c, "GaeBotChatStore.GetBotChatEntityByID(%v)", botChatId)
 	if s.botChats == nil {
 		s.botChats = make(map[string]bots.BotChat, 1)
 	}
-	botChatEntity := s.newBotChatEntity()
+	botChatEntity = s.newBotChatEntity()
 	botChatKey := s.NewBotChatKey(c, botID, botChatID)
-	err := nds.Get(c, botChatKey, botChatEntity)
-	if err != nil {
-		log.Infof(c, "Failed to get bot chat entity by ID: %v - %T(%v)", botChatID, err, err)
+	if err = nds.Get(c, botChatKey, botChatEntity); err != nil {
+		if err != datastore.ErrNoSuchEntity {
+			err = bots.ErrEntityNotFound // TODO: Replace with dal.ErrRecordNotFound ?
+			return
+		}
 		if err == datastore.ErrNoSuchEntity {
 			if s.entityKind == "TgChat" { // TODO: Remove workaround to fix old entities
 				var tgChatID int64
 				if tgChatID, err = strconv.ParseInt(botChatID, 10, 64); err != nil {
-					return nil, errors.Wrap(err, "Failet to parse botChatID to int")
+					err = errors.Wrap(err, "Failet to parse botChatID to int")
+					return
 				} else {
 					intKey := datastore.NewKey(c, s.entityKind, "", tgChatID, nil)
 					if err = nds.Get(c, intKey, botChatEntity); err != nil {
 						if err == datastore.ErrNoSuchEntity {
-							log.Infof(c, errors.Wrapf(err, "Failed to get bot chat entity by int ID=%v", intKey.IntID()).Error())
-							return nil, bots.ErrEntityNotFound
+							log.Infof(c, errors.Wrapf(err, "There is no bot chat entity with intID=%v", intKey.IntID()).Error())
+							err = bots.ErrEntityNotFound
 						}
+						return
 					} else {
 						log.Infof(c, "Telegram chat entity Found by int ID, will attempt to migrate...")
-						err = nds.RunInTransaction(c, func(c context.Context) error {
-							if err = nds.Get(c, intKey, botChatEntity); err == nil {
-								if err = nds.Delete(c, intKey); err != nil {
-									return err
-								}
-								if _, err = nds.Put(c, botChatKey, botChatEntity); err != nil {
-									return err
-								}
+						if err = nds.RunInTransaction(c, func(tc context.Context) (err error) {
+							if err = nds.Get(tc, intKey, botChatEntity); err != nil {
+								return
 							}
-							return err
-						}, &datastore.TransactionOptions{XG: true})
-						if err == nil {
-							log.Infof(c, "Telegram chat entity migrated to new key: [%v]", botChatKey.StringID())
-						} else {
+							if err = nds.Delete(tc, intKey); err != nil {
+								return
+							}
+							if _, err = nds.Put(tc, botChatKey, botChatEntity); err != nil {
+								return
+							}
+							return
+						}, &datastore.TransactionOptions{XG: true}); err != nil {
 							log.Errorf(c, errors.Wrap(err, "Failed to migrate Telegram chat entity").Error())
+							return
+
 						}
+						log.Infof(c, "Telegram chat entity migrated to new key: [%v]", botChatKey.StringID())
 					}
 				}
-			} else {
-				return nil, bots.ErrEntityNotFound
 			}
 		}
 	}
 	if err == nil {
 		s.botChats[botChatKey.StringID()] = botChatEntity
 	}
-	return botChatEntity, err
+	return
 }
 
 func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string, chatEntity bots.BotChat) error { // Former SaveBotChatEntity

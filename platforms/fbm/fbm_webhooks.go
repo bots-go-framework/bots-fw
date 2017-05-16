@@ -13,9 +13,10 @@ import (
 	"github.com/pkg/errors"
 	"bytes"
 	"github.com/pquerna/ffjson/ffjson"
+	"golang.org/x/net/context"
 )
 
-func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
+func NewFbmWebhookHandler(botsBy bots.SettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
 	if webhookDriver == nil {
 		panic("webhookDriver == nil")
 	}
@@ -38,7 +39,7 @@ func NewFbmWebhookHandler(botsBy bots.BotSettingsBy, webhookDriver bots.WebhookD
 
 type FbmWebhookHandler struct {
 	bots.BaseHandler
-	botsBy bots.BotSettingsBy
+	botsBy bots.SettingsBy
 }
 var _ bots.WebhookHandler = (*FbmWebhookHandler)(nil)
 
@@ -129,9 +130,8 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 	}
 }
 
-func (handler FbmWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var receivedMessage fbm_api.ReceivedMessage
-	c := handler.BotHost.Context(r)
 	content := make([]byte, r.ContentLength)
 	_, err = r.Body.Read(content)
 	if err != nil {

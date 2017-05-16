@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app"
 )
 
 type TypeCommands struct {
@@ -301,7 +302,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		}
 	} else {
 		log.Errorf(c, err.Error())
-		if env == EnvProduction && gaMeasurement != nil {
+		if env == strongo.EnvProduction && gaMeasurement != nil {
 			exceptionMessage := measurement.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
 			err = gaMeasurement.Queue(exceptionMessage)

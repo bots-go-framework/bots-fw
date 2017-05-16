@@ -9,7 +9,7 @@ import (
 type logger struct{}
 
 func (l logger) Name() string {
-	return ""
+	return "GaeLogger"
 }
 func (l logger) Debugf(c context.Context, format string, args ...interface{}) {
 	if c == nil {

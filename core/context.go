@@ -19,7 +19,7 @@ type GaContext interface {
 
 type WebhookContext interface {
 	GaContext
-	Environment() BotEnvironment
+	Environment() strongo.Environment
 	BotInputProvider
 	BotPlatform() BotPlatform
 

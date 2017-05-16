@@ -6,18 +6,8 @@ import (
 	"fmt"
 )
 
-type BotEnvironment int8
-
-const (
-	EnvUnknown BotEnvironment = iota
-	EnvProduction
-	EnvStaging
-	EnvDevTest
-	EnvLocal
-)
-
 type BotSettings struct {
-	Env         BotEnvironment
+	Env         strongo.Environment
 	Kind        string
 	Code        string
 	Token       string
@@ -25,13 +15,13 @@ type BotSettings struct {
 	Locale      strongo.Locale
 }
 
-func NewBotSettingsWithKind(env BotEnvironment, kind, code, token string, locale strongo.Locale) BotSettings {
+func NewBotSettingsWithKind(env strongo.Environment, kind, code, token string, locale strongo.Locale) BotSettings {
 	s := NewBotSettings(env, code, token, locale)
 	s.Kind = kind
 	return s
 }
 
-func NewBotSettings(mode BotEnvironment, code, token string, locale strongo.Locale) BotSettings {
+func NewBotSettings(mode strongo.Environment, code, token string, locale strongo.Locale) BotSettings {
 	if code == "" {
 		panic("Missing required parameter: code")
 	}
@@ -49,36 +39,36 @@ func NewBotSettings(mode BotEnvironment, code, token string, locale strongo.Loca
 	}
 }
 
-type BotSettingsProvider func(c context.Context) BotSettingsBy
+type SettingsProvider func(c context.Context) SettingsBy
 
-type BotSettingsBy struct { // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
+type SettingsBy struct {// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 	Code     map[string]BotSettings
 	ApiToken map[string]BotSettings
 	Locale   map[string][]BotSettings
 }
 
-func NewBotSettingsBy(bots ...BotSettings) BotSettingsBy {
+func NewBotSettingsBy(bots ...BotSettings) SettingsBy {
 	count := len(bots)
-	botsBy := BotSettingsBy{
+	settingsBy := SettingsBy{
 		Code:     make(map[string]BotSettings, count),
 		ApiToken: make(map[string]BotSettings, count),
 		Locale:   make(map[string][]BotSettings, count),
 	}
 	for _, bot := range bots {
-		if _, ok := botsBy.Code[bot.Code]; ok {
+		if _, ok := settingsBy.Code[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))
 		} else {
-			botsBy.Code[bot.Code] = bot
+			settingsBy.Code[bot.Code] = bot
 		}
-		if _, ok := botsBy.ApiToken[bot.Token]; ok {
+		if _, ok := settingsBy.ApiToken[bot.Token]; ok {
 			panic(fmt.Sprintf("Bot with duplicate token: %v", bot.Token))
 		} else {
-			botsBy.ApiToken[bot.Token] = bot
+			settingsBy.ApiToken[bot.Token] = bot
 		}
 
-		botsByLocale := botsBy.Locale[bot.Locale.Code5]
-		botsByLocale = append(botsByLocale, bot)
-		botsBy.Locale[bot.Locale.Code5] = botsByLocale
+		byLocale := settingsBy.Locale[bot.Locale.Code5]
+		byLocale = append(byLocale, bot)
+		settingsBy.Locale[bot.Locale.Code5] = byLocale
 	}
-	return botsBy
+	return settingsBy
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app"
 )
 
 // The driver is doing initial request & final response processing
@@ -37,20 +38,20 @@ func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost,
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
-	c := d.botHost.Context(r) // TODO: It's wrong to have dependency on appengine here
-	log.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
+	c := d.botHost.Context(r)
+	//log.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
 
-	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(r)
+	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
 
 
 	if botContext != nil {
 		env := botContext.BotSettings.Env
-		if env == EnvLocal && !strings.Contains(r.Host, "dev") {
+		if env == strongo.EnvLocal && !strings.Contains(r.Host, "dev") {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if botContext.BotSettings.Env == EnvStaging && !strings.Contains(r.Host, "st1") {
+		if botContext.BotSettings.Env == strongo.EnvStaging && !strings.Contains(r.Host, "st1") {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -67,7 +68,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 		return
 	}
-	log.Infof(c, "Got %v entries", len(entriesWithInputs))
+	//log.Debugf(c, "Got %d entries", len(entriesWithInputs))
 
 	if botContext == nil { // TODO: Make botContext to be *BotContext?
 		if len(entriesWithInputs) == 0 {
@@ -85,8 +86,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	{  // Initiate Google Analytics Measurement API client
 		var sendStats bool
 		if d.GaSettings.Enabled == nil {
-			sendStats = botContext.BotSettings.Env == EnvProduction
-			log.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Mode: %v, sendStats: %v", botContext.BotSettings.Env, sendStats)
+			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
+			log.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Env: %v, sendStats: %v", strongo.EnvironmentNames[botContext.BotSettings.Env], sendStats)
 		} else {
 			sendStats = d.GaSettings.Enabled(r)
 			log.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)

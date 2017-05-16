@@ -6,6 +6,6 @@ import (
 )
 
 
-func NewViberBot(mode bots.BotEnvironment, code, token string, locale strongo.Locale) bots.BotSettings {
+func NewViberBot(mode strongo.Environment, code, token string, locale strongo.Locale) bots.BotSettings {
 	return bots.NewBotSettings(mode, code, token, locale)
 }
