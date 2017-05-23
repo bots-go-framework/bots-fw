@@ -3,7 +3,7 @@ package bots
 import (
 	"fmt"
 	//"net/http"
-	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
+	"github.com/DebtsTracker/translations/emoji"
 	"github.com/pkg/errors"
 	"github.com/strongo/measurement-protocol"
 	"net/url"

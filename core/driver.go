@@ -1,7 +1,7 @@
 package bots
 
 import (
-	"bitbucket.com/debtstracker/gae_app/debtstracker/emoji"
+	"github.com/DebtsTracker/translations/emoji"
 	"fmt"
 	"github.com/strongo/measurement-protocol"
 	"net/http"

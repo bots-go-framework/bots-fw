@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/measurement-protocol"
-	"google.golang.org/appengine"
 	"net/http"
 	"io/ioutil"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/app/log"
 	"encoding/hex"
+	"golang.org/x/net/context"
 )
 
 func NewViberWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
@@ -62,9 +62,8 @@ func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http
 
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
-func (h ViberWebhookHandler) GetBotContextAndInputs(r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/") + 1:]
-	c := appengine.NewContext(r) //TODO: Remove dependency on AppEngine, should be passed indside.
 	botSettings, ok := h.botsBy(c).Code[code]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown public account: [%v]", code)

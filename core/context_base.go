@@ -63,7 +63,7 @@ func (whc *WebhookContextBase) BotChatID() (chatID string) {
 			chatID = values.Get("chat")
 		}
 	default:
-		log.Warningf(whc.c, "*.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
+		log.Debugf(whc.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
 	return chatID
