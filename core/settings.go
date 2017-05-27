@@ -7,12 +7,14 @@ import (
 )
 
 type BotSettings struct {
-	Env         strongo.Environment
-	Kind        string
-	Code        string
-	Token       string
-	VerifyToken string // Used by Facebook
-	Locale      strongo.Locale
+	Env              strongo.Environment
+	Kind             string
+	Code             string
+	Token            string
+	PaymentToken     string
+	PaymentTestToken string
+	VerifyToken      string // Used by Facebook
+	Locale           strongo.Locale
 }
 
 func NewBotSettingsWithKind(env strongo.Environment, kind, code, token string, locale strongo.Locale) BotSettings {

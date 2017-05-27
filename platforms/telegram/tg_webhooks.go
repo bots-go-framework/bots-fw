@@ -11,6 +11,9 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"github.com/strongo/app/log"
+	//"github.com/kylelemons/go-gypsy/yaml"
+	//"bytes"
+	"strings"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -98,14 +101,22 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		err = bots.AuthFailedError(errMess)
 		return
 	}
-	bytes, _ := ioutil.ReadAll(r.Body)
-	if len(bytes) < 1024 * 3 {
-		log.Debugf(c, "Request body: %v", (string)(bytes))
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	if len(bodyBytes) < 1024 * 3 {
+		s := string(bodyBytes)
+		s = strings.Replace(s, `,"`, ",\n\"" , -1)
+		s = strings.Replace(s, `:{`, `:{` + "\n", -1)
+		log.Debugf(c, "Request body: %v", s)
+		//if node, err := yaml.Parse(bytes.NewReader(bodyBytes)); err != nil {
+		//	log.Debugf(c, "Request body: %v", (string)(bodyBytes))
+		//} else {
+		//	log.Debugf(c, "Request JSON body as YAML (%T):\n%v", node, yaml.Render(node))
+		//}
 	} else {
-		log.Debugf(c, "Request len(body): %v", len(bytes))
+		log.Debugf(c, "Request len(body): %v", len(bodyBytes))
 	}
 	var update tgbotapi.Update
-	err = json.Unmarshal(bytes, &update)
+	err = json.Unmarshal(bodyBytes, &update)
 	if err != nil {
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
 			log.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
