@@ -14,7 +14,7 @@ type BotPlatform interface {
 
 type BotHost interface {
 	Context(r *http.Request) context.Context
-	GetHttpClient(r *http.Request) *http.Client
+	GetHttpClient(c context.Context) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 }
 

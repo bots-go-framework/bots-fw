@@ -14,6 +14,7 @@ import (
 	//"github.com/kylelemons/go-gypsy/yaml"
 	//"bytes"
 	"strings"
+	"time"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -68,7 +69,8 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 }
 
 func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
-	client := h.GetHttpClient(r)
+	ctxWithDeadline, _ := context.WithTimeout(c, 30*time.Second)
+	client := h.GetHttpClient(ctxWithDeadline)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
@@ -80,6 +82,7 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 		return
 	}
 	bot := tgbotapi.NewBotAPIWithClient(botSettings.Token, client)
+	bot.EnableDebug(c)
 	//bot.Debug = true
 
 	webhookUrl := fmt.Sprintf("https://%v/bot/telegram/webhook?token=%v", r.Host, bot.Token)

@@ -6,7 +6,6 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
-	"time"
 )
 
 type GaeBotHost struct {
@@ -18,9 +17,12 @@ func (h GaeBotHost) Context(r *http.Request) context.Context {
 	return appengine.NewContext(r)
 }
 
-func (h GaeBotHost) GetHttpClient(r *http.Request) *http.Client {
-	ctxWithDeadline, _ := context.WithTimeout(appengine.NewContext(r), 30*time.Second)
-	return &http.Client{Transport: &urlfetch.Transport{Context: ctxWithDeadline}}
+func (h GaeBotHost) GetHttpClient(c context.Context) *http.Client {
+	return &http.Client{
+		Transport: &urlfetch.Transport{
+			Context: c,
+		},
+	}
 }
 
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) (stores bots.BotCoreStores) {

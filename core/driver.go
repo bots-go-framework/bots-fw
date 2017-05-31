@@ -95,7 +95,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if sendStats {
 			trackingID := d.GaSettings.TrackingID
 			botHost := botContext.BotHost
-			gaMeasurement = measurement.NewBufferedSender([]string{trackingID}, true, botHost.GetHttpClient(r))
+			gaMeasurement = measurement.NewBufferedSender([]string{trackingID}, true, botHost.GetHttpClient(c))
 		} else {
 			gaMeasurement = measurement.NewDiscardingBufferedSender()
 		}

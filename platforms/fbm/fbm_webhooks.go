@@ -51,7 +51,8 @@ func (handler FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound fu
 }
 
 func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request) {
-	httpClient := handler.GetHttpClient(r)
+	c := handler.Context(r)
+	httpClient := handler.GetHttpClient(c)
 	botCode := r.URL.Query().Get("bot")
 
 	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
@@ -81,7 +82,8 @@ func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Reques
 }
 
 func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
-	httpClient := handler.GetHttpClient(r)
+	c := handler.Context(r)
+	httpClient := handler.GetHttpClient(c)
 	botCode := r.URL.Query().Get("bot")
 
 	if botSettings, ok := handler.botsBy.Code[botCode]; ok {

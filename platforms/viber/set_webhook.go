@@ -5,18 +5,17 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"net/url"
-	"google.golang.org/appengine"
 	"github.com/strongo/app/log"
 )
 
 func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
-	client := h.GetHttpClient(r)
+	c := h.Context(r)
+	client := h.GetHttpClient(c)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
 		return
 	}
-	c := appengine.NewContext(r)
 	botSettings, ok := h.botsBy(c).Code[botCode]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)

@@ -195,7 +195,7 @@ func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface
 }
 
 func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
-	return whcb.BotContext.BotHost.GetHttpClient(whcb.r)
+	return whcb.BotContext.BotHost.GetHttpClient(whcb.c)
 }
 
 func (whcb *WebhookContextBase) HasChatEntity() bool {
