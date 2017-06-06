@@ -281,8 +281,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		if err != nil {
 			return err
 		}
-
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), botChatID, botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
@@ -292,6 +291,14 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 	default:
 		return err
+	}
+
+	if !whcb.Chat().IsGroupChat() {
+		if sender := whcb.input.GetSender(); sender != nil {
+			if languageCode := sender.GetLanguage(); languageCode != "" {
+				botChatEntity.AddClientLanguage(languageCode)
+			}
+		}
 	}
 
 	log.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`,

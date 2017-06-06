@@ -69,10 +69,11 @@ type BotUserEntity struct {
 
 type BotChatEntity struct {
 	BotEntity
-	BotID             string `datastore:",noindex"`
+	BotID string `datastore:",noindex"`
 	//
-	Type              string `datastore:",noindex"`
-	Title             string `datastore:",noindex"`
+	IsGroup bool `datastore:",noindex"`
+	Type    string `datastore:",noindex"`
+	Title   string `datastore:",noindex"`
 	//
 	AwaitingReplyTo   string `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
@@ -81,6 +82,7 @@ type BotChatEntity struct {
 	InteractionsCount int
 	DtForbidden       time.Time
 	DtForbiddenLast   time.Time `datastore:",noindex"`
+	LanguageCodes     []string  `datastore:",noindex"` // UI languages
 }
 
 var _ BotChat = (*BotChatEntity)(nil)
@@ -89,8 +91,25 @@ func (e *BotChatEntity) GetBotID() string {
 	return e.BotID
 }
 
+func (e *BotChatEntity) IsGroupChat() bool {
+	return e.IsGroup
+}
+
+func (e *BotChatEntity) SetIsGroupChat(v bool) {
+	e.IsGroup = v
+}
+
 func (e *BotChatEntity) SetBotID(botID string) {
 	e.BotID = botID
+}
+
+func (e *BotChatEntity) AddClientLanguage(languageCode string) {
+	for _, lc := range e.LanguageCodes {
+		if lc == languageCode {
+			return
+		}
+	}
+	e.LanguageCodes = append(e.LanguageCodes, languageCode)
 }
 
 //func (e *BotChatEntity) GetBotUserIntID() int {

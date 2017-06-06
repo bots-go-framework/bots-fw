@@ -34,3 +34,7 @@ func (TelegramSender) Platform() string {
 func (TelegramSender) GetAvatar() string {
 	return ""
 }
+
+func (s TelegramSender) GetLanguage() string {
+	return s.tgUser.LanguageCode
+}

@@ -6,7 +6,7 @@ import (
 )
 
 type TelegramWebhookCallbackQuery struct {
-	telegramWebhookInput
+	TelegramWebhookInput
 	//callbackQuery *tgbotapi.CallbackQuery
 	//message       bots.WebhookMessage
 }
@@ -17,13 +17,13 @@ func (_ TelegramWebhookCallbackQuery) InputType() bots.WebhookInputType {
 	return bots.WebhookInputCallbackQuery
 }
 
-func NewTelegramWebhookCallbackQuery(input telegramWebhookInput) TelegramWebhookCallbackQuery {
+func NewTelegramWebhookCallbackQuery(input TelegramWebhookInput) TelegramWebhookCallbackQuery {
 	callbackQuery := input.update.CallbackQuery
 	if callbackQuery == nil {
 		panic("update.CallbackQuery == nil")
 	}
 	q := TelegramWebhookCallbackQuery{
-		telegramWebhookInput: input,
+		TelegramWebhookInput: input,
 	}
 	return q
 }
@@ -37,7 +37,7 @@ func (iq TelegramWebhookCallbackQuery) Sequence() int {
 }
 
 func (q TelegramWebhookCallbackQuery) GetMessage() bots.WebhookMessage {
-	return newTelegramWebhookMessage(q.telegramWebhookInput, q.update.CallbackQuery.Message)
+	return newTelegramWebhookMessage(q.TelegramWebhookInput, q.update.CallbackQuery.Message)
 }
 
 func (iq TelegramWebhookCallbackQuery) GetFrom() bots.WebhookSender {

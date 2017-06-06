@@ -41,6 +41,7 @@ type MessageFromBot struct {
 	Text                      string
 	Format                    MessageFormat
 	DisableWebPagePreview     bool
+	DisableNotification       bool
 													  //Keyboard              Keyboard
 	TelegramKeyboard          interface{} // TODO: cast to a specific interface?
 	ViberKeyboard             *viberinterface.Keyboard

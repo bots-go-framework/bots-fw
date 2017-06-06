@@ -71,6 +71,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			messageConfig.ChatID = m.TelegramChatID
 		}
 		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
+		messageConfig.DisableNotification = m.DisableNotification
 		switch m.Format {
 		case bots.MessageFormatHTML:
 			messageConfig.ParseMode = "HTML"

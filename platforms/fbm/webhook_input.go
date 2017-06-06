@@ -93,3 +93,7 @@ func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
 	fbmInput := FbmWebhookInput{messaging: messaging}
 	return FbmTextMessage{FbmWebhookInput: fbmInput}
 }
+
+func (whm FbmTextMessage) IsEdited() bool {
+	return false
+}

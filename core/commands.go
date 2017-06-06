@@ -16,7 +16,7 @@ const SHORT_TITLE = "short_title"
 //const LONG_TITLE = "long_title"
 
 type Command struct {
-	InputType      WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputType()
+	InputTypes     []WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
 	Icon           string
 	Replies        []Command
 	Code           string
@@ -37,7 +37,7 @@ func NewCallbackCommand(code string, action CallbackAction) Command {
 }
 
 func (c Command) String() string {
-	return fmt.Sprintf("Command{Code: '%v', InputType: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputType, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
+	return fmt.Sprintf("Command{Code: '%v', InputTypes: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputTypes, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
 }
 
 func (whcb *WebhookContextBase) CommandText(title, icon string) string {

@@ -5,7 +5,7 @@ import (
 )
 
 type TelegramWebhookInlineQuery struct {
-	telegramWebhookInput
+	TelegramWebhookInput
 }
 
 func (_ TelegramWebhookInlineQuery) InputType() bots.WebhookInputType {
@@ -14,8 +14,8 @@ func (_ TelegramWebhookInlineQuery) InputType() bots.WebhookInputType {
 
 var _ bots.WebhookInlineQuery = (*TelegramWebhookInlineQuery)(nil)
 
-func NewTelegramWebhookInlineQuery(input telegramWebhookInput) TelegramWebhookInlineQuery {
-	return TelegramWebhookInlineQuery{telegramWebhookInput: input}
+func NewTelegramWebhookInlineQuery(input TelegramWebhookInput) TelegramWebhookInlineQuery {
+	return TelegramWebhookInlineQuery{TelegramWebhookInput: input}
 }
 
 func (q TelegramWebhookInlineQuery) GetInlineQueryID() string {

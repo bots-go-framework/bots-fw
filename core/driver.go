@@ -47,12 +47,12 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	if botContext != nil {
 		env := botContext.BotSettings.Env
 		if env == strongo.EnvLocal && !strings.Contains(r.Host, "dev") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(r.Host, 'dev')")
+			log.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(router.Host, 'dev')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		if botContext.BotSettings.Env == strongo.EnvStaging && !strings.Contains(r.Host, "st1") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(r.Host, 'st1')")
+			log.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(router.Host, 'st1')")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -63,7 +63,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		} else {
-			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(r): %v", err)
+			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
 			//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
@@ -172,6 +172,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		case WebhookTextMessage:
 			sender := input.GetSender()
 			log.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+		case WebhookNewChatMembersMessage:
+			log.Infof(c, "NewChatMembers: %d", len(input.(WebhookNewChatMembersMessage).NewChatMembers()))
 		case WebhookContactMessage:
 			sender := input.GetSender()
 			log.Infof(c, "User#%v(%v %v) phone number: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookContactMessage).PhoneNumber())

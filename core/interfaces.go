@@ -18,7 +18,8 @@ type BotHost interface {
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 }
 
-type BotContext struct { // TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
+type BotContext struct {
+	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
 	BotHost     BotHost
 	BotSettings BotSettings
 }
@@ -28,7 +29,7 @@ func NewBotContext(host BotHost, settings BotSettings) *BotContext {
 		panic("Bot settings.Code is empty string")
 	}
 	return &BotContext{
-		BotHost: host,
+		BotHost:     host,
 		BotSettings: settings,
 	}
 }
@@ -41,8 +42,8 @@ type WebhookEntry interface {
 type WebhookInputType int
 
 const (
-	WebhookInputUnknown WebhookInputType = iota
-	WebhookInputText              // Facebook, Telegram, Viber
+	WebhookInputUnknown             WebhookInputType = iota
+	WebhookInputText                 // Facebook, Telegram, Viber
 	WebhookInputContact              // Facebook, Telegram, Viber
 	WebhookInputPostback
 	WebhookInputDelivery
@@ -54,26 +55,29 @@ const (
 	WebhookInputSubscribed           // Viber
 	WebhookInputUnsubscribed         // Viber
 	WebhookInputConversationStarted  // Viber
+	WebhookInputNewChatMembers       // Telegram groups
 )
 
 var WebhookInputTypeNames = map[WebhookInputType]string{
 	//WebhookInputContact:				  "Contact",
-	WebhookInputUnknown:            "unknown",
-	WebhookInputReferral:           "Referral",
-	WebhookInputText:               "Text",
-	WebhookInputContact:            "Contact",
-	WebhookInputPostback:           "Postback",
-	WebhookInputDelivery:           "Delivery",
-	WebhookInputAttachment:         "Attachment",
-	WebhookInputInlineQuery:        "InlineQuery",
-	WebhookInputCallbackQuery:      "CallbackQuery",
-	WebhookInputChosenInlineResult: "ChosenInlineResult",
-	WebhookInputSubscribed:          "Subscribed", // Viber
-	WebhookInputUnsubscribed:        "Unsubscribed", // Viber
-	WebhookInputConversationStarted: "ConversationStarted",
+	WebhookInputUnknown:             "unknown",
+	WebhookInputReferral:            "Referral",
+	WebhookInputText:                "Text",
+	WebhookInputContact:             "Contact",
+	WebhookInputPostback:            "Postback",
+	WebhookInputDelivery:            "Delivery",
+	WebhookInputAttachment:          "Attachment",
+	WebhookInputInlineQuery:         "InlineQuery",
+	WebhookInputCallbackQuery:       "CallbackQuery",
+	WebhookInputChosenInlineResult:  "ChosenInlineResult",
+	WebhookInputSubscribed:          "Subscribed",          // Viber
+	WebhookInputUnsubscribed:        "Unsubscribed",        // Viber
+	WebhookInputConversationStarted: "ConversationStarted", // Telegram
+	WebhookInputNewChatMembers:      "NewChatMembers",      // Telegram
 }
 
-type WebhookInput interface { // '/entry/messaging' for Facebook
+type WebhookInput interface {
+	// '/entry/messaging' for Facebook
 	GetSender() WebhookSender
 	GetRecipient() WebhookRecipient
 	GetTime() time.Time
@@ -82,11 +86,12 @@ type WebhookInput interface { // '/entry/messaging' for Facebook
 }
 
 type WebhookActor interface {
+	Platform() string
 	GetID() interface{}
 	GetFirstName() string
 	GetLastName() string
 	GetUserName() string
-	Platform() string
+	GetLanguage() string
 }
 
 type WebhookSender interface {
@@ -94,8 +99,8 @@ type WebhookSender interface {
 	WebhookActor
 }
 
-type WebhookUser interface {  // Extension to support language & country (Viber)
-	GetLanguage() string
+type WebhookUser interface {
+	// Extension to support language & country (Viber)
 	GetCountry() string
 	WebhookSender
 }
@@ -114,6 +119,7 @@ type WebhookMessage interface {
 type WebhookTextMessage interface {
 	WebhookMessage
 	Text() string
+	IsEdited() bool
 }
 
 type WebhookReferralMessage interface {
@@ -130,10 +136,14 @@ type WebhookContactMessage interface {
 	UserID() interface{}
 }
 
+type WebhookNewChatMembersMessage interface {
+	NewChatMembers() []WebhookActor
+}
+
 type WebhookChat interface {
 	GetID() string
-	GetFullName() string
 	GetType() string
+	IsGroupChat() bool
 }
 
 type WebhookPostback interface {

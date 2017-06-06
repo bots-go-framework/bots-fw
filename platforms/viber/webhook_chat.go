@@ -14,12 +14,12 @@ func (wh ViberWebhookChat) GetID() string {
 	return wh.viberUserID
 }
 
-func (wh ViberWebhookChat) GetFullName() string {
-	return ""
-}
-
 func (wh ViberWebhookChat) GetType() string {
 	return "private"
+}
+
+func (wh ViberWebhookChat) IsGroupChat() bool {
+	return false
 }
 
 func NewViberWebhookChat(viberUserID string) ViberWebhookChat {

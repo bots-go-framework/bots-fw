@@ -12,12 +12,12 @@ func (wh FbmWebhookChat) GetID() string {
 	return wh.ID
 }
 
-func (wh FbmWebhookChat) GetFullName() string {
-	return "not implemented"
+func (wh FbmWebhookChat) GetType() string {
+	return "private"
 }
 
-func (wh FbmWebhookChat) GetType() string {
-	return "not implemented"
+func (wh FbmWebhookChat) IsGroupChat() bool {
+	return false
 }
 
 func NewFbmWebhookChat(id string) FbmWebhookChat {

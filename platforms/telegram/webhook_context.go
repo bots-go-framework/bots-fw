@@ -17,7 +17,7 @@ type TelegramWebhookContext struct {
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
-	//input          telegramWebhookInput
+	//whi          TelegramWebhookInput
 }
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
@@ -63,7 +63,7 @@ func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, b
 	return &TelegramWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
-		//input: input,
+		//whi: whi,
 	}
 }
 
@@ -112,14 +112,14 @@ func (whc *TelegramWebhookContext) GetAppUser() (bots.BotAppUser, error) {
 
 func (whc *TelegramWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	return true
-	//if telegramChat, ok := whc.ChatEntity().(*TelegramChat); ok && telegramChat != nil {
-	//	return whc.Input().input.update.UpdateID > telegramChat.LastProcessedUpdateID
+	//if telegramChat, ok := whc.ChatEntity().(*TelegramChatEntity); ok && telegramChat != nil {
+	//	return whc.Input().whi.update.UpdateID > telegramChat.LastProcessedUpdateID
 	//}
 	//return false
 }
 
 func (whc *TelegramWebhookContext) NewChatEntity() bots.BotChat {
-	return new(TelegramChat)
+	return new(TelegramChatEntity)
 }
 
 func (whc *TelegramWebhookContext) getTelegramSenderID() int {
@@ -150,9 +150,9 @@ func (tc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageConf
 
 func (tc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
 	return nil
-	//if telegramChat, ok := chatEntity.(*TelegramChat); ok {
-	//	telegramChat.LastProcessedUpdateID = tc.input.update.UpdateID
+	//if telegramChat, ok := chatEntity.(*TelegramChatEntity); ok {
+	//	telegramChat.LastProcessedUpdateID = tc.whi.update.UpdateID
 	//	return nil
 	//}
-	//return errors.New(fmt.Sprintf("Expected *TelegramChat, got: %T", chatEntity))
+	//return errors.New(fmt.Sprintf("Expected *TelegramChatEntity, got: %T", chatEntity))
 }

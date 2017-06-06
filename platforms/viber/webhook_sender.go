@@ -35,6 +35,10 @@ func (_ ViberSender) Platform() string {
 	return ViberPlatformID
 }
 
+func (_ ViberSender) GetLanguage() string {
+	return "" // TODO: Check if we can return actual
+}
+
 func newViberSender(sender viberinterface.CallbackSender) ViberSender {
 	return ViberSender{sender: sender}
 }

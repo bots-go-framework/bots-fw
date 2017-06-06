@@ -22,11 +22,10 @@ func NewGaeTelegramChatStore() *GaeTelegramChatStore {
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(telegram_bot.TelegramChatKind),
 			newBotChatEntity: func() bots.BotChat {
-				telegramChat := telegram_bot.NewTelegramChat()
-				return &telegramChat
+				return telegram_bot.NewTelegramChatEntity()
 			},
 			validateBotChatEntityType: func(entity bots.BotChat) {
-				if _, ok := entity.(*telegram_bot.TelegramChat); !ok {
+				if _, ok := entity.(*telegram_bot.TelegramChatEntity); !ok {
 					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))
 				}
 			},
@@ -41,7 +40,7 @@ func NewGaeTelegramChatStore() *GaeTelegramChatStore {
 func MarkTelegramChatAsForbidden(c context.Context, botID string, tgChatID int64, dtForbidden time.Time) error {
 	return nds.RunInTransaction(c, func(c context.Context) (err error) {
 		key := datastore.NewKey(c, telegram_bot.TelegramChatKind, bots.NewChatID(botID, strconv.FormatInt(tgChatID, 10)), 0, nil)
-		var chat telegram_bot.TelegramChat
+		var chat telegram_bot.TelegramChatEntity
 		if err = nds.Get(c, key, &chat); err != nil {
 			return
 		}

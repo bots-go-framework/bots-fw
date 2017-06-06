@@ -42,7 +42,7 @@ func (entity *TelegramUser) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *TelegramChat) TelegramUser() (properties []datastore.Property, err error) {
+func (entity *TelegramChatEntity) TelegramUser() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}

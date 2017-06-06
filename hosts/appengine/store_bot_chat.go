@@ -41,7 +41,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 			if s.entityKind == "TgChat" { // TODO: Remove workaround to fix old entities
 				var tgChatID int64
 				if tgChatID, err = strconv.ParseInt(botChatID, 10, 64); err != nil {
-					err = errors.Wrap(err, "Failet to parse botChatID to int")
+					err = errors.Wrap(err, "Failed to parse botChatID to int")
 					return
 				} else {
 					intKey := datastore.NewKey(c, s.entityKind, "", tgChatID, nil)
@@ -88,15 +88,20 @@ func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string
 	return err
 }
 
-func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botChatId string, appUserID int64, botUserID string, isAccessGranted bool) bots.BotChat {
-	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
-	botChat := s.newBotChatEntity()
-	botChat.SetAppUserIntID(appUserID)
-	botChat.SetBotUserID(botUserID)
-	botChat.SetAccessGranted(isAccessGranted)
-	botChat.SetBotID(botID)
-	s.botChats[s.NewBotChatKey(c, botID, botChatId).StringID()] = botChat // TODO: No need to create a key instance, create dedicated func to create ID?
-	return botChat
+func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botChat bots.WebhookChat, appUserID int64, botUserID string, isAccessGranted bool) bots.BotChat {
+	botChatId := botChat.GetID()
+	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID)
+	botChatEntity := s.newBotChatEntity()
+	botChatEntity.SetBotID(botID)
+	botChatEntity.SetAppUserIntID(appUserID)
+	if botChat.IsGroupChat() {
+		botChatEntity.SetIsGroupChat(true)
+	} else {
+		botChatEntity.SetBotUserID(botUserID)
+	}
+	botChatEntity.SetAccessGranted(isAccessGranted)
+	s.botChats[s.NewBotChatKey(c, botID, botChatId).StringID()] = botChatEntity // TODO: No need to create a key instance, create dedicated func to create ID?
+	return botChatEntity
 }
 
 func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChatEntity

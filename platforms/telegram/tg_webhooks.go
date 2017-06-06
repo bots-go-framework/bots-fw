@@ -15,6 +15,7 @@ import (
 	//"bytes"
 	"strings"
 	"time"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -119,7 +120,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		log.Debugf(c, "Request len(body): %v", len(bodyBytes))
 	}
 	var update tgbotapi.Update
-	err = json.Unmarshal(bodyBytes, &update)
+	err = ffjson.UnmarshalFast(bodyBytes, &update)
 	if err != nil {
 		if ute, ok := err.(*json.UnmarshalTypeError); ok {
 			log.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
@@ -133,7 +134,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	input := NewTelegramWebhookInput(update)
 	if input == nil {
-		err = errors.New("Unexpected input")
+		err = errors.New("Unexpected whi")
 		return
 	}
 	entriesWithInputs = []bots.EntryInputs{

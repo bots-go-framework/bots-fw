@@ -14,7 +14,7 @@ func (_ TelegramWebhookContactMessage) InputType() bots.WebhookInputType {
 
 var _ bots.WebhookContactMessage = (*TelegramWebhookContactMessage)(nil)
 
-func NewTelegramWebhookContact(input telegramWebhookInput) TelegramWebhookContactMessage {
+func NewTelegramWebhookContact(input TelegramWebhookInput) TelegramWebhookContactMessage {
 	return TelegramWebhookContactMessage{telegramWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
 }
 

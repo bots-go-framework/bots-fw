@@ -13,17 +13,16 @@ const (
 	TelegramChatKind = "TgChat"
 )
 
-
-type TelegramChat struct {
+type TelegramChatEntity struct {
 	bots.BotChatEntity
 	TelegramUserID        int
 	LastProcessedUpdateID int `datastore:",noindex"`
 }
 
-var _ bots.BotChat = (*TelegramChat)(nil)
+var _ bots.BotChat = (*TelegramChatEntity)(nil)
 
-func NewTelegramChat() TelegramChat {
-	return TelegramChat{
+func NewTelegramChatEntity() *TelegramChatEntity {
+	return &TelegramChatEntity{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
 				OwnedByUser: bots.OwnedByUser{
@@ -34,11 +33,11 @@ func NewTelegramChat() TelegramChat {
 	}
 }
 
-func (entity *TelegramChat) SetAppUserIntID(id int64) {
+func (entity *TelegramChatEntity) SetAppUserIntID(id int64) {
 	entity.AppUserIntID = id
 }
 
-func (entity *TelegramChat) SetBotUserID(id interface{}) {
+func (entity *TelegramChatEntity) SetBotUserID(id interface{}) {
 	switch id.(type) {
 	case string:
 		var err error
@@ -55,11 +54,11 @@ func (entity *TelegramChat) SetBotUserID(id interface{}) {
 	}
 }
 
-func (entity *TelegramChat) Load(ps []datastore.Property) error {
+func (entity *TelegramChatEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *TelegramChat) Save() (properties []datastore.Property, err error) {
+func (entity *TelegramChatEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}

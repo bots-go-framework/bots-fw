@@ -23,3 +23,6 @@ func (whm ViberWebhookTextMessage) Text() string {
 	return whm.m.Message.Text
 }
 
+func (whm ViberWebhookTextMessage) IsEdited() bool {
+	return false
+}

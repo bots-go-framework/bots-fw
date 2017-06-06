@@ -17,5 +17,11 @@ func (e TelegramWebhookEntry) GetID() interface{} {
 }
 
 func (e TelegramWebhookEntry) GetTime() time.Time {
-	return e.update.Message.Time()
+	if e.update.Message != nil {
+		return e.update.Message.Time()
+	}
+	if e.update.EditedMessage != nil {
+		return e.update.EditedMessage.Time()
+	}
+	panic("Both `update.Message` & `update.EditedMessage` are nil.")
 }

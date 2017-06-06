@@ -16,10 +16,10 @@ func (wh TelegramWebhookChat) GetID() string {
 	return strconv.FormatInt(wh.chat.ID, 10)
 }
 
-func (wh TelegramWebhookChat) GetFullName() string {
+func (wh TelegramWebhookChat) GetType() string {
 	return wh.chat.Type
 }
 
-func (wh TelegramWebhookChat) GetType() string {
-	return wh.chat.Title
+func (wh TelegramWebhookChat) IsGroupChat() bool {
+	return !wh.chat.IsPrivate()
 }

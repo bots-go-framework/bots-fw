@@ -12,11 +12,15 @@ type BotChat interface {
 	GetAppUserIntID() int64
 	SetAppUserIntID(id int64)
 
+	AddClientLanguage(languageCode string)
+
 	//GetBotUserIntID() int
 	//GetBotUserStringID() string
 	SetBotUserID(id interface{})
+	SetIsGroupChat(bool)
 
 	IsAccessGranted() bool
+	IsGroupChat() bool
 	SetAccessGranted(value bool) bool
 
 	GetPreferredLanguage() string
@@ -38,7 +42,7 @@ type BotChat interface {
 type BotChatStore interface {
 	GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error)
 	SaveBotChat(c context.Context, botID, botChatID string, chatEntity BotChat) error
-	NewBotChatEntity(c context.Context, botID string, botChatId string, appUserID int64, botUserID string, isAccessGranted bool) BotChat
+	NewBotChatEntity(c context.Context, botID string, botChat WebhookChat, appUserID int64, botUserID string, isAccessGranted bool) BotChat
 	//AddChat(chat BotChat)
 	//RemoveChat(chat BotChat)
 	Close(c context.Context) error // TODO: Was io.Closer, should it?
