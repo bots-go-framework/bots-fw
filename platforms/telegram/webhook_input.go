@@ -7,7 +7,7 @@ import (
 )
 
 type TelegramWebhookInput struct {
-	update    tgbotapi.Update
+	update tgbotapi.Update
 }
 
 type TelegramWebhookUpdateProvider interface {
@@ -32,23 +32,6 @@ func (whi TelegramWebhookInput) GetID() interface{} {
 func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 	input := TelegramWebhookInput{update: update}
 	switch {
-	case update.Message != nil:
-		switch {
-		case update.Message.Text != "":
-			return NewTelegramWebhookTextMessage(input)
-		case update.Message.Contact != nil:
-			return NewTelegramWebhookContact(input)
-		case update.Message.NewChatMembers != nil:
-			return NewTelegramWebhookNewChatMembersMessage(input)
-		default:
-			return nil // TODO: Should we log it properly?
-			//panic("Unexpected content of update.Message (Text is empty and no Contact)")
-		}
-	case update.EditedMessage != nil:
-		if update.EditedMessage.Text == "" {
-			panic("Unsupported EditedMessage type")
-		}
-		return NewTelegramWebhookTextMessage(input)
 	case update.InlineQuery != nil:
 		return NewTelegramWebhookInlineQuery(input)
 	case update.CallbackQuery != nil:
@@ -56,7 +39,31 @@ func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 	case update.ChosenInlineResult != nil:
 		return NewTelegramWebhookChosenInlineResult(input)
 	default:
-		return nil
+		message2input := func(tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
+			switch {
+			case update.Message.Text != "":
+				return NewTelegramWebhookTextMessage(input, tgMessageType, tgMessage)
+			case update.Message.Contact != nil:
+				return NewTelegramWebhookContact(input)
+			case update.Message.NewChatMembers != nil:
+				return NewTelegramWebhookNewChatMembersMessage(input)
+			default:
+				return nil // TODO: Should we log it properly?
+				//panic("Unexpected content of update.Message (Text is empty and no Contact)")
+			}
+		}
+		switch {
+		case update.Message != nil:
+			return message2input(TelegramMessageTypeRegular, update.Message)
+		case update.EditedMessage != nil:
+			return message2input(TelegramMessageTypeEdited, update.EditedMessage)
+		case update.ChannelPost != nil:
+			return message2input(TelegramMessageTypeChannelPost, update.ChannelPost)
+		case update.EditedChannelPost != nil:
+			return message2input(TelegramMessageTypeEditedChannelPost, update.EditedChannelPost)
+		default:
+			return nil
+		}
 	}
 }
 
@@ -112,9 +119,9 @@ func (whi TelegramWebhookInput) Chat() bots.WebhookChat {
 			chat: update.Message.Chat,
 		}
 	} else if update.EditedMessage != nil {
-			return TelegramWebhookChat{
-				chat: update.EditedMessage.Chat,
-			}
+		return TelegramWebhookChat{
+			chat: update.EditedMessage.Chat,
+		}
 	} else {
 		callbackQuery := update.CallbackQuery
 		if callbackQuery != nil && callbackQuery.Message != nil {

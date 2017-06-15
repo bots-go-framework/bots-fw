@@ -42,10 +42,14 @@ func (v *TypeCommands) addCommand(i int, command Command) {
 
 type WebhooksRouter struct {
 	commandsByType map[WebhookInputType]*TypeCommands
+	errorFooterText func() string
 }
 
-func NewWebhookRouter(commandsByType map[WebhookInputType][]Command) *WebhooksRouter {
-	r := &WebhooksRouter{commandsByType: make(map[WebhookInputType]*TypeCommands, len(commandsByType))}
+func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) *WebhooksRouter {
+	r := &WebhooksRouter{
+		commandsByType: make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
+		errorFooterText: errorFooterText,
+	}
 
 	if commandsByType != nil {
 		for commandType, commands := range commandsByType {
@@ -109,16 +113,14 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, parentPath string, commands []Command) (matchedCommand *Command) {
 	var (
 		messageText, messageTextLowerCase string
-		awaitingReplyCommand Command
+		awaitingReplyCommand              Command
 	)
-
 
 	c := whc.Context()
 
 	if parentPath == "" {
 		log.Debugf(c, "matchMessageCommands()")
 	}
-
 
 	if textMessage, ok := input.(WebhookTextMessage); ok {
 		messageText = textMessage.Text()
@@ -200,8 +202,6 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 		matchedCommand = nil
 		//log.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
 	}
-
-	log.Debugf(c, "matchedCommand: %v", matchedCommand)
 	return
 }
 
@@ -244,22 +244,25 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		log.Warningf(c, logMessage)
 		err := errors.New(logMessage)
 		var m MessageFromBot
-		processCommandResponse(nil, responder, whc, m, err)
+		router.processCommandResponse(nil, responder, whc, m, err)
 	} else {
 		logMessage += fmt.Sprintf(", len(commandsToMatch): %v", len(typeCommands.all))
 		log.Debugf(c, logMessage)
 
 		var (
 			matchedCommand *Command
-			commandAction CommandAction
-			err error
-			m MessageFromBot
+			commandAction  CommandAction
+			err            error
+			m              MessageFromBot
 		)
 		switch input.(type) {
 		case WebhookCallbackQuery:
 			var callbackUrl *url.URL
 			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
 			if err == nil {
+				if matchedCommand != nil {
+					log.Debugf(c, "matchCallbackCommands() => matchedCommand: %v", matchedCommand)
+				}
 				if matchedCommand.Code == "" {
 					err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).Code is empty string", matchedCommand, matchedCommand))
 				} else {
@@ -279,6 +282,9 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			}
 			if matchedCommand == nil {
 				matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
+				if matchedCommand != nil {
+					log.Debugf(c, "router.matchMessageCommands() => matchedCommand: %v", matchedCommand)
+				}
 			}
 			if matchedCommand != nil {
 				commandAction = matchedCommand.Action
@@ -291,19 +297,22 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			commandAction = matchedCommand.Action
 		}
 		if err != nil {
-			processCommandResponse(matchedCommand, responder, whc, m, err)
+			router.processCommandResponse(matchedCommand, responder, whc, m, err)
 			return
 		}
 
 		if matchedCommand == nil {
-			if !whc.Chat().IsGroupChat() {
+			if whc.Chat().IsGroupChat() {
+				m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+				router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			} else {
 				m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
 				chatEntity := whc.ChatEntity()
 				if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
 					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 				}
 				log.Infof(c, "No command found for the message: %v", input)
-				processCommandResponse(matchedCommand, responder, whc, m, nil)
+				router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			}
 		} else {
 			if matchedCommand.Code == "" {
@@ -317,12 +326,12 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			} else {
 				m, err = commandAction(whc)
 			}
-			processCommandResponse(matchedCommand, responder, whc, m, err)
+			router.processCommandResponse(matchedCommand, responder, whc, m, err)
 		}
 	}
 }
 
-func processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 
 	c := whc.Context()
 	gaMeasurement := whc.GaMeasurement()
@@ -331,7 +340,7 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 	env := whc.GetBotSettings().Env
 	if err == nil {
 		log.Infof(c, "processCommandResponse(): Bot response message: %v", m)
-		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverResponse); err != nil {
+		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
 			log.Errorf(c, errors.Wrap(err, "Failed to send a message to messenger").Error()) //TODO: Decide how do we handle it
 		}
 		if matchedCommand != nil {
@@ -372,8 +381,20 @@ func processCommandResponse(matchedCommand *Command, responder WebhookResponder,
 		inputType := whc.InputType()
 		if inputType == WebhookInputText || inputType == WebhookInputContact {
 			// Todo: Try to get chat ID from user?
-			_, respErr := responder.SendMessage(c, whc.NewMessage(whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG)+"\n\n"+emoji.ERROR_ICON+fmt.Sprintf(" Server error - failed to process message: %v", err)), BotApiSendMessageOverResponse)
-			if respErr != nil {
+			m := whc.NewMessage(
+				whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG)+
+					"\n\n" +
+					emoji.ERROR_ICON +
+					fmt.Sprintf(" Server error - failed to process message: %v", err),
+			)
+
+			if router.errorFooterText != nil {
+				if footer := router.errorFooterText(); footer != "" {
+					m.Text += "\n\n" + footer
+				}
+			}
+
+			if _, respErr := responder.SendMessage(c, m, BotApiSendMessageOverResponse); respErr != nil {
 				log.Errorf(c, "Failed to report to user a server error: %v", respErr)
 			}
 		}

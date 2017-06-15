@@ -273,7 +273,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
-		log.Debugf(c, "GetBotChatEntityByID() returned err == nil")
+		log.Debugf(c, "GetBotChatEntityByID() returned => AwaitingReplyTo: %v", botChatEntity.GetAwaitingReplyTo())
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")

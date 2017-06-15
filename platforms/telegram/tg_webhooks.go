@@ -106,7 +106,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		return
 	}
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
-	if len(bodyBytes) < 1024 * 3 {
+	if len(bodyBytes) < 1024 * 10 {
 		s := string(bodyBytes)
 		s = strings.Replace(s, `,"`, ",\n\"" , -1)
 		s = strings.Replace(s, `:{`, `:{` + "\n", -1)
@@ -134,7 +134,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	input := NewTelegramWebhookInput(update)
 	if input == nil {
-		err = errors.New("Unexpected whi")
+		err = errors.New("Unexpected Telegram message")
 		return
 	}
 	entriesWithInputs = []bots.EntryInputs{

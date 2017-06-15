@@ -19,21 +19,24 @@ type WebhookDriver interface {
 }
 
 type BotDriver struct {
-	GaSettings GaSettings
-	botHost    BotHost
-	appContext BotAppContext
-	router     *WebhooksRouter
+	GaSettings      GaSettings
+	botHost         BotHost
+	appContext      BotAppContext
+	router          *WebhooksRouter
+	panicTextFooter string
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
 type GaSettings struct {
 	TrackingID string
-	Enabled func(r *http.Request) bool
+	Enabled    func(r *http.Request) bool
 }
 
-func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter) WebhookDriver {
-	return BotDriver{GaSettings: gaSettings, appContext: appContext, botHost: host, router: router}
+func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter, panicTextFooter string) WebhookDriver {
+	return BotDriver{GaSettings: gaSettings, appContext: appContext, botHost: host, router: router,
+		panicTextFooter:          panicTextFooter,
+	}
 }
 
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
@@ -43,18 +46,21 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
 
-
 	if botContext != nil {
 		env := botContext.BotSettings.Env
-		if env == strongo.EnvLocal && !strings.Contains(r.Host, "dev") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Development && !strings.Contains(router.Host, 'dev')")
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		if botContext.BotSettings.Env == strongo.EnvStaging && !strings.Contains(r.Host, "st1") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Staging && !strings.Contains(router.Host, 'st1')")
-			w.WriteHeader(http.StatusBadRequest)
-			return
+		switch env {
+		case strongo.EnvLocal:
+			if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
+				log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+		case strongo.EnvProduction:
+			if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
+				log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -80,10 +86,10 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 
 	var (
-		whc WebhookContext // TODO: How do deal with Facebook multiple entries per request?
+		whc           WebhookContext // TODO: How do deal with Facebook multiple entries per request?
 		gaMeasurement *measurement.BufferedSender
 	)
-	{  // Initiate Google Analytics Measurement API client
+	{ // Initiate Google Analytics Measurement API client
 		var sendStats bool
 		if d.GaSettings.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
@@ -105,7 +111,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
 		gaMeasurement.Queue(measurement.NewTiming(time.Now().Sub(started)))
 		if recovered := recover(); recovered != nil {
-			messageText := fmt.Sprintf("Server error (panic): %v", recovered)
+			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
 			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
 			if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
@@ -132,7 +138,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				}
 			}
 
-			if whc != nil && whc.BotChatID() != ""{
+			if whc != nil && whc.BotChatID() != "" {
 				whc.Responder().SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse)
 			}
 		} else if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
