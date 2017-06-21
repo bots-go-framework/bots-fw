@@ -108,11 +108,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		} else {
 			indentedJsonStr = string(jsonStr)
 		}
-		vals, err := chattable.Values()
-		if err != nil {
-			//pass?
-		}
-		log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
+		//vals, err := chattable.Values()
+		//if err != nil {
+		//	//pass?
+		//}
+		//log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
+		log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJsonStr)
 	}
 
 	//if values, err := chattable.Values(); err != nil {
