@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"github.com/strongo/app/log"
+	"bytes"
 )
 
 type TelegramWebhookResponder struct {
@@ -100,11 +101,18 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		log.Errorf(c, "Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
 		return resp, err
 	} else {
+		var indentedJson bytes.Buffer
+		var indentedJsonStr string
+		if indentedErr := json.Indent(&indentedJson, jsonStr, "", "\t"); indentedErr == nil {
+			indentedJsonStr = indentedJson.String()
+		} else {
+			indentedJsonStr = string(jsonStr)
+		}
 		vals, err := chattable.Values()
 		if err != nil {
 			//pass?
 		}
-		log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, string(jsonStr), vals.Encode())
+		log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
 	}
 
 	//if values, err := chattable.Values(); err != nil {

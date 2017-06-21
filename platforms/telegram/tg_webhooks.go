@@ -13,9 +13,9 @@ import (
 	"github.com/strongo/app/log"
 	//"github.com/kylelemons/go-gypsy/yaml"
 	//"bytes"
-	"strings"
 	"time"
 	"github.com/pquerna/ffjson/ffjson"
+	"bytes"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -107,10 +107,13 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	}
 	bodyBytes, _ := ioutil.ReadAll(r.Body)
 	if len(bodyBytes) < 1024 * 10 {
-		s := string(bodyBytes)
-		s = strings.Replace(s, `,"`, ",\n\"" , -1)
-		s = strings.Replace(s, `:{`, `:{` + "\n", -1)
-		log.Debugf(c, "Request body: %v", s)
+		var bodyToLog bytes.Buffer
+		if indentErr := json.Indent(&bodyToLog, bodyBytes, "", "\t"); indentErr == nil {
+			log.Debugf(c, "Request body: %v", bodyToLog.String())
+		} else {
+			log.Debugf(c, "Request body: %v", string(bodyBytes))
+		}
+
 		//if node, err := yaml.Parse(bytes.NewReader(bodyBytes)); err != nil {
 		//	log.Debugf(c, "Request body: %v", (string)(bodyBytes))
 		//} else {

@@ -40,6 +40,10 @@ func (q TelegramWebhookCallbackQuery) GetMessage() bots.WebhookMessage {
 	return newTelegramWebhookMessage(q.TelegramWebhookInput, q.update.CallbackQuery.Message)
 }
 
+func (q TelegramWebhookCallbackQuery) TelegramCallbackMessage() *tgbotapi.Message {
+	return q.update.CallbackQuery.Message
+}
+
 func (iq TelegramWebhookCallbackQuery) GetFrom() bots.WebhookSender {
 	return TelegramSender{tgUser: iq.update.CallbackQuery.From}
 }
