@@ -21,7 +21,7 @@ type ViberWebhookContext struct {
 
 var _ bots.WebhookContext = (*ViberWebhookContext)(nil)
 
-func (whc *ViberWebhookContext) NewEditCallbackMessage(messageText string) bots.MessageFromBot {
+func (whc *ViberWebhookContext) NewEditCallbackMessage(messageText string) (bots.MessageFromBot, error) {
 	panic("Not supported by Viber")
 }
 
@@ -41,12 +41,12 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 	}
 }
 
-func (tc ViberWebhookContext) Close(c context.Context) error {
+func (whc *ViberWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (tc ViberWebhookContext) Responder() bots.WebhookResponder {
-	return tc.responder
+func (whc *ViberWebhookContext) Responder() bots.WebhookResponder {
+	return whc.responder
 }
 
 type ViberBotApiUser struct {
@@ -99,7 +99,7 @@ func (whc *ViberWebhookContext) getViberSenderID() string {
 	panic("string expected")
 }
 
-func (tc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
+func (whc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
 	if _, ok := chatEntity.(*ViberUserChatEntity); ok {
 		//viberChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
 		return nil

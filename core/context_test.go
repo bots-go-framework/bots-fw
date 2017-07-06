@@ -118,7 +118,7 @@ func (whc TestWebhookContext) NewMessageByCode(messageCode string, a ...interfac
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) NewEditCallbackMessage(messageText string) MessageFromBot {
+func (whc TestWebhookContext) NewEditCallbackMessage(messageText string) (MessageFromBot, error) {
 	panic("Not implemented")
 }
 

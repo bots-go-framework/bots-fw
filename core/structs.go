@@ -1,5 +1,7 @@
 package bots
 
+//go:generate ffjson $GOFILE
+
 import (
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-telegram"
@@ -38,23 +40,23 @@ const (
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
-	Text                      string
-	Format                    MessageFormat
-	DisableWebPagePreview     bool
-	DisableNotification       bool
+	Text                      string `json:",omitempty"`
+	Format                    MessageFormat `json:",omitempty"`
+	DisableWebPagePreview     bool `json:",omitempty"`
+	DisableNotification       bool `json:",omitempty"`
 													  //Keyboard              Keyboard
-	TelegramKeyboard          interface{} // TODO: cast to a specific interface?
-	ViberKeyboard             *viberinterface.Keyboard
-	FbmAttachment				  *fbm_api.RequestAttachment
+	TelegramKeyboard          interface{} `json:",omitempty"` // TODO: cast to a specific interface?
+	ViberKeyboard             *viberinterface.Keyboard `json:",omitempty"`
+	FbmAttachment				  *fbm_api.RequestAttachment `json:",omitempty"`
 													  // TODO: One of this 2 is duplicate!?
-	TelegramInlineConfig      *tgbotapi.InlineConfig
+	TelegramInlineConfig      *tgbotapi.InlineConfig `json:",omitempty"`
 													  //TelegramInlineAnswer      *tgbotapi.InlineConfig
-	TelegramCallbackAnswer    *tgbotapi.CallbackConfig
+	TelegramCallbackAnswer    *tgbotapi.CallbackConfig `json:",omitempty"`
 													  //
-	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig
-	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig
-	TelegramChatID            int64
-	IsReplyToInputMessage     bool
+	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig `json:",omitempty"`
+	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig `json:",omitempty"`
+	TelegramChatID            int64 `json:",omitempty"`
+	IsReplyToInputMessage     bool `json:",omitempty"`
 }
 
 //type Keyboard interface {

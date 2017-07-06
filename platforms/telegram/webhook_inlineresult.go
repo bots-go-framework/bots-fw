@@ -28,7 +28,10 @@ func (q TelegramWebhookChosenInlineResult) GetQuery() string {
 }
 
 func (q TelegramWebhookChosenInlineResult) GetInlineMessageID() string {
-	return q.update.ChosenInlineResult.InlineMessageID
+	if q.update.ChosenInlineResult != nil {
+		return q.update.ChosenInlineResult.InlineMessageID
+	}
+	return ""
 }
 
 func (iq TelegramWebhookChosenInlineResult) GetFrom() bots.WebhookSender {

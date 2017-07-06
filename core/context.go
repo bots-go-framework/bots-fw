@@ -44,7 +44,7 @@ type WebhookContext interface {
 
 	NewMessage(text string) MessageFromBot
 	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
-	NewEditCallbackMessage(messageText string) MessageFromBot
+	NewEditCallbackMessage(messageText string) (MessageFromBot, error)
 	//NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
 	GetHttpClient() *http.Client

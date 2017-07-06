@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"github.com/strongo/app/log"
 	"bytes"
+	"github.com/pkg/errors"
 )
 
 type TelegramWebhookResponder struct {
@@ -35,11 +36,23 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		r.whc.BotContext.BotSettings.Token,
 		r.whc.GetHttpClient(),
 	)
+
+	parseMode := func() string {
+		switch m.Format {
+		case bots.MessageFormatHTML:
+			return "HTML"
+		case bots.MessageFormatMarkdown:
+			return  "Markdown"
+		}
+		return ""
+	}
+
+	tgUpdate := r.whc.Input().(TelegramWebhookUpdateProvider).TgUpdate()
+
 	botApi.EnableDebug(c)
 	if m.TelegramCallbackAnswer != nil {
 		log.Debugf(c, "Inline answer")
-		input := r.whc.Input().(TelegramWebhookUpdateProvider)
-		m.TelegramCallbackAnswer.CallbackQueryID = input.TgUpdate().CallbackQuery.ID
+		m.TelegramCallbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
 
 		chattable = m.TelegramCallbackAnswer
 		jsonStr, err := json.Marshal(chattable)
@@ -59,29 +72,35 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			m.TelegramEditMessageText.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
 		}
 		chattable = m.TelegramEditMessageText
-	} else if m.TelegramEditMessageMarkup != nil {
+	} else  if m.TelegramEditMessageMarkup != nil {
 		chattable = m.TelegramEditMessageMarkup
 	} else if m.TelegramInlineConfig != nil {
 		chattable = m.TelegramInlineConfig
 	} else if m.Text != "" {
-		if m.Text == bots.NoMessageToSend {
-			return
-		}
-		messageConfig := r.whc.NewTgMessage(m.Text)
-		if m.TelegramChatID != 0 {
-			messageConfig.ChatID = m.TelegramChatID
-		}
-		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
-		messageConfig.DisableNotification = m.DisableNotification
-		switch m.Format {
-		case bots.MessageFormatHTML:
-			messageConfig.ParseMode = "HTML"
-		case bots.MessageFormatMarkdown:
-			messageConfig.ParseMode = "Markdown"
-		}
-		messageConfig.ReplyMarkup = m.TelegramKeyboard
+		if tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0 {
+			editMessageTextConfig := tgbotapi.EditMessageTextConfig{
+				BaseEdit: tgbotapi.BaseEdit{InlineMessageID: tgUpdate.CallbackQuery.InlineMessageID},
+				Text: m.Text,
+				ParseMode: parseMode(),
+				DisableWebPagePreview: m.DisableWebPagePreview,
+			}
+			editMessageTextConfig.ReplyMarkup, _ = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+			chattable = editMessageTextConfig
+		} else {
+			if m.Text == bots.NoMessageToSend {
+				return
+			}
+			messageConfig := r.whc.NewTgMessage(m.Text)
+			if m.TelegramChatID != 0 {
+				messageConfig.ChatID = m.TelegramChatID
+			}
+			messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
+			messageConfig.DisableNotification = m.DisableNotification
+			messageConfig.ReplyMarkup = m.TelegramKeyboard
+			messageConfig.ParseMode = parseMode()
 
-		chattable = messageConfig
+			chattable = messageConfig
+		}
 	} else {
 		switch r.whc.InputType() {
 		case bots.WebhookInputInlineQuery: // pass
@@ -131,7 +150,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		return resp, err
 	case bots.BotApiSendMessageOverHTTPS:
 		if message, err := botApi.Send(chattable); err != nil {
-			log.Errorf(c, "Failed to send message to Telegram using HTTPS API: %v", err)
+			log.Errorf(c, errors.Wrap(err, "Failed to send message to Telegram using HTTPS API").Error())
 			return resp, err
 		} else {
 			log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
