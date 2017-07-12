@@ -52,7 +52,9 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	botApi.EnableDebug(c)
 	if m.TelegramCallbackAnswer != nil {
 		log.Debugf(c, "Inline answer")
-		m.TelegramCallbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
+		if m.TelegramCallbackAnswer.CallbackQueryID == "" && tgUpdate.CallbackQuery != nil {
+			m.TelegramCallbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
+		}
 
 		chattable = m.TelegramCallbackAnswer
 		jsonStr, err := json.Marshal(chattable)

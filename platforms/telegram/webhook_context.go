@@ -37,8 +37,24 @@ func (twhc *TelegramWebhookContext) NewEditCallbackMessageTextAndKeyboard(text s
 	)
 
 	if inlineMessageID := update.CallbackQuery.InlineMessageID; inlineMessageID == "" {
-		messageID = update.Message.MessageID
-		chatID = update.Message.Chat.ID
+		if update.Message != nil {
+			messageID = update.Message.MessageID
+			chatID = update.Message.Chat.ID
+		} else if update.CallbackQuery.Message != nil {
+			messageID = update.CallbackQuery.Message.MessageID
+			chatID = update.CallbackQuery.Message.Chat.ID
+		} else if update.EditedMessage != nil {
+			messageID = update.EditedMessage.MessageID
+			chatID = update.EditedMessage.Chat.ID
+		} else if update.ChannelPost != nil {
+			messageID = update.ChannelPost.MessageID
+			chatID = update.ChannelPost.Chat.ID
+		} else if update.ChosenInlineResult.InlineMessageID == "" {
+			inlineMessageID = update.ChosenInlineResult.InlineMessageID
+		} else if update.EditedChannelPost != nil {
+			messageID = update.EditedChannelPost.MessageID
+			chatID = update.EditedChannelPost.Chat.ID
+		}
 	}
 	if text == "" {
 		editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, kbMarkup)

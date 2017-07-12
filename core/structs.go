@@ -51,7 +51,7 @@ type MessageFromBot struct {
 													  // TODO: One of this 2 is duplicate!?
 	TelegramInlineConfig      *tgbotapi.InlineConfig `json:",omitempty"`
 													  //TelegramInlineAnswer      *tgbotapi.InlineConfig
-	TelegramCallbackAnswer    *tgbotapi.CallbackConfig `json:",omitempty"`
+	TelegramCallbackAnswer    *tgbotapi.AnswerCallbackQueryConfig `json:",omitempty"`
 													  //
 	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig `json:",omitempty"`
 	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig `json:",omitempty"`

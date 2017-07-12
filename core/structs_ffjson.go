@@ -1620,7 +1620,7 @@ handle_TelegramCallbackAnswer:
 		}
 
 		if uj.TelegramCallbackAnswer == nil {
-			uj.TelegramCallbackAnswer = new(tgbotapi.CallbackConfig)
+			uj.TelegramCallbackAnswer = new(tgbotapi.AnswerCallbackQueryConfig)
 		}
 
 		err = uj.TelegramCallbackAnswer.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
