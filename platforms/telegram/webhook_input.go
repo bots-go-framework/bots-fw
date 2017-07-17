@@ -41,15 +41,18 @@ func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 	default:
 		message2input := func(tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
 			switch {
-			case update.Message.Text != "":
+			case tgMessage.Text != "":
 				return NewTelegramWebhookTextMessage(input, tgMessageType, tgMessage)
-			case update.Message.Contact != nil:
+			case tgMessage.Contact != nil:
 				return NewTelegramWebhookContact(input)
-			case update.Message.NewChatMembers != nil:
+			case tgMessage.NewChatMembers != nil:
 				return NewTelegramWebhookNewChatMembersMessage(input)
+			//case tgMessage.Photo != nil:  // TODO: Implement!
+			//	return nil
+			//case tgMessage.Audio != nil:  // TODO: Implement!
+			//	return nil
 			default:
-				return nil // TODO: Should we log it properly?
-				//panic("Unexpected content of update.Message (Text is empty and no Contact)")
+				return nil
 			}
 		}
 		switch {

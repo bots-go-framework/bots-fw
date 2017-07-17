@@ -210,8 +210,8 @@ func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 }
 
 func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
-
 	c := whc.Context()
+	log.Debugf(c, "WebhooksRouter.Dispatch()")
 	inputType := whc.InputType()
 	input := whc.Input()
 

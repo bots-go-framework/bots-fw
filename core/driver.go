@@ -10,6 +10,8 @@ import (
 	"time"
 	"github.com/strongo/app/log"
 	"github.com/strongo/app"
+	"encoding/json"
+	"github.com/pkg/errors"
 )
 
 // The driver is doing initial request & final response processing
@@ -39,9 +41,21 @@ func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost,
 	}
 }
 
+var ErrNotImplemented = errors.New("Not implemented")
+
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
 	c := d.botHost.Context(r)
+	log.Debugf(c, "BotDriver.HandleWebhook()")
+	if w == nil {
+		panic("Parameter 'w http.ResponseWriter' is nil")
+	}
+	if r == nil {
+		panic("Parameter 'r *http.Request' is nil")
+	}
+	if webhookHandler == nil {
+		panic("Parameter 'webhookHandler WebhookHandler' is nil")
+	}
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
 
@@ -49,21 +63,36 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if _, ok := err.(AuthFailedError); ok {
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		} else if _, ok := err.(*json.SyntaxError); ok {
+			log.Debugf(c, errors.Wrap(err, "Request body is not valid JSON").Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else if errors.Cause(err) == ErrNotImplemented {
+			log.Warningf(c, err.Error())
+			http.Error(w, err.Error(), http.StatusOK) // TODO: Decide how to handle it properly, can we return http.StatusNotImplemented?
 		} else {
 			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	if botContext == nil {
-		if len(entriesWithInputs) == 0 {
+		if entriesWithInputs == nil {
+			log.Warningf(c, "botContext == nil, entriesWithInputs == nil")
+		} else if len(entriesWithInputs) == 0 {
 			log.Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
 		} else {
 			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
 		}
 		return
 	}
+
+	if entriesWithInputs == nil {
+		log.Errorf(c, "entriesWithInputs == nil")
+		return
+	}
+
+	log.Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
 
 	env := botContext.BotSettings.Env
 	switch env {
@@ -79,11 +108,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-	}
-
-	if entriesWithInputs == nil {
-		log.Errorf(c, "entriesWithInputs == nil")
-		return
 	}
 
 	var (
@@ -203,19 +227,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 	}
 
-	//var waitGroup sync.WaitGroup
 	for _, entryWithInputs := range entriesWithInputs {
-		//log.Infof(c, "Entry[%v]: %v, %v inputs", i, entryWithInputs.Entry.GetID(), len(entryWithInputs.Inputs))
 		for i, input := range entryWithInputs.Inputs {
+			if input == nil {
+				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
+			}
 			logInput(i, input)
-			//waitGroup.Add(1)
-			//go func(input WebhookInput) {
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
 			d.router.Dispatch(responder, whc)
-			//waitGroup.Done()
-			//}(input)
 		}
 	}
-	//waitGroup.Wait()
 }

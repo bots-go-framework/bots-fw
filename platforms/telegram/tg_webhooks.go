@@ -98,6 +98,7 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 }
 
 func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+	log.Debugf(c, "TelegramWebhookHandler.GetBotContextAndInputs()")
 	token := r.URL.Query().Get("token")
 	botSettings, ok := h.botsBy(c).ApiToken[token]
 	if !ok {
@@ -133,7 +134,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	input := NewTelegramWebhookInput(update)
 	if input == nil {
-		err = errors.New("Unexpected Telegram message")
+		err = errors.Wrap(bots.ErrNotImplemented, "Unsupported Telegram message")
 		return
 	}
 	entriesWithInputs = []bots.EntryInputs{
@@ -148,11 +149,6 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 
 func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update tgbotapi.Update, err error) {
 	if err = ffjson.UnmarshalFast(content, &update); err != nil {
-		if se, ok := err.(*json.SyntaxError); ok {
-			log.Errorf(c, "json.SyntaxError: Offset=%v, %v", se.Offset, err.Error())
-		} else {
-			log.Errorf(c, err.Error())
-		}
 		return
 	}
 	return
