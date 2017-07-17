@@ -42,27 +42,8 @@ func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost,
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
 	c := d.botHost.Context(r)
-	//log.Infof(c, "HandleWebhook() => webhookHandler: %T", webhookHandler)
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
-
-	if botContext != nil {
-		env := botContext.BotSettings.Env
-		switch env {
-		case strongo.EnvLocal:
-			if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
-				log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-		case strongo.EnvProduction:
-			if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
-				log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-		}
-	}
 
 	if err != nil {
 		if _, ok := err.(AuthFailedError); ok {
@@ -70,18 +51,38 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		} else {
 			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
-			//http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 		return
 	}
-	//log.Debugf(c, "Got %d entries", len(entriesWithInputs))
 
-	if botContext == nil { // TODO: Make botContext to be *BotContext?
+	if botContext == nil {
 		if len(entriesWithInputs) == 0 {
-			log.Debugf(c, "botContext == nil, len(entriesWithInputs) == 0")
+			log.Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
 		} else {
 			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
 		}
+		return
+	}
+
+	env := botContext.BotSettings.Env
+	switch env {
+	case strongo.EnvLocal:
+		if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
+			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	case strongo.EnvProduction:
+		if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
+			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	if entriesWithInputs == nil {
+		log.Errorf(c, "entriesWithInputs == nil")
 		return
 	}
 

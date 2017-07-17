@@ -105,7 +105,11 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		err = bots.AuthFailedError(errMess)
 		return
 	}
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	var bodyBytes []byte
+	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
+		errors.Wrap(err, "Failed to read request body")
+		return
+	}
 	if len(bodyBytes) < 1024 * 10 {
 		var bodyToLog bytes.Buffer
 		if indentErr := json.Indent(&bodyToLog, bodyBytes, "", "\t"); indentErr == nil {
@@ -123,15 +127,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		log.Debugf(c, "Request len(body): %v", len(bodyBytes))
 	}
 	var update tgbotapi.Update
-	err = ffjson.UnmarshalFast(bodyBytes, &update)
-	if err != nil {
-		if ute, ok := err.(*json.UnmarshalTypeError); ok {
-			log.Errorf(c, "json.UnmarshalTypeError %v - %v - %v", ute.Value, ute.Type, ute.Offset)
-		} else if se, ok := err.(*json.SyntaxError); ok {
-			log.Errorf(c, "json.SyntaxError: Offset=%v", se.Offset)
-		} else {
-			log.Errorf(c, "json.Error: %T: %v", err, err.Error())
-		}
+	if update, err = h.unmarshalUpdate(c, bodyBytes); err != nil {
 		return
 	}
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
@@ -146,6 +142,19 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 				Inputs: []bots.WebhookInput{input},
 			},
 		}
+	log.Debugf(c, "Telegram input type: %T", input)
+	return
+}
+
+func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update tgbotapi.Update, err error) {
+	if err = ffjson.UnmarshalFast(content, &update); err != nil {
+		if se, ok := err.(*json.SyntaxError); ok {
+			log.Errorf(c, "json.SyntaxError: Offset=%v, %v", se.Offset, err.Error())
+		} else {
+			log.Errorf(c, err.Error())
+		}
+		return
+	}
 	return
 }
 
