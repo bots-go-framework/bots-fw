@@ -4,18 +4,12 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-fbm"
-	"bytes"
-	"io/ioutil"
-	"github.com/pkg/errors"
 	"google.golang.org/appengine/urlfetch"
-	"net/http"
-	"fmt"
-	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/app/log"
+	"github.com/pkg/errors"
 )
 
 type FbmWebhookResponder struct {
-	//w   http.ResponseWriter
 	whc *FbmWebhookContext
 }
 
@@ -30,7 +24,10 @@ func NewFbmWebhookResponder(whc *FbmWebhookContext) FbmWebhookResponder {
 func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
 	log.Debugf(c, "FbmWebhookResponder.SendMessage()...")
 
-	//fbmWhc := (FbmWebhookContext{})(r.whc)
+	if m.Text != "" && m.FbmAttachment != nil {
+		err = errors.New("m.Text is empty string && m.FbmAttachment != nil")
+		return
+	}
 
 	request := fbm_api.Request{
 		NotificationType: fbm_api.RequestNotificationTypeNoPush,
@@ -41,40 +38,11 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 		},
 	}
 
-	data, err := ffjson.MarshalFast(request)
-	if err != nil {
-		err = errors.Wrap(err, "Failed to marshal request to JSON")
+	graphApi := fbm_api.NewGraphApi(urlfetch.Client(c), r.whc.GetBotSettings().Token)
+
+	if err = graphApi.SendMessage(c, request); err != nil {
 		return
 	}
 
-	accessToken := r.whc.GetBotSettings().Token
-	log.Debugf(c, "Posting to FB Messenger API (accessToken=%v):\n%v", accessToken, string(data))
-
-	httpClient := urlfetch.Client(c)
-	apiResponse, err := httpClient.Post(
-		"https://graph.facebook.com/v2.6/me/messages?access_token=" + accessToken,
-		"application/json",
-		bytes.NewBuffer(data),
-	)
-	if err != nil {
-		err = errors.Wrap(err, "Failed to post to FB Messenger API")
-		return
-	}
-
-	if apiResponse.Body != nil {
-		defer apiResponse.Body.Close()
-	}
-
-	respData, err2 := ioutil.ReadAll(apiResponse.Body)
-	if err2 != nil {
-		err = errors.Wrap(err2, "Failed to read response body")
-		return
-	}
-	switch apiResponse.StatusCode {
-	case http.StatusBadRequest:
-		err = errors.New(fmt.Sprintf("Bad request: %v", string(respData)))
-		return
-	}
-	log.Debugf(c, "Gor from response FB Messenger API status=%v: %v", apiResponse.Status, string(respData))
 	return
 }

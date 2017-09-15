@@ -3,6 +3,7 @@ package bots
 import (
 	"github.com/satori/go.uuid"
 	"golang.org/x/net/context"
+	"time"
 )
 
 type BotChat interface {
@@ -26,8 +27,8 @@ type BotChat interface {
 	GetPreferredLanguage() string
 	SetPreferredLanguage(value string)
 
-	SetDtUpdatedToNow()
-	SetDtLastInteractionToNow()
+	SetDtUpdated(time time.Time)
+	SetDtLastInteraction(time time.Time)
 
 	GetAwaitingReplyTo() string
 	SetAwaitingReplyTo(path string)

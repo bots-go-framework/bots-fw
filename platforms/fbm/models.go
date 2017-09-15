@@ -4,6 +4,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"time"
 	"fmt"
+	"github.com/strongo/app/user"
 )
 
 const (
@@ -51,7 +52,7 @@ func NewFbmChat() FbmChat {
 	return FbmChat{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
-				OwnedByUser: bots.OwnedByUser{
+				OwnedByUser: user.OwnedByUser{
 					DtCreated: time.Now(),
 				},
 			},

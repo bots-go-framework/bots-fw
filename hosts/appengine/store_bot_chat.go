@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
+	"time"
 )
 
 type EntityTypeValidator interface {
@@ -34,10 +35,8 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 	botChatKey := s.NewBotChatKey(c, botID, botChatID)
 	if err = nds.Get(c, botChatKey, botChatEntity); err != nil {
 		if err != datastore.ErrNoSuchEntity {
-			err = bots.ErrEntityNotFound // TODO: Replace with dal.ErrRecordNotFound ?
 			return
-		}
-		if err == datastore.ErrNoSuchEntity {
+		} else {
 			if s.entityKind == "TgChat" { // TODO: Remove workaround to fix old entities
 				var tgChatID int64
 				if tgChatID, err = strconv.ParseInt(botChatID, 10, 64); err != nil {
@@ -73,6 +72,8 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 					}
 				}
 			}
+			err = bots.ErrEntityNotFound
+			return
 		}
 	}
 	if err == nil {
@@ -83,7 +84,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 
 func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string, chatEntity bots.BotChat) error { // Former SaveBotChatEntity
 	s.validateBotChatEntityType(chatEntity)
-	chatEntity.SetDtUpdatedToNow()
+	chatEntity.SetDtUpdated(time.Now())
 	_, err := nds.Put(c, s.NewBotChatKey(c, botID, botChatID), chatEntity)
 	return err
 }
@@ -112,16 +113,17 @@ func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChat
 	//log.Debugf(c, "GaeBotChatStore.Close(): %v entities to save", len(s.botChats))
 	var chatKeys []*datastore.Key
 	var chatEntities []bots.BotChat
+	now := time.Now()
 	for chatId, chatEntity := range s.botChats {
 		s.validateBotChatEntityType(chatEntity)
-		chatEntity.SetDtUpdatedToNow()
-		chatEntity.SetDtLastInteractionToNow()
+		chatEntity.SetDtUpdated(now)
+		chatEntity.SetDtLastInteraction(now)
 		chatKeys = append(chatKeys, datastore.NewKey(c, s.entityKind, chatId, 0, nil))
 		chatEntities = append(chatEntities, chatEntity)
 	}
 	_, err := nds.PutMulti(c, chatKeys, chatEntities)
 	if err == nil {
-		log.Infof(c, "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		log.Debugf(c, "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
 		s.botChats = nil
 	} else {
 		log.Errorf(c, "Failed to save %v BotChat entities: %v", len(chatKeys), err)

@@ -8,6 +8,7 @@ import (
 
 type BotSettings struct {
 	Env              strongo.Environment
+	ID               string
 	Kind             string
 	Code             string
 	Token            string
@@ -23,6 +24,12 @@ func NewBotSettingsWithKind(env strongo.Environment, kind, code, token string, l
 	return s
 }
 
+func NewBotSettingsWithID(env strongo.Environment, code, id, token string, locale strongo.Locale) BotSettings {
+	s := NewBotSettings(env, code, token, locale)
+	s.ID = id
+	return s
+}
+
 func NewBotSettings(mode strongo.Environment, code, token string, locale strongo.Locale) BotSettings {
 	if code == "" {
 		panic("Missing required parameter: code")
@@ -35,7 +42,7 @@ func NewBotSettings(mode strongo.Environment, code, token string, locale strongo
 	}
 	return BotSettings{
 		Code:   code,
-		Env:   mode,
+		Env:    mode,
 		Token:  token,
 		Locale: locale,
 	}
@@ -43,34 +50,45 @@ func NewBotSettings(mode strongo.Environment, code, token string, locale strongo
 
 type SettingsProvider func(c context.Context) SettingsBy
 
-type SettingsBy struct {// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
-	Code     map[string]BotSettings
-	ApiToken map[string]BotSettings
-	Locale   map[string][]BotSettings
+type SettingsBy struct {
+	// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
+	ByCode     map[string]BotSettings
+	ByApiToken map[string]BotSettings
+	ByLocale   map[string][]BotSettings
+	ByID       map[string]BotSettings
 }
 
 func NewBotSettingsBy(bots ...BotSettings) SettingsBy {
 	count := len(bots)
 	settingsBy := SettingsBy{
-		Code:     make(map[string]BotSettings, count),
-		ApiToken: make(map[string]BotSettings, count),
-		Locale:   make(map[string][]BotSettings, count),
+		ByCode:     make(map[string]BotSettings, count),
+		ByApiToken: make(map[string]BotSettings, count),
+		ByLocale:   make(map[string][]BotSettings, count),
+		ByID:       make(map[string]BotSettings, count),
 	}
 	for _, bot := range bots {
-		if _, ok := settingsBy.Code[bot.Code]; ok {
+		if _, ok := settingsBy.ByCode[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))
 		} else {
-			settingsBy.Code[bot.Code] = bot
+			settingsBy.ByCode[bot.Code] = bot
 		}
-		if _, ok := settingsBy.ApiToken[bot.Token]; ok {
+		if _, ok := settingsBy.ByApiToken[bot.Token]; ok {
 			panic(fmt.Sprintf("Bot with duplicate token: %v", bot.Token))
 		} else {
-			settingsBy.ApiToken[bot.Token] = bot
+			settingsBy.ByApiToken[bot.Token] = bot
+		}
+		if bot.ID != "" {
+			if _, ok := settingsBy.ByID[bot.ID]; ok {
+				panic(fmt.Sprintf("Bot with duplicate ID: %v", bot.ID))
+			} else {
+				settingsBy.ByID[bot.ID] = bot
+			}
 		}
 
-		byLocale := settingsBy.Locale[bot.Locale.Code5]
+		byLocale := settingsBy.ByLocale[bot.Locale.Code5]
 		byLocale = append(byLocale, bot)
-		settingsBy.Locale[bot.Locale.Code5] = byLocale
+		settingsBy.ByLocale[bot.Locale.Code5] = byLocale
+
 	}
 	return settingsBy
 }

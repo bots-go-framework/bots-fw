@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"github.com/pkg/errors"
 	"github.com/strongo/app/log"
+	"github.com/strongo/app/db"
 )
 
 type WebhookContextBase struct {
@@ -38,6 +39,18 @@ type WebhookContextBase struct {
 	BotCoreStores
 
 	gaMeasurement *measurement.BufferedSender
+}
+
+func (whc *WebhookContextBase) LogRequest() {
+	whc.input.LogRequest()
+}
+
+func (whc *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
+	return whc.BotContext.BotHost.DB().RunInTransaction(c, f, options)
+}
+
+func (whc *WebhookContextBase) Request() *http.Request {
+	return whc.r
 }
 
 func (whc *WebhookContextBase) Environment() strongo.Environment {

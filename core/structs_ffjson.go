@@ -16,20 +16,20 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 )
 
-func (mj *BaseHandler) MarshalJSON() ([]byte, error) {
+func (bh *BaseHandler) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if bh == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := bh.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+func (bh *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if bh == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -39,25 +39,25 @@ func (mj *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = err
 	buf.WriteString(`{"WebhookDriver":`)
 	/* Interface types must use runtime reflection. type=bots.WebhookDriver kind=interface */
-	err = buf.Encode(mj.WebhookDriver)
+	err = buf.Encode(bh.WebhookDriver)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"BotHost":`)
 	/* Interface types must use runtime reflection. type=bots.BotHost kind=interface */
-	err = buf.Encode(mj.BotHost)
+	err = buf.Encode(bh.BotHost)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"BotPlatform":`)
 	/* Interface types must use runtime reflection. type=bots.BotPlatform kind=interface */
-	err = buf.Encode(mj.BotPlatform)
+	err = buf.Encode(bh.BotPlatform)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"TranslatorProvider":`)
 	/* Falling back. type=bots.TranslatorProvider kind=func */
-	err = buf.Encode(mj.TranslatorProvider)
+	err = buf.Encode(bh.TranslatorProvider)
 	if err != nil {
 		return err
 	}
@@ -86,12 +86,12 @@ var ffj_key_BaseHandler_BotPlatform = []byte("BotPlatform")
 
 var ffj_key_BaseHandler_TranslatorProvider = []byte("TranslatorProvider")
 
-func (uj *BaseHandler) UnmarshalJSON(input []byte) error {
+func (bh *BaseHandler) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return bh.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *BaseHandler) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+func (bh *BaseHandler) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error = nil
 	currentKey := ffj_t_BaseHandlerbase
 	_ = currentKey
@@ -245,7 +245,7 @@ mainparse:
 
 handle_WebhookDriver:
 
-	/* handler: uj.WebhookDriver type=bots.WebhookDriver kind=interface quoted=false*/
+	/* handler: bh.WebhookDriver type=bots.WebhookDriver kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.WebhookDriver kind=interface */
@@ -254,7 +254,7 @@ handle_WebhookDriver:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.WebhookDriver)
+		err = json.Unmarshal(tbuf, &bh.WebhookDriver)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -265,7 +265,7 @@ handle_WebhookDriver:
 
 handle_BotHost:
 
-	/* handler: uj.BotHost type=bots.BotHost kind=interface quoted=false*/
+	/* handler: bh.BotHost type=bots.BotHost kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.BotHost kind=interface */
@@ -274,7 +274,7 @@ handle_BotHost:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.BotHost)
+		err = json.Unmarshal(tbuf, &bh.BotHost)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -285,7 +285,7 @@ handle_BotHost:
 
 handle_BotPlatform:
 
-	/* handler: uj.BotPlatform type=bots.BotPlatform kind=interface quoted=false*/
+	/* handler: bh.BotPlatform type=bots.BotPlatform kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.BotPlatform kind=interface */
@@ -294,7 +294,7 @@ handle_BotPlatform:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.BotPlatform)
+		err = json.Unmarshal(tbuf, &bh.BotPlatform)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -305,7 +305,7 @@ handle_BotPlatform:
 
 handle_TranslatorProvider:
 
-	/* handler: uj.TranslatorProvider type=bots.TranslatorProvider kind=func quoted=false*/
+	/* handler: bh.TranslatorProvider type=bots.TranslatorProvider kind=func quoted=false*/
 
 	{
 		/* Falling back. type=bots.TranslatorProvider kind=func */
@@ -314,7 +314,7 @@ handle_TranslatorProvider:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.TranslatorProvider)
+		err = json.Unmarshal(tbuf, &bh.TranslatorProvider)
 		if err != nil {
 			return fs.WrapErr(err)
 		}

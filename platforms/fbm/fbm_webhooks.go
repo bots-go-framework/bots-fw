@@ -14,48 +14,46 @@ import (
 	"bytes"
 	"github.com/pquerna/ffjson/ffjson"
 	"golang.org/x/net/context"
+	"github.com/julienschmidt/httprouter"
 )
 
-func NewFbmWebhookHandler(botsBy bots.SettingsBy, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
-	if webhookDriver == nil {
-		panic("webhookDriver == nil")
-	}
-	if botHost == nil {
-		panic("botHost == nil")
-	}
+func NewFbmWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
 	}
 	return FbmWebhookHandler{
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:        FbmPlatform{},
-			BotHost:            botHost,
-			WebhookDriver:      webhookDriver,
 			TranslatorProvider: translatorProvider,
 		},
-		botsBy: botsBy,
+		bots: botsBy,
 	}
 }
 
 type FbmWebhookHandler struct {
 	bots.BaseHandler
-	botsBy bots.SettingsBy
+	bots bots.SettingsProvider
 }
 var _ bots.WebhookHandler = (*FbmWebhookHandler)(nil)
 
-func (handler FbmWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix+"/fbm/webhook", handler.HandleWebhookRequest)
-	http.HandleFunc(pathPrefix+"/fbm/webhook/", notFound) // TODO: Try to get rid?
-	http.HandleFunc(pathPrefix+"/fbm/subscribe", handler.Subscribe)
-	http.HandleFunc(pathPrefix+"/fbm/whitelist", handler.Whitelist)
+func (handler FbmWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+	if router == nil {
+		panic("router == nil")
+	}
+	handler.BaseHandler.Register(driver, host)
+	router.POST(pathPrefix+"/fbm/webhook", handler.HandleWebhookRequest)
+	router.POST(pathPrefix+"/fbm/subscribe", handler.Subscribe)
+	router.POST(pathPrefix+"/fbm/whitelist", handler.Whitelist)
 }
 
-func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request) {
+
+func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := handler.Context(r)
 	httpClient := handler.GetHttpClient(c)
 	botCode := r.URL.Query().Get("bot")
 
-	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
+	fbmBots := handler.bots(c)
+	if botSettings, ok := fbmBots.ByCode[botCode]; ok {
 		message := fbm_api.NewRequestWhitelistDomain("add", "https://" + r.URL.Host)
 		requestBody, err := ffjson.MarshalFast(message)
 		if err != nil {
@@ -81,12 +79,13 @@ func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Reques
 
 }
 
-func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := handler.Context(r)
 	httpClient := handler.GetHttpClient(c)
 	botCode := r.URL.Query().Get("bot")
 
-	if botSettings, ok := handler.botsBy.Code[botCode]; ok {
+	fbmBots := handler.bots(c)
+	if botSettings, ok := fbmBots.ByCode[botCode]; ok {
 		res, err := httpClient.Post(fmt.Sprintf("https://graph.facebook.com/v2.6/me/subscribed_apps?access_token=%v", botSettings.Token), "", strings.NewReader(""))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -103,14 +102,15 @@ func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
+func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	log.Debugf(c, "FbmWebhookHandler.HandleWebhookRequest()")
 	switch r.Method {
 	case http.MethodGet:
 		q := r.URL.Query()
 		botCode := r.URL.Query().Get("bot")
-		if botSettings, ok := handler.botsBy.Code[botCode]; ok {
+		fbmBots := handler.bots(c)
+		if botSettings, ok := fbmBots.ByCode[botCode]; ok {
 			var responseText string
 			verifyToken := q.Get("hub.verify_token")
 			if verifyToken == botSettings.VerifyToken {
@@ -133,14 +133,17 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 }
 
 func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	var receivedMessage fbm_api.ReceivedMessage
-	content := make([]byte, r.ContentLength)
-	_, err = r.Body.Read(content)
-	if err != nil {
+	var (
+		receivedMessage fbm_api.ReceivedMessage
+		bodyBytes []byte
+	)
+	defer r.Body.Close()
+	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
+		errors.Wrap(err, "Failed to read request body")
 		return
 	}
-	log.Infof(c, "Request.Body: %v", string(content))
-	err = ffjson.UnmarshalFast(content, &receivedMessage)
+	log.Infof(c, "Request.Body: %v", string(bodyBytes))
+	err = ffjson.UnmarshalFast(bodyBytes, &receivedMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to deserialize FB json message")
 		return
@@ -158,9 +161,11 @@ func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *ht
 		entriesWithInputs[i] = entryWithInputs
 	}
 
-	botCode := r.URL.Query().Get("bot")
-	if botSettings, ok := handler.botsBy.Code[botCode]; !ok {
-		err = errors.New(fmt.Sprintf("Bot settings bot found by code: [%v]", botCode))
+	//botCode := r.URL.Query().Get("bot")
+	pageID := receivedMessage.Entries[0].Messaging[0].Recipient.ID
+	fbmBots := handler.bots(c)
+	if botSettings, ok := fbmBots.ByID[pageID]; !ok {
+		err = errors.New(fmt.Sprintf("Bot settings not found by ID: [%v]", pageID))
 		return
 	} else {
 		botContext = bots.NewBotContext(handler.BotHost, botSettings);

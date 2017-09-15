@@ -4,6 +4,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/gaedb"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/app/user"
 )
 
 const (
@@ -16,10 +17,15 @@ type TelegramUserEntity struct {
 }
 
 var _ bots.BotUser = (*TelegramUserEntity)(nil)
+var _ user.AccountEntity = (*TelegramUserEntity)(nil)
 
 type TelegramUser struct {
 	ID int64
 	TelegramUserEntity
+}
+
+func (_ TelegramUser) GetEmail() string {
+	return ""
 }
 
 func (entity TelegramUserEntity) Name() string {
@@ -38,11 +44,23 @@ func (entity TelegramUserEntity) Name() string {
 	return "@" + entity.UserName + " - " + name
 }
 
-func (entity *TelegramUser) Load(ps []datastore.Property) error {
+func (entity *TelegramUserEntity) GetNames() user.Names {
+	return user.Names{
+		FirstName: entity.FirstName,
+		LastName: entity.LastName,
+		NickName: entity.UserName,
+	}
+}
+
+func (entity *TelegramUserEntity) IsEmailConfirmed() bool {
+	return false
+}
+
+func (entity *TelegramUserEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *TelegramChatEntity) TelegramUser() (properties []datastore.Property, err error) {
+func (entity *TelegramUserEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}

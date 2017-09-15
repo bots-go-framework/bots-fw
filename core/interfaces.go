@@ -5,6 +5,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"time"
+	"github.com/strongo/app/db"
 )
 
 type BotPlatform interface {
@@ -16,6 +17,7 @@ type BotHost interface {
 	Context(r *http.Request) context.Context
 	GetHttpClient(c context.Context) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
+	DB() db.Database
 }
 
 type BotContext struct {
@@ -44,6 +46,9 @@ type WebhookInputType int
 const (
 	WebhookInputUnknown             WebhookInputType = iota
 	WebhookInputText                 // Facebook, Telegram, Viber
+	WebhookInputVoice
+	WebhookInputPhoto
+	WebhookInputAudio
 	WebhookInputContact              // Facebook, Telegram, Viber
 	WebhookInputPostback
 	WebhookInputDelivery
@@ -56,6 +61,8 @@ const (
 	WebhookInputUnsubscribed         // Viber
 	WebhookInputConversationStarted  // Viber
 	WebhookInputNewChatMembers       // Telegram groups
+	WebhookInputSticker // Telegram
+	WebhookInputNotImplemented //
 )
 
 var WebhookInputTypeNames = map[WebhookInputType]string{
@@ -83,6 +90,7 @@ type WebhookInput interface {
 	GetTime() time.Time
 	InputType() WebhookInputType
 	Chat() WebhookChat
+	LogRequest()
 }
 
 type WebhookActor interface {
@@ -120,6 +128,27 @@ type WebhookTextMessage interface {
 	WebhookMessage
 	Text() string
 	IsEdited() bool
+}
+
+type WebhookStickerMessage interface {
+	WebhookMessage
+	// TODO: Define sticker message interface
+}
+
+
+type WebhookVoiceMessage interface {
+	WebhookMessage
+	// TODO: Define voice message interface
+}
+
+type WebhookPhotoMessage interface {
+	WebhookMessage
+	// TODO: Define voice message interface
+}
+
+type WebhookAudioMessage interface {
+	WebhookMessage
+	// TODO: Define voice message interface
 }
 
 type WebhookReferralMessage interface {

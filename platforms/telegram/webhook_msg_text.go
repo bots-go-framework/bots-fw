@@ -5,13 +5,6 @@ import (
 	"github.com/strongo/bots-api-telegram"
 )
 
-type TelegramMessageType string
-const (
-	TelegramMessageTypeRegular = "message"
-	TelegramMessageTypeEdited = "edited_message"
-	TelegramMessageTypeChannelPost = "channel_post"
-	TelegramMessageTypeEditedChannelPost = "edited_channel_post"
-)
 
 type TelegramWebhookTextMessage struct {
 	telegramWebhookMessage

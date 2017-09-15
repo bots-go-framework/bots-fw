@@ -6,9 +6,10 @@ import (
 	"github.com/strongo/bots-api-viber"
 	"net/url"
 	"github.com/strongo/app/log"
+	"github.com/julienschmidt/httprouter"
 )
 
-func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) {
+func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := h.Context(r)
 	client := h.GetHttpClient(c)
 	botCode := r.URL.Query().Get("code")
@@ -16,7 +17,7 @@ func (h ViberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
 		return
 	}
-	botSettings, ok := h.botsBy(c).Code[botCode]
+	botSettings, ok := h.botsBy(c).ByCode[botCode]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
 		return

@@ -5,8 +5,8 @@ import (
 	"net/url"
 )
 
-type CommandAction func(whc WebhookContext) (MessageFromBot, error)
-type CallbackAction func(whc WebhookContext, callbackURL *url.URL) (MessageFromBot, error)
+type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
+type CallbackAction func(whc WebhookContext, callbackURL *url.URL) (m MessageFromBot, err error)
 
 type CommandMatcher func(Command, WebhookContext) bool
 
@@ -37,7 +37,7 @@ func NewCallbackCommand(code string, action CallbackAction) Command {
 }
 
 func (c Command) String() string {
-	return fmt.Sprintf("Command{Code: '%v', InputTypes: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputTypes, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
+	return fmt.Sprintf("Command{ByCode: '%v', InputTypes: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputTypes, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
 }
 
 func (whcb *WebhookContextBase) CommandText(title, icon string) string {

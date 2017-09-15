@@ -6,45 +6,13 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	"github.com/pkg/errors"
+	"github.com/strongo/app/user"
 )
 
-type OwnedByUser struct {
-	AppUserIntID int64 // TODO: Rename to AppUserIntID?
-	DtCreated    time.Time
-	DtUpdated    time.Time
-}
-
-func (o OwnedByUser) Validate() error {
-	if o.AppUserIntID == 0 {
-		return errors.New("AppUserIntID == 0")
-	}
-	if o.DtCreated.IsZero() {
-		return errors.New("DtCreated.IsZero()")
-	}
-	if o.DtUpdated.IsZero() {
-		o.DtUpdated = o.DtCreated
-	} else if o.DtUpdated.Before(o.DtCreated) {
-		return errors.New("DtUpdated.Before(DtCreated) is true")
-	}
-	return nil
-}
-
-func (e *OwnedByUser) GetAppUserIntID() int64 {
-	return e.AppUserIntID
-}
-
-func (e *OwnedByUser) SetAppUserIntID(appUserID int64) {
-	e.AppUserIntID = appUserID
-}
-
-func (whc *OwnedByUser) SetDtUpdatedToNow() {
-	whc.DtUpdated = time.Now()
-}
 
 type BotEntity struct {
 	AccessGranted bool
-	OwnedByUser
+	user.OwnedByUser
 }
 
 func (e *BotEntity) IsAccessGranted() bool {
@@ -61,6 +29,7 @@ func (e *BotEntity) SetAccessGranted(value bool) bool {
 
 type BotUserEntity struct {
 	BotEntity
+	user.LastLogin
 
 	FirstName string // required
 	LastName  string // optional
@@ -124,8 +93,8 @@ func (e *BotChatEntity) SetBotUserID(id interface{}) {
 	panic(fmt.Sprintf("Should be overwritted in subclass, got: %T=%v", id, id))
 }
 
-func (e *BotChatEntity) SetDtLastInteractionToNow() {
-	e.DtLastInteraction = time.Now()
+func (e *BotChatEntity) SetDtLastInteraction(v time.Time) {
+	e.DtLastInteraction = v
 	e.InteractionsCount += 1
 }
 

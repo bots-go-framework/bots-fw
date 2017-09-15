@@ -12,16 +12,19 @@ import (
 	"github.com/strongo/app"
 	"encoding/json"
 	"github.com/pkg/errors"
+	"bytes"
+	"github.com/julienschmidt/httprouter"
 )
 
 // The driver is doing initial request & final response processing
 // That includes logging, creating input messages in a general format, sending response
 type WebhookDriver interface {
+	RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler)
 	HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler)
 }
 
 type BotDriver struct {
-	GaSettings      GaSettings
+	Analytics       AnalyticsSettings
 	botHost         BotHost
 	appContext      BotAppContext
 	router          *WebhooksRouter
@@ -30,23 +33,35 @@ type BotDriver struct {
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
-type GaSettings struct {
-	TrackingID string
-	Enabled    func(r *http.Request) bool
+type AnalyticsSettings struct {
+	GaTrackingID string  // TODO: Refactor to list of analytics providers
+	Enabled      func(r *http.Request) bool
 }
 
-func NewBotDriver(gaSettings GaSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter, panicTextFooter string) WebhookDriver {
-	return BotDriver{GaSettings: gaSettings, appContext: appContext, botHost: host, router: router,
+func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter, panicTextFooter string) WebhookDriver {
+	if appContext.AppUserEntityKind() == "" {
+		panic("appContext.AppUserEntityKind() is empty")
+	}
+	if host == nil {
+		panic("BotHost == nil")
+	}
+	return BotDriver{Analytics: gaSettings, appContext: appContext, botHost: host, router: router,
 		panicTextFooter:          panicTextFooter,
 	}
 }
 
 var ErrNotImplemented = errors.New("Not implemented")
 
+func (d BotDriver) RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler) {
+	for _, webhookHandler := range webhookHandlers {
+		webhookHandler.RegisterWebhookHandler(d, d.botHost, httpRouter, pathPrefix)
+	}
+}
+
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
 	c := d.botHost.Context(r)
-	log.Debugf(c, "BotDriver.HandleWebhook()")
+	//log.Debugf(c, "BotDriver.HandleWebhook()")
 	if w == nil {
 		panic("Parameter 'w http.ResponseWriter' is nil")
 	}
@@ -63,12 +78,13 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if _, ok := err.(AuthFailedError); ok {
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		} else if errors.Cause(err) == ErrNotImplemented {
+			log.Debugf(c, err.Error())
+			w.WriteHeader(http.StatusNoContent)
+			//http.Error(w, "", http.StatusOK) // TODO: Decide how to handle it properly, return http.StatusNotImplemented?
 		} else if _, ok := err.(*json.SyntaxError); ok {
 			log.Debugf(c, errors.Wrap(err, "Request body is not valid JSON").Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
-		} else if errors.Cause(err) == ErrNotImplemented {
-			log.Warningf(c, err.Error())
-			http.Error(w, err.Error(), http.StatusOK) // TODO: Decide how to handle it properly, can we return http.StatusNotImplemented?
 		} else {
 			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -116,15 +132,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	)
 	{ // Initiate Google Analytics Measurement API client
 		var sendStats bool
-		if d.GaSettings.Enabled == nil {
+		if d.Analytics.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
-			log.Debugf(c, "d.GaSettings.Enabled == nil, botContext.BotSettings.Env: %v, sendStats: %v", strongo.EnvironmentNames[botContext.BotSettings.Env], sendStats)
+			//log.Debugf(c, "d.AnalyticsSettings.Enabled == nil, botContext.BotSettings.Env: %v, sendStats: %v", strongo.EnvironmentNames[botContext.BotSettings.Env], sendStats)
 		} else {
-			sendStats = d.GaSettings.Enabled(r)
-			log.Debugf(c, "d.GaSettings.Enabled != nil, sendStats: %v", sendStats)
+			sendStats = d.Analytics.Enabled(r)
+			//log.Debugf(c, "d.AnalyticsSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
-			trackingID := d.GaSettings.TrackingID
+			trackingID := d.Analytics.GaTrackingID
 			botHost := botContext.BotHost
 			gaMeasurement = measurement.NewBufferedSender([]string{trackingID}, true, botHost.GetHttpClient(c))
 		} else {
@@ -193,7 +209,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
 			} else {
-				log.Infof(c, "Bot chat store closed")
+				log.Debugf(c, "Bot chat store closed")
 			}
 		}
 	}()
@@ -202,26 +218,33 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		switch input.(type) {
 		case WebhookTextMessage:
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Debugf(c, "User#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		case WebhookNewChatMembersMessage:
-			log.Infof(c, "NewChatMembers: %d", len(input.(WebhookNewChatMembersMessage).NewChatMembers()))
+			newMembers := input.(WebhookNewChatMembersMessage).NewChatMembers()
+			var b bytes.Buffer
+			b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
+			for i, member := range newMembers {
+				b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
+			}
+			log.Debugf(c, b.String())
 		case WebhookContactMessage:
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) phone number: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookContactMessage).PhoneNumber())
+			contactMessage := input.(WebhookContactMessage)
+			log.Debugf(c, "User#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
 		case WebhookCallbackQuery:
 			callbackQuery := input.(WebhookCallbackQuery)
 			callbackData := callbackQuery.GetData()
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+			log.Debugf(c, "User#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 		case WebhookInlineQuery:
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+			log.Debugf(c, "User#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
 		case WebhookChosenInlineResult:
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+			log.Debugf(c, "User#%v(%v %v) => choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
 		case WebhookReferralMessage:
 			sender := input.GetSender()
-			log.Infof(c, "User#%v(%v %v) text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Debugf(c, "User#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		default:
 			log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 		}

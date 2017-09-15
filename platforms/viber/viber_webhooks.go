@@ -15,15 +15,10 @@ import (
 	"github.com/strongo/app/log"
 	"encoding/hex"
 	"golang.org/x/net/context"
+	"github.com/julienschmidt/httprouter"
 )
 
-func NewViberWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
-	if webhookDriver == nil {
-		panic("webhookDriver == nil")
-	}
-	if botHost == nil {
-		panic("botHost == nil")
-	}
+func NewViberWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
 	}
@@ -31,8 +26,6 @@ func NewViberWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.Web
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:        ViberPlatform{},
-			BotHost:            botHost,
-			WebhookDriver:      webhookDriver,
 			TranslatorProvider: translatorProvider,
 		},
 	}
@@ -45,13 +38,16 @@ type ViberWebhookHandler struct {
 var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
 
 
-func (h ViberWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix + "/viber/callback/", h.HandleWebhookRequest)
-	//http.HandleFunc(pathPrefix + "/viber/callback/", notFound)
-	http.HandleFunc(pathPrefix + "/viber/setwebhook", h.SetWebhook)
+func (h ViberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+	if router == nil {
+		panic("router == nil")
+	}
+	h.BaseHandler.Register(driver, host)
+	router.POST(pathPrefix + "/viber/callback/", h.HandleWebhookRequest)
+	router.GET(pathPrefix + "/viber/set-webhook", h.SetWebhook)
 }
 
-func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
+func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	switch r.Method {
 	case http.MethodPost:
 		h.HandleWebhook(w, r, h)
@@ -64,7 +60,7 @@ var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
 func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/") + 1:]
-	botSettings, ok := h.botsBy(c).Code[code]
+	botSettings, ok := h.botsBy(c).ByCode[code]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown public account: [%v]", code)
 		err = bots.AuthFailedError(errMess)

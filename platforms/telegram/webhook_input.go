@@ -4,10 +4,19 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"time"
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 type TelegramWebhookInput struct {
 	update tgbotapi.Update
+	logRequest func()
+}
+
+func (whi TelegramWebhookInput) LogRequest() {
+	if whi.logRequest != nil {
+		whi.logRequest()
+	}
 }
 
 type TelegramWebhookUpdateProvider interface {
@@ -29,16 +38,22 @@ func (whi TelegramWebhookInput) GetID() interface{} {
 	return whi.update.UpdateID
 }
 
-func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
-	input := TelegramWebhookInput{update: update}
+func NewTelegramWebhookInput(update tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
+	input := TelegramWebhookInput{update: update, logRequest: logRequest}
+
 	switch {
+
 	case update.InlineQuery != nil:
-		return NewTelegramWebhookInlineQuery(input)
+		return NewTelegramWebhookInlineQuery(input), nil
+
 	case update.CallbackQuery != nil:
-		return NewTelegramWebhookCallbackQuery(input)
+		return NewTelegramWebhookCallbackQuery(input), nil
+
 	case update.ChosenInlineResult != nil:
-		return NewTelegramWebhookChosenInlineResult(input)
+		return NewTelegramWebhookChosenInlineResult(input), nil
+
 	default:
+
 		message2input := func(tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
 			switch {
 			case tgMessage.Text != "":
@@ -47,25 +62,40 @@ func NewTelegramWebhookInput(update tgbotapi.Update) bots.WebhookInput {
 				return NewTelegramWebhookContact(input)
 			case tgMessage.NewChatMembers != nil:
 				return NewTelegramWebhookNewChatMembersMessage(input)
-			//case tgMessage.Photo != nil:  // TODO: Implement!
-			//	return nil
-			//case tgMessage.Audio != nil:  // TODO: Implement!
-			//	return nil
+			case tgMessage.Voice != nil:
+				return NewTelegramWebhookVoiceMessage(input, tgMessageType, tgMessage)
+			case tgMessage.Photo != nil:
+				return NewTelegramWebhookPhotoMessage(input, tgMessageType, tgMessage)
+			case tgMessage.Audio != nil:
+				return NewTelegramWebhookAudioMessage(input, tgMessageType, tgMessage)
+			case tgMessage.Sticker != nil:
+				return NewTelegramWebhookStickerMessage(input, tgMessageType, tgMessage)
 			default:
 				return nil
 			}
 		}
+
 		switch {
+
 		case update.Message != nil:
-			return message2input(TelegramMessageTypeRegular, update.Message)
+			return message2input(TelegramMessageTypeRegular, update.Message), nil
+
 		case update.EditedMessage != nil:
-			return message2input(TelegramMessageTypeEdited, update.EditedMessage)
+			return message2input(TelegramMessageTypeEdited, update.EditedMessage), nil
+
 		case update.ChannelPost != nil:
-			return message2input(TelegramMessageTypeChannelPost, update.ChannelPost)
+			channelPost, _ := ffjson.MarshalFast(update.ChannelPost)
+			return nil, errors.WithMessage(bots.ErrNotImplemented, "ChannelPost is not supported at the moment: " + string(channelPost))
+			//return message2input(TelegramMessageTypeChannelPost, update.ChannelPost), nil
+
 		case update.EditedChannelPost != nil:
-			return message2input(TelegramMessageTypeEditedChannelPost, update.EditedChannelPost)
+			editedChannelPost, _ := ffjson.MarshalFast(update.EditedChannelPost)
+			return nil, errors.WithMessage(bots.ErrNotImplemented, "EditedChannelPost is not supported at the moment: " + string(editedChannelPost))
+			//	return message2input(TelegramMessageTypeEditedChannelPost, update.EditedChannelPost), nil
+
 		default:
-			return nil
+			return nil, bots.ErrNotImplemented
+
 		}
 	}
 }
@@ -82,6 +112,16 @@ func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
 		return TelegramSender{tgUser: whi.update.InlineQuery.From}
 	case whi.update.ChosenInlineResult != nil:
 		return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
+	//case whi.update.ChannelPost != nil:
+	//	chat := whi.update.ChannelPost.Chat
+	//	return TelegramSender{  // TODO: Seems to be dirty hack.
+	//		tgUser: &tgbotapi.User{
+	//			ID: int(chat.ID),
+	//			UserName: chat.UserName,
+	//			FirstName: chat.FirstName,
+	//			LastName: chat.LastName,
+	//		},
+	//	}
 	default:
 		panic("Unknown From sender")
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
+	"github.com/strongo/app/db"
 )
 
 type WebhookInlineQueryContext interface {
@@ -19,11 +20,14 @@ type GaContext interface {
 
 type WebhookContext interface {
 	GaContext
+	db.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider
 	BotPlatform() BotPlatform
 
-	Init(w http.ResponseWriter, r *http.Request) error
+	Request() *http.Request
+
+	//Init(w http.ResponseWriter, r *http.Request) error
 	Context() context.Context
 
 	ExecutionContext() strongo.ExecutionContext
@@ -39,7 +43,7 @@ type WebhookContext interface {
 
 	CommandText(title, icon string) string
 
-	//Locale() strongo.Locale
+	//Locale() strongo.ByLocale
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot

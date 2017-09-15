@@ -17,6 +17,10 @@ func (_ FbmWebhookInput) IntID() int64 {
 	panic("Not supported")
 }
 
+func (_ FbmWebhookInput) LogRequest() {
+	panic("Not implemented")
+}
+
 func (self FbmWebhookInput) StringID() string {
 	return self.messaging.Message.MID
 }
@@ -71,7 +75,7 @@ func (whi FbmWebhookInput) InputType() bots.WebhookInputType {
 			return bots.WebhookInputText
 		}
 	case whi.messaging.Postback != nil:
-		return bots.WebhookInputPostback
+		return bots.WebhookInputCallbackQuery
 	case whi.messaging.Delivery != nil:
 		return bots.WebhookInputDelivery
 	}
@@ -91,9 +95,16 @@ var _ bots.WebhookTextMessage = (*FbmTextMessage)(nil)
 
 func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
 	fbmInput := FbmWebhookInput{messaging: messaging}
-	return FbmTextMessage{FbmWebhookInput: fbmInput}
+	switch {
+	case messaging.Message != nil:
+		return FbmTextMessage{FbmWebhookInput: fbmInput}
+	case messaging.Postback != nil:
+		return FbmPostbackInput{FbmWebhookInput: fbmInput}
+	}
+	return fbmInput
 }
 
 func (whm FbmTextMessage) IsEdited() bool {
 	return false
 }
+

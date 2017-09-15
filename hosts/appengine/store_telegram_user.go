@@ -7,6 +7,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"time"
 	"golang.org/x/net/context"
+	"github.com/strongo/app/user"
 )
 
 type GaeTelegramUserStore struct {
@@ -27,7 +28,7 @@ func NewGaeTelegramUserStore(gaeAppUserStore GaeAppUserStore) GaeTelegramUserSto
 					return &telegram_bot.TelegramUserEntity{
 						BotUserEntity: bots.BotUserEntity{
 							BotEntity: bots.BotEntity{
-								OwnedByUser: bots.OwnedByUser{
+								OwnedByUser: user.OwnedByUser{
 									DtCreated: time.Now(),
 								},
 							},

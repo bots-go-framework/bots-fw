@@ -59,7 +59,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		chattable = m.TelegramCallbackAnswer
 		jsonStr, err := json.Marshal(chattable)
 		if err == nil {
-			log.Infof(c, "CallbackAnswer for sending to Telegram: %v", string(jsonStr))
+			log.Debugf(c, "CallbackAnswer for sending to Telegram: %v", string(jsonStr))
 		} else {
 			log.Errorf(c, "Failed to marshal message config to json: %v\n\tInput: %v", err, chattable)
 		}
@@ -113,7 +113,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 				log.Errorf(c, "Failed to marshal MessageFromBot to JSON: %v", err)
 			}
 			inputTypeName := bots.WebhookInputTypeNames[r.whc.InputType()]
-			log.Warningf(c, "Not inline answer, Not inline, Not edit inline, Text is empty. r.whc.InputType(): %v\nMessageFromBot:\n%v", inputTypeName, string(mBytes))
+			log.Debugf(c, "Not inline answer, Not inline, Not edit inline, Text is empty. r.whc.InputType(): %v\nMessageFromBot:\n%v", inputTypeName, string(mBytes))
 		}
 		return
 	}
@@ -133,15 +133,15 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		//if err != nil {
 		//	//pass?
 		//}
-		//log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
-		log.Infof(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJsonStr)
+		//log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
+		log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJsonStr)
 	}
 
 	//if values, err := chattable.Values(); err != nil {
 	//	log.Errorf(c, "Failed to marshal message config to url.Values: %v", err)
 	//	return resp, err
 	//} else {
-	//	log.Infof(c, "Message for sending to Telegram as URL values: %v", values)
+	//	log.Debugf(c, "Message for sending to Telegram as URL values: %v", values)
 	//}
 
 	switch channel {

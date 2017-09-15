@@ -2,6 +2,7 @@ package bots
 
 import (
 	"net/http"
+	"github.com/julienschmidt/httprouter"
 )
 
 func PingHandler(w http.ResponseWriter, r *http.Request) {
@@ -9,6 +10,6 @@ func PingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Pong"))
 }
 
-func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+func NotFoundHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 }

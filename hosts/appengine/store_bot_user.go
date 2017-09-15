@@ -8,6 +8,7 @@ import (
 	"google.golang.org/appengine/datastore"
 	"fmt"
 	"github.com/strongo/app/log"
+	"time"
 )
 
 // Persist user to GAE datastore
@@ -39,7 +40,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 	// TODO: Architecture needs refactoring as it not transactional save
 	// We load bot user entity outside of here (out of transaction) and save here. It can change since then.
 	s.validateBotUserEntityType(userEntity)
-	userEntity.SetDtUpdatedToNow()
+	userEntity.SetDtUpdated(time.Now())
 	err := nds.RunInTransaction(c, func(c context.Context) error {
 		key := s.botUserKey(c, botUserID)
 		existingBotUser := s.newBotUserEntity(nil)
@@ -88,7 +89,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 				}
 			}
 			botUserEntity.SetAppUserIntID(appUserId)
-			botUserEntity.SetDtUpdatedToNow()
+			botUserEntity.SetDtUpdated(time.Now())
 			botUserKey, err = nds.Put(ctx, botUserKey, botUserEntity)
 		} else if err != nil {
 			return err

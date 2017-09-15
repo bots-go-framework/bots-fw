@@ -7,6 +7,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-viber/viberinterface"
+	//"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-api-fbm"
 )
 
@@ -27,6 +28,17 @@ type BaseHandler struct {
 	BotHost
 	BotPlatform
 	TranslatorProvider TranslatorProvider
+}
+
+func (bh *BaseHandler) Register(d WebhookDriver, h BotHost) {
+	if d == nil {
+		panic("WebhookDriver == nil")
+	}
+	if h == nil {
+		panic("BotHost == nil")
+	}
+	bh.WebhookDriver = d
+	bh.BotHost = h
 }
 
 type MessageFormat int

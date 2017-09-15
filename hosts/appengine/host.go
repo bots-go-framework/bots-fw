@@ -6,6 +6,8 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
+	"github.com/strongo/app/db"
+	"github.com/strongo/app/gaedb"
 )
 
 type GaeBotHost struct {
@@ -24,6 +26,11 @@ func (h GaeBotHost) GetHttpClient(c context.Context) *http.Client {
 		},
 	}
 }
+
+func (h GaeBotHost) DB() db.Database {
+	return gaedb.NewDatabase()
+}
+
 
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) (stores bots.BotCoreStores) {
 	appUserStore := NewGaeAppUserStore(appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)

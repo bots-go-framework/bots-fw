@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"google.golang.org/appengine/datastore"
 	"github.com/strongo/app/gaedb"
+	"github.com/strongo/app/user"
 )
 
 const (
@@ -25,7 +26,7 @@ func NewTelegramChatEntity() *TelegramChatEntity {
 	return &TelegramChatEntity{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
-				OwnedByUser: bots.OwnedByUser{
+				OwnedByUser: user.OwnedByUser{
 					DtCreated: time.Now(),
 				},
 			},

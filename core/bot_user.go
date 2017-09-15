@@ -1,13 +1,16 @@
 package bots
 
-import "golang.org/x/net/context"
+import (
+	"golang.org/x/net/context"
+	"time"
+)
 
 type BotUser interface {
 	GetAppUserIntID() int64
 	IsAccessGranted() bool
 	SetAccessGranted(value bool) bool
 	SetAppUserIntID(appUserID int64)
-	SetDtUpdatedToNow()
+	SetDtUpdated(time time.Time)
 }
 
 type BotUserStore interface {

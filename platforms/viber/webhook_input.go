@@ -10,6 +10,10 @@ type ViberWebhookInput struct {
 	callbackBase viberinterface.CallbackBase
 }
 
+func (_ ViberWebhookInput) LogRequest() {
+	panic("Not implemented")
+}
+
 func newViberWebhookInput(callbackBase viberinterface.CallbackBase) ViberWebhookInput {
 	return ViberWebhookInput{callbackBase: callbackBase}
 }

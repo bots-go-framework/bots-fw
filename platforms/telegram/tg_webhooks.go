@@ -16,15 +16,11 @@ import (
 	"time"
 	"github.com/pquerna/ffjson/ffjson"
 	"bytes"
+	"github.com/julienschmidt/httprouter"
+	"strings"
 )
 
-func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.WebhookDriver, botHost bots.BotHost, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
-	if webhookDriver == nil {
-		panic("webhookDriver == nil")
-	}
-	if botHost == nil {
-		panic("botHost == nil")
-	}
+func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
 	}
@@ -32,8 +28,6 @@ func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, webhookDriver bots.
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
 			BotPlatform:        TelegramPlatform{},
-			BotHost:            botHost,
-			WebhookDriver:      webhookDriver,
 			TranslatorProvider: translatorProvider,
 		},
 	}
@@ -45,28 +39,33 @@ type TelegramWebhookHandler struct {
 }
 var _ bots.WebhookHandler = (*TelegramWebhookHandler)(nil)
 
-func (h TelegramWebhookHandler) RegisterHandlers(pathPrefix string, notFound func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest)
-	http.HandleFunc(pathPrefix+"/telegram/webhook/", notFound)
-	http.HandleFunc(pathPrefix+"/telegram/setwebhook", func(w http.ResponseWriter, r *http.Request) {
+func (h TelegramWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+	if router == nil {
+		panic("router == nil")
+	}
+	h.BaseHandler.Register(driver, host)
+
+	pathPrefix = strings.TrimSuffix(pathPrefix, "/")
+	router.POST(pathPrefix + "/telegram/webhook", h.HandleWebhookRequest) // TODO: Remove obsolete
+	router.POST(pathPrefix + "/tg/hook", h.HandleWebhookRequest)
+	router.GET(pathPrefix+"/tg/set-webhook", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		h.SetWebhook(h.Context(r), w, r)
 	})
 }
 
-func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request) {
-	c := h.Context(r)
-	//log.Debugf(c, "TelegramWebhookHandler.HandleWebhookRequest()")
-	switch r.Method {
-	case http.MethodPost:
-		defer func() {
-			if r := recover(); r != nil {
-				log.Criticalf(c,"Unhandled exception in Telegram handler: %v", r)
-			}
-		}()
-		h.HandleWebhook(w, r, h)
-	default:
+func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
 	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Criticalf(h.Context(r),"Unhandled exception in Telegram handler: %v", err)
+		}
+	}()
+
+	h.HandleWebhook(w, r, h)
 }
 
 func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
@@ -77,7 +76,7 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
 		return
 	}
-	botSettings, ok := h.botsBy(c).Code[botCode]
+	botSettings, ok := h.botsBy(c).ByCode[botCode]
 	if !ok {
 		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
 		return
@@ -86,64 +85,87 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 	bot.EnableDebug(c)
 	//bot.Debug = true
 
-	webhookUrl := fmt.Sprintf("https://%v/bot/telegram/webhook?token=%v", r.Host, bot.Token)
+	webhookUrl := fmt.Sprintf("https://%v/bot/tg/hook?id=%v&token=%v", r.Host, botCode, bot.Token)
 
-	if _, err := bot.SetWebhook(tgbotapi.NewWebhook(webhookUrl)); err != nil {
+	webhookConfig := tgbotapi.NewWebhook(webhookUrl)
+	webhookConfig.AllowedUpdates = []string{
+		"message",
+		"edited_message",
+		"inline_query",
+		"chosen_inline_result",
+		"callback_query",
+	}
+	if response, err := bot.SetWebhook(webhookConfig); err != nil {
 		log.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	} else {
-		w.Write([]byte("Webhook set"))
+		w.Write([]byte(fmt.Sprintf("Webhook set\nErrorCode: %d\nDescription: %v\nContent: %v", response.ErrorCode, response.Description, string(response.Result))))
 	}
 }
 
 func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	log.Debugf(c, "TelegramWebhookHandler.GetBotContextAndInputs()")
+	//log.Debugf(c, "TelegramWebhookHandler.GetBotContextAndInputs()")
 	token := r.URL.Query().Get("token")
-	botSettings, ok := h.botsBy(c).ApiToken[token]
+	botSettings, ok := h.botsBy(c).ByApiToken[token]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown token: [%v]", token)
 		err = bots.AuthFailedError(errMess)
 		return
 	}
 	var bodyBytes []byte
+	defer r.Body.Close()
 	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
 		errors.Wrap(err, "Failed to read request body")
 		return
 	}
-	if len(bodyBytes) < 1024 * 10 {
-		var bodyToLog bytes.Buffer
-		if indentErr := json.Indent(&bodyToLog, bodyBytes, "", "\t"); indentErr == nil {
-			log.Debugf(c, "Request body: %v", bodyToLog.String())
-		} else {
-			log.Debugf(c, "Request body: %v", string(bodyBytes))
-		}
 
-		//if node, err := yaml.Parse(bytes.NewReader(bodyBytes)); err != nil {
-		//	log.Debugf(c, "Request body: %v", (string)(bodyBytes))
-		//} else {
-		//	log.Debugf(c, "Request JSON body as YAML (%T):\n%v", node, yaml.Render(node))
-		//}
-	} else {
-		log.Debugf(c, "Request len(body): %v", len(bodyBytes))
+	var requestLogged bool
+	logRequestBody := func() {
+		if !requestLogged {
+			requestLogged = true
+			if len(bodyBytes) < 1024 * 10 {
+				var bodyToLog bytes.Buffer
+				var bodyStr string
+				if indentErr := json.Indent(&bodyToLog, bodyBytes, "", "\t"); indentErr == nil {
+					bodyStr = bodyToLog.String()
+				} else {
+					bodyStr = string(bodyBytes)
+				}
+				log.Debugf(c, "Request body:\n%v", bodyStr)
+			} else {
+				log.Debugf(c, "Request len(body): %v", len(bodyBytes))
+			}
+		}
 	}
+
 	var update tgbotapi.Update
 	if update, err = h.unmarshalUpdate(c, bodyBytes); err != nil {
+		logRequestBody()
 		return
 	}
-	botContext = bots.NewBotContext(h.BotHost, botSettings)
-	input := NewTelegramWebhookInput(update)
-	if input == nil {
-		err = errors.Wrap(bots.ErrNotImplemented, "Unsupported Telegram message")
+
+	var input bots.WebhookInput
+	if input, err = NewTelegramWebhookInput(update, logRequestBody); err != nil {
+		logRequestBody()
 		return
 	}
+
 	entriesWithInputs = []bots.EntryInputs{
 			{
 				Entry:  TelegramWebhookEntry{update: update},
 				Inputs: []bots.WebhookInput{input},
 			},
 		}
-	log.Debugf(c, "Telegram input type: %T", input)
+
+	if input == nil {
+		logRequestBody();
+		err = errors.WithMessage(bots.ErrNotImplemented, "Telegram input is <nil>")
+		return
+	} else {
+		log.Debugf(c, "Telegram input type: %T", input)
+	}
+	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	return
 }
 

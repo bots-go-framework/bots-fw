@@ -2,13 +2,11 @@ package bots
 
 import (
 	"github.com/strongo/app/log"
-	//"google.golang.org/appengine/datastore"
 	"github.com/pkg/errors"
-	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 )
 
-func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Should not use nds.RunInTransaction()
+func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	c := whc.Context()
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
 	chatEntity := whc.ChatEntity()
@@ -16,7 +14,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Sho
 		if chatEntity.IsAccessGranted() == value {
 			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 		} else {
-			nds.RunInTransaction(c, func(c context.Context) (err error) {
+			if err = whc.RunInTransaction(c, func(c context.Context) (err error) {
 				chatEntity.SetAccessGranted(value)
 				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), whc.BotChatID()); err != nil {
 					return
@@ -27,7 +25,9 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Sho
 					}
 				}
 				return
-			}, nil)
+			}, nil); err != nil {
+				return
+			}
 		}
 	}
 
@@ -39,7 +39,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) { // TODO: Sho
 		if botUser.IsAccessGranted() == value {
 			log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 		} else {
-			err = nds.RunInTransaction(c, func(c context.Context) error {
+			err = whc.RunInTransaction(c, func(c context.Context) error {
 				botUser.SetAccessGranted(value)
 				if botUser, err = whc.GetBotUserById(c, botUserID); err != nil {
 					return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)

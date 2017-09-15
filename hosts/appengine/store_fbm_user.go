@@ -7,6 +7,7 @@ import (
 	"time"
 	"golang.org/x/net/context"
 	"github.com/strongo/bots-framework/platforms/fbm"
+	"github.com/strongo/app/user"
 )
 
 type GaeFacebookUserStore struct {
@@ -27,7 +28,7 @@ func NewGaeFacebookUserStore(gaeAppUserStore GaeAppUserStore) GaeFacebookUserSto
 					return &fbm_bot.FbmUser{
 						BotUserEntity: bots.BotUserEntity{
 							BotEntity: bots.BotEntity{
-								OwnedByUser: bots.OwnedByUser{
+								OwnedByUser: user.OwnedByUser{
 									DtCreated: time.Now(),
 								},
 							},
