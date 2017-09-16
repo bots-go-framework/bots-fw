@@ -16,6 +16,7 @@ type BotSettings struct {
 	PaymentTestToken string
 	VerifyToken      string // Used by Facebook
 	Locale           strongo.Locale
+	Router           *WebhooksRouter
 }
 
 func NewBotSettingsWithKind(env strongo.Environment, kind, code, token string, locale strongo.Locale) BotSettings {
@@ -56,17 +57,22 @@ type SettingsBy struct {
 	ByApiToken map[string]BotSettings
 	ByLocale   map[string][]BotSettings
 	ByID       map[string]BotSettings
+	HasRouter  bool
 }
 
-func NewBotSettingsBy(bots ...BotSettings) SettingsBy {
+func NewBotSettingsBy(router func(botCode string) *WebhooksRouter, bots ...BotSettings) SettingsBy {
 	count := len(bots)
 	settingsBy := SettingsBy{
+		HasRouter:  router != nil,
 		ByCode:     make(map[string]BotSettings, count),
 		ByApiToken: make(map[string]BotSettings, count),
 		ByLocale:   make(map[string][]BotSettings, count),
 		ByID:       make(map[string]BotSettings, count),
 	}
 	for _, bot := range bots {
+		if router != nil {
+			bot.Router = router(bot.Code)
+		}
 		if _, ok := settingsBy.ByCode[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))
 		} else {

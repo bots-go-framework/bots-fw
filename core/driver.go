@@ -24,29 +24,33 @@ type WebhookDriver interface {
 }
 
 type BotDriver struct {
-	Analytics       AnalyticsSettings
-	botHost         BotHost
-	appContext      BotAppContext
-	router          *WebhooksRouter
+	Analytics  AnalyticsSettings
+	botHost    BotHost
+	appContext BotAppContext
+	//router          *WebhooksRouter
 	panicTextFooter string
 }
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
 type AnalyticsSettings struct {
-	GaTrackingID string  // TODO: Refactor to list of analytics providers
+	GaTrackingID string // TODO: Refactor to list of analytics providers
 	Enabled      func(r *http.Request) bool
 }
 
-func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, router *WebhooksRouter, panicTextFooter string) WebhookDriver {
+func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, panicTextFooter string) WebhookDriver {
 	if appContext.AppUserEntityKind() == "" {
 		panic("appContext.AppUserEntityKind() is empty")
 	}
 	if host == nil {
 		panic("BotHost == nil")
 	}
-	return BotDriver{Analytics: gaSettings, appContext: appContext, botHost: host, router: router,
-		panicTextFooter:          panicTextFooter,
+	return BotDriver{
+		Analytics:  gaSettings,
+		appContext: appContext,
+		botHost:    host,
+		//router: router,
+		panicTextFooter: panicTextFooter,
 	}
 }
 
@@ -250,6 +254,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 	}
 
+	dispatch := botContext.BotSettings.Router.Dispatch
+
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
 			if input == nil {
@@ -258,7 +264,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			logInput(i, input)
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-			d.router.Dispatch(responder, whc)
+			dispatch(responder, whc)
 		}
 	}
 }
