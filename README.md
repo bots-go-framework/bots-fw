@@ -1,14 +1,49 @@
 # Strongo Bots Framework
-This is a [Go language](https://golang.org/) framework for building multilingual messenger bots (_Telegram, Facebook Messenger, Skype, Line, Kik, WeChat_) hosted on [AppEngine](https://cloud.google.com/appengine/), [Amazon](https://aws.amazon.com/), [Azure](https://azure.microsoft.com/), [Heroku](https://www.heroku.com/), [Docker](https://www.docker.com/) or just as a standard [Go HTTP server](https://golang.org/doc/articles/wiki/).
+A [Go language](https://golang.org/) framework to develop bots for messengers.
+
+**Reasons to use**:
+ 
+ * Same code can work across different  messenger (_Telegram, Facebook Messenger, Viber, Skype, Line, Kik, WeChat, etc._)
+ * You can tune your code to a specific messenger's APIs.
+ * i18n & l10n support (_multilingual_)   
+ * Can be hosted in cloud or just as a standard Go HTTP server. Supports [AppEngine](https://cloud.google.com/appengine/) standard environment.
+ * It's fast   
+
 
 ## Conitious Integration
 [![Build Status](https://drone.io/github.com/strongo/bots-framework/status.png)](https://drone.io/github.com/strongo/bots-framework/latest)
 
+## Usage
+
+	func InitBot(httpRouter *httprouter.Router, botHost bots.BotHost, appContext common.DebtsTrackerAppContext) {
+	
+		driver := bots.NewBotDriver( // Orchestrate requests to appropriate handlers
+			bots.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
+			appContext,                                       // Holds User entity kind name, translator, etc.
+			botHost,                                          // Defines how to create context.Context, HttpClient, DB, etc...
+			"Please report any issues to @DebtsTrackerGroup", // Is it wrong place? Router has similar.
+		)
+	
+		driver.RegisterWebhookHandlers(httpRouter, "/bot",
+			telegram_bot.NewTelegramWebhookHandler(
+				telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
+				newTranslator, // Creates translator that gets a context.Context (for logging purpose)
+			),
+			viber_bot.NewViberWebhookHandler(
+				viber.Bots,
+				newTranslator,
+			),
+			fbm_bot.NewFbmWebhookHandler(
+				fbm.Bots,
+				newTranslator,
+			),
+		)
+	}
+
 ## Sample bots built with Strongo Bots Framework
-The best way to learn is to see examples of usage. Here is few:
-  * [strongo/bots-example-calculator](http://github.com/strongo/bots-example-calculator) — a simple bot that calculates math expressions
-  * [strongo/bots-example-rock-paper-scissors](http://github.com/strongo/bots-example-rock-paper-scissors) — a bot to play [Rock-Paper-Scissors](https://en.wikipedia.org/wiki/Rock-paper-scissors) with your friends or against AI
-  * [**DebtsTracker.io**](http://debtstracker.io/) —  a bot & a reminder service that helps to track your debts & credits. Sends automated email & SMS reminders to your debtors.
+The best way to learn is to see examples of usage. Here is one:
+  * [**DebtsTracker.io**](http://debtstracker.io/) —  a bot & a reminder service that helps to track your debts & credits.
+  Sends automated reminders to you & your debtors (_in messenger, email, SMS_).
 
 We would be happy to place a link to your example / bot that is implemented using this framework.
 
@@ -16,6 +51,7 @@ We would be happy to place a link to your example / bot that is implemented usin
 You can use any Bot API library by implementing couple of simple interface but the framework comes with few buildins:
   * [strongo/bots-api-telegram](strongo/bots-api-telegram) - Go library for [**Telegram** Bot API](https://core.telegram.org/bots/api)
   * [strongo/bots-api-fbm](strongo/bots-api-fbm) - Go library for [**Facebook Messenger** Bot API](https://developers.facebook.com/docs/messenger-platform)
+  * [strongo/bots-api-viber](strongo/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
   
 ## Contributors
   * [Alexander Trakhimenok](https://ie.linkedin.com/in/alexandertrakhimenok)
