@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
-	//"github.com/strongo/app/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"golang.org/x/net/context"
@@ -40,6 +39,11 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 		WebhookContextBase: whcb,
 	}
 }
+
+func (_ ViberWebhookContext) IsInGroup() bool {
+	panic("not implemented yet")
+}
+
 
 func (whc *ViberWebhookContext) Close(c context.Context) error {
 	return nil

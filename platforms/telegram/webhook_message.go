@@ -5,7 +5,7 @@ import (
 )
 
 type telegramWebhookMessage struct {
-	TelegramWebhookInput
+	telegramWebhookInput
 	message *tgbotapi.Message // Can be either whi.update.Message or whi.update.CallbackQuery.Message
 }
 
@@ -13,9 +13,9 @@ func (whm telegramWebhookMessage) IntID() int64 {
 	return (int64)(whm.message.MessageID)
 }
 
-func newTelegramWebhookMessage(input TelegramWebhookInput, message *tgbotapi.Message) telegramWebhookMessage {
+func newTelegramWebhookMessage(input telegramWebhookInput, message *tgbotapi.Message) telegramWebhookMessage {
 	if message == nil {
 		panic("message == nil")
 	}
-	return telegramWebhookMessage{TelegramWebhookInput: input, message: message}
+	return telegramWebhookMessage{telegramWebhookInput: input, message: message}
 }

@@ -14,7 +14,7 @@ func (_ TelegramWebhookNewChatMembersMessage) InputType() bots.WebhookInputType 
 
 var _ bots.WebhookNewChatMembersMessage = (*TelegramWebhookNewChatMembersMessage)(nil)
 
-func NewTelegramWebhookNewChatMembersMessage(input TelegramWebhookInput) TelegramWebhookNewChatMembersMessage {
+func NewTelegramWebhookNewChatMembersMessage(input telegramWebhookInput) TelegramWebhookNewChatMembersMessage {
 	return TelegramWebhookNewChatMembersMessage{telegramWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
 }
 

@@ -41,13 +41,13 @@ func (v *TypeCommands) addCommand(i int, command Command) {
 }
 
 type WebhooksRouter struct {
-	commandsByType map[WebhookInputType]*TypeCommands
+	commandsByType  map[WebhookInputType]*TypeCommands
 	errorFooterText func() string
 }
 
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) *WebhooksRouter {
 	r := &WebhooksRouter{
-		commandsByType: make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
+		commandsByType:  make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
 		errorFooterText: errorFooterText,
 	}
 
@@ -103,6 +103,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 		}
 		if err == nil && matchedCommand == nil {
 			err = errors.New(fmt.Sprintf("No commands matchet to callback: [%v]", callbackData))
+			whc.LogRequest()
 		}
 	} else {
 		panic("len(typeCommands.all) == 0")
@@ -132,12 +133,18 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	var awaitingReplyCommandFound bool
 
-	for _, command := range commands {
-		for _, commandName := range command.Commands {
-			if messageTextLowerCase == commandName || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
-				log.Debugf(c, "command(code=%v) matched by command.commands", command.Code)
-				matchedCommand = &command
-				return
+	{
+		commandText := messageTextLowerCase
+		if strings.HasPrefix(commandText, "/") && strings.Contains(commandText, "@") {
+			commandText = commandText[:strings.Index(commandText, "@")]
+		}
+		for _, command := range commands {
+			for _, commandName := range command.Commands {
+				if commandName == commandText || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
+					log.Debugf(c, "command(code=%v) matched by command.commands", command.Code)
+					matchedCommand = &command
+					return
+				}
 			}
 		}
 	}
@@ -214,6 +221,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 	inputType := whc.InputType()
 
 	if typeCommands, found := router.commandsByType[inputType]; !found {
+		whc.LogRequest()
 		logInputDetails(whc, false)
 		return
 	} else {
@@ -267,10 +275,11 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		}
 
 		if matchedCommand == nil {
+			whc.LogRequest()
 			log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
 			if whc.Chat().IsGroupChat() {
-				m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
-				router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+				//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+				//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			} else {
 				m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
 				chatEntity := whc.ChatEntity()
@@ -391,7 +400,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 		if inputType == WebhookInputText || inputType == WebhookInputContact {
 			// Todo: Try to get chat ID from user?
 			m := whc.NewMessage(
-				whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG)+
+				whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) +
 					"\n\n" +
 					emoji.ERROR_ICON +
 					fmt.Sprintf(" Server error - failed to process message: %v", err),

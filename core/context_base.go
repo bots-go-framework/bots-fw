@@ -75,7 +75,10 @@ func (whc *WebhookContextBase) BotChatID() (chatID string) {
 			}
 			chatID = values.Get("chat")
 		}
+	case WebhookInlineQuery:
+		// pass
 	default:
+		whc.LogRequest()
 		log.Debugf(whc.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 

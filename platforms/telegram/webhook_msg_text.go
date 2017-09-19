@@ -17,7 +17,7 @@ func (_ TelegramWebhookTextMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputText
 }
 
-func NewTelegramWebhookTextMessage(input TelegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookTextMessage {
+func NewTelegramWebhookTextMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookTextMessage {
 	return TelegramWebhookTextMessage{
 		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
 		TgMessageType: tgMessageType,

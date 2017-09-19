@@ -91,7 +91,7 @@ func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string
 
 func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botChat bots.WebhookChat, appUserID int64, botUserID string, isAccessGranted bool) bots.BotChat {
 	botChatId := botChat.GetID()
-	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID)
+	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
 	botChatEntity := s.newBotChatEntity()
 	botChatEntity.SetBotID(botID)
 	botChatEntity.SetAppUserIntID(appUserID)
@@ -123,7 +123,7 @@ func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChat
 	}
 	_, err := nds.PutMulti(c, chatKeys, chatEntities)
 	if err == nil {
-		log.Debugf(c, "Succesfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		log.Debugf(c, "Successfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
 		s.botChats = nil
 	} else {
 		log.Errorf(c, "Failed to save %v BotChat entities: %v", len(chatKeys), err)

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"github.com/strongo/app/db"
 	"github.com/strongo/app/gaedb"
+	"github.com/strongo/bots-framework/platforms/telegram"
 )
 
 type GaeBotHost struct {
@@ -38,7 +39,11 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 
 	switch platform { // TODO: Should not be hardcoded
 	case "telegram":  // pass
-		stores.BotChatStore = NewGaeTelegramChatStore()
+		if appContext.GetBotChatEntityFactory != nil {
+			stores.BotChatStore = NewGaeTelegramChatStore(appContext.GetBotChatEntityFactory("telegram"))
+		} else {
+			stores.BotChatStore = NewGaeTelegramChatStore(func() bots.BotChat {return telegram_bot.NewTelegramChatEntity()})
+		}
 		stores.BotUserStore = NewGaeTelegramUserStore(appUserStore)
 	case "fbm": 		// pass
 		stores.BotChatStore = NewGaeFbmChatStore()

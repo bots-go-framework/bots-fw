@@ -41,6 +41,8 @@ type WebhookContext interface {
 
 	ChatEntity() BotChat
 
+	IsInGroup() bool
+
 	CommandText(title, icon string) string
 
 	//Locale() strongo.ByLocale

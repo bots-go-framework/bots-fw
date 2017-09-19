@@ -212,8 +212,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
-			} else {
-				log.Debugf(c, "Bot chat store closed")
 			}
 		}
 	}()

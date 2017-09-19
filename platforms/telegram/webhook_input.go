@@ -8,22 +8,28 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 )
 
-type TelegramWebhookInput struct {
-	update tgbotapi.Update
+type telegramWebhookInput struct {
+	update tgbotapi.Update // TODO: Make a pointer?
 	logRequest func()
 }
 
-func (whi TelegramWebhookInput) LogRequest() {
+type TelegramWebhookInput interface {
+	TgUpdate() tgbotapi.Update
+}
+
+func (whi telegramWebhookInput) LogRequest() {
 	if whi.logRequest != nil {
 		whi.logRequest()
 	}
 }
 
+var _ TelegramWebhookInput = (*telegramWebhookInput)(nil)
+
 type TelegramWebhookUpdateProvider interface {
 	TgUpdate() tgbotapi.Update
 }
 
-func (whi TelegramWebhookInput) TgUpdate() tgbotapi.Update {
+func (whi telegramWebhookInput) TgUpdate() tgbotapi.Update {
 	return whi.update
 }
 
@@ -34,12 +40,12 @@ var _ bots.WebhookInput = (*TelegramWebhookChosenInlineResult)(nil)
 var _ bots.WebhookInput = (*TelegramWebhookCallbackQuery)(nil)
 var _ bots.WebhookInput = (*TelegramWebhookNewChatMembersMessage)(nil)
 
-func (whi TelegramWebhookInput) GetID() interface{} {
+func (whi telegramWebhookInput) GetID() interface{} {
 	return whi.update.UpdateID
 }
 
 func NewTelegramWebhookInput(update tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
-	input := TelegramWebhookInput{update: update, logRequest: logRequest}
+	input := telegramWebhookInput{update: update, logRequest: logRequest}
 
 	switch {
 
@@ -100,7 +106,7 @@ func NewTelegramWebhookInput(update tgbotapi.Update, logRequest func()) (bots.We
 	}
 }
 
-func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
+func (whi telegramWebhookInput) GetSender() bots.WebhookSender {
 	switch {
 	case whi.update.Message != nil:
 		return TelegramSender{tgUser: whi.update.Message.From}
@@ -127,11 +133,11 @@ func (whi TelegramWebhookInput) GetSender() bots.WebhookSender {
 	}
 }
 
-func (whi TelegramWebhookInput) GetRecipient() bots.WebhookRecipient {
+func (whi telegramWebhookInput) GetRecipient() bots.WebhookRecipient {
 	panic("Not implemented")
 }
 
-func (whi TelegramWebhookInput) GetTime() time.Time {
+func (whi telegramWebhookInput) GetTime() time.Time {
 	if whi.update.Message != nil {
 		return whi.update.Message.Time()
 	}
@@ -141,11 +147,11 @@ func (whi TelegramWebhookInput) GetTime() time.Time {
 	return time.Time{}
 }
 
-func (whi TelegramWebhookInput) StringID() string {
+func (whi telegramWebhookInput) StringID() string {
 	return ""
 }
 
-func (whi TelegramWebhookInput) TelegramChatID() int64 {
+func (whi telegramWebhookInput) TelegramChatID() int64 {
 	if whi.update.Message != nil {
 		return whi.update.Message.Chat.ID
 	}
@@ -155,7 +161,7 @@ func (whi TelegramWebhookInput) TelegramChatID() int64 {
 	panic("Can't get Telgram chat ID from `update.Message` or `update.EditedMessage`.")
 }
 
-func (whi TelegramWebhookInput) Chat() bots.WebhookChat {
+func (whi telegramWebhookInput) Chat() bots.WebhookChat {
 	update := whi.update
 	if update.Message != nil {
 		return TelegramWebhookChat{

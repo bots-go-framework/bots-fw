@@ -5,7 +5,7 @@ import (
 )
 
 type TelegramWebhookChosenInlineResult struct {
-	TelegramWebhookInput
+	telegramWebhookInput
 }
 
 var _ bots.WebhookChosenInlineResult = (*TelegramWebhookChosenInlineResult)(nil)
@@ -14,8 +14,8 @@ func (_ TelegramWebhookChosenInlineResult) InputType() bots.WebhookInputType {
 	return bots.WebhookInputChosenInlineResult
 }
 
-func NewTelegramWebhookChosenInlineResult(input TelegramWebhookInput) TelegramWebhookChosenInlineResult {
-	return TelegramWebhookChosenInlineResult{TelegramWebhookInput: input}
+func NewTelegramWebhookChosenInlineResult(input telegramWebhookInput) TelegramWebhookChosenInlineResult {
+	return TelegramWebhookChosenInlineResult{telegramWebhookInput: input}
 }
 
 

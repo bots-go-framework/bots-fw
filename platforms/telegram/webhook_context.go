@@ -17,7 +17,7 @@ type TelegramWebhookContext struct {
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
-	//whi          TelegramWebhookInput
+	//whi          telegramWebhookInput
 }
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
@@ -85,6 +85,11 @@ func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, b
 		WebhookContextBase: whcb,
 		//whi: whi,
 	}
+}
+
+func (twhc TelegramWebhookContext) IsInGroup() bool {
+	chat := twhc.Input().(TelegramWebhookInput).TgUpdate().Chat()
+	return chat != nil && chat.IsGroup()
 }
 
 func (twhc TelegramWebhookContext) Close(c context.Context) error {

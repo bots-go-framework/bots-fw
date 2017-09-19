@@ -16,8 +16,9 @@ const (
 
 type TelegramChatEntity struct {
 	bots.BotChatEntity
-	TelegramUserID        int
-	LastProcessedUpdateID int `datastore:",noindex"`
+	TelegramUserID        int   `datastore:",noindex"`
+	TelegramUserIDs       []int `datastore:",noindex"` // For groups
+	LastProcessedUpdateID int   `datastore:",noindex"`
 }
 
 var _ bots.BotChat = (*TelegramChatEntity)(nil)
@@ -61,23 +62,29 @@ func (entity *TelegramChatEntity) Load(ps []datastore.Property) error {
 
 func (entity *TelegramChatEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
-		return properties, err
+		return
 	}
+	if properties, err = entity.CleanProperties(properties); err != nil {
+		return
+	}
+	return
+}
 
+func (_ *TelegramChatEntity) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+	var err error
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"AccessGranted":         gaedb.IsFalse,
 		"AwaitingReplyTo":       gaedb.IsEmptyString,
 		"DtForbidden":           gaedb.IsZeroTime,
 		"DtForbiddenLast":       gaedb.IsZeroTime,
 		"GaClientID":            gaedb.IsEmptyByteArray,
+		"TelegramUserID":        gaedb.IsZeroInt,
 		"LastProcessedUpdateID": gaedb.IsZeroInt,
 		"PreferredLanguage":     gaedb.IsEmptyString,
-		"Title":                 gaedb.IsEmptyString,  // TODO: Is it obsolete?
-		"Type":                  gaedb.IsEmptyString,  // TODO: Is it obsolete?
+		"Title":                 gaedb.IsEmptyString, // TODO: Is it obsolete?
+		"Type":                  gaedb.IsEmptyString, // TODO: Is it obsolete?
 	}); err != nil {
-		return
+		return properties, err
 	}
-
-	return
+	return properties, err
 }
-

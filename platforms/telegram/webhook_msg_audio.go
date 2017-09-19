@@ -16,7 +16,7 @@ func (_ TelegramWebhookAudioMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputAudio
 }
 
-func NewTelegramWebhookAudioMessage(input TelegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookAudioMessage {
+func NewTelegramWebhookAudioMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookAudioMessage {
 	return TelegramWebhookAudioMessage{
 		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
 		TgMessageType: tgMessageType,

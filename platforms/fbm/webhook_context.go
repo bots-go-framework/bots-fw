@@ -55,12 +55,16 @@ func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) (bots.M
 //}
 
 
-func (tc FbmWebhookContext) Close(c context.Context) error {
+func (_ FbmWebhookContext) IsInGroup() bool {
+	panic("not implemented yet")
+}
+
+func (whc FbmWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (tc FbmWebhookContext) Responder() bots.WebhookResponder {
-	return tc.responder
+func (whc FbmWebhookContext) Responder() bots.WebhookResponder {
+	return whc.responder
 }
 
 type FbmBotApiUser struct {
@@ -142,14 +146,14 @@ func (whc *FbmWebhookContext) getFbmSenderID() string {
 	panic("string expected")
 }
 
-func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_api.SendMessage {
-	////inputMessage := tc.InputMessage()
+func (whc *FbmWebhookContext) NewFbmMessage(text string) fbm_api.SendMessage {
+	////inputMessage := whc.InputMessage()
 	////if inputMessage != nil {
-	////ctx := tc.Context()
+	////ctx := whc.Context()
 	////chat := inputMessage.Chat()
 	////chatID := chat.GetID()
-	////log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
-	//botChatID := tc.BotChatID()
+	////log.Infof(ctx, "NewTgMessage(): whc.update.Message.Chat.ID: %v", chatID)
+	//botChatID := whc.BotChatID()
 	//if botChatID == nil {
 	//	panic(fmt.Sprintf("Not able to send message as BotChatID() returned nil. text: %v", text))
 	//}
@@ -163,14 +167,14 @@ func (tc *FbmWebhookContext) NewFbmMessage(text string) fbm_api.SendMessage {
 	//	}
 	//}
 	////}
-	////panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", tc.InputType()))
+	////panic(fmt.Sprintf("Expected to be called just for inputType == Message, got: %v", whc.InputType()))
 	panic("Not implemented")
 }
 
-func (tc *FbmWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
+func (whc *FbmWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
 	panic("Not implemented")
 	//if chat, ok := chatEntity.(*FbmChat); ok {
-	//	chat.LastSeq = tc.InputMessage().Sequence()
+	//	chat.LastSeq = whc.InputMessage().Sequence()
 	//	return nil
 	//}
 	//return errors.New(fmt.Sprintf("Expected *FbmChat, got: %T", chatEntity))

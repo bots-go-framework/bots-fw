@@ -1,7 +1,7 @@
 package gae_host
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
@@ -9,6 +9,7 @@ import (
 	"time"
 	"golang.org/x/net/context"
 	"strconv"
+	//"reflect"
 )
 
 type GaeTelegramChatStore struct {
@@ -17,17 +18,18 @@ type GaeTelegramChatStore struct {
 
 var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeTelegramChatStore() *GaeTelegramChatStore {
+func NewGaeTelegramChatStore(newTelegramChatEntity func() bots.BotChat) *GaeTelegramChatStore {
 	return &GaeTelegramChatStore{
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: NewGaeBaseStore(telegram_bot.TelegramChatKind),
-			newBotChatEntity: func() bots.BotChat {
-				return telegram_bot.NewTelegramChatEntity()
-			},
+			newBotChatEntity: newTelegramChatEntity,
 			validateBotChatEntityType: func(entity bots.BotChat) {
-				if _, ok := entity.(*telegram_bot.TelegramChatEntity); !ok {
-					panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))
-				}
+				//if _, ok := entity.(*telegram_bot.TelegramChatEntity); !ok {
+				//	v := reflect.ValueOf(entity)
+				//	if v.Type() != reflect.TypeOf(telegram_bot.TelegramChatEntity{}) {
+				//		panic(fmt.Sprintf("Expected *telegram_bot.TelegramChat but received %T", entity))
+				//	}
+				//}
 			},
 			NewBotChatKey: func(c context.Context, botID, botChatId string) *datastore.Key {
 				return datastore.NewKey(c, telegram_bot.TelegramChatKind, bots.NewChatID(botID, botChatId), 0, nil)
