@@ -220,7 +220,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		switch input.(type) {
 		case WebhookTextMessage:
 			sender := input.GetSender()
-			log.Debugf(c, "User#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		case WebhookNewChatMembersMessage:
 			newMembers := input.(WebhookNewChatMembersMessage).NewChatMembers()
 			var b bytes.Buffer
@@ -232,21 +232,21 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		case WebhookContactMessage:
 			sender := input.GetSender()
 			contactMessage := input.(WebhookContactMessage)
-			log.Debugf(c, "User#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
+			log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
 		case WebhookCallbackQuery:
 			callbackQuery := input.(WebhookCallbackQuery)
 			callbackData := callbackQuery.GetData()
 			sender := input.GetSender()
-			log.Debugf(c, "User#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+			log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 		case WebhookInlineQuery:
 			sender := input.GetSender()
-			log.Debugf(c, "User#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+			log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
 		case WebhookChosenInlineResult:
 			sender := input.GetSender()
-			log.Debugf(c, "User#%v(%v %v) => choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+			log.Debugf(c, "BotUser#%v(%v %v) => choosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
 		case WebhookReferralMessage:
 			sender := input.GetSender()
-			log.Debugf(c, "User#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+			log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 		default:
 			log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 		}

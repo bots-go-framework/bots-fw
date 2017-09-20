@@ -27,35 +27,41 @@ func (twhc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) (
 }
 
 func (twhc *TelegramWebhookContext) NewEditCallbackMessageTextAndKeyboard(text string, kbMarkup tgbotapi.InlineKeyboardMarkup) (m bots.MessageFromBot, err error) {
+	//TODO: panic from here is not handled properly
 	m = twhc.NewMessage(text)
-	update := twhc.Input().(TelegramWebhookCallbackQuery).update
+	update := twhc.Input().(TelegramWebhookInput).TgUpdate()
 
 	var (
 		inlineMessageID string
-		chatID int64
-		messageID int
+		chatID          int64
+		messageID       int
 	)
 
-	if inlineMessageID := update.CallbackQuery.InlineMessageID; inlineMessageID == "" {
-		if update.Message != nil {
-			messageID = update.Message.MessageID
-			chatID = update.Message.Chat.ID
+	if update.CallbackQuery != nil {
+		if update.CallbackQuery.InlineMessageID != "" {
+			inlineMessageID = update.CallbackQuery.InlineMessageID
 		} else if update.CallbackQuery.Message != nil {
 			messageID = update.CallbackQuery.Message.MessageID
 			chatID = update.CallbackQuery.Message.Chat.ID
-		} else if update.EditedMessage != nil {
-			messageID = update.EditedMessage.MessageID
-			chatID = update.EditedMessage.Chat.ID
-		} else if update.ChannelPost != nil {
-			messageID = update.ChannelPost.MessageID
-			chatID = update.ChannelPost.Chat.ID
-		} else if update.ChosenInlineResult.InlineMessageID == "" {
-			inlineMessageID = update.ChosenInlineResult.InlineMessageID
-		} else if update.EditedChannelPost != nil {
-			messageID = update.EditedChannelPost.MessageID
-			chatID = update.EditedChannelPost.Chat.ID
 		}
+	} else if update.Message != nil {
+		messageID = update.Message.MessageID
+		chatID = update.Message.Chat.ID
+	} else if update.EditedMessage != nil {
+		messageID = update.EditedMessage.MessageID
+		chatID = update.EditedMessage.Chat.ID
+	} else if update.ChannelPost != nil {
+		messageID = update.ChannelPost.MessageID
+		chatID = update.ChannelPost.Chat.ID
+	} else if update.ChosenInlineResult != nil {
+		if update.ChosenInlineResult.InlineMessageID != "" {
+			inlineMessageID = update.ChosenInlineResult.InlineMessageID
+		}
+	} else if update.EditedChannelPost != nil {
+		messageID = update.EditedChannelPost.MessageID
+		chatID = update.EditedChannelPost.Chat.ID
 	}
+
 	if text == "" {
 		editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, kbMarkup)
 		m.TelegramEditMessageMarkup = &editMessageMarkupConfig
@@ -170,6 +176,7 @@ func (twhc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageCo
 	if err != nil {
 		panic(fmt.Sprintf("Not able to parse BotChatID(%v) as int: %v", botChatID, err))
 	}
+	//tgbotapi.NewEditMessageText()
 	return tgbotapi.NewMessage(botChatIntID, text)
 }
 

@@ -36,6 +36,9 @@ func NewTelegramChatEntity() *TelegramChatEntity {
 }
 
 func (entity *TelegramChatEntity) SetAppUserIntID(id int64) {
+	if entity.IsGroup && id != 0 {
+		panic("TelegramChatEntity.IsGroup && id != 0")
+	}
 	entity.AppUserIntID = id
 }
 
@@ -70,9 +73,13 @@ func (entity *TelegramChatEntity) Save() (properties []datastore.Property, err e
 	return
 }
 
-func (_ *TelegramChatEntity) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+func (entity *TelegramChatEntity) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+	if entity.IsGroup && entity.AppUserIntID != 0 {
+		panic(fmt.Sprintf("IsGroup && AppUserIntID:%d != 0", entity.AppUserIntID))
+	}
 	var err error
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+		"AppUserIntID":          gaedb.IsZeroInt,
 		"AccessGranted":         gaedb.IsFalse,
 		"AwaitingReplyTo":       gaedb.IsEmptyString,
 		"DtForbidden":           gaedb.IsZeroTime,

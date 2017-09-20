@@ -11,7 +11,10 @@ type TelegramWebhookCallbackQuery struct {
 	//message       bots.WebhookMessage
 }
 
-var _ bots.WebhookCallbackQuery = (*TelegramWebhookCallbackQuery)(nil)
+var (
+	_ bots.WebhookCallbackQuery = (*TelegramWebhookCallbackQuery)(nil)
+	_ TelegramWebhookInput = (*TelegramWebhookCallbackQuery)(nil)
+)
 
 func (_ TelegramWebhookCallbackQuery) InputType() bots.WebhookInputType {
 	return bots.WebhookInputCallbackQuery

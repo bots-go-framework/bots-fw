@@ -94,12 +94,14 @@ func (s *GaeBotChatStore) NewBotChatEntity(c context.Context, botID string, botC
 	log.Debugf(c, "NewBotChatEntity(botID=%v, botChatId=%v, appUserID=%v, botUserID=%v, isAccessGranted=%v)", botID, botChatId, appUserID, botUserID, isAccessGranted)
 	botChatEntity := s.newBotChatEntity()
 	botChatEntity.SetBotID(botID)
-	botChatEntity.SetAppUserIntID(appUserID)
+
 	if botChat.IsGroupChat() {
 		botChatEntity.SetIsGroupChat(true)
 	} else {
+		botChatEntity.SetAppUserIntID(appUserID)
 		botChatEntity.SetBotUserID(botUserID)
 	}
+
 	botChatEntity.SetAccessGranted(isAccessGranted)
 	s.botChats[s.NewBotChatKey(c, botID, botChatId).StringID()] = botChatEntity // TODO: No need to create a key instance, create dedicated func to create ID?
 	return botChatEntity
