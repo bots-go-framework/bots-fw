@@ -7,7 +7,7 @@ import (
 )
 
 type TelegramWebhookEntry struct {
-	update tgbotapi.Update
+	update *tgbotapi.Update
 }
 
 var _ bots.WebhookEntry = (*TelegramWebhookEntry)(nil)

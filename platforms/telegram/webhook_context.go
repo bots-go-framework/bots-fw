@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"golang.org/x/net/context"
+	"errors"
 )
 
 type TelegramWebhookContext struct {
@@ -23,20 +24,10 @@ type TelegramWebhookContext struct {
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func (twhc *TelegramWebhookContext) NewEditCallbackMessage(messageText string) (bots.MessageFromBot, error) {
-	return twhc.NewEditCallbackMessageTextAndKeyboard(messageText, tgbotapi.InlineKeyboardMarkup{})
+	return twhc.NewEditMessageTextAndKeyboard(messageText, nil)
 }
 
-func (twhc *TelegramWebhookContext) NewEditCallbackMessageTextAndKeyboard(text string, kbMarkup tgbotapi.InlineKeyboardMarkup) (m bots.MessageFromBot, err error) {
-	//TODO: panic from here is not handled properly
-	m = twhc.NewMessage(text)
-	update := twhc.Input().(TelegramWebhookInput).TgUpdate()
-
-	var (
-		inlineMessageID string
-		chatID          int64
-		messageID       int
-	)
-
+func getTgMessageIDs(update *tgbotapi.Update) (inlineMessageID string, chatID int64, messageID int) {
 	if update.CallbackQuery != nil {
 		if update.CallbackQuery.InlineMessageID != "" {
 			inlineMessageID = update.CallbackQuery.InlineMessageID
@@ -62,18 +53,30 @@ func (twhc *TelegramWebhookContext) NewEditCallbackMessageTextAndKeyboard(text s
 		chatID = update.EditedChannelPost.Chat.ID
 	}
 
-	if text == "" {
+	return
+}
+
+func (twhc *TelegramWebhookContext) NewEditMessageTextAndKeyboard(text string, kbMarkup *tgbotapi.InlineKeyboardMarkup) (m bots.MessageFromBot, err error) {
+	//TODO: panic from here is not handled properly - verify and add unit tests
+	m = twhc.NewMessage(text)
+
+	inlineMessageID, chatID, messageID := getTgMessageIDs(twhc.Input().(TelegramWebhookInput).TgUpdate())
+
+	if text != "" {
+		editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, text)
+		if len(kbMarkup.InlineKeyboard) > 0 {
+			editMessageTextConfig.ReplyMarkup = kbMarkup
+		}
+		m.TelegramEditMessageText = editMessageTextConfig
+	} else if kbMarkup != nil && len(kbMarkup.InlineKeyboard) > 0 {
 		editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, kbMarkup)
 		m.TelegramEditMessageMarkup = &editMessageMarkupConfig
 	} else {
-		editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, text)
-		if len(kbMarkup.InlineKeyboard) > 0 {
-			editMessageTextConfig.ReplyMarkup = &kbMarkup
-		}
-		m.TelegramEditMessageText = editMessageTextConfig
+		err = errors.New("can't edit Telegram mmessage as  m.Text is empty string and no keyboard")
+		return
 	}
 
-	return m, nil
+	return
 }
 
 func NewTelegramWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, input bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *TelegramWebhookContext {

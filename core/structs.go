@@ -44,7 +44,7 @@ func (bh *BaseHandler) Register(d WebhookDriver, h BotHost) {
 type MessageFormat int
 
 const (
-	MessageFormatText MessageFormat = iota
+	MessageFormatText     MessageFormat = iota
 	MessageFormatHTML
 	MessageFormatMarkdown
 )
@@ -52,23 +52,24 @@ const (
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
-	Text                      string `json:",omitempty"`
-	Format                    MessageFormat `json:",omitempty"`
-	DisableWebPagePreview     bool `json:",omitempty"`
-	DisableNotification       bool `json:",omitempty"`
-													  //Keyboard              Keyboard
-	TelegramKeyboard          interface{} `json:",omitempty"` // TODO: cast to a specific interface?
-	ViberKeyboard             *viberinterface.Keyboard `json:",omitempty"`
-	FbmAttachment				  *fbm_api.RequestAttachment `json:",omitempty"`
-													  // TODO: One of this 2 is duplicate!?
-	TelegramInlineConfig      *tgbotapi.InlineConfig `json:",omitempty"`
-													  //TelegramInlineAnswer      *tgbotapi.InlineConfig
-	TelegramCallbackAnswer    *tgbotapi.AnswerCallbackQueryConfig `json:",omitempty"`
-													  //
-	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig `json:",omitempty"`
+	IsEdit                bool
+	Text                  string        `json:",omitempty"`
+	Format                MessageFormat `json:",omitempty"`
+	DisableWebPagePreview bool          `json:",omitempty"`
+	DisableNotification   bool          `json:",omitempty"`
+	//Keyboard              Keyboard
+	TelegramKeyboard tgbotapi.KeyboardMarkup    `json:",omitempty"`
+	ViberKeyboard    *viberinterface.Keyboard   `json:",omitempty"`
+	FbmAttachment    *fbm_api.RequestAttachment `json:",omitempty"`
+	// TODO: One of this 2 is duplicate!?
+	TelegramInlineConfig *tgbotapi.InlineConfig `json:",omitempty"`
+	//TelegramInlineAnswer      *tgbotapi.InlineConfig
+	TelegramCallbackAnswer *tgbotapi.AnswerCallbackQueryConfig `json:",omitempty"`
+	//
+	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig        `json:",omitempty"`
 	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig `json:",omitempty"`
-	TelegramChatID            int64 `json:",omitempty"`
-	IsReplyToInputMessage     bool `json:",omitempty"`
+	TelegramChatID            int64                                  `json:",omitempty"`
+	IsReplyToInputMessage     bool                                   `json:",omitempty"`
 }
 
 //type Keyboard interface {

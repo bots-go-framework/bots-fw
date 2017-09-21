@@ -9,12 +9,12 @@ import (
 )
 
 type telegramWebhookInput struct {
-	update tgbotapi.Update // TODO: Make a pointer?
+	update *tgbotapi.Update // TODO: Make a pointer?
 	logRequest func()
 }
 
 type TelegramWebhookInput interface {
-	TgUpdate() tgbotapi.Update
+	TgUpdate() *tgbotapi.Update
 }
 
 func (whi telegramWebhookInput) LogRequest() {
@@ -26,10 +26,10 @@ func (whi telegramWebhookInput) LogRequest() {
 var _ TelegramWebhookInput = (*telegramWebhookInput)(nil)
 
 type TelegramWebhookUpdateProvider interface {
-	TgUpdate() tgbotapi.Update
+	TgUpdate() *tgbotapi.Update
 }
 
-func (whi telegramWebhookInput) TgUpdate() tgbotapi.Update {
+func (whi telegramWebhookInput) TgUpdate() *tgbotapi.Update {
 	return whi.update
 }
 
@@ -44,7 +44,7 @@ func (whi telegramWebhookInput) GetID() interface{} {
 	return whi.update.UpdateID
 }
 
-func NewTelegramWebhookInput(update tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
+func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
 	input := telegramWebhookInput{update: update, logRequest: logRequest}
 
 	switch {

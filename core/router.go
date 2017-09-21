@@ -220,89 +220,90 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 	c := whc.Context()
 	inputType := whc.InputType()
 
-	if typeCommands, found := router.commandsByType[inputType]; !found {
+	typeCommands, found := router.commandsByType[inputType]
+	if !found {
 		whc.LogRequest()
 		logInputDetails(whc, false)
 		return
-	} else {
-		var (
-			matchedCommand *Command
-			commandAction  CommandAction
-			err            error
-			m              MessageFromBot
-		)
-		input := whc.Input()
-		switch input.(type) {
-		case WebhookCallbackQuery:
-			var callbackUrl *url.URL
-			matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
-			if err == nil && matchedCommand != nil {
-				if matchedCommand.Code == "" {
-					err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand))
-				} else if matchedCommand.CallbackAction == nil {
-					err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code))
-				} else {
-					log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
-					commandAction = func(whc WebhookContext) (MessageFromBot, error) {
-						return matchedCommand.CallbackAction(whc, callbackUrl)
-					}
+	}
+	log.Debugf(c, "Found %d commands to match by inputType: %v", len(typeCommands.all), inputType)
+	var (
+		matchedCommand *Command
+		commandAction  CommandAction
+		err            error
+		m              MessageFromBot
+	)
+	input := whc.Input()
+	switch input.(type) {
+	case WebhookCallbackQuery:
+		var callbackUrl *url.URL
+		matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
+		if err == nil && matchedCommand != nil {
+			if matchedCommand.Code == "" {
+				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand))
+			} else if matchedCommand.CallbackAction == nil {
+				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code))
+			} else {
+				log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
+				commandAction = func(whc WebhookContext) (MessageFromBot, error) {
+					return matchedCommand.CallbackAction(whc, callbackUrl)
 				}
 			}
-		case WebhookMessage:
-			inputType := input.InputType()
-			if inputType == WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
-				matchedCommand = &typeCommands.all[0]
-			}
-			if matchedCommand == nil {
-				matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
-				if matchedCommand != nil {
-					log.Debugf(c, "router.matchMessageCommands() => matchedCommand: %v", matchedCommand)
-				}
-			}
-			if matchedCommand != nil {
-				commandAction = matchedCommand.Action
-			}
-		default:
-			if inputType == WebhookInputUnknown {
-				panic("Unknown input type")
-			}
+		}
+	case WebhookMessage:
+		inputType := input.InputType()
+		if inputType == WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
+		}
+		if matchedCommand == nil {
+			matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
+			if matchedCommand != nil {
+				log.Debugf(c, "router.matchMessageCommands() => matchedCommand: %v", matchedCommand)
+			}
+		}
+		if matchedCommand != nil {
 			commandAction = matchedCommand.Action
 		}
-		if err != nil {
-			router.processCommandResponse(matchedCommand, responder, whc, m, err)
-			return
+	default:
+		if inputType == WebhookInputUnknown {
+			panic("Unknown input type")
 		}
+		matchedCommand = &typeCommands.all[0]
+		commandAction = matchedCommand.Action
+	}
+	if err != nil {
+		router.processCommandResponse(matchedCommand, responder, whc, m, err)
+		return
+	}
 
-		if matchedCommand == nil {
-			whc.LogRequest()
-			log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
-			if whc.Chat().IsGroupChat() {
-				//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
-				//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
-			} else {
-				m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
-				chatEntity := whc.ChatEntity()
-				if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
-					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
-				}
-				log.Debugf(c, "No command found for the message: %v", input)
-				router.processCommandResponse(matchedCommand, responder, whc, m, nil)
-			}
+	if matchedCommand == nil {
+		whc.LogRequest()
+		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
+		if whc.Chat().IsGroupChat() {
+			//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+			//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
-			if matchedCommand.Code == "" {
-				log.Debugf(c, "Matched to: %v", matchedCommand)
-			} else {
-				log.Debugf(c, "Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+			m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+			chatEntity := whc.ChatEntity()
+			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
+				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
 			}
-			var err error
-			if commandAction == nil {
-				err = errors.New("No action for matched command")
-			} else {
-				m, err = commandAction(whc)
-			}
-			router.processCommandResponse(matchedCommand, responder, whc, m, err)
+			log.Debugf(c, "No command found for the message: %v", input)
+			router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
+	} else {
+		if matchedCommand.Code == "" {
+			log.Debugf(c, "Matched to: %v", matchedCommand)
+		} else {
+			log.Debugf(c, "Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+		}
+		var err error
+		if commandAction == nil {
+			err = errors.New("No action for matched command")
+		} else {
+			m, err = commandAction(whc)
+		}
+		router.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}
 }
 

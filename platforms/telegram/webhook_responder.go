@@ -39,7 +39,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		case bots.MessageFormatHTML:
 			return "HTML"
 		case bots.MessageFormatMarkdown:
-			return  "Markdown"
+			return "Markdown"
 		}
 		return ""
 	}
@@ -58,35 +58,43 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			m.TelegramEditMessageText.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
 		}
 		chattable = m.TelegramEditMessageText
-	} else  if m.TelegramEditMessageMarkup != nil {
+	} else if m.TelegramEditMessageMarkup != nil {
 		chattable = m.TelegramEditMessageMarkup
 	} else if m.TelegramInlineConfig != nil {
 		chattable = m.TelegramInlineConfig
-	} else if m.Text != "" {
-		if tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0 {
-			editMessageTextConfig := tgbotapi.EditMessageTextConfig{
-				BaseEdit: tgbotapi.BaseEdit{InlineMessageID: tgUpdate.CallbackQuery.InlineMessageID},
-				Text: m.Text,
-				ParseMode: parseMode(),
-				DisableWebPagePreview: m.DisableWebPagePreview,
-			}
-			editMessageTextConfig.ReplyMarkup, _ = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+	} else if m.Text == bots.NoMessageToSend {
+		return
+	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0) {
+		// Edit message
+		inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
+		if inlineMessageID == "" && chatID == 0 && messageID == 0 {
+			err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")
+			return
+		}
+		if m.Text == "" && m.TelegramKeyboard != nil {
+			chattable = tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup))
+		} else if m.Text != "" {
+			editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, m.Text)
+			editMessageTextConfig.ParseMode = parseMode()
+			editMessageTextConfig.DisableWebPagePreview = m.DisableWebPagePreview
+			editMessageTextConfig.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+
 			chattable = editMessageTextConfig
 		} else {
-			if m.Text == bots.NoMessageToSend {
-				return
-			}
-			messageConfig := r.whc.NewTgMessage(m.Text)
-			if m.TelegramChatID != 0 {
-				messageConfig.ChatID = m.TelegramChatID
-			}
-			messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
-			messageConfig.DisableNotification = m.DisableNotification
-			messageConfig.ReplyMarkup = m.TelegramKeyboard
-			messageConfig.ParseMode = parseMode()
-
-			chattable = messageConfig
+			err = fmt.Errorf("can't edit telegram message as got unknown output: %v", m)
+			return
 		}
+	} else if m.Text != "" {
+		messageConfig := r.whc.NewTgMessage(m.Text)
+		if m.TelegramChatID != 0 {
+			messageConfig.ChatID = m.TelegramChatID
+		}
+		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
+		messageConfig.DisableNotification = m.DisableNotification
+		messageConfig.ReplyMarkup = m.TelegramKeyboard
+		messageConfig.ParseMode = parseMode()
+
+		chattable = messageConfig
 	} else {
 		switch r.whc.InputType() {
 		case bots.WebhookInputInlineQuery: // pass

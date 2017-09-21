@@ -139,7 +139,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		}
 	}
 
-	var update tgbotapi.Update
+	var update *tgbotapi.Update
 	if update, err = h.unmarshalUpdate(c, bodyBytes); err != nil {
 		logRequestBody()
 		return
@@ -169,8 +169,9 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	return
 }
 
-func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update tgbotapi.Update, err error) {
-	if err = ffjson.UnmarshalFast(content, &update); err != nil {
+func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update *tgbotapi.Update, err error) {
+	update = new(tgbotapi.Update)
+	if err = ffjson.UnmarshalFast(content, update); err != nil {
 		return
 	}
 	return
