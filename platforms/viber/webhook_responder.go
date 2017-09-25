@@ -26,11 +26,14 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	log.Debugf(c, "ViberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
 	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.GetHttpClient())
-	log.Debugf(c, "ViberKeyboard: %v", m.ViberKeyboard)
-	if m.ViberKeyboard != nil {
-		m.ViberKeyboard.Type = "keyboard"
+	log.Debugf(c, "Keyboard: %v", m.Keyboard)
+
+	var viberKeyboard *viberinterface.Keyboard
+	if viberKeyboard, ok := m.Keyboard.(*viberinterface.Keyboard); ok && viberKeyboard != nil {
+		viberKeyboard.Type = "keyboard"
 	}
-	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, m.ViberKeyboard)
+
+	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, viberKeyboard)
 	requestBody, response, err := viberBotApi.SendMessage(textMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to send message to Viber")

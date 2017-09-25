@@ -1,7 +1,6 @@
 package bots
 
 import (
-	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
 	"net/http"
 	"time"
@@ -228,7 +227,7 @@ type WebhookAttachment interface {
 }
 
 type OnMessageSentResponse struct {
-	TelegramMessage tgbotapi.Message
+	TelegramMessage interface{} // TODO: change to some interface
 }
 
 type WebhookResponder interface {

@@ -4,11 +4,9 @@ package bots
 
 import (
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-telegram"
 	"golang.org/x/net/context"
-	"github.com/strongo/bots-api-viber/viberinterface"
-	//"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-api-fbm"
+	"strconv"
 )
 
 type EntryInputs struct {
@@ -51,53 +49,84 @@ const (
 
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
-type MessageFromBot struct {
-	IsEdit                bool
-	EditMessageIntID      int
+type ChatUID interface {
+	ChatUID() string
+}
+
+type ChatIntID int64
+
+func (chatUID ChatIntID) ChatUID() string {
+	return strconv.FormatInt(int64(chatUID), 10)
+}
+
+type MessageUID interface {
+	UID() string
+}
+
+type KeyboardType int
+
+const (
+	KeyboardTypeNone       KeyboardType = iota
+	KeyboardTypeHide
+	KeyboardTypeInline
+	KeyboardTypeBottom
+	KeyboardTypeForceReply
+)
+
+type Keyboard interface {
+	KeyboardType() KeyboardType
+}
+
+type AttachmentType int
+
+const (
+	AttachmentTypeNone  AttachmentType = iota
+	AttachmentTypeAudio
+	AttachmentTypeFile
+	AttachmentTypeImage
+	AttachmentTypeVideo
+)
+
+type Attachment interface {
+	AttachmentType() AttachmentType
+}
+
+type BotMessageType int
+
+const (
+	BotMessageTypeUndefined      BotMessageType = iota
+	BotMessageTypeCallbackAnswer
+	BotMessageTypeInlineResults
+	BotMessageTypeText
+	BotMessageTypeEditMessage
+)
+
+type BotMessage interface {
+	BotMessageType() BotMessageType
+}
+
+type TextMessageFromBot struct {
 	Text                  string        `json:",omitempty"`
 	Format                MessageFormat `json:",omitempty"`
 	DisableWebPagePreview bool          `json:",omitempty"`
 	DisableNotification   bool          `json:",omitempty"`
-	//Keyboard              Keyboard
-	TelegramKeyboard tgbotapi.KeyboardMarkup    `json:",omitempty"`
-	ViberKeyboard    *viberinterface.Keyboard   `json:",omitempty"`
-	FbmAttachment    *fbm_api.RequestAttachment `json:",omitempty"`
-	// TODO: One of this 2 is duplicate!?
-	TelegramInlineConfig *tgbotapi.InlineConfig `json:",omitempty"`
-	//TelegramInlineAnswer      *tgbotapi.InlineConfig
-	TelegramCallbackAnswer *tgbotapi.AnswerCallbackQueryConfig `json:",omitempty"`
-	//
-	TelegramEditMessageText   *tgbotapi.EditMessageTextConfig        `json:",omitempty"`
-	TelegramEditMessageMarkup *tgbotapi.EditMessageReplyMarkupConfig `json:",omitempty"`
-	TelegramChatID            int64                                  `json:",omitempty"`
-	IsReplyToInputMessage     bool                                   `json:",omitempty"`
+	Keyboard              Keyboard      `json:",omitempty"`
+	IsEdit                bool          `json:",omitempty"`
+	EditMessageUID        MessageUID    `json:",omitempty"`
 }
 
-//type Keyboard interface {
-//	IsKeyboard()
-//}
-//
-//type KeyboardSelective struct {
-//	Selective       bool
-//}
-//func (kb KeyboardSelective) IsKeyboard() {}
-//
-//type ForceReply struct {
-//	KeyboardSelective
-//	ForceReply      bool
-//}
-//var _ Keyboard = (*ForceReply)(nil)
-//
-//type ReplyKeyboardHide struct {
-//	KeyboardSelective
-//	HideKeyboard    bool
-//}
-//var _ Keyboard = (*ReplyKeyboardHide)(nil)
-//
-//type ReplyKeyboardMarkup struct {
-//	KeyboardSelective
-//	ResizeKeyboard  bool
-//	OneTimeKeyboard bool
-//	Buttons         [][]KeyboardButton
-//}
-//var _ Keyboard = (*ReplyKeyboardMarkup)(nil)
+func (m TextMessageFromBot) BotMessageType() BotMessageType {
+	if m.IsEdit {
+		return BotMessageTypeEditMessage
+	}
+	return BotMessageTypeText
+}
+
+var _ BotMessage = (*TextMessageFromBot)(nil)
+
+type MessageFromBot struct {
+	ToChat                    ChatUID                                `json:",omitempty"`
+	TextMessageFromBot // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	BotMessage                BotMessage                             `json:",omitempty"`
+	FbmAttachment             *fbm_api.RequestAttachment             `json:",omitempty"` // deprecated
+}

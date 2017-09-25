@@ -12,24 +12,25 @@ import (
 	"fmt"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/strongo/bots-api-fbm"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-api-viber/viberinterface"
 )
 
-func (bh *BaseHandler) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *BaseHandler) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if bh == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := bh.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (bh *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if bh == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -39,25 +40,25 @@ func (bh *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = err
 	buf.WriteString(`{"WebhookDriver":`)
 	/* Interface types must use runtime reflection. type=bots.WebhookDriver kind=interface */
-	err = buf.Encode(bh.WebhookDriver)
+	err = buf.Encode(j.WebhookDriver)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"BotHost":`)
 	/* Interface types must use runtime reflection. type=bots.BotHost kind=interface */
-	err = buf.Encode(bh.BotHost)
+	err = buf.Encode(j.BotHost)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"BotPlatform":`)
 	/* Interface types must use runtime reflection. type=bots.BotPlatform kind=interface */
-	err = buf.Encode(bh.BotPlatform)
+	err = buf.Encode(j.BotPlatform)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"TranslatorProvider":`)
 	/* Falling back. type=bots.TranslatorProvider kind=func */
-	err = buf.Encode(bh.TranslatorProvider)
+	err = buf.Encode(j.TranslatorProvider)
 	if err != nil {
 		return err
 	}
@@ -66,34 +67,36 @@ func (bh *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_BaseHandlerbase = iota
-	ffj_t_BaseHandlerno_such_key
+	ffjtBaseHandlerbase = iota
+	ffjtBaseHandlernosuchkey
 
-	ffj_t_BaseHandler_WebhookDriver
+	ffjtBaseHandlerWebhookDriver
 
-	ffj_t_BaseHandler_BotHost
+	ffjtBaseHandlerBotHost
 
-	ffj_t_BaseHandler_BotPlatform
+	ffjtBaseHandlerBotPlatform
 
-	ffj_t_BaseHandler_TranslatorProvider
+	ffjtBaseHandlerTranslatorProvider
 )
 
-var ffj_key_BaseHandler_WebhookDriver = []byte("WebhookDriver")
+var ffjKeyBaseHandlerWebhookDriver = []byte("WebhookDriver")
 
-var ffj_key_BaseHandler_BotHost = []byte("BotHost")
+var ffjKeyBaseHandlerBotHost = []byte("BotHost")
 
-var ffj_key_BaseHandler_BotPlatform = []byte("BotPlatform")
+var ffjKeyBaseHandlerBotPlatform = []byte("BotPlatform")
 
-var ffj_key_BaseHandler_TranslatorProvider = []byte("TranslatorProvider")
+var ffjKeyBaseHandlerTranslatorProvider = []byte("TranslatorProvider")
 
-func (bh *BaseHandler) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *BaseHandler) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return bh.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (bh *BaseHandler) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_BaseHandlerbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *BaseHandler) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtBaseHandlerbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -139,7 +142,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_BaseHandlerno_such_key
+				currentKey = ffjtBaseHandlernosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -147,60 +150,60 @@ mainparse:
 
 				case 'B':
 
-					if bytes.Equal(ffj_key_BaseHandler_BotHost, kn) {
-						currentKey = ffj_t_BaseHandler_BotHost
+					if bytes.Equal(ffjKeyBaseHandlerBotHost, kn) {
+						currentKey = ffjtBaseHandlerBotHost
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_BaseHandler_BotPlatform, kn) {
-						currentKey = ffj_t_BaseHandler_BotPlatform
+					} else if bytes.Equal(ffjKeyBaseHandlerBotPlatform, kn) {
+						currentKey = ffjtBaseHandlerBotPlatform
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'T':
 
-					if bytes.Equal(ffj_key_BaseHandler_TranslatorProvider, kn) {
-						currentKey = ffj_t_BaseHandler_TranslatorProvider
+					if bytes.Equal(ffjKeyBaseHandlerTranslatorProvider, kn) {
+						currentKey = ffjtBaseHandlerTranslatorProvider
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'W':
 
-					if bytes.Equal(ffj_key_BaseHandler_WebhookDriver, kn) {
-						currentKey = ffj_t_BaseHandler_WebhookDriver
+					if bytes.Equal(ffjKeyBaseHandlerWebhookDriver, kn) {
+						currentKey = ffjtBaseHandlerWebhookDriver
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffj_key_BaseHandler_TranslatorProvider, kn) {
-					currentKey = ffj_t_BaseHandler_TranslatorProvider
+				if fflib.EqualFoldRight(ffjKeyBaseHandlerTranslatorProvider, kn) {
+					currentKey = ffjtBaseHandlerTranslatorProvider
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_BaseHandler_BotPlatform, kn) {
-					currentKey = ffj_t_BaseHandler_BotPlatform
+				if fflib.SimpleLetterEqualFold(ffjKeyBaseHandlerBotPlatform, kn) {
+					currentKey = ffjtBaseHandlerBotPlatform
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_BaseHandler_BotHost, kn) {
-					currentKey = ffj_t_BaseHandler_BotHost
+				if fflib.EqualFoldRight(ffjKeyBaseHandlerBotHost, kn) {
+					currentKey = ffjtBaseHandlerBotHost
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_BaseHandler_WebhookDriver, kn) {
-					currentKey = ffj_t_BaseHandler_WebhookDriver
+				if fflib.EqualFoldRight(ffjKeyBaseHandlerWebhookDriver, kn) {
+					currentKey = ffjtBaseHandlerWebhookDriver
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_BaseHandlerno_such_key
+				currentKey = ffjtBaseHandlernosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -217,19 +220,19 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_BaseHandler_WebhookDriver:
+				case ffjtBaseHandlerWebhookDriver:
 					goto handle_WebhookDriver
 
-				case ffj_t_BaseHandler_BotHost:
+				case ffjtBaseHandlerBotHost:
 					goto handle_BotHost
 
-				case ffj_t_BaseHandler_BotPlatform:
+				case ffjtBaseHandlerBotPlatform:
 					goto handle_BotPlatform
 
-				case ffj_t_BaseHandler_TranslatorProvider:
+				case ffjtBaseHandlerTranslatorProvider:
 					goto handle_TranslatorProvider
 
-				case ffj_t_BaseHandlerno_such_key:
+				case ffjtBaseHandlernosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -245,7 +248,7 @@ mainparse:
 
 handle_WebhookDriver:
 
-	/* handler: bh.WebhookDriver type=bots.WebhookDriver kind=interface quoted=false*/
+	/* handler: j.WebhookDriver type=bots.WebhookDriver kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.WebhookDriver kind=interface */
@@ -254,7 +257,7 @@ handle_WebhookDriver:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &bh.WebhookDriver)
+		err = json.Unmarshal(tbuf, &j.WebhookDriver)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -265,7 +268,7 @@ handle_WebhookDriver:
 
 handle_BotHost:
 
-	/* handler: bh.BotHost type=bots.BotHost kind=interface quoted=false*/
+	/* handler: j.BotHost type=bots.BotHost kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.BotHost kind=interface */
@@ -274,7 +277,7 @@ handle_BotHost:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &bh.BotHost)
+		err = json.Unmarshal(tbuf, &j.BotHost)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -285,7 +288,7 @@ handle_BotHost:
 
 handle_BotPlatform:
 
-	/* handler: bh.BotPlatform type=bots.BotPlatform kind=interface quoted=false*/
+	/* handler: j.BotPlatform type=bots.BotPlatform kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.BotPlatform kind=interface */
@@ -294,7 +297,7 @@ handle_BotPlatform:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &bh.BotPlatform)
+		err = json.Unmarshal(tbuf, &j.BotPlatform)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -305,7 +308,7 @@ handle_BotPlatform:
 
 handle_TranslatorProvider:
 
-	/* handler: bh.TranslatorProvider type=bots.TranslatorProvider kind=func quoted=false*/
+	/* handler: j.TranslatorProvider type=bots.TranslatorProvider kind=func quoted=false*/
 
 	{
 		/* Falling back. type=bots.TranslatorProvider kind=func */
@@ -314,7 +317,7 @@ handle_TranslatorProvider:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &bh.TranslatorProvider)
+		err = json.Unmarshal(tbuf, &j.TranslatorProvider)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -341,20 +344,23 @@ done:
 	return nil
 }
 
-func (mj *EntryInput) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *EntryInput) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *EntryInput) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *EntryInput) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -364,13 +370,13 @@ func (mj *EntryInput) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = err
 	buf.WriteString(`{"Entry":`)
 	/* Interface types must use runtime reflection. type=bots.WebhookEntry kind=interface */
-	err = buf.Encode(mj.Entry)
+	err = buf.Encode(j.Entry)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"Input":`)
 	/* Interface types must use runtime reflection. type=bots.WebhookInput kind=interface */
-	err = buf.Encode(mj.Input)
+	err = buf.Encode(j.Input)
 	if err != nil {
 		return err
 	}
@@ -379,26 +385,28 @@ func (mj *EntryInput) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_EntryInputbase = iota
-	ffj_t_EntryInputno_such_key
+	ffjtEntryInputbase = iota
+	ffjtEntryInputnosuchkey
 
-	ffj_t_EntryInput_Entry
+	ffjtEntryInputEntry
 
-	ffj_t_EntryInput_Input
+	ffjtEntryInputInput
 )
 
-var ffj_key_EntryInput_Entry = []byte("Entry")
+var ffjKeyEntryInputEntry = []byte("Entry")
 
-var ffj_key_EntryInput_Input = []byte("Input")
+var ffjKeyEntryInputInput = []byte("Input")
 
-func (uj *EntryInput) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *EntryInput) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *EntryInput) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_EntryInputbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *EntryInput) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtEntryInputbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -444,7 +452,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_EntryInputno_such_key
+				currentKey = ffjtEntryInputnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -452,35 +460,35 @@ mainparse:
 
 				case 'E':
 
-					if bytes.Equal(ffj_key_EntryInput_Entry, kn) {
-						currentKey = ffj_t_EntryInput_Entry
+					if bytes.Equal(ffjKeyEntryInputEntry, kn) {
+						currentKey = ffjtEntryInputEntry
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'I':
 
-					if bytes.Equal(ffj_key_EntryInput_Input, kn) {
-						currentKey = ffj_t_EntryInput_Input
+					if bytes.Equal(ffjKeyEntryInputInput, kn) {
+						currentKey = ffjtEntryInputInput
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_EntryInput_Input, kn) {
-					currentKey = ffj_t_EntryInput_Input
+				if fflib.SimpleLetterEqualFold(ffjKeyEntryInputInput, kn) {
+					currentKey = ffjtEntryInputInput
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_EntryInput_Entry, kn) {
-					currentKey = ffj_t_EntryInput_Entry
+				if fflib.SimpleLetterEqualFold(ffjKeyEntryInputEntry, kn) {
+					currentKey = ffjtEntryInputEntry
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_EntryInputno_such_key
+				currentKey = ffjtEntryInputnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -497,13 +505,13 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_EntryInput_Entry:
+				case ffjtEntryInputEntry:
 					goto handle_Entry
 
-				case ffj_t_EntryInput_Input:
+				case ffjtEntryInputInput:
 					goto handle_Input
 
-				case ffj_t_EntryInputno_such_key:
+				case ffjtEntryInputnosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -519,7 +527,7 @@ mainparse:
 
 handle_Entry:
 
-	/* handler: uj.Entry type=bots.WebhookEntry kind=interface quoted=false*/
+	/* handler: j.Entry type=bots.WebhookEntry kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.WebhookEntry kind=interface */
@@ -528,7 +536,7 @@ handle_Entry:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Entry)
+		err = json.Unmarshal(tbuf, &j.Entry)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -539,7 +547,7 @@ handle_Entry:
 
 handle_Input:
 
-	/* handler: uj.Input type=bots.WebhookInput kind=interface quoted=false*/
+	/* handler: j.Input type=bots.WebhookInput kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.WebhookInput kind=interface */
@@ -548,7 +556,7 @@ handle_Input:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Input)
+		err = json.Unmarshal(tbuf, &j.Input)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -575,20 +583,23 @@ done:
 	return nil
 }
 
-func (mj *EntryInputs) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *EntryInputs) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *EntryInputs) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *EntryInputs) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -598,14 +609,14 @@ func (mj *EntryInputs) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = err
 	buf.WriteString(`{"Entry":`)
 	/* Interface types must use runtime reflection. type=bots.WebhookEntry kind=interface */
-	err = buf.Encode(mj.Entry)
+	err = buf.Encode(j.Entry)
 	if err != nil {
 		return err
 	}
 	buf.WriteString(`,"Inputs":`)
-	if mj.Inputs != nil {
+	if j.Inputs != nil {
 		buf.WriteString(`[`)
-		for i, v := range mj.Inputs {
+		for i, v := range j.Inputs {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
@@ -624,26 +635,28 @@ func (mj *EntryInputs) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_EntryInputsbase = iota
-	ffj_t_EntryInputsno_such_key
+	ffjtEntryInputsbase = iota
+	ffjtEntryInputsnosuchkey
 
-	ffj_t_EntryInputs_Entry
+	ffjtEntryInputsEntry
 
-	ffj_t_EntryInputs_Inputs
+	ffjtEntryInputsInputs
 )
 
-var ffj_key_EntryInputs_Entry = []byte("Entry")
+var ffjKeyEntryInputsEntry = []byte("Entry")
 
-var ffj_key_EntryInputs_Inputs = []byte("Inputs")
+var ffjKeyEntryInputsInputs = []byte("Inputs")
 
-func (uj *EntryInputs) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *EntryInputs) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *EntryInputs) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_EntryInputsbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *EntryInputs) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtEntryInputsbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -689,7 +702,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_EntryInputsno_such_key
+				currentKey = ffjtEntryInputsnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -697,35 +710,35 @@ mainparse:
 
 				case 'E':
 
-					if bytes.Equal(ffj_key_EntryInputs_Entry, kn) {
-						currentKey = ffj_t_EntryInputs_Entry
+					if bytes.Equal(ffjKeyEntryInputsEntry, kn) {
+						currentKey = ffjtEntryInputsEntry
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'I':
 
-					if bytes.Equal(ffj_key_EntryInputs_Inputs, kn) {
-						currentKey = ffj_t_EntryInputs_Inputs
+					if bytes.Equal(ffjKeyEntryInputsInputs, kn) {
+						currentKey = ffjtEntryInputsInputs
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffj_key_EntryInputs_Inputs, kn) {
-					currentKey = ffj_t_EntryInputs_Inputs
+				if fflib.EqualFoldRight(ffjKeyEntryInputsInputs, kn) {
+					currentKey = ffjtEntryInputsInputs
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_EntryInputs_Entry, kn) {
-					currentKey = ffj_t_EntryInputs_Entry
+				if fflib.SimpleLetterEqualFold(ffjKeyEntryInputsEntry, kn) {
+					currentKey = ffjtEntryInputsEntry
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				currentKey = ffj_t_EntryInputsno_such_key
+				currentKey = ffjtEntryInputsnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -742,13 +755,13 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_EntryInputs_Entry:
+				case ffjtEntryInputsEntry:
 					goto handle_Entry
 
-				case ffj_t_EntryInputs_Inputs:
+				case ffjtEntryInputsInputs:
 					goto handle_Inputs
 
-				case ffj_t_EntryInputsno_such_key:
+				case ffjtEntryInputsnosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -764,7 +777,7 @@ mainparse:
 
 handle_Entry:
 
-	/* handler: uj.Entry type=bots.WebhookEntry kind=interface quoted=false*/
+	/* handler: j.Entry type=bots.WebhookEntry kind=interface quoted=false*/
 
 	{
 		/* Falling back. type=bots.WebhookEntry kind=interface */
@@ -773,7 +786,7 @@ handle_Entry:
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Entry)
+		err = json.Unmarshal(tbuf, &j.Entry)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -784,7 +797,7 @@ handle_Entry:
 
 handle_Inputs:
 
-	/* handler: uj.Inputs type=[]bots.WebhookInput kind=slice quoted=false*/
+	/* handler: j.Inputs type=[]bots.WebhookInput kind=slice quoted=false*/
 
 	{
 
@@ -795,16 +808,16 @@ handle_Inputs:
 		}
 
 		if tok == fflib.FFTok_null {
-			uj.Inputs = nil
+			j.Inputs = nil
 		} else {
 
-			uj.Inputs = []WebhookInput{}
+			j.Inputs = []WebhookInput{}
 
 			wantVal := true
 
 			for {
 
-				var tmp_uj__Inputs WebhookInput
+				var tmpJInputs WebhookInput
 
 				tok = fs.Scan()
 				if tok == fflib.FFTok_error {
@@ -825,7 +838,7 @@ handle_Inputs:
 					wantVal = true
 				}
 
-				/* handler: tmp_uj__Inputs type=bots.WebhookInput kind=interface quoted=false*/
+				/* handler: tmpJInputs type=bots.WebhookInput kind=interface quoted=false*/
 
 				{
 					/* Falling back. type=bots.WebhookInput kind=interface */
@@ -834,13 +847,13 @@ handle_Inputs:
 						return fs.WrapErr(err)
 					}
 
-					err = json.Unmarshal(tbuf, &tmp_uj__Inputs)
+					err = json.Unmarshal(tbuf, &tmpJInputs)
 					if err != nil {
 						return fs.WrapErr(err)
 					}
 				}
 
-				uj.Inputs = append(uj.Inputs, tmp_uj__Inputs)
+				j.Inputs = append(j.Inputs, tmpJInputs)
 
 				wantVal = false
 			}
@@ -868,20 +881,23 @@ done:
 	return nil
 }
 
-func (mj *MessageFromBot) MarshalJSON() ([]byte, error) {
+// MarshalJSON marshal bytes to json - template
+func (j *MessageFromBot) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
-	if mj == nil {
+	if j == nil {
 		buf.WriteString("null")
 		return buf.Bytes(), nil
 	}
-	err := mj.MarshalJSONBuf(&buf)
+	err := j.MarshalJSONBuf(&buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
-func (mj *MessageFromBot) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	if mj == nil {
+
+// MarshalJSONBuf marshal buff to json - template
+func (j *MessageFromBot) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
 		buf.WriteString("null")
 		return nil
 	}
@@ -890,141 +906,88 @@ func (mj *MessageFromBot) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	_ = obj
 	_ = err
 	buf.WriteString(`{ `)
-	if len(mj.Text) != 0 {
+	if j.ToChat != nil {
+		buf.WriteString(`"ToChat":`)
+		/* Interface types must use runtime reflection. type=bots.ChatUID kind=interface */
+		err = buf.Encode(j.ToChat)
+		if err != nil {
+			return err
+		}
+		buf.WriteByte(',')
+	}
+	if j.BotMessage != nil {
+		buf.WriteString(`"BotMessage":`)
+		/* Interface types must use runtime reflection. type=bots.BotMessage kind=interface */
+		err = buf.Encode(j.BotMessage)
+		if err != nil {
+			return err
+		}
+		buf.WriteByte(',')
+	}
+	if j.FbmAttachment != nil {
+		if true {
+			buf.WriteString(`"FbmAttachment":`)
+
+			{
+
+				err = j.FbmAttachment.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
+
+			}
+			buf.WriteByte(',')
+		}
+	}
+	if len(j.Text) != 0 {
 		buf.WriteString(`"Text":`)
-		fflib.WriteJsonString(buf, string(mj.Text))
+		fflib.WriteJsonString(buf, string(j.Text))
 		buf.WriteByte(',')
 	}
-	if mj.Format != 0 {
+	if j.Format != 0 {
 		buf.WriteString(`"Format":`)
-		fflib.FormatBits2(buf, uint64(mj.Format), 10, mj.Format < 0)
+		fflib.FormatBits2(buf, uint64(j.Format), 10, j.Format < 0)
 		buf.WriteByte(',')
 	}
-	if mj.DisableWebPagePreview != false {
-		if mj.DisableWebPagePreview {
+	if j.DisableWebPagePreview != false {
+		if j.DisableWebPagePreview {
 			buf.WriteString(`"DisableWebPagePreview":true`)
 		} else {
 			buf.WriteString(`"DisableWebPagePreview":false`)
 		}
 		buf.WriteByte(',')
 	}
-	if mj.DisableNotification != false {
-		if mj.DisableNotification {
+	if j.DisableNotification != false {
+		if j.DisableNotification {
 			buf.WriteString(`"DisableNotification":true`)
 		} else {
 			buf.WriteString(`"DisableNotification":false`)
 		}
 		buf.WriteByte(',')
 	}
-	if mj.TelegramKeyboard != nil {
-		buf.WriteString(`"TelegramKeyboard":`)
-		/* Interface types must use runtime reflection. type=interface {} kind=interface */
-		err = buf.Encode(mj.TelegramKeyboard)
+	if j.Keyboard != nil {
+		buf.WriteString(`"Keyboard":`)
+		/* Interface types must use runtime reflection. type=bots.Keyboard kind=interface */
+		err = buf.Encode(j.Keyboard)
 		if err != nil {
 			return err
 		}
 		buf.WriteByte(',')
 	}
-	if mj.ViberKeyboard != nil {
-		if true {
-			buf.WriteString(`"ViberKeyboard":`)
-
-			{
-
-				err = mj.ViberKeyboard.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
+	if j.IsEdit != false {
+		if j.IsEdit {
+			buf.WriteString(`"IsEdit":true`)
+		} else {
+			buf.WriteString(`"IsEdit":false`)
 		}
-	}
-	if mj.FbmAttachment != nil {
-		if true {
-			buf.WriteString(`"FbmAttachment":`)
-
-			{
-
-				err = mj.FbmAttachment.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
-		}
-	}
-	if mj.TelegramInlineConfig != nil {
-		if true {
-			buf.WriteString(`"TelegramInlineConfig":`)
-
-			{
-
-				err = mj.TelegramInlineConfig.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
-		}
-	}
-	if mj.TelegramCallbackAnswer != nil {
-		if true {
-			buf.WriteString(`"TelegramCallbackAnswer":`)
-
-			{
-
-				err = mj.TelegramCallbackAnswer.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
-		}
-	}
-	if mj.TelegramEditMessageText != nil {
-		if true {
-			buf.WriteString(`"TelegramEditMessageText":`)
-
-			{
-
-				err = mj.TelegramEditMessageText.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
-		}
-	}
-	if mj.TelegramEditMessageMarkup != nil {
-		if true {
-			buf.WriteString(`"TelegramEditMessageMarkup":`)
-
-			{
-
-				err = mj.TelegramEditMessageMarkup.MarshalJSONBuf(buf)
-				if err != nil {
-					return err
-				}
-
-			}
-			buf.WriteByte(',')
-		}
-	}
-	if mj.TelegramChatID != 0 {
-		buf.WriteString(`"TelegramChatID":`)
-		fflib.FormatBits2(buf, uint64(mj.TelegramChatID), 10, mj.TelegramChatID < 0)
 		buf.WriteByte(',')
 	}
-	if mj.IsReplyToInputMessage != false {
-		if mj.IsReplyToInputMessage {
-			buf.WriteString(`"IsReplyToInputMessage":true`)
-		} else {
-			buf.WriteString(`"IsReplyToInputMessage":false`)
+	if j.EditMessageUID != nil {
+		buf.WriteString(`"EditMessageUID":`)
+		/* Interface types must use runtime reflection. type=bots.MessageUID kind=interface */
+		err = buf.Encode(j.EditMessageUID)
+		if err != nil {
+			return err
 		}
 		buf.WriteByte(',')
 	}
@@ -1034,70 +997,60 @@ func (mj *MessageFromBot) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 }
 
 const (
-	ffj_t_MessageFromBotbase = iota
-	ffj_t_MessageFromBotno_such_key
+	ffjtMessageFromBotbase = iota
+	ffjtMessageFromBotnosuchkey
 
-	ffj_t_MessageFromBot_Text
+	ffjtMessageFromBotToChat
 
-	ffj_t_MessageFromBot_Format
+	ffjtMessageFromBotBotMessage
 
-	ffj_t_MessageFromBot_DisableWebPagePreview
+	ffjtMessageFromBotFbmAttachment
 
-	ffj_t_MessageFromBot_DisableNotification
+	ffjtMessageFromBotText
 
-	ffj_t_MessageFromBot_TelegramKeyboard
+	ffjtMessageFromBotFormat
 
-	ffj_t_MessageFromBot_ViberKeyboard
+	ffjtMessageFromBotDisableWebPagePreview
 
-	ffj_t_MessageFromBot_FbmAttachment
+	ffjtMessageFromBotDisableNotification
 
-	ffj_t_MessageFromBot_TelegramInlineConfig
+	ffjtMessageFromBotKeyboard
 
-	ffj_t_MessageFromBot_TelegramCallbackAnswer
+	ffjtMessageFromBotIsEdit
 
-	ffj_t_MessageFromBot_TelegramEditMessageText
-
-	ffj_t_MessageFromBot_TelegramEditMessageMarkup
-
-	ffj_t_MessageFromBot_TelegramChatID
-
-	ffj_t_MessageFromBot_IsReplyToInputMessage
+	ffjtMessageFromBotEditMessageUID
 )
 
-var ffj_key_MessageFromBot_Text = []byte("Text")
+var ffjKeyMessageFromBotToChat = []byte("ToChat")
 
-var ffj_key_MessageFromBot_Format = []byte("Format")
+var ffjKeyMessageFromBotBotMessage = []byte("BotMessage")
 
-var ffj_key_MessageFromBot_DisableWebPagePreview = []byte("DisableWebPagePreview")
+var ffjKeyMessageFromBotFbmAttachment = []byte("FbmAttachment")
 
-var ffj_key_MessageFromBot_DisableNotification = []byte("DisableNotification")
+var ffjKeyMessageFromBotText = []byte("Text")
 
-var ffj_key_MessageFromBot_TelegramKeyboard = []byte("TelegramKeyboard")
+var ffjKeyMessageFromBotFormat = []byte("Format")
 
-var ffj_key_MessageFromBot_ViberKeyboard = []byte("ViberKeyboard")
+var ffjKeyMessageFromBotDisableWebPagePreview = []byte("DisableWebPagePreview")
 
-var ffj_key_MessageFromBot_FbmAttachment = []byte("FbmAttachment")
+var ffjKeyMessageFromBotDisableNotification = []byte("DisableNotification")
 
-var ffj_key_MessageFromBot_TelegramInlineConfig = []byte("TelegramInlineConfig")
+var ffjKeyMessageFromBotKeyboard = []byte("Keyboard")
 
-var ffj_key_MessageFromBot_TelegramCallbackAnswer = []byte("TelegramCallbackAnswer")
+var ffjKeyMessageFromBotIsEdit = []byte("IsEdit")
 
-var ffj_key_MessageFromBot_TelegramEditMessageText = []byte("TelegramEditMessageText")
+var ffjKeyMessageFromBotEditMessageUID = []byte("EditMessageUID")
 
-var ffj_key_MessageFromBot_TelegramEditMessageMarkup = []byte("TelegramEditMessageMarkup")
-
-var ffj_key_MessageFromBot_TelegramChatID = []byte("TelegramChatID")
-
-var ffj_key_MessageFromBot_IsReplyToInputMessage = []byte("IsReplyToInputMessage")
-
-func (uj *MessageFromBot) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *MessageFromBot) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
-	return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *MessageFromBot) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_MessageFromBotbase
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *MessageFromBot) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtMessageFromBotbase
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -1143,173 +1096,146 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_MessageFromBotno_such_key
+				currentKey = ffjtMessageFromBotnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
 				switch kn[0] {
 
+				case 'B':
+
+					if bytes.Equal(ffjKeyMessageFromBotBotMessage, kn) {
+						currentKey = ffjtMessageFromBotBotMessage
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
 				case 'D':
 
-					if bytes.Equal(ffj_key_MessageFromBot_DisableWebPagePreview, kn) {
-						currentKey = ffj_t_MessageFromBot_DisableWebPagePreview
+					if bytes.Equal(ffjKeyMessageFromBotDisableWebPagePreview, kn) {
+						currentKey = ffjtMessageFromBotDisableWebPagePreview
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_MessageFromBot_DisableNotification, kn) {
-						currentKey = ffj_t_MessageFromBot_DisableNotification
+					} else if bytes.Equal(ffjKeyMessageFromBotDisableNotification, kn) {
+						currentKey = ffjtMessageFromBotDisableNotification
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'E':
+
+					if bytes.Equal(ffjKeyMessageFromBotEditMessageUID, kn) {
+						currentKey = ffjtMessageFromBotEditMessageUID
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'F':
 
-					if bytes.Equal(ffj_key_MessageFromBot_Format, kn) {
-						currentKey = ffj_t_MessageFromBot_Format
+					if bytes.Equal(ffjKeyMessageFromBotFbmAttachment, kn) {
+						currentKey = ffjtMessageFromBotFbmAttachment
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_MessageFromBot_FbmAttachment, kn) {
-						currentKey = ffj_t_MessageFromBot_FbmAttachment
+					} else if bytes.Equal(ffjKeyMessageFromBotFormat, kn) {
+						currentKey = ffjtMessageFromBotFormat
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'I':
 
-					if bytes.Equal(ffj_key_MessageFromBot_IsReplyToInputMessage, kn) {
-						currentKey = ffj_t_MessageFromBot_IsReplyToInputMessage
+					if bytes.Equal(ffjKeyMessageFromBotIsEdit, kn) {
+						currentKey = ffjtMessageFromBotIsEdit
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'K':
+
+					if bytes.Equal(ffjKeyMessageFromBotKeyboard, kn) {
+						currentKey = ffjtMessageFromBotKeyboard
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				case 'T':
 
-					if bytes.Equal(ffj_key_MessageFromBot_Text, kn) {
-						currentKey = ffj_t_MessageFromBot_Text
+					if bytes.Equal(ffjKeyMessageFromBotToChat, kn) {
+						currentKey = ffjtMessageFromBotToChat
 						state = fflib.FFParse_want_colon
 						goto mainparse
 
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramKeyboard, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramKeyboard
-						state = fflib.FFParse_want_colon
-						goto mainparse
-
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramInlineConfig, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramInlineConfig
-						state = fflib.FFParse_want_colon
-						goto mainparse
-
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramCallbackAnswer, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramCallbackAnswer
-						state = fflib.FFParse_want_colon
-						goto mainparse
-
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramEditMessageText, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramEditMessageText
-						state = fflib.FFParse_want_colon
-						goto mainparse
-
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramEditMessageMarkup, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramEditMessageMarkup
-						state = fflib.FFParse_want_colon
-						goto mainparse
-
-					} else if bytes.Equal(ffj_key_MessageFromBot_TelegramChatID, kn) {
-						currentKey = ffj_t_MessageFromBot_TelegramChatID
-						state = fflib.FFParse_want_colon
-						goto mainparse
-					}
-
-				case 'V':
-
-					if bytes.Equal(ffj_key_MessageFromBot_ViberKeyboard, kn) {
-						currentKey = ffj_t_MessageFromBot_ViberKeyboard
+					} else if bytes.Equal(ffjKeyMessageFromBotText, kn) {
+						currentKey = ffjtMessageFromBotText
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					}
 
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_IsReplyToInputMessage, kn) {
-					currentKey = ffj_t_MessageFromBot_IsReplyToInputMessage
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotEditMessageUID, kn) {
+					currentKey = ffjtMessageFromBotEditMessageUID
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_MessageFromBot_TelegramChatID, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramChatID
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotIsEdit, kn) {
+					currentKey = ffjtMessageFromBotIsEdit
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_TelegramEditMessageMarkup, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramEditMessageMarkup
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotKeyboard, kn) {
+					currentKey = ffjtMessageFromBotKeyboard
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_TelegramEditMessageText, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramEditMessageText
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotDisableNotification, kn) {
+					currentKey = ffjtMessageFromBotDisableNotification
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_TelegramCallbackAnswer, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramCallbackAnswer
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotDisableWebPagePreview, kn) {
+					currentKey = ffjtMessageFromBotDisableWebPagePreview
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_MessageFromBot_TelegramInlineConfig, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramInlineConfig
+				if fflib.SimpleLetterEqualFold(ffjKeyMessageFromBotFormat, kn) {
+					currentKey = ffjtMessageFromBotFormat
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.SimpleLetterEqualFold(ffj_key_MessageFromBot_FbmAttachment, kn) {
-					currentKey = ffj_t_MessageFromBot_FbmAttachment
+				if fflib.SimpleLetterEqualFold(ffjKeyMessageFromBotText, kn) {
+					currentKey = ffjtMessageFromBotText
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_ViberKeyboard, kn) {
-					currentKey = ffj_t_MessageFromBot_ViberKeyboard
+				if fflib.SimpleLetterEqualFold(ffjKeyMessageFromBotFbmAttachment, kn) {
+					currentKey = ffjtMessageFromBotFbmAttachment
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_TelegramKeyboard, kn) {
-					currentKey = ffj_t_MessageFromBot_TelegramKeyboard
+				if fflib.EqualFoldRight(ffjKeyMessageFromBotBotMessage, kn) {
+					currentKey = ffjtMessageFromBotBotMessage
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_DisableNotification, kn) {
-					currentKey = ffj_t_MessageFromBot_DisableNotification
+				if fflib.SimpleLetterEqualFold(ffjKeyMessageFromBotToChat, kn) {
+					currentKey = ffjtMessageFromBotToChat
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 
-				if fflib.EqualFoldRight(ffj_key_MessageFromBot_DisableWebPagePreview, kn) {
-					currentKey = ffj_t_MessageFromBot_DisableWebPagePreview
-					state = fflib.FFParse_want_colon
-					goto mainparse
-				}
-
-				if fflib.SimpleLetterEqualFold(ffj_key_MessageFromBot_Format, kn) {
-					currentKey = ffj_t_MessageFromBot_Format
-					state = fflib.FFParse_want_colon
-					goto mainparse
-				}
-
-				if fflib.SimpleLetterEqualFold(ffj_key_MessageFromBot_Text, kn) {
-					currentKey = ffj_t_MessageFromBot_Text
-					state = fflib.FFParse_want_colon
-					goto mainparse
-				}
-
-				currentKey = ffj_t_MessageFromBotno_such_key
+				currentKey = ffjtMessageFromBotnosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -1326,46 +1252,37 @@ mainparse:
 			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
 				switch currentKey {
 
-				case ffj_t_MessageFromBot_Text:
-					goto handle_Text
+				case ffjtMessageFromBotToChat:
+					goto handle_ToChat
 
-				case ffj_t_MessageFromBot_Format:
-					goto handle_Format
+				case ffjtMessageFromBotBotMessage:
+					goto handle_BotMessage
 
-				case ffj_t_MessageFromBot_DisableWebPagePreview:
-					goto handle_DisableWebPagePreview
-
-				case ffj_t_MessageFromBot_DisableNotification:
-					goto handle_DisableNotification
-
-				case ffj_t_MessageFromBot_TelegramKeyboard:
-					goto handle_TelegramKeyboard
-
-				case ffj_t_MessageFromBot_ViberKeyboard:
-					goto handle_ViberKeyboard
-
-				case ffj_t_MessageFromBot_FbmAttachment:
+				case ffjtMessageFromBotFbmAttachment:
 					goto handle_FbmAttachment
 
-				case ffj_t_MessageFromBot_TelegramInlineConfig:
-					goto handle_TelegramInlineConfig
+				case ffjtMessageFromBotText:
+					goto handle_Text
 
-				case ffj_t_MessageFromBot_TelegramCallbackAnswer:
-					goto handle_TelegramCallbackAnswer
+				case ffjtMessageFromBotFormat:
+					goto handle_Format
 
-				case ffj_t_MessageFromBot_TelegramEditMessageText:
-					goto handle_TelegramEditMessageText
+				case ffjtMessageFromBotDisableWebPagePreview:
+					goto handle_DisableWebPagePreview
 
-				case ffj_t_MessageFromBot_TelegramEditMessageMarkup:
-					goto handle_TelegramEditMessageMarkup
+				case ffjtMessageFromBotDisableNotification:
+					goto handle_DisableNotification
 
-				case ffj_t_MessageFromBot_TelegramChatID:
-					goto handle_TelegramChatID
+				case ffjtMessageFromBotKeyboard:
+					goto handle_Keyboard
 
-				case ffj_t_MessageFromBot_IsReplyToInputMessage:
-					goto handle_IsReplyToInputMessage
+				case ffjtMessageFromBotIsEdit:
+					goto handle_IsEdit
 
-				case ffj_t_MessageFromBotno_such_key:
+				case ffjtMessageFromBotEditMessageUID:
+					goto handle_EditMessageUID
+
+				case ffjtMessageFromBotnosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -1379,9 +1296,76 @@ mainparse:
 		}
 	}
 
+handle_ToChat:
+
+	/* handler: j.ToChat type=bots.ChatUID kind=interface quoted=false*/
+
+	{
+		/* Falling back. type=bots.ChatUID kind=interface */
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = json.Unmarshal(tbuf, &j.ToChat)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_BotMessage:
+
+	/* handler: j.BotMessage type=bots.BotMessage kind=interface quoted=false*/
+
+	{
+		/* Falling back. type=bots.BotMessage kind=interface */
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = json.Unmarshal(tbuf, &j.BotMessage)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_FbmAttachment:
+
+	/* handler: j.FbmAttachment type=fbm_api.RequestAttachment kind=struct quoted=false*/
+
+	{
+		if tok == fflib.FFTok_null {
+
+			j.FbmAttachment = nil
+
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
+		if j.FbmAttachment == nil {
+			j.FbmAttachment = new(fbm_api.RequestAttachment)
+		}
+
+		err = j.FbmAttachment.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
 handle_Text:
 
-	/* handler: uj.Text type=string kind=string quoted=false*/
+	/* handler: j.Text type=string kind=string quoted=false*/
 
 	{
 
@@ -1397,7 +1381,7 @@ handle_Text:
 
 			outBuf := fs.Output.Bytes()
 
-			uj.Text = string(string(outBuf))
+			j.Text = string(string(outBuf))
 
 		}
 	}
@@ -1407,7 +1391,7 @@ handle_Text:
 
 handle_Format:
 
-	/* handler: uj.Format type=bots.MessageFormat kind=int quoted=false*/
+	/* handler: j.Format type=bots.MessageFormat kind=int quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
@@ -1427,7 +1411,7 @@ handle_Format:
 				return fs.WrapErr(err)
 			}
 
-			uj.Format = MessageFormat(tval)
+			j.Format = MessageFormat(tval)
 
 		}
 	}
@@ -1437,7 +1421,7 @@ handle_Format:
 
 handle_DisableWebPagePreview:
 
-	/* handler: uj.DisableWebPagePreview type=bool kind=bool quoted=false*/
+	/* handler: j.DisableWebPagePreview type=bool kind=bool quoted=false*/
 
 	{
 		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
@@ -1453,11 +1437,11 @@ handle_DisableWebPagePreview:
 
 			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
 
-				uj.DisableWebPagePreview = true
+				j.DisableWebPagePreview = true
 
 			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
 
-				uj.DisableWebPagePreview = false
+				j.DisableWebPagePreview = false
 
 			} else {
 				err = errors.New("unexpected bytes for true/false value")
@@ -1472,7 +1456,7 @@ handle_DisableWebPagePreview:
 
 handle_DisableNotification:
 
-	/* handler: uj.DisableNotification type=bool kind=bool quoted=false*/
+	/* handler: j.DisableNotification type=bool kind=bool quoted=false*/
 
 	{
 		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
@@ -1488,11 +1472,11 @@ handle_DisableNotification:
 
 			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
 
-				uj.DisableNotification = true
+				j.DisableNotification = true
 
 			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
 
-				uj.DisableNotification = false
+				j.DisableNotification = false
 
 			} else {
 				err = errors.New("unexpected bytes for true/false value")
@@ -1505,18 +1489,18 @@ handle_DisableNotification:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_TelegramKeyboard:
+handle_Keyboard:
 
-	/* handler: uj.TelegramKeyboard type=interface {} kind=interface quoted=false*/
+	/* handler: j.Keyboard type=bots.Keyboard kind=interface quoted=false*/
 
 	{
-		/* Falling back. type=interface {} kind=interface */
+		/* Falling back. type=bots.Keyboard kind=interface */
 		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
 
-		err = json.Unmarshal(tbuf, &uj.TelegramKeyboard)
+		err = json.Unmarshal(tbuf, &j.Keyboard)
 		if err != nil {
 			return fs.WrapErr(err)
 		}
@@ -1525,175 +1509,437 @@ handle_TelegramKeyboard:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_ViberKeyboard:
+handle_IsEdit:
 
-	/* handler: uj.ViberKeyboard type=viberinterface.Keyboard kind=struct quoted=false*/
+	/* handler: j.IsEdit type=bool kind=bool quoted=false*/
+
+	{
+		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for bool", tok))
+		}
+	}
 
 	{
 		if tok == fflib.FFTok_null {
 
-			uj.ViberKeyboard = nil
+		} else {
+			tmpb := fs.Output.Bytes()
 
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
+			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
 
-		if uj.ViberKeyboard == nil {
-			uj.ViberKeyboard = new(viberinterface.Keyboard)
-		}
+				j.IsEdit = true
 
-		err = uj.ViberKeyboard.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
-		if err != nil {
-			return err
+			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
+
+				j.IsEdit = false
+
+			} else {
+				err = errors.New("unexpected bytes for true/false value")
+				return fs.WrapErr(err)
+			}
+
 		}
-		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_FbmAttachment:
+handle_EditMessageUID:
 
-	/* handler: uj.FbmAttachment type=fbm_api.RequestAttachment kind=struct quoted=false*/
+	/* handler: j.EditMessageUID type=bots.MessageUID kind=interface quoted=false*/
 
 	{
-		if tok == fflib.FFTok_null {
-
-			uj.FbmAttachment = nil
-
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
-
-		if uj.FbmAttachment == nil {
-			uj.FbmAttachment = new(fbm_api.RequestAttachment)
-		}
-
-		err = uj.FbmAttachment.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		/* Falling back. type=bots.MessageUID kind=interface */
+		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
-			return err
+			return fs.WrapErr(err)
 		}
-		state = fflib.FFParse_after_value
+
+		err = json.Unmarshal(tbuf, &j.EditMessageUID)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
 	}
 
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_TelegramInlineConfig:
+wantedvalue:
+	return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+wrongtokenerror:
+	return fs.WrapErr(fmt.Errorf("ffjson: wanted token: %v, but got token: %v output=%s", wantedTok, tok, fs.Output.String()))
+tokerror:
+	if fs.BigError != nil {
+		return fs.WrapErr(fs.BigError)
+	}
+	err = fs.Error.ToError()
+	if err != nil {
+		return fs.WrapErr(err)
+	}
+	panic("ffjson-generated: unreachable, please report bug.")
+done:
 
-	/* handler: uj.TelegramInlineConfig type=tgbotapi.InlineConfig kind=struct quoted=false*/
+	return nil
+}
 
-	{
-		if tok == fflib.FFTok_null {
+// MarshalJSON marshal bytes to json - template
+func (j *TextMessageFromBot) MarshalJSON() ([]byte, error) {
+	var buf fflib.Buffer
+	if j == nil {
+		buf.WriteString("null")
+		return buf.Bytes(), nil
+	}
+	err := j.MarshalJSONBuf(&buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
 
-			uj.TelegramInlineConfig = nil
-
-			state = fflib.FFParse_after_value
-			goto mainparse
+// MarshalJSONBuf marshal buff to json - template
+func (j *TextMessageFromBot) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	if j == nil {
+		buf.WriteString("null")
+		return nil
+	}
+	var err error
+	var obj []byte
+	_ = obj
+	_ = err
+	buf.WriteString(`{ `)
+	if len(j.Text) != 0 {
+		buf.WriteString(`"Text":`)
+		fflib.WriteJsonString(buf, string(j.Text))
+		buf.WriteByte(',')
+	}
+	if j.Format != 0 {
+		buf.WriteString(`"Format":`)
+		fflib.FormatBits2(buf, uint64(j.Format), 10, j.Format < 0)
+		buf.WriteByte(',')
+	}
+	if j.DisableWebPagePreview != false {
+		if j.DisableWebPagePreview {
+			buf.WriteString(`"DisableWebPagePreview":true`)
+		} else {
+			buf.WriteString(`"DisableWebPagePreview":false`)
 		}
-
-		if uj.TelegramInlineConfig == nil {
-			uj.TelegramInlineConfig = new(tgbotapi.InlineConfig)
+		buf.WriteByte(',')
+	}
+	if j.DisableNotification != false {
+		if j.DisableNotification {
+			buf.WriteString(`"DisableNotification":true`)
+		} else {
+			buf.WriteString(`"DisableNotification":false`)
 		}
-
-		err = uj.TelegramInlineConfig.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		buf.WriteByte(',')
+	}
+	if j.Keyboard != nil {
+		buf.WriteString(`"Keyboard":`)
+		/* Interface types must use runtime reflection. type=bots.Keyboard kind=interface */
+		err = buf.Encode(j.Keyboard)
 		if err != nil {
 			return err
 		}
-		state = fflib.FFParse_after_value
+		buf.WriteByte(',')
+	}
+	if j.IsEdit != false {
+		if j.IsEdit {
+			buf.WriteString(`"IsEdit":true`)
+		} else {
+			buf.WriteString(`"IsEdit":false`)
+		}
+		buf.WriteByte(',')
+	}
+	if j.EditMessageUID != nil {
+		buf.WriteString(`"EditMessageUID":`)
+		/* Interface types must use runtime reflection. type=bots.MessageUID kind=interface */
+		err = buf.Encode(j.EditMessageUID)
+		if err != nil {
+			return err
+		}
+		buf.WriteByte(',')
+	}
+	buf.Rewind(1)
+	buf.WriteByte('}')
+	return nil
+}
+
+const (
+	ffjtTextMessageFromBotbase = iota
+	ffjtTextMessageFromBotnosuchkey
+
+	ffjtTextMessageFromBotText
+
+	ffjtTextMessageFromBotFormat
+
+	ffjtTextMessageFromBotDisableWebPagePreview
+
+	ffjtTextMessageFromBotDisableNotification
+
+	ffjtTextMessageFromBotKeyboard
+
+	ffjtTextMessageFromBotIsEdit
+
+	ffjtTextMessageFromBotEditMessageUID
+)
+
+var ffjKeyTextMessageFromBotText = []byte("Text")
+
+var ffjKeyTextMessageFromBotFormat = []byte("Format")
+
+var ffjKeyTextMessageFromBotDisableWebPagePreview = []byte("DisableWebPagePreview")
+
+var ffjKeyTextMessageFromBotDisableNotification = []byte("DisableNotification")
+
+var ffjKeyTextMessageFromBotKeyboard = []byte("Keyboard")
+
+var ffjKeyTextMessageFromBotIsEdit = []byte("IsEdit")
+
+var ffjKeyTextMessageFromBotEditMessageUID = []byte("EditMessageUID")
+
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *TextMessageFromBot) UnmarshalJSON(input []byte) error {
+	fs := fflib.NewFFLexer(input)
+	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+}
+
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *TextMessageFromBot) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjtTextMessageFromBotbase
+	_ = currentKey
+	tok := fflib.FFTok_init
+	wantedTok := fflib.FFTok_init
+
+mainparse:
+	for {
+		tok = fs.Scan()
+		//	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))
+		if tok == fflib.FFTok_error {
+			goto tokerror
+		}
+
+		switch state {
+
+		case fflib.FFParse_map_start:
+			if tok != fflib.FFTok_left_bracket {
+				wantedTok = fflib.FFTok_left_bracket
+				goto wrongtokenerror
+			}
+			state = fflib.FFParse_want_key
+			continue
+
+		case fflib.FFParse_after_value:
+			if tok == fflib.FFTok_comma {
+				state = fflib.FFParse_want_key
+			} else if tok == fflib.FFTok_right_bracket {
+				goto done
+			} else {
+				wantedTok = fflib.FFTok_comma
+				goto wrongtokenerror
+			}
+
+		case fflib.FFParse_want_key:
+			// json {} ended. goto exit. woo.
+			if tok == fflib.FFTok_right_bracket {
+				goto done
+			}
+			if tok != fflib.FFTok_string {
+				wantedTok = fflib.FFTok_string
+				goto wrongtokenerror
+			}
+
+			kn := fs.Output.Bytes()
+			if len(kn) <= 0 {
+				// "" case. hrm.
+				currentKey = ffjtTextMessageFromBotnosuchkey
+				state = fflib.FFParse_want_colon
+				goto mainparse
+			} else {
+				switch kn[0] {
+
+				case 'D':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotDisableWebPagePreview, kn) {
+						currentKey = ffjtTextMessageFromBotDisableWebPagePreview
+						state = fflib.FFParse_want_colon
+						goto mainparse
+
+					} else if bytes.Equal(ffjKeyTextMessageFromBotDisableNotification, kn) {
+						currentKey = ffjtTextMessageFromBotDisableNotification
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'E':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotEditMessageUID, kn) {
+						currentKey = ffjtTextMessageFromBotEditMessageUID
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'F':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotFormat, kn) {
+						currentKey = ffjtTextMessageFromBotFormat
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'I':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotIsEdit, kn) {
+						currentKey = ffjtTextMessageFromBotIsEdit
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'K':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotKeyboard, kn) {
+						currentKey = ffjtTextMessageFromBotKeyboard
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				case 'T':
+
+					if bytes.Equal(ffjKeyTextMessageFromBotText, kn) {
+						currentKey = ffjtTextMessageFromBotText
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					}
+
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTextMessageFromBotEditMessageUID, kn) {
+					currentKey = ffjtTextMessageFromBotEditMessageUID
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTextMessageFromBotIsEdit, kn) {
+					currentKey = ffjtTextMessageFromBotIsEdit
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTextMessageFromBotKeyboard, kn) {
+					currentKey = ffjtTextMessageFromBotKeyboard
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTextMessageFromBotDisableNotification, kn) {
+					currentKey = ffjtTextMessageFromBotDisableNotification
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.EqualFoldRight(ffjKeyTextMessageFromBotDisableWebPagePreview, kn) {
+					currentKey = ffjtTextMessageFromBotDisableWebPagePreview
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyTextMessageFromBotFormat, kn) {
+					currentKey = ffjtTextMessageFromBotFormat
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				if fflib.SimpleLetterEqualFold(ffjKeyTextMessageFromBotText, kn) {
+					currentKey = ffjtTextMessageFromBotText
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+
+				currentKey = ffjtTextMessageFromBotnosuchkey
+				state = fflib.FFParse_want_colon
+				goto mainparse
+			}
+
+		case fflib.FFParse_want_colon:
+			if tok != fflib.FFTok_colon {
+				wantedTok = fflib.FFTok_colon
+				goto wrongtokenerror
+			}
+			state = fflib.FFParse_want_value
+			continue
+		case fflib.FFParse_want_value:
+
+			if tok == fflib.FFTok_left_brace || tok == fflib.FFTok_left_bracket || tok == fflib.FFTok_integer || tok == fflib.FFTok_double || tok == fflib.FFTok_string || tok == fflib.FFTok_bool || tok == fflib.FFTok_null {
+				switch currentKey {
+
+				case ffjtTextMessageFromBotText:
+					goto handle_Text
+
+				case ffjtTextMessageFromBotFormat:
+					goto handle_Format
+
+				case ffjtTextMessageFromBotDisableWebPagePreview:
+					goto handle_DisableWebPagePreview
+
+				case ffjtTextMessageFromBotDisableNotification:
+					goto handle_DisableNotification
+
+				case ffjtTextMessageFromBotKeyboard:
+					goto handle_Keyboard
+
+				case ffjtTextMessageFromBotIsEdit:
+					goto handle_IsEdit
+
+				case ffjtTextMessageFromBotEditMessageUID:
+					goto handle_EditMessageUID
+
+				case ffjtTextMessageFromBotnosuchkey:
+					err = fs.SkipField(tok)
+					if err != nil {
+						return fs.WrapErr(err)
+					}
+					state = fflib.FFParse_after_value
+					goto mainparse
+				}
+			} else {
+				goto wantedvalue
+			}
+		}
+	}
+
+handle_Text:
+
+	/* handler: j.Text type=string kind=string quoted=false*/
+
+	{
+
+		{
+			if tok != fflib.FFTok_string && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for string", tok))
+			}
+		}
+
+		if tok == fflib.FFTok_null {
+
+		} else {
+
+			outBuf := fs.Output.Bytes()
+
+			j.Text = string(string(outBuf))
+
+		}
 	}
 
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_TelegramCallbackAnswer:
+handle_Format:
 
-	/* handler: uj.TelegramCallbackAnswer type=tgbotapi.CallbackConfig kind=struct quoted=false*/
-
-	{
-		if tok == fflib.FFTok_null {
-
-			uj.TelegramCallbackAnswer = nil
-
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
-
-		if uj.TelegramCallbackAnswer == nil {
-			uj.TelegramCallbackAnswer = new(tgbotapi.AnswerCallbackQueryConfig)
-		}
-
-		err = uj.TelegramCallbackAnswer.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
-		if err != nil {
-			return err
-		}
-		state = fflib.FFParse_after_value
-	}
-
-	state = fflib.FFParse_after_value
-	goto mainparse
-
-handle_TelegramEditMessageText:
-
-	/* handler: uj.TelegramEditMessageText type=tgbotapi.EditMessageTextConfig kind=struct quoted=false*/
-
-	{
-		if tok == fflib.FFTok_null {
-
-			uj.TelegramEditMessageText = nil
-
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
-
-		if uj.TelegramEditMessageText == nil {
-			uj.TelegramEditMessageText = new(tgbotapi.EditMessageTextConfig)
-		}
-
-		err = uj.TelegramEditMessageText.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
-		if err != nil {
-			return err
-		}
-		state = fflib.FFParse_after_value
-	}
-
-	state = fflib.FFParse_after_value
-	goto mainparse
-
-handle_TelegramEditMessageMarkup:
-
-	/* handler: uj.TelegramEditMessageMarkup type=tgbotapi.EditMessageReplyMarkupConfig kind=struct quoted=false*/
-
-	{
-		if tok == fflib.FFTok_null {
-
-			uj.TelegramEditMessageMarkup = nil
-
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
-
-		if uj.TelegramEditMessageMarkup == nil {
-			uj.TelegramEditMessageMarkup = new(tgbotapi.EditMessageReplyMarkupConfig)
-		}
-
-		err = uj.TelegramEditMessageMarkup.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
-		if err != nil {
-			return err
-		}
-		state = fflib.FFParse_after_value
-	}
-
-	state = fflib.FFParse_after_value
-	goto mainparse
-
-handle_TelegramChatID:
-
-	/* handler: uj.TelegramChatID type=int64 kind=int64 quoted=false*/
+	/* handler: j.Format type=bots.MessageFormat kind=int quoted=false*/
 
 	{
 		if tok != fflib.FFTok_integer && tok != fflib.FFTok_null {
-			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for int64", tok))
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for MessageFormat", tok))
 		}
 	}
 
@@ -1709,7 +1955,7 @@ handle_TelegramChatID:
 				return fs.WrapErr(err)
 			}
 
-			uj.TelegramChatID = int64(tval)
+			j.Format = MessageFormat(tval)
 
 		}
 	}
@@ -1717,9 +1963,9 @@ handle_TelegramChatID:
 	state = fflib.FFParse_after_value
 	goto mainparse
 
-handle_IsReplyToInputMessage:
+handle_DisableWebPagePreview:
 
-	/* handler: uj.IsReplyToInputMessage type=bool kind=bool quoted=false*/
+	/* handler: j.DisableWebPagePreview type=bool kind=bool quoted=false*/
 
 	{
 		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
@@ -1735,17 +1981,127 @@ handle_IsReplyToInputMessage:
 
 			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
 
-				uj.IsReplyToInputMessage = true
+				j.DisableWebPagePreview = true
 
 			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
 
-				uj.IsReplyToInputMessage = false
+				j.DisableWebPagePreview = false
 
 			} else {
 				err = errors.New("unexpected bytes for true/false value")
 				return fs.WrapErr(err)
 			}
 
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_DisableNotification:
+
+	/* handler: j.DisableNotification type=bool kind=bool quoted=false*/
+
+	{
+		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for bool", tok))
+		}
+	}
+
+	{
+		if tok == fflib.FFTok_null {
+
+		} else {
+			tmpb := fs.Output.Bytes()
+
+			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
+
+				j.DisableNotification = true
+
+			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
+
+				j.DisableNotification = false
+
+			} else {
+				err = errors.New("unexpected bytes for true/false value")
+				return fs.WrapErr(err)
+			}
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_Keyboard:
+
+	/* handler: j.Keyboard type=bots.Keyboard kind=interface quoted=false*/
+
+	{
+		/* Falling back. type=bots.Keyboard kind=interface */
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = json.Unmarshal(tbuf, &j.Keyboard)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_IsEdit:
+
+	/* handler: j.IsEdit type=bool kind=bool quoted=false*/
+
+	{
+		if tok != fflib.FFTok_bool && tok != fflib.FFTok_null {
+			return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for bool", tok))
+		}
+	}
+
+	{
+		if tok == fflib.FFTok_null {
+
+		} else {
+			tmpb := fs.Output.Bytes()
+
+			if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
+
+				j.IsEdit = true
+
+			} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
+
+				j.IsEdit = false
+
+			} else {
+				err = errors.New("unexpected bytes for true/false value")
+				return fs.WrapErr(err)
+			}
+
+		}
+	}
+
+	state = fflib.FFParse_after_value
+	goto mainparse
+
+handle_EditMessageUID:
+
+	/* handler: j.EditMessageUID type=bots.MessageUID kind=interface quoted=false*/
+
+	{
+		/* Falling back. type=bots.MessageUID kind=interface */
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = json.Unmarshal(tbuf, &j.EditMessageUID)
+		if err != nil {
+			return fs.WrapErr(err)
 		}
 	}
 

@@ -27,7 +27,7 @@ type TelegramWebhookContext struct {
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
 func (twhc *TelegramWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
-	m, err = twhc.NewEditMessageTextAndKeyboard(text, nil)
+	m.Text = text
 	m.Format = format
 	return
 }
@@ -103,31 +103,6 @@ func getTgMessageIDs(update *tgbotapi.Update) (inlineMessageID string, chatID in
 		chatID = update.EditedChannelPost.Chat.ID
 	}
 
-	return
-}
-
-func (twhc *TelegramWebhookContext) NewEditMessageTextAndKeyboard(text string, kbMarkup *tgbotapi.InlineKeyboardMarkup) (m bots.MessageFromBot, err error) {
-	//TODO: !!! panic from here is not handled properly (!silent!failure!) - verify and add unit tests
-	m = twhc.NewMessage(text)
-
-	inlineMessageID, chatID, messageID := getTgMessageIDs(twhc.tgInput.TgUpdate())
-
-	hasKeyboard := kbMarkup != nil && len(kbMarkup.InlineKeyboard) > 0
-
-	if text != "" {
-		editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, text)
-		if hasKeyboard {
-			editMessageTextConfig.ReplyMarkup = kbMarkup
-		}
-		m.TelegramEditMessageText = editMessageTextConfig
-	} else if hasKeyboard {
-		editMessageMarkupConfig := tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, kbMarkup)
-		m.TelegramEditMessageMarkup = &editMessageMarkupConfig
-	} else {
-		err = errors.New("can't edit Telegram message as  m.Text is empty string and no keyboard")
-		return
-	}
-	m.IsEdit = true
 	return
 }
 

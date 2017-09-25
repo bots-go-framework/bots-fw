@@ -47,69 +47,65 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 
 	tgUpdate := r.whc.Input().(TelegramWebhookUpdateProvider).TgUpdate()
 
-	if m.TelegramCallbackAnswer != nil {
-		log.Debugf(c, "Inline answer")
-		if m.TelegramCallbackAnswer.CallbackQueryID == "" && tgUpdate.CallbackQuery != nil {
-			m.TelegramCallbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
-		}
+	var botMessage bots.BotMessage
 
-		chattable = m.TelegramCallbackAnswer
-	} else if editMsgTxt := m.TelegramEditMessageText; editMsgTxt != nil {
-		log.Debugf(c, "m.TelegramEditMessageMarkup != nil")
-		if editMsgTxt.ReplyMarkup == nil && m.TelegramKeyboard != nil {
-			editMsgTxt.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
-		}
-		if editMsgTxt.InlineMessageID == "" || editMsgTxt.ChatID == 0 || editMsgTxt.MessageID == 0 {
-			inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
-			switch {
-			case inlineMessageID != "":
-				editMsgTxt.InlineMessageID = inlineMessageID
-				editMsgTxt.ChatID = 0
-				editMsgTxt.MessageID = 0
-			case chatID != 0 && messageID != 0:
-				editMsgTxt.ChatID = chatID
-				editMsgTxt.MessageID = messageID
-				editMsgTxt.InlineMessageID = ""
-			default:
-				err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")
+	if botMessage = m.BotMessage; botMessage != nil {
+		switch m.BotMessage.BotMessageType() {
+		case bots.BotMessageTypeInlineResults:
+			chattable = tgbotapi.InlineConfig(m.BotMessage.(InlineBotMessage))
+		case bots.BotMessageTypeCallbackAnswer:
+			callbackAnswer := tgbotapi.AnswerCallbackQueryConfig(m.BotMessage.(CallbackAnswer))
+			if callbackAnswer.CallbackQueryID == "" && tgUpdate.CallbackQuery != nil {
+				callbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
 			}
-		} else if editMsgTxt.InlineMessageID != "" && editMsgTxt.ChatID != 0 && editMsgTxt.MessageID != 0 {
-			panic("m.TelegramEditMessageText => InlineMessageID is NOT empty && ChatID != 0 && MessageID != 0")
+			chattable = callbackAnswer
+		case bots.BotMessageTypeUndefined:
+			err = fmt.Errorf("bot message type %v==undefined", m.BotMessage.BotMessageType())
+			return
+		default:
+			err = fmt.Errorf("unknown bot message type %v==%T", m.BotMessage.BotMessageType(), botMessage)
+			return
 		}
-		chattable = editMsgTxt
-	} else if editMsgMarkup := m.TelegramEditMessageMarkup; editMsgMarkup != nil {
-		log.Debugf(c, "m.TelegramEditMessageMarkup != nil")
-		if (editMsgMarkup.ReplyMarkup == nil || len(editMsgMarkup.ReplyMarkup.InlineKeyboard) == 0) && m.TelegramKeyboard != nil {
-			if replyMarkup, ok := m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup); ok {
-				editMsgMarkup.ReplyMarkup = replyMarkup
-			} else {
-				panic(fmt.Sprintf("m.TelegramKeyboard is not *tgbotapi.InlineKeyboardMarkup but %T", m.TelegramKeyboard))
-			}
-		}
-		chattable = m.TelegramEditMessageMarkup
-	} else if m.TelegramInlineConfig != nil {
-		chattable = m.TelegramInlineConfig
 	} else if m.Text == bots.NoMessageToSend {
 		log.Debugf(c, bots.NoMessageToSend)
 		return
-	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0) {
+	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.ToChat == nil) {
 		// Edit message
 		inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
-		if m.EditMessageIntID != 0 {
-			messageID = m.EditMessageIntID
+		if m.EditMessageUID != nil {
+			switch m.EditMessageUID.(type) {
+			case callbackCurrent:
+				// do nothing
+			case InlineMessageUID:
+				inlineMessageID = m.EditMessageUID.(InlineMessageUID).InlineMessageID
+				chatID = 0
+				messageID = 0
+			case ChatMessageUID:
+				chatMessageUID := m.EditMessageUID.(ChatMessageUID)
+				inlineMessageID = ""
+				if chatMessageUID.ChatID != 0 {
+					chatID = chatMessageUID.ChatID
+				}
+				if chatMessageUID.MessageID != 0 {
+					messageID = chatMessageUID.MessageID
+				}
+			default:
+				err = fmt.Errorf("unknown EditMessageUID type %T(%v)", m.EditMessageUID, m.EditMessageUID)
+				return
+			}
 		}
 		log.Debugf(c, "Edit message => inlineMessageID: %v, chatID: %d, messageID: %d", inlineMessageID, chatID, messageID)
 		if inlineMessageID == "" && chatID == 0 && messageID == 0 {
 			err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")
 			return
 		}
-		if m.Text == "" && m.TelegramKeyboard != nil {
-			chattable = tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup))
+		if m.Text == "" && m.Keyboard != nil {
+			chattable = tgbotapi.NewEditMessageReplyMarkup(chatID, messageID, inlineMessageID, m.Keyboard.(*tgbotapi.InlineKeyboardMarkup))
 		} else if m.Text != "" {
 			editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, m.Text)
 			editMessageTextConfig.ParseMode = parseMode()
 			editMessageTextConfig.DisableWebPagePreview = m.DisableWebPagePreview
-			editMessageTextConfig.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+			editMessageTextConfig.ReplyMarkup = m.Keyboard.(*tgbotapi.InlineKeyboardMarkup)
 
 			chattable = editMessageTextConfig
 		} else {
@@ -118,12 +114,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		}
 	} else if m.Text != "" {
 		messageConfig := r.whc.NewTgMessage(m.Text)
-		if m.TelegramChatID != 0 {
-			messageConfig.ChatID = m.TelegramChatID
+		if m.ToChat != nil {
+			messageConfig.ChatID = int64(m.ToChat.(bots.ChatIntID))
 		}
 		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
 		messageConfig.DisableNotification = m.DisableNotification
-		messageConfig.ReplyMarkup = m.TelegramKeyboard
+		messageConfig.ReplyMarkup = m.Keyboard
 		messageConfig.ParseMode = parseMode()
 
 		chattable = messageConfig

@@ -356,8 +356,8 @@ func (whcb *WebhookContextBase) Context() context.Context {
 	return whcb.c
 }
 
-func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot {
-	return MessageFromBot{Text: fmt.Sprintf(whcb.Translate(messageCode), a...), Format: MessageFormatHTML}
+func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {
+	return whcb.NewMessage(fmt.Sprintf(whcb.Translate(messageCode), a...))
 }
 
 func (whcb *WebhookContextBase) MessageText() string {
@@ -367,8 +367,10 @@ func (whcb *WebhookContextBase) MessageText() string {
 	return ""
 }
 
-func (whcb *WebhookContextBase) NewMessage(text string) MessageFromBot {
-	return MessageFromBot{Text: text, Format: MessageFormatHTML}
+func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
+	m.Text = text
+	m.Format = MessageFormatHTML
+	return
 }
 
 func (whcb WebhookContextBase) Locale() strongo.Locale {

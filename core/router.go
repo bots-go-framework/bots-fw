@@ -289,7 +289,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
 			//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
-			m = MessageFromBot{Text: whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+			m = whc.NewMessageByCode(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND)
 			chatEntity := whc.ChatEntity()
 			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
