@@ -53,6 +53,7 @@ const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
 type MessageFromBot struct {
 	IsEdit                bool
+	EditMessageIntID      int
 	Text                  string        `json:",omitempty"`
 	Format                MessageFormat `json:",omitempty"`
 	DisableWebPagePreview bool          `json:",omitempty"`

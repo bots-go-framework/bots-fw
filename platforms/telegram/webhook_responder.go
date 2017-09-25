@@ -95,6 +95,9 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0) {
 		// Edit message
 		inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
+		if m.EditMessageIntID != 0 {
+			messageID = m.EditMessageIntID
+		}
 		log.Debugf(c, "Edit message => inlineMessageID: %v, chatID: %d, messageID: %d", inlineMessageID, chatID, messageID)
 		if inlineMessageID == "" && chatID == 0 && messageID == 0 {
 			err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")

@@ -33,7 +33,8 @@ type WebhookContext interface {
 	ExecutionContext() strongo.ExecutionContext
 	BotAppContext() BotAppContext
 
-	BotChatID() string
+	BotChatID() (string, error)
+	MustBotChatID() string
 
 	GetBotCode() string
 	GetBotToken() string
@@ -50,7 +51,7 @@ type WebhookContext interface {
 
 	NewMessage(text string) MessageFromBot
 	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
-	NewEditMessage(messageText string) (MessageFromBot, error)
+	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
 	GetHttpClient() *http.Client

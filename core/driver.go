@@ -183,8 +183,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				}
 			}
 
-			if whc != nil && whc.BotChatID() != "" {
-				whc.Responder().SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse)
+			if whc != nil {
+				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
+					if responder := whc.Responder(); responder != nil {
+						if _, err := responder.SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse); err != nil {
+							log.Errorf(c, errors.WithMessage(err, "failed to report error to user").Error())
+						}
+					}
+				}
 			}
 		} else if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
 			log.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())

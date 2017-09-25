@@ -33,14 +33,7 @@ func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botCon
 	}
 }
 
-func (whc *FbmWebhookContext) NewEditMessage(messageText string) (bots.MessageFromBot, error) {
-	//chatID, _ := whc.BotChatID().(int64)
-	//messageID := whc.InputCallbackQuery().GetMessage().IntID()
-	//editMessageTextConfig := fbm_api.NewEditMessageText(chatID, (int)(messageID), messageText)
-	//editMessageTextConfig.ParseMode = "HTML"
-	//m := whc.NewMessage("")
-	//m.FbmEditMessageText = editMessageTextConfig
-	//return m
+func (whc *FbmWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (bots.MessageFromBot, error) {
 	panic("not implemented")
 }
 

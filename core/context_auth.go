@@ -15,11 +15,15 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 		} else {
 			if err = whc.RunInTransaction(c, func(c context.Context) (err error) {
-				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), whc.BotChatID()); err != nil {
+				var chatID string
+				if chatID, err = whc.BotChatID(); err != nil {
+					return
+				}
+				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), chatID); err != nil {
 					return
 				}
 				if changed := chatEntity.SetAccessGranted(value); changed {
-					if err = whc.SaveBotChat(c, whc.GetBotCode(), whc.BotChatID(), chatEntity); err != nil {
+					if err = whc.SaveBotChat(c, whc.GetBotCode(), chatID, chatEntity); err != nil {
 						err = errors.Wrap(err, "Failed to save bot chat entity to db")
 					}
 				}

@@ -41,56 +41,64 @@ type WebhookContextBase struct {
 	gaMeasurement *measurement.BufferedSender
 }
 
-func (whc *WebhookContextBase) LogRequest() {
-	whc.input.LogRequest()
+func (whcb *WebhookContextBase) LogRequest() {
+	whcb.input.LogRequest()
 }
 
-func (whc *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
-	return whc.BotContext.BotHost.DB().RunInTransaction(c, f, options)
+func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
+	return whcb.BotContext.BotHost.DB().RunInTransaction(c, f, options)
 }
 
-func (whc *WebhookContextBase) Request() *http.Request {
-	return whc.r
+func (whcb *WebhookContextBase) Request() *http.Request {
+	return whcb.r
 }
 
-func (whc *WebhookContextBase) Environment() strongo.Environment {
-	return whc.BotContext.BotSettings.Env
+func (whcb *WebhookContextBase) Environment() strongo.Environment {
+	return whcb.BotContext.BotSettings.Env
 }
 
-func (whc *WebhookContextBase) BotChatID() (chatID string) {
-	input := whc.Input()
+func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
+	var err error
+	if chatID, err = whcb.BotChatID(); err != nil {
+		panic(err)
+	} else if chatID == "" {
+		panic("BotChatID() returned an empty string")
+	}
+	return
+}
+
+func (whcb *WebhookContextBase) BotChatID() (chatID string, err error) {
+	input := whcb.Input()
 	if chat := input.Chat(); chat != nil {
-		return chat.GetID()
+		return chat.GetID(), nil
 	}
 	switch input.(type) {
 	case WebhookCallbackQuery:
 		callbackQuery := input.(WebhookCallbackQuery)
 		data := callbackQuery.GetData()
 		if strings.Contains(data, "chat=") {
-			c := whc.Context()
-			values, err := url.ParseQuery(data)
-			if err != nil {
-				log.Errorf(c, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-				return ""
+			if values, err := url.ParseQuery(data); err != nil {
+				return "", errors.WithMessage(err, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+			} else {
+				chatID = values.Get("chat")
 			}
-			chatID = values.Get("chat")
 		}
 	case WebhookInlineQuery:
 		// pass
 	default:
-		whc.LogRequest()
-		log.Debugf(whc.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
+		whcb.LogRequest()
+		log.Debugf(whcb.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
-	return chatID
+	return chatID, nil
 }
 
-func (whc *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
-	if chatEntity := whc.ChatEntity(); chatEntity != nil {
+func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
+	if chatEntity := whcb.ChatEntity(); chatEntity != nil {
 		appUserIntID = chatEntity.GetAppUserIntID()
 	}
 	if appUserIntID == 0 {
-		botUser, err := whc.GetOrCreateBotUserEntityBase()
+		botUser, err := whcb.GetOrCreateBotUserEntityBase()
 		if err != nil {
 			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
 		}
@@ -100,10 +108,10 @@ func (whc *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 }
 
 
-func (whc *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
-	appUserID := whc.AppUserIntID()
-	appUser := whc.BotAppContext().NewBotAppUserEntity()
-	err := whc.BotAppUserStore.GetAppUserByID(whc.Context(), appUserID, appUser)
+func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
+	appUserID := whcb.AppUserIntID()
+	appUser := whcb.BotAppContext().NewBotAppUserEntity()
+	err := whcb.BotAppUserStore.GetAppUserByID(whcb.Context(), appUserID, appUser)
 	return appUser, err
 }
 
@@ -227,14 +235,19 @@ func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 }
 
 func (whcb *WebhookContextBase) ChatEntity() BotChat {
-	if whcb.BotChatID() == "" {
+	if whcb.chatEntity != nil {
+		return whcb.chatEntity
+	}
+	chatID, err := whcb.BotChatID()
+	if err != nil {
+		panic(errors.WithMessage(err, "failed to call whcb.BotChatID()"))
+	}
+	if chatID == "" {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
-	if whcb.chatEntity == nil {
-		if err := whcb.loadChatEntityBase(); err != nil {
-			panic(errors.Wrap(err, "Failed to call whcb.getChatEntityBase()"))
-		}
+	if err := whcb.loadChatEntityBase(); err != nil {
+		panic(errors.Wrap(err, "Failed to call whcb.getChatEntityBase()"))
 	}
 	return whcb.chatEntity
 }
@@ -279,7 +292,11 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return nil
 	}
 
-	botChatID := whcb.BotChatID()
+	botChatID, err := whcb.BotChatID()
+	if err != nil {
+		return errors.WithMessage(err, "Failed to call whcb.BotChatID()")
+	}
+
 	log.Debugf(c, "loadChatEntityBase(): botChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
 	botChatStore := whcb.BotChatStore

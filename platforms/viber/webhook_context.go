@@ -20,7 +20,7 @@ type ViberWebhookContext struct {
 
 var _ bots.WebhookContext = (*ViberWebhookContext)(nil)
 
-func (whc *ViberWebhookContext) NewEditMessage(messageText string) (bots.MessageFromBot, error) {
+func (whc *ViberWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
 	panic("Not supported by Viber")
 }
 

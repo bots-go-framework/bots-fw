@@ -185,7 +185,8 @@ func (h TelegramWebhookHandler) CreateWebhookContext(
 	botCoreStores bots.BotCoreStores,
 	gaMeasurement *measurement.BufferedSender,
 ) bots.WebhookContext {
-	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
+	return newTelegramWebhookContext(
+		appContext, r, botContext, webhookInput.(TelegramWebhookInput), botCoreStores, gaMeasurement)
 }
 
 func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {

@@ -17,6 +17,7 @@ import (
 
 type TelegramWebhookContext struct {
 	*bots.WebhookContextBase
+	tgInput TelegramWebhookInput
 	//update         tgbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
@@ -25,14 +26,16 @@ type TelegramWebhookContext struct {
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 
-func (twhc *TelegramWebhookContext) NewEditMessage(messageText string) (bots.MessageFromBot, error) {
-	return twhc.NewEditMessageTextAndKeyboard(messageText, nil)
+func (twhc *TelegramWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
+	m, err = twhc.NewEditMessageTextAndKeyboard(text, nil)
+	m.Format = format
+	return
 }
 
 func (twhc *TelegramWebhookContext) CreateOrUpdateTgChatInstance() (err error) {
 	c := twhc.Context()
 	log.Debugf(c, "*TelegramWebhookContext.CreateOrUpdateTgChatInstance()")
-	tgUpdate := twhc.Input().(TelegramWebhookCallbackQuery).TgUpdate()
+	tgUpdate := twhc.tgInput.TgUpdate()
 	if tgUpdate.CallbackQuery == nil {
 		return
 	}
@@ -107,7 +110,7 @@ func (twhc *TelegramWebhookContext) NewEditMessageTextAndKeyboard(text string, k
 	//TODO: !!! panic from here is not handled properly (!silent!failure!) - verify and add unit tests
 	m = twhc.NewMessage(text)
 
-	inlineMessageID, chatID, messageID := getTgMessageIDs(twhc.Input().(TelegramWebhookInput).TgUpdate())
+	inlineMessageID, chatID, messageID := getTgMessageIDs(twhc.tgInput.TgUpdate())
 
 	hasKeyboard := kbMarkup != nil && len(kbMarkup.InlineKeyboard) > 0
 
@@ -128,10 +131,10 @@ func (twhc *TelegramWebhookContext) NewEditMessageTextAndKeyboard(text string, k
 	return
 }
 
-func NewTelegramWebhookContext(
+func newTelegramWebhookContext(
 	appContext bots.BotAppContext,
 	r *http.Request, botContext bots.BotContext,
-	input bots.WebhookInput,
+	input TelegramWebhookInput,
 	botCoreStores bots.BotCoreStores,
 	gaMeasurement *measurement.BufferedSender,
 ) *TelegramWebhookContext {
@@ -140,19 +143,20 @@ func NewTelegramWebhookContext(
 		appContext,
 		TelegramPlatform{},
 		botContext,
-		input,
+		input.(bots.WebhookInput),
 		botCoreStores,
 		gaMeasurement,
 	)
 	return &TelegramWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
+		tgInput: input.(TelegramWebhookInput),
 		//whi: whi,
 	}
 }
 
 func (twhc TelegramWebhookContext) IsInGroup() bool {
-	chat := twhc.Input().(TelegramWebhookInput).TgUpdate().Chat()
+	chat := twhc.tgInput.TgUpdate().Chat()
 	return chat != nil && chat.IsGroup()
 }
 
@@ -226,7 +230,10 @@ func (twhc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageCo
 	//entity := inputMessage.Chat()
 	//chatID := entity.GetID()
 	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
-	botChatID := twhc.BotChatID()
+	botChatID, err := twhc.BotChatID()
+	if err != nil {
+		panic(err)
+	}
 	if botChatID == "" {
 		panic(fmt.Sprintf("Not able to send message as BotChatID() returned empty string. text: %v", text))
 	}
@@ -245,4 +252,29 @@ func (twhc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat)
 	//	return nil
 	//}
 	//return errors.New(fmt.Sprintf("Expected *TelegramChatEntityBase, got: %T", chatEntity))
+}
+
+var ErrChatInstanceIsNotSet = errors.New("update.CallbackQuery.ChatInstance is empty string")
+
+func (twhc *TelegramWebhookContext) BotChatID() (chatID string, err error) {
+	tgUpdate := twhc.tgInput.TgUpdate()
+	if cbq := tgUpdate.CallbackQuery; cbq  != nil {
+		if cbq.Message != nil && cbq.Message.Chat != nil {
+			return strconv.FormatInt(cbq.Message.Chat.ID, 10), nil
+		}
+		if cbq.ChatInstance == "" {
+			err = ErrChatInstanceIsNotSet
+			return
+		}
+		c := twhc.Context()
+		if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil  {
+			return "", err
+		} else {
+			if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
+				return strconv.FormatInt(tgChatID, 10), nil
+			}
+			return "", nil
+		}
+	}
+	return twhc.WebhookContextBase.BotChatID()
 }
