@@ -37,6 +37,7 @@ type TelegramWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.SettingsProvider
 }
+
 var _ bots.WebhookHandler = (*TelegramWebhookHandler)(nil)
 
 func (h TelegramWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
@@ -46,8 +47,8 @@ func (h TelegramWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver
 	h.BaseHandler.Register(driver, host)
 
 	pathPrefix = strings.TrimSuffix(pathPrefix, "/")
-	router.POST(pathPrefix + "/telegram/webhook", h.HandleWebhookRequest) // TODO: Remove obsolete
-	router.POST(pathPrefix + "/tg/hook", h.HandleWebhookRequest)
+	router.POST(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest) // TODO: Remove obsolete
+	router.POST(pathPrefix+"/tg/hook", h.HandleWebhookRequest)
 	router.GET(pathPrefix+"/tg/set-webhook", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		h.SetWebhook(h.Context(r), w, r)
 	})
@@ -61,7 +62,7 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Criticalf(h.Context(r),"Unhandled exception in Telegram handler: %v", err)
+			log.Criticalf(h.Context(r), "Unhandled exception in Telegram handler: %v", err)
 		}
 	}()
 
@@ -124,7 +125,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	logRequestBody := func() {
 		if !requestLogged {
 			requestLogged = true
-			if len(bodyBytes) < 1024 * 10 {
+			if len(bodyBytes) < 1024*10 {
 				var bodyToLog bytes.Buffer
 				var bodyStr string
 				if indentErr := json.Indent(&bodyToLog, bodyBytes, "", "\t"); indentErr == nil {
@@ -152,11 +153,11 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	}
 
 	entriesWithInputs = []bots.EntryInputs{
-			{
-				Entry:  TelegramWebhookEntry{update: update},
-				Inputs: []bots.WebhookInput{input},
-			},
-		}
+		{
+			Entry:  TelegramWebhookEntry{update: update},
+			Inputs: []bots.WebhookInput{input},
+		},
+	}
 
 	if input == nil {
 		logRequestBody();
@@ -177,7 +178,13 @@ func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byt
 	return
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
+func (h TelegramWebhookHandler) CreateWebhookContext(
+	appContext bots.BotAppContext,
+	r *http.Request, botContext bots.BotContext,
+	webhookInput bots.WebhookInput,
+	botCoreStores bots.BotCoreStores,
+	gaMeasurement *measurement.BufferedSender,
+) bots.WebhookContext {
 	return NewTelegramWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 

@@ -304,7 +304,6 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)
 		}
-
 	default:
 		return err
 	}

@@ -218,6 +218,12 @@ func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 
 func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
+	//defer func() {
+	//	if err := recover(); err != nil {
+	//		log.Criticalf(c, "*WebhooksRouter.Dispatch() => PANIC: %v", err)
+	//	}
+	//}()
+
 	inputType := whc.InputType()
 
 	typeCommands, found := router.commandsByType[inputType]

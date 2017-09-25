@@ -50,8 +50,8 @@ type WebhookContext interface {
 
 	NewMessage(text string) MessageFromBot
 	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
-	NewEditCallbackMessage(messageText string) (MessageFromBot, error)
-	//NewEditCallbackMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
+	NewEditMessage(messageText string) (MessageFromBot, error)
+	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
 	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error

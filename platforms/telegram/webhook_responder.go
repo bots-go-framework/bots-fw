@@ -27,6 +27,7 @@ func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookCont
 }
 
 func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
+	log.Debugf(c, "TelegramWebhookResponder.SendMessage(channel=%v, isEdit=%v) => m: %v", channel, m.IsEdit, m)
 	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
@@ -53,20 +54,48 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		}
 
 		chattable = m.TelegramCallbackAnswer
-	} else if m.TelegramEditMessageText != nil {
-		if m.TelegramEditMessageText.ReplyMarkup == nil && m.TelegramKeyboard != nil {
-			m.TelegramEditMessageText.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
+	} else if editMsgTxt := m.TelegramEditMessageText; editMsgTxt != nil {
+		log.Debugf(c, "m.TelegramEditMessageMarkup != nil")
+		if editMsgTxt.ReplyMarkup == nil && m.TelegramKeyboard != nil {
+			editMsgTxt.ReplyMarkup = m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup)
 		}
-		chattable = m.TelegramEditMessageText
-	} else if m.TelegramEditMessageMarkup != nil {
+		if editMsgTxt.InlineMessageID == "" || editMsgTxt.ChatID == 0 || editMsgTxt.MessageID == 0 {
+			inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
+			switch {
+			case inlineMessageID != "":
+				editMsgTxt.InlineMessageID = inlineMessageID
+				editMsgTxt.ChatID = 0
+				editMsgTxt.MessageID = 0
+			case chatID != 0 && messageID != 0:
+				editMsgTxt.ChatID = chatID
+				editMsgTxt.MessageID = messageID
+				editMsgTxt.InlineMessageID = ""
+			default:
+				err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")
+			}
+		} else if editMsgTxt.InlineMessageID != "" && editMsgTxt.ChatID != 0 && editMsgTxt.MessageID != 0 {
+			panic("m.TelegramEditMessageText => InlineMessageID is NOT empty && ChatID != 0 && MessageID != 0")
+		}
+		chattable = editMsgTxt
+	} else if editMsgMarkup := m.TelegramEditMessageMarkup; editMsgMarkup != nil {
+		log.Debugf(c, "m.TelegramEditMessageMarkup != nil")
+		if (editMsgMarkup.ReplyMarkup == nil || len(editMsgMarkup.ReplyMarkup.InlineKeyboard) == 0) && m.TelegramKeyboard != nil {
+			if replyMarkup, ok := m.TelegramKeyboard.(*tgbotapi.InlineKeyboardMarkup); ok {
+				editMsgMarkup.ReplyMarkup = replyMarkup
+			} else {
+				panic(fmt.Sprintf("m.TelegramKeyboard is not *tgbotapi.InlineKeyboardMarkup but %T", m.TelegramKeyboard))
+			}
+		}
 		chattable = m.TelegramEditMessageMarkup
 	} else if m.TelegramInlineConfig != nil {
 		chattable = m.TelegramInlineConfig
 	} else if m.Text == bots.NoMessageToSend {
+		log.Debugf(c, bots.NoMessageToSend)
 		return
 	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.TelegramChatID == 0) {
 		// Edit message
 		inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
+		log.Debugf(c, "Edit message => inlineMessageID: %v, chatID: %d, messageID: %d", inlineMessageID, chatID, messageID)
 		if inlineMessageID == "" && chatID == 0 && messageID == 0 {
 			err = errors.New("Can't edit Telegram message as inlineMessageID is empty && chatID == 0 && messageID == 0")
 			return
@@ -156,15 +185,18 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			log.Errorf(c, errors.Wrap(err, "Failed to send message to Telegram using HTTPS API").Error())
 			return resp, err
 		} else {
-			log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
-			//if messageJson, err := ffjson.Marshal(message); err != nil {
-			//	log.Warningf(c, "Telegram API response as raw: %v", message)
-			// messageJson.Pool(messageJson)
-			//} else {
-			//	log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
-			//	log.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
-			// messageJson.Pool(messageJson)
-			//}
+			if message.MessageID != 0 {
+				log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
+			} else {
+				if messageJson, err := ffjson.Marshal(message); err != nil {
+					log.Warningf(c, "Telegram API response as raw: %v", message)
+					ffjson.Pool(messageJson)
+				} else {
+					log.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
+					ffjson.Pool(messageJson)
+				}
+			}
+
 			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 		}
 	default:

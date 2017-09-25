@@ -33,7 +33,7 @@ func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botCon
 	}
 }
 
-func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) (bots.MessageFromBot, error) {
+func (whc *FbmWebhookContext) NewEditMessage(messageText string) (bots.MessageFromBot, error) {
 	//chatID, _ := whc.BotChatID().(int64)
 	//messageID := whc.InputCallbackQuery().GetMessage().IntID()
 	//editMessageTextConfig := fbm_api.NewEditMessageText(chatID, (int)(messageID), messageText)
@@ -44,7 +44,7 @@ func (whc *FbmWebhookContext) NewEditCallbackMessage(messageText string) (bots.M
 	panic("not implemented")
 }
 
-//func (whc *FbmWebhookContext) NewEditCallbackMessageKeyboard(kbMarkup fbm_api.InlineKeyboardMarkup) bots.MessageFromBot {
+//func (whc *FbmWebhookContext) NewEditMessageKeyboard(kbMarkup fbm_api.InlineKeyboardMarkup) bots.MessageFromBot {
 //	//chatID, _ := whc.BotChatID().(int64)
 //	//messageID := whc.InputCallbackQuery().GetMessage().IntID()
 //	//editMessageMarkupConfig := fbm_api.NewEditMessageReplyMarkup(chatID, (int)(messageID), kbMarkup)

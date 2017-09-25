@@ -6,5 +6,5 @@ import (
 )
 
 func TestTelegramChat(t *testing.T) {
-	var _ datastore.PropertyLoadSaver = (*TelegramChatEntity)(nil)
+	var _ datastore.PropertyLoadSaver = (*TelegramChatEntityBase)(nil)
 }

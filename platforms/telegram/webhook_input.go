@@ -171,14 +171,9 @@ func (whi telegramWebhookInput) Chat() bots.WebhookChat {
 		return TelegramWebhookChat{
 			chat: update.EditedMessage.Chat,
 		}
-	} else {
-		callbackQuery := update.CallbackQuery
-		if callbackQuery != nil {
-			if callbackQuery.Message != nil {
-				return TelegramWebhookChat{
-					chat: callbackQuery.Message.Chat,
-				}
-			}
+	} else if callbackQuery := update.CallbackQuery; callbackQuery != nil && callbackQuery.Message != nil {
+		return TelegramWebhookChat{
+			chat: callbackQuery.Message.Chat,
 		}
 	}
 	return nil
