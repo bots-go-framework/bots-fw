@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strconv"
 	"golang.org/x/net/context"
-	"errors"
 	"github.com/strongo/app/db"
 	"github.com/strongo/app/log"
+	"github.com/pkg/errors"
 )
 
 type TelegramWebhookContext struct {
@@ -29,6 +29,7 @@ var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
 func (twhc *TelegramWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
 	m.Text = text
 	m.Format = format
+	m.IsEdit = true
 	return
 }
 
@@ -125,7 +126,7 @@ func newTelegramWebhookContext(
 	return &TelegramWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
-		tgInput: input.(TelegramWebhookInput),
+		tgInput:            input.(TelegramWebhookInput),
 		//whi: whi,
 	}
 }
@@ -233,7 +234,7 @@ var ErrChatInstanceIsNotSet = errors.New("update.CallbackQuery.ChatInstance is e
 
 func (twhc *TelegramWebhookContext) BotChatID() (chatID string, err error) {
 	tgUpdate := twhc.tgInput.TgUpdate()
-	if cbq := tgUpdate.CallbackQuery; cbq  != nil {
+	if cbq := tgUpdate.CallbackQuery; cbq != nil {
 		if cbq.Message != nil && cbq.Message.Chat != nil {
 			return strconv.FormatInt(cbq.Message.Chat.ID, 10), nil
 		}
@@ -242,14 +243,24 @@ func (twhc *TelegramWebhookContext) BotChatID() (chatID string, err error) {
 			return
 		}
 		c := twhc.Context()
-		if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil  {
+		if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil {
 			return "", err
 		} else {
 			if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
-				return strconv.FormatInt(tgChatID, 10), nil
+				chatID := strconv.FormatInt(tgChatID, 10)
+				twhc.SetChatID(chatID)
+				return chatID, nil
 			}
 			return "", nil
 		}
 	}
 	return twhc.WebhookContextBase.BotChatID()
+}
+
+func (twhc *TelegramWebhookContext) ChatEntity() bots.BotChat {
+	if _, err := twhc.BotChatID(); err != nil {
+		log.Errorf(twhc.Context(), errors.WithMessage(err, "whc.BotChatID()").Error())
+		return nil
+	}
+	return twhc.WebhookContextBase.ChatEntity()
 }

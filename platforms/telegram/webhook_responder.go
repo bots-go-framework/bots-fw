@@ -105,8 +105,9 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			editMessageTextConfig := tgbotapi.NewEditMessageText(chatID, messageID, inlineMessageID, m.Text)
 			editMessageTextConfig.ParseMode = parseMode()
 			editMessageTextConfig.DisableWebPagePreview = m.DisableWebPagePreview
-			editMessageTextConfig.ReplyMarkup = m.Keyboard.(*tgbotapi.InlineKeyboardMarkup)
-
+			if m.Keyboard != nil {
+				editMessageTextConfig.ReplyMarkup = m.Keyboard.(*tgbotapi.InlineKeyboardMarkup)
+			}
 			chattable = editMessageTextConfig
 		} else {
 			err = fmt.Errorf("can't edit telegram message as got unknown output: %v", m)
@@ -119,7 +120,10 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		}
 		messageConfig.DisableWebPagePreview = m.DisableWebPagePreview
 		messageConfig.DisableNotification = m.DisableNotification
-		messageConfig.ReplyMarkup = m.Keyboard
+		if m.Keyboard != nil {
+			messageConfig.ReplyMarkup = m.Keyboard
+		}
+
 		messageConfig.ParseMode = parseMode()
 
 		chattable = messageConfig

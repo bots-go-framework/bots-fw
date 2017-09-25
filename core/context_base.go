@@ -26,19 +26,24 @@ type WebhookContextBase struct {
 	botPlatform   BotPlatform
 	input         WebhookInput
 
-	locale        strongo.Locale
+	locale strongo.Locale
 
 	//update      tgbotapi.Update
-	chatEntity    BotChat
+	chatID  string
+	chatEntity BotChat
 
-	BotUserKey    *datastore.Key
-	appUser       BotAppUser
+	BotUserKey *datastore.Key
+	appUser    BotAppUser
 	strongo.Translator
 	//Locales    strongo.LocalesProvider
 
 	BotCoreStores
 
 	gaMeasurement *measurement.BufferedSender
+}
+
+func (whcb *WebhookContextBase) SetChatID(v string) {
+	whcb.chatID = v
 }
 
 func (whcb *WebhookContextBase) LogRequest() {
@@ -67,10 +72,14 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	return
 }
 
-func (whcb *WebhookContextBase) BotChatID() (chatID string, err error) {
+func (whcb *WebhookContextBase) BotChatID() (string, error) {
+	if whcb.chatID != "" {
+		return whcb.chatID, nil
+	}
 	input := whcb.Input()
 	if chat := input.Chat(); chat != nil {
-		return chat.GetID(), nil
+		whcb.chatID = chat.GetID()
+		return whcb.chatID, nil
 	}
 	switch input.(type) {
 	case WebhookCallbackQuery:
@@ -80,7 +89,7 @@ func (whcb *WebhookContextBase) BotChatID() (chatID string, err error) {
 			if values, err := url.ParseQuery(data); err != nil {
 				return "", errors.WithMessage(err, "Failed to GetData() from webhookInput.InputCallbackQuery()")
 			} else {
-				chatID = values.Get("chat")
+				whcb.chatID = values.Get("chat")
 			}
 		}
 	case WebhookInlineQuery:
@@ -90,7 +99,7 @@ func (whcb *WebhookContextBase) BotChatID() (chatID string, err error) {
 		log.Debugf(whcb.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
-	return chatID, nil
+	return whcb.chatID, nil
 }
 
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
@@ -107,14 +116,12 @@ func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 	return
 }
 
-
 func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserIntID()
 	appUser := whcb.BotAppContext().NewBotAppUserEntity()
 	err := whcb.BotAppUserStore.GetAppUserByID(whcb.Context(), appUserID, appUser)
 	return appUser, err
 }
-
 
 func (whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
 	return whcb
@@ -124,7 +131,15 @@ func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
 	return whcb.botAppContext
 }
 
-func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlatform BotPlatform, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, gaMeasurement *measurement.BufferedSender) *WebhookContextBase {
+func NewWebhookContextBase(
+	r *http.Request,
+	botAppContext BotAppContext,
+	botPlatform BotPlatform,
+	botContext BotContext,
+	webhookInput WebhookInput,
+	botCoreStores BotCoreStores,
+	gaMeasurement *measurement.BufferedSender,
+) *WebhookContextBase {
 	whcb := WebhookContextBase{
 		r:             r,
 		c:             appengine.NewContext(r),
@@ -139,27 +154,27 @@ func NewWebhookContextBase(r *http.Request, botAppContext BotAppContext, botPlat
 	return &whcb
 }
 
-func (whcb *WebhookContextBase)  Input() WebhookInput {
+func (whcb *WebhookContextBase) Input() WebhookInput {
 	return whcb.input
 }
 
-func (whcb *WebhookContextBase)  Chat() WebhookChat {
+func (whcb *WebhookContextBase) Chat() WebhookChat {
 	return whcb.input.Chat()
 }
 
-func (whcb *WebhookContextBase)  GetRecipient() WebhookRecipient {
+func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient {
 	return whcb.input.GetRecipient()
 }
 
-func (whcb *WebhookContextBase)  GetSender() WebhookSender {
+func (whcb *WebhookContextBase) GetSender() WebhookSender {
 	return whcb.input.GetSender()
 }
 
-func (whcb *WebhookContextBase)  GetTime() time.Time {
+func (whcb *WebhookContextBase) GetTime() time.Time {
 	return whcb.input.GetTime()
 }
 
-func (whcb *WebhookContextBase)  InputType() WebhookInputType {
+func (whcb *WebhookContextBase) InputType() WebhookInputType {
 	return whcb.input.InputType()
 }
 
@@ -192,7 +207,6 @@ func (whcb *WebhookContextBase) GaEvent(category, action string) measurement.Eve
 func (whcb *WebhookContextBase) GaEventWithLabel(category, action, label string) measurement.Event {
 	return measurement.NewEventWithLabel(category, action, label, whcb.GaCommon())
 }
-
 
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
@@ -325,7 +339,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return err
 	}
 
-	if !whcb.Chat().IsGroupChat() {
+	if !botChatEntity.IsGroupChat() {
 		if sender := whcb.input.GetSender(); sender != nil {
 			if languageCode := sender.GetLanguage(); languageCode != "" {
 				botChatEntity.AddClientLanguage(languageCode)

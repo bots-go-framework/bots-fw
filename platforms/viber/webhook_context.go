@@ -44,7 +44,6 @@ func (_ ViberWebhookContext) IsInGroup() bool {
 	panic("not implemented yet")
 }
 
-
 func (whc *ViberWebhookContext) Close(c context.Context) error {
 	return nil
 }
