@@ -64,7 +64,7 @@ func (whcb *WebhookContextBase) Environment() strongo.Environment {
 
 func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	var err error
-	if chatID, err = whcb.BotChatID(); err != nil {
+	if chatID, err = whcb.BotChatID(whcb.c); err != nil {
 		panic(err)
 	} else if chatID == "" {
 		panic("BotChatID() returned an empty string")
@@ -72,11 +72,19 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	return
 }
 
-func (whcb *WebhookContextBase) BotChatID() (string, error) {
+func (whcb *WebhookContextBase) BotChatID(c context.Context) (string, error) {
 	if whcb.chatID != "" {
 		return whcb.chatID, nil
 	}
+	log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
+
 	input := whcb.Input()
+	if chatID, err := input.BotChatID(c); err != nil {
+		return "", err
+	} else if chatID != "" {
+		whcb.chatID = chatID
+		return whcb.chatID, nil
+	}
 	if chat := input.Chat(); chat != nil {
 		whcb.chatID = chat.GetID()
 		return whcb.chatID, nil
@@ -252,7 +260,8 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.chatEntity != nil {
 		return whcb.chatEntity
 	}
-	chatID, err := whcb.BotChatID()
+	log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
+	chatID, err := whcb.BotChatID(whcb.c)
 	if err != nil {
 		panic(errors.WithMessage(err, "failed to call whcb.BotChatID()"))
 	}
@@ -306,7 +315,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return nil
 	}
 
-	botChatID, err := whcb.BotChatID()
+	botChatID, err := whcb.BotChatID(c)
 	if err != nil {
 		return errors.WithMessage(err, "Failed to call whcb.BotChatID()")
 	}
@@ -320,7 +329,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
-		log.Debugf(c, "GetBotChatEntityByID() returned => AwaitingReplyTo: %v", botChatEntity.GetAwaitingReplyTo())
+		log.Debugf(c, "GetBotChatEntityByID() returned => %v", botChatEntity)
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")
@@ -339,22 +348,14 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return err
 	}
 
-	if !botChatEntity.IsGroupChat() {
-		if sender := whcb.input.GetSender(); sender != nil {
-			if languageCode := sender.GetLanguage(); languageCode != "" {
-				botChatEntity.AddClientLanguage(languageCode)
-			}
+	if sender := whcb.input.GetSender(); sender != nil {
+		if languageCode := sender.GetLanguage(); languageCode != "" {
+			botChatEntity.AddClientLanguage(languageCode)
 		}
 	}
 
-	log.Debugf(c, `chatEntity.PreferredLanguage: %v, whc.locale.Code5: %v, chatEntity.PreferredLanguage != """ && whc.locale.Code5 != chatEntity.PreferredLanguage: %v`,
-		botChatEntity.GetPreferredLanguage(), whcb.Locale().Code5, botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage())
-
-	if botChatEntity.GetPreferredLanguage() != "" && whcb.Locale().Code5 != botChatEntity.GetPreferredLanguage() {
-		err = whcb.SetLocale(botChatEntity.GetPreferredLanguage())
-		if err == nil {
-			log.Debugf(c, "whc.locale changed to: %v", whcb.Locale().Code5)
-		} else {
+	if chatLocale := botChatEntity.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
+		if err = whcb.SetLocale(chatLocale); err != nil {
 			log.Errorf(c, "Failed to set locate: %v")
 		}
 	}
@@ -389,7 +390,14 @@ func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
 
 func (whcb WebhookContextBase) Locale() strongo.Locale {
 	if whcb.locale.Code5 == "" {
-		return whcb.BotContext.BotSettings.Locale
+		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
+			if locale := chatEntity.GetPreferredLanguage(); locale != "" {
+				if err := whcb.SetLocale(locale); err == nil {
+					return whcb.locale
+				}
+			}
+		}
+		whcb.locale = whcb.BotContext.BotSettings.Locale
 	}
 	return whcb.locale
 }

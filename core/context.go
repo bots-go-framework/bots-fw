@@ -33,7 +33,6 @@ type WebhookContext interface {
 	ExecutionContext() strongo.ExecutionContext
 	BotAppContext() BotAppContext
 
-	BotChatID() (string, error)
 	MustBotChatID() string
 
 	GetBotCode() string

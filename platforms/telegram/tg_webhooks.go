@@ -114,6 +114,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		err = bots.AuthFailedError(errMess)
 		return
 	}
+	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	var bodyBytes []byte
 	defer r.Body.Close()
 	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
@@ -151,6 +152,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		logRequestBody()
 		return
 	}
+	logRequestBody()
 
 	entriesWithInputs = []bots.EntryInputs{
 		{
@@ -166,7 +168,6 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	} else {
 		log.Debugf(c, "Telegram input type: %T", input)
 	}
-	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	return
 }
 

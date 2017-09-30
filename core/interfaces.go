@@ -88,6 +88,7 @@ type WebhookInput interface {
 	GetRecipient() WebhookRecipient
 	GetTime() time.Time
 	InputType() WebhookInputType
+	BotChatID(c context.Context) (chatID string, err error)
 	Chat() WebhookChat
 	LogRequest()
 }
@@ -226,8 +227,12 @@ type WebhookAttachment interface {
 	PayloadUrl() string // 'payload.url' for Facebook
 }
 
+type MessengerResponse interface {
+}
+
 type OnMessageSentResponse struct {
-	TelegramMessage interface{} // TODO: change to some interface
+	StatusCode int
+	TelegramMessage MessengerResponse // TODO: change to some interface
 }
 
 type WebhookResponder interface {

@@ -123,7 +123,7 @@ func (whi telegramWebhookInput) GetSender() bots.WebhookSender {
 	//	return TelegramSender{  // TODO: Seems to be dirty hack.
 	//		tgUser: &tgbotapi.User{
 	//			ID: int(chat.ID),
-	//			UserName: chat.UserName,
+	//			Name: chat.Name,
 	//			FirstName: chat.FirstName,
 	//			LastName: chat.LastName,
 	//		},

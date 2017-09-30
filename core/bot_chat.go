@@ -13,7 +13,7 @@ type BotChat interface {
 	GetAppUserIntID() int64
 	SetAppUserIntID(id int64)
 
-	AddClientLanguage(languageCode string)
+	AddClientLanguage(languageCode string) (changed bool)
 
 	//GetBotUserIntID() int
 	//GetBotUserStringID() string

@@ -206,7 +206,7 @@ func (twhc *TelegramWebhookContext) NewTgMessage(text string) tgbotapi.MessageCo
 	//entity := inputMessage.Chat()
 	//chatID := entity.GetID()
 	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
-	botChatID, err := twhc.BotChatID()
+	botChatID, err := twhc.BotChatID(twhc.Context())
 	if err != nil {
 		panic(err)
 	}
@@ -232,35 +232,4 @@ func (twhc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat)
 
 var ErrChatInstanceIsNotSet = errors.New("update.CallbackQuery.ChatInstance is empty string")
 
-func (twhc *TelegramWebhookContext) BotChatID() (chatID string, err error) {
-	tgUpdate := twhc.tgInput.TgUpdate()
-	if cbq := tgUpdate.CallbackQuery; cbq != nil {
-		if cbq.Message != nil && cbq.Message.Chat != nil {
-			return strconv.FormatInt(cbq.Message.Chat.ID, 10), nil
-		}
-		if cbq.ChatInstance == "" {
-			err = ErrChatInstanceIsNotSet
-			return
-		}
-		c := twhc.Context()
-		if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil {
-			return "", err
-		} else {
-			if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
-				chatID := strconv.FormatInt(tgChatID, 10)
-				twhc.SetChatID(chatID)
-				return chatID, nil
-			}
-			return "", nil
-		}
-	}
-	return twhc.WebhookContextBase.BotChatID()
-}
 
-func (twhc *TelegramWebhookContext) ChatEntity() bots.BotChat {
-	if _, err := twhc.BotChatID(); err != nil {
-		log.Errorf(twhc.Context(), errors.WithMessage(err, "whc.BotChatID()").Error())
-		return nil
-	}
-	return twhc.WebhookContextBase.ChatEntity()
-}

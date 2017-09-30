@@ -2,6 +2,7 @@ package telegram_bot
 
 import (
 	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
 )
 
 type TelegramWebhookChosenInlineResult struct {
@@ -36,4 +37,8 @@ func (q TelegramWebhookChosenInlineResult) GetInlineMessageID() string {
 
 func (iq TelegramWebhookChosenInlineResult) GetFrom() bots.WebhookSender {
 	return TelegramSender{tgUser: iq.update.ChosenInlineResult.From}
+}
+
+func (q TelegramWebhookChosenInlineResult) BotChatID(c context.Context) (chatID string, err error) {
+	return "", nil
 }

@@ -2,6 +2,7 @@ package telegram_bot
 
 import (
 	"github.com/strongo/bots-framework/core"
+	"golang.org/x/net/context"
 )
 
 type TelegramWebhookInlineQuery struct {
@@ -32,4 +33,8 @@ func (iq TelegramWebhookInlineQuery) GetFrom() bots.WebhookSender {
 
 func (iq TelegramWebhookInlineQuery) GetOffset() string {
 	return iq.update.InlineQuery.Offset
+}
+
+func (iq TelegramWebhookInlineQuery) BotChatID(c context.Context) (chatID string, err error) {
+	return "", nil
 }

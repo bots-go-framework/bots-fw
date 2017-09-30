@@ -72,13 +72,17 @@ func (e *BotChatEntity) SetBotID(botID string) {
 	e.BotID = botID
 }
 
-func (e *BotChatEntity) AddClientLanguage(languageCode string) {
+func (e *BotChatEntity) AddClientLanguage(languageCode string) (changed bool) {
+	if languageCode == "" || languageCode == "root" {
+		return false
+	}
 	for _, lc := range e.LanguageCodes {
 		if lc == languageCode {
-			return
+			return false
 		}
 	}
 	e.LanguageCodes = append(e.LanguageCodes, languageCode)
+	return false
 }
 
 //func (e *BotChatEntity) GetBotUserIntID() int {
