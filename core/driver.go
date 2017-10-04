@@ -184,7 +184,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 
 			if whc != nil {
-				if chatID, err := whc.BotChatID(c); err == nil && chatID != "" {
+				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
 						if _, err := responder.SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse); err != nil {
 							log.Errorf(c, errors.WithMessage(err, "failed to report error to user").Error())
@@ -212,10 +212,10 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	defer func() {
 		if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
 			//log.Debugf(c, "Closing BotChatStore...")
-			chatEntity := whc.ChatEntity()
-			if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
-				chatEntity.SetPreferredLanguage(whc.Locale().Code5)
-			}
+			//chatEntity := whc.ChatEntity()
+			//if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
+			//	chatEntity.SetPreferredLanguage(whc.Locale().Code5)
+			//}
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
 			}

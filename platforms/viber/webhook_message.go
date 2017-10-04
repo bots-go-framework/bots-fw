@@ -5,7 +5,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"time"
-	"golang.org/x/net/context"
 )
 
 type viberWebhookMessage struct {
@@ -22,7 +21,7 @@ func (whm viberWebhookMessage) StringID() string {
 	return strconv.FormatInt(whm.m.MessageToken, 10)
 }
 
-func (whm viberWebhookMessage) BotChatID(c context.Context) (chatID string, err error) {
+func (whm viberWebhookMessage) BotChatID() (string, error) {
 	return whm.chat.GetID(), nil
 }
 

@@ -68,6 +68,8 @@ func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.W
 				return NewTelegramWebhookContact(input)
 			case tgMessage.NewChatMembers != nil:
 				return NewTelegramWebhookNewChatMembersMessage(input)
+			case tgMessage.LeftChatMember != nil:
+				return NewTelegramWebhookLeftChatMembersMessage(input)
 			case tgMessage.Voice != nil:
 				return NewTelegramWebhookVoiceMessage(input, tgMessageType, tgMessage)
 			case tgMessage.Photo != nil:

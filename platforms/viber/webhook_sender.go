@@ -11,6 +11,10 @@ type ViberSender struct {
 
 var _ bots.WebhookSender = (*ViberSender)(nil)
 
+func (ViberSender) IsBotUser() bool {
+	return false
+}
+
 func (s ViberSender) GetID() interface{} {
 	return s.sender.ID
 }

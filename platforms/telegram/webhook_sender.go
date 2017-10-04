@@ -9,6 +9,10 @@ type TelegramSender struct {
 	tgUser *tgbotapi.User
 }
 
+func (TelegramSender) IsBotUser() bool { // TODO: Can we get rid of it here?
+	return false
+}
+
 var _ bots.WebhookSender = (*TelegramSender)(nil)
 
 func (s TelegramSender) GetID() interface{} {

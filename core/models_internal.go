@@ -9,7 +9,6 @@ import (
 	"github.com/strongo/app/user"
 )
 
-
 type BotEntity struct {
 	AccessGranted bool
 	user.OwnedByUser
@@ -38,15 +37,16 @@ type BotUserEntity struct {
 
 type BotChatEntity struct {
 	BotEntity
-	BotID string `datastore:",noindex"`
+	AppUserIntIDs []int64
+	BotID         string `datastore:",noindex"`
 	//
-	IsGroup bool `datastore:",noindex"`
+	IsGroup bool   `datastore:",noindex"`
 	Type    string `datastore:",noindex"`
 	Title   string `datastore:",noindex"`
 	//
-	AwaitingReplyTo   string `datastore:",noindex"`
-	PreferredLanguage string `datastore:",noindex"`
-	GaClientID        []byte `datastore:",noindex"`
+	AwaitingReplyTo   string    `datastore:",noindex"`
+	PreferredLanguage string    `datastore:",noindex"`
+	GaClientID        []byte    `datastore:",noindex"`
 	DtLastInteraction time.Time
 	InteractionsCount int
 	DtForbidden       time.Time

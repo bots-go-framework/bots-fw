@@ -33,6 +33,7 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 		webhookInput,
 		botCoreStores,
 		gaMeasurement,
+		nil,
 	)
 	return &ViberWebhookContext{
 		//update: update,

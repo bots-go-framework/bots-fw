@@ -38,7 +38,7 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 		},
 	}
 
-	if request.Recipient.Id, err = r.whc.BotChatID(r.whc.Context()); err != nil {
+	if request.Recipient.Id, err = r.whc.BotChatID(); err != nil {
 		err = errors.WithMessage(err, "failed to call r.whc.BotChatID()")
 		return
 	} else if request.Recipient.Id == "" {

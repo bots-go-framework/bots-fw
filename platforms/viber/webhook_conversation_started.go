@@ -3,7 +3,6 @@ package viber_bot
 import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
 )
 
 type ViberWebhookInputConversationStarted struct {
@@ -29,7 +28,7 @@ func (whi ViberWebhookInputConversationStarted) InputType() bots.WebhookInputTyp
 	return bots.WebhookInputConversationStarted
 }
 
-func (whi ViberWebhookInputConversationStarted) BotChatID(c context.Context) (chatID string, err error) {
+func (whi ViberWebhookInputConversationStarted) BotChatID() (string, error) {
 	return whi.chat.GetID(), nil
 }
 

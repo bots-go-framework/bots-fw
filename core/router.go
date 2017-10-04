@@ -24,7 +24,7 @@ func newTypeCommands(commandsCount int) *TypeCommands {
 	}
 }
 
-func (v *TypeCommands) addCommand(i int, command Command) {
+func (v *TypeCommands) addCommand(i int, command Command, commandType WebhookInputType) {
 	if command.Code == "" {
 		panic(fmt.Sprintf("Command %v is missing required property ByCode", command))
 	}
@@ -36,7 +36,7 @@ func (v *TypeCommands) addCommand(i int, command Command) {
 	if _, ok := v.byCode[command.Code]; !ok {
 		v.byCode[command.Code] = command
 	} else {
-		panic("Duplicate command code: " + command.Code)
+		panic(fmt.Sprintf("Duplicate command code for %v : %v", commandType, command.Code))
 	}
 }
 
@@ -55,7 +55,7 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 		for commandType, commands := range commandsByType {
 			typeCommands := newTypeCommands(len(commands))
 			for i, command := range commands {
-				typeCommands.addCommand(i, command)
+				typeCommands.addCommand(i, command, commandType)
 			}
 			r.commandsByType[commandType] = typeCommands
 		}
@@ -71,7 +71,7 @@ func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 			typeCommands = newTypeCommands(0)
 			router.commandsByType[t] = typeCommands
 		}
-		typeCommands.addCommand(-1, command)
+		typeCommands.addCommand(-1, command, t)
 	}
 	for _, command := range commands {
 		if len(command.InputTypes) == 0 {
@@ -371,11 +371,15 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 		}
 		if matchedCommand != nil {
 			if gaMeasurement != nil {
-				chatEntity := whc.ChatEntity()
+
 				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
 				pathPrefix := "bot/"
 				var pageview measurement.Pageview
-				if chatEntity != nil {
+				var chatEntity BotChat
+				if inputType != WebhookInputCallbackQuery {
+					chatEntity = whc.ChatEntity()
+				}
+				if inputType != WebhookInputCallbackQuery && chatEntity != nil {
 					path := chatEntity.GetAwaitingReplyTo()
 					if path == "" {
 						path = matchedCommand.Code

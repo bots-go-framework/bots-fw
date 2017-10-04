@@ -26,10 +26,12 @@ type WebhookContextBase struct {
 	botPlatform   BotPlatform
 	input         WebhookInput
 
+	getIsGroupLocaleAndChatID func(c context.Context) (isGroup bool, locale, chatID string, err error)
+
 	locale strongo.Locale
 
 	//update      tgbotapi.Update
-	chatID  string
+	chatID     string
 	chatEntity BotChat
 
 	BotUserKey *datastore.Key
@@ -64,7 +66,7 @@ func (whcb *WebhookContextBase) Environment() strongo.Environment {
 
 func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	var err error
-	if chatID, err = whcb.BotChatID(whcb.c); err != nil {
+	if chatID, err = whcb.BotChatID(); err != nil {
 		panic(err)
 	} else if chatID == "" {
 		panic("BotChatID() returned an empty string")
@@ -72,22 +74,27 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	return
 }
 
-func (whcb *WebhookContextBase) BotChatID(c context.Context) (string, error) {
+func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	if whcb.chatID != "" {
 		return whcb.chatID, nil
 	}
 	log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
 
 	input := whcb.Input()
-	if chatID, err := input.BotChatID(c); err != nil {
-		return "", err
-	} else if chatID != "" {
-		whcb.chatID = chatID
+	if botChatID, err = input.BotChatID(); err != nil {
+		return
+	} else if botChatID != "" {
+		whcb.chatID = botChatID
 		return whcb.chatID, nil
 	}
-	if chat := input.Chat(); chat != nil {
-		whcb.chatID = chat.GetID()
-		return whcb.chatID, nil
+	if whcb.getIsGroupLocaleAndChatID != nil {
+		if _, _, botChatID, err = whcb.getIsGroupLocaleAndChatID(whcb.c); err != nil {
+			return
+		}
+		if botChatID != "" {
+			whcb.chatID = botChatID
+			return
+		}
 	}
 	switch input.(type) {
 	case WebhookCallbackQuery:
@@ -102,6 +109,8 @@ func (whcb *WebhookContextBase) BotChatID(c context.Context) (string, error) {
 		}
 	case WebhookInlineQuery:
 		// pass
+	case WebhookChosenInlineResult:
+		// pass
 	default:
 		whcb.LogRequest()
 		log.Debugf(whcb.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
@@ -111,8 +120,18 @@ func (whcb *WebhookContextBase) BotChatID(c context.Context) (string, error) {
 }
 
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
-	if chatEntity := whcb.ChatEntity(); chatEntity != nil {
-		appUserIntID = chatEntity.GetAppUserIntID()
+	isGroup := false
+
+	if whcb.getIsGroupLocaleAndChatID != nil {
+		var err error
+		if isGroup, _, _, err = whcb.getIsGroupLocaleAndChatID(whcb.c); err != nil {
+			panic(err)
+		}
+	}
+	if !isGroup {
+		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
+			appUserIntID = chatEntity.GetAppUserIntID()
+		}
 	}
 	if appUserIntID == 0 {
 		botUser, err := whcb.GetOrCreateBotUserEntityBase()
@@ -147,16 +166,30 @@ func NewWebhookContextBase(
 	webhookInput WebhookInput,
 	botCoreStores BotCoreStores,
 	gaMeasurement *measurement.BufferedSender,
+	getIsGroupLocaleAndChatID func(c context.Context) (isGroup bool, locale, chatID string, err error),
 ) *WebhookContextBase {
 	whcb := WebhookContextBase{
-		r:             r,
-		c:             appengine.NewContext(r),
-		gaMeasurement: gaMeasurement,
-		botAppContext: botAppContext,
-		botPlatform:   botPlatform,
-		BotContext:    botContext,
-		input:         webhookInput,
-		BotCoreStores: botCoreStores,
+		r:                         r,
+		c:                         appengine.NewContext(r),
+		getIsGroupLocaleAndChatID: getIsGroupLocaleAndChatID,
+		gaMeasurement:             gaMeasurement,
+		botAppContext:             botAppContext,
+		botPlatform:               botPlatform,
+		BotContext:                botContext,
+		input:                     webhookInput,
+		BotCoreStores:             botCoreStores,
+	}
+	if whcb.getIsGroupLocaleAndChatID != nil {
+		if _, locale, chatID, err := getIsGroupLocaleAndChatID(whcb.c); err != nil {
+			panic(err)
+		} else {
+			if chatID != "" {
+				whcb.chatID = chatID
+			}
+			if locale != "" {
+				whcb.SetLocale(locale)
+			}
+		}
 	}
 	whcb.Translator = botAppContext.GetTranslator(whcb.c)
 	return &whcb
@@ -260,8 +293,9 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.chatEntity != nil {
 		return whcb.chatEntity
 	}
+	//panic("*WebhookContextBase.ChatEntity()")
 	log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
-	chatID, err := whcb.BotChatID(whcb.c)
+	chatID, err := whcb.BotChatID()
 	if err != nil {
 		panic(errors.WithMessage(err, "failed to call whcb.BotChatID()"))
 	}
@@ -315,12 +349,12 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return nil
 	}
 
-	botChatID, err := whcb.BotChatID(c)
+	botChatID, err := whcb.BotChatID()
 	if err != nil {
 		return errors.WithMessage(err, "Failed to call whcb.BotChatID()")
 	}
 
-	log.Debugf(c, "loadChatEntityBase(): botChatID: %v", botChatID)
+	log.Debugf(c, "loadChatEntityBase(): getIsGroupLocaleAndChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
 	botChatStore := whcb.BotChatStore
 	if botChatStore == nil {

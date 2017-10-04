@@ -16,7 +16,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 		} else {
 			if err = whc.RunInTransaction(c, func(c context.Context) (err error) {
 				var chatID string
-				if chatID, err = whc.BotChatID(c); err != nil {
+				if chatID, err = whc.BotChatID(); err != nil {
 					return
 				}
 				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), chatID); err != nil {

@@ -60,7 +60,9 @@ const (
 	WebhookInputUnsubscribed         // Viber
 	WebhookInputConversationStarted  // Viber
 	WebhookInputNewChatMembers       // Telegram groups
+	WebhookInputLeftChatMembers
 	WebhookInputSticker // Telegram
+
 	WebhookInputNotImplemented //
 )
 
@@ -88,7 +90,7 @@ type WebhookInput interface {
 	GetRecipient() WebhookRecipient
 	GetTime() time.Time
 	InputType() WebhookInputType
-	BotChatID(c context.Context) (chatID string, err error)
+	BotChatID() (string, error)
 	Chat() WebhookChat
 	LogRequest()
 }
@@ -96,6 +98,7 @@ type WebhookInput interface {
 type WebhookActor interface {
 	Platform() string
 	GetID() interface{}
+	IsBotUser() bool
 	GetFirstName() string
 	GetLastName() string
 	GetUserName() string
@@ -166,7 +169,13 @@ type WebhookContactMessage interface {
 }
 
 type WebhookNewChatMembersMessage interface {
+	BotChatID() (string, error)
 	NewChatMembers() []WebhookActor
+}
+
+type WebhookLeftChatMembersMessage interface {
+	BotChatID() (string, error)
+	LeftChatMembers() []WebhookActor
 }
 
 type WebhookChat interface {

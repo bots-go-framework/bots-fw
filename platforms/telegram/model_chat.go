@@ -94,8 +94,22 @@ func (entity *TelegramChatEntityBase) Save() (properties []datastore.Property, e
 
 func (entity *TelegramChatEntityBase) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
 	if entity.IsGroup && entity.AppUserIntID != 0 {
-		panic(fmt.Sprintf("IsGroup && AppUserIntID:%d != 0", entity.AppUserIntID))
+		for _, userID := range entity.AppUserIntIDs {
+			if userID == entity.AppUserIntID {
+				goto found
+			}
+		}
+		entity.AppUserIntIDs = append(entity.AppUserIntIDs, entity.AppUserIntID)
+		entity.AppUserIntID = 0
+	found:
 	}
+
+	for i, userID := range entity.AppUserIntIDs {
+		if userID == 0 {
+			panic(fmt.Sprintf("*TelegramChatEntityBase.AppUserIntIDs[%d] == 0", i))
+		}
+	}
+
 	var err error
 	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
 		"AppUserIntID":          gaedb.IsZeroInt,

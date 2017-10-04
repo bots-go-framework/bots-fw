@@ -2,7 +2,6 @@ package telegram_bot
 
 import (
 	"github.com/strongo/bots-api-telegram"
-	"golang.org/x/net/context"
 	"strconv"
 )
 
@@ -22,6 +21,6 @@ func newTelegramWebhookMessage(input telegramWebhookInput, message *tgbotapi.Mes
 	return telegramWebhookMessage{telegramWebhookInput: input, message: message}
 }
 
-func (whm telegramWebhookMessage) BotChatID(c context.Context) (chatID string, err error) {
+func (whm telegramWebhookMessage) BotChatID() (string, error) {
 	return strconv.FormatInt(whm.message.Chat.ID, 10), nil
 }

@@ -49,7 +49,11 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 
 	var botMessage bots.BotMessage
 
-	if botMessage = m.BotMessage; botMessage != nil {
+	if m.Text == bots.NoMessageToSend {
+		log.Debugf(c, bots.NoMessageToSend)
+		return
+	} else if botMessage = m.BotMessage; botMessage != nil {
+		log.Debugf(c, "m.BotMessage != nil")
 		switch m.BotMessage.BotMessageType() {
 		case bots.BotMessageTypeInlineResults:
 			chattable = tgbotapi.InlineConfig(m.BotMessage.(InlineBotMessage))
@@ -66,22 +70,38 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			err = fmt.Errorf("unknown bot message type %v==%T", m.BotMessage.BotMessageType(), botMessage)
 			return
 		}
-	} else if m.Text == bots.NoMessageToSend {
-		log.Debugf(c, bots.NoMessageToSend)
-		return
 	} else if m.IsEdit || (tgUpdate.CallbackQuery != nil && tgUpdate.CallbackQuery.InlineMessageID != "" && m.ToChat == nil) {
+		if m.IsEdit {
+			log.Debugf(c, "m.IsEdit")
+		} else if tgUpdate.CallbackQuery != nil {
+			log.Debugf(c, "tgUpdate.CallbackQuery != nil")
+		}
+
 		// Edit message
 		inlineMessageID, chatID, messageID := getTgMessageIDs(tgUpdate)
 		if m.EditMessageUID != nil {
-			switch m.EditMessageUID.(type) {
+			switch m.EditMessageUID.(type) { // TODO: How do we remove duplicates for value & pointer cases?
 			case callbackCurrent:
 				// do nothing
 			case InlineMessageUID:
 				inlineMessageID = m.EditMessageUID.(InlineMessageUID).InlineMessageID
 				chatID = 0
 				messageID = 0
+			case *InlineMessageUID:
+				inlineMessageID = m.EditMessageUID.(*InlineMessageUID).InlineMessageID
+				chatID = 0
+				messageID = 0
 			case ChatMessageUID:
 				chatMessageUID := m.EditMessageUID.(ChatMessageUID)
+				inlineMessageID = ""
+				if chatMessageUID.ChatID != 0 {
+					chatID = chatMessageUID.ChatID
+				}
+				if chatMessageUID.MessageID != 0 {
+					messageID = chatMessageUID.MessageID
+				}
+			case *ChatMessageUID:
+				chatMessageUID := m.EditMessageUID.(*ChatMessageUID)
 				inlineMessageID = ""
 				if chatMessageUID.ChatID != 0 {
 					chatID = chatMessageUID.ChatID
@@ -185,7 +205,6 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		)
 		botApi.EnableDebug(c)
 		if message, err := botApi.Send(chattable); err != nil {
-			log.Errorf(c, errors.Wrap(err, "Failed to send message to Telegram using HTTPS API").Error())
 			return resp, err
 		} else {
 			if message.MessageID != 0 {

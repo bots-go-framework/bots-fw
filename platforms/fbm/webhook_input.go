@@ -4,7 +4,6 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-fbm"
 	"time"
-	"golang.org/x/net/context"
 )
 
 type FbmWebhookInput struct {
@@ -26,7 +25,7 @@ func (self FbmWebhookInput) StringID() string {
 	return self.messaging.Message.MID
 }
 
-func (whi FbmWebhookInput) BotChatID(c context.Context) (chatID string, err error) {
+func (whi FbmWebhookInput) BotChatID() (string, error) {
 	return whi.messaging.Sender.ID, nil
 }
 
