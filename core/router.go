@@ -365,9 +365,18 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	env := whc.GetBotSettings().Env
 	inputType := whc.InputType()
 	if err == nil {
-		//log.Debugf(c, "processCommandResponse(): Bot response message: %v", m)
 		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
-			log.Errorf(c, errors.Wrap(err, "Failed to send a message to messenger").Error()) //TODO: Decide how do we handle it
+			const FAILED_TO_SEND_MESSAGE_TO_MESSENGER = "failed to send a message to messenger"
+			if strings.Contains(err.Error(), "message is not modified") { // TODO: This check is specific to Telegram and should be abstracted
+				logText := FAILED_TO_SEND_MESSAGE_TO_MESSENGER
+				if inputType == WebhookInputCallbackQuery {
+					logText += "(can be duplicate callback)"
+				}
+				log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
+				err = nil
+			} else {
+				log.Errorf(c, errors.WithMessage(err, FAILED_TO_SEND_MESSAGE_TO_MESSENGER).Error()) //TODO: Decide how do we handle this
+			}
 		}
 		if matchedCommand != nil {
 			if gaMeasurement != nil {
