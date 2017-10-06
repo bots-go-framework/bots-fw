@@ -9,29 +9,20 @@ import (
 type BotSettings struct {
 	Env              strongo.Environment
 	ID               string
-	Kind             string
+	Profile          string
 	Code             string
 	Token            string
 	PaymentToken     string
 	PaymentTestToken string
 	VerifyToken      string // Used by Facebook
 	Locale           strongo.Locale
-	Router           *WebhooksRouter
+	Router           WebhooksRouter
 }
 
-func NewBotSettingsWithKind(env strongo.Environment, kind, code, token string, locale strongo.Locale) BotSettings {
-	s := NewBotSettings(env, code, token, locale)
-	s.Kind = kind
-	return s
-}
-
-func NewBotSettingsWithID(env strongo.Environment, code, id, token string, locale strongo.Locale) BotSettings {
-	s := NewBotSettings(env, code, token, locale)
-	s.ID = id
-	return s
-}
-
-func NewBotSettings(mode strongo.Environment, code, token string, locale strongo.Locale) BotSettings {
+func NewBotSettings(mode strongo.Environment, profile, code, id, token string, locale strongo.Locale) BotSettings {
+	if profile == "" {
+		panic("Missing required parameter: profile")
+	}
 	if code == "" {
 		panic("Missing required parameter: code")
 	}
@@ -42,10 +33,12 @@ func NewBotSettings(mode strongo.Environment, code, token string, locale strongo
 		panic("Missing required parameter: locale.Code5")
 	}
 	return BotSettings{
-		Code:   code,
-		Env:    mode,
-		Token:  token,
-		Locale: locale,
+		Profile: profile,
+		Code:    code,
+		ID:      id,
+		Env:     mode,
+		Token:   token,
+		Locale:  locale,
 	}
 }
 
@@ -60,7 +53,7 @@ type SettingsBy struct {
 	HasRouter  bool
 }
 
-func NewBotSettingsBy(router func(botCode string) *WebhooksRouter, bots ...BotSettings) SettingsBy {
+func NewBotSettingsBy(router func(profile string) WebhooksRouter, bots ...BotSettings) SettingsBy {
 	count := len(bots)
 	settingsBy := SettingsBy{
 		HasRouter:  router != nil,
@@ -70,8 +63,8 @@ func NewBotSettingsBy(router func(botCode string) *WebhooksRouter, bots ...BotSe
 		ByID:       make(map[string]BotSettings, count),
 	}
 	for _, bot := range bots {
-		if router != nil {
-			bot.Router = router(bot.Code)
+		if settingsBy.HasRouter {
+			bot.Router = router(bot.Profile)
 		}
 		if _, ok := settingsBy.ByCode[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))

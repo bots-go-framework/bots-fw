@@ -99,6 +99,7 @@ const (
 	BotMessageTypeInlineResults
 	BotMessageTypeText
 	BotMessageTypeEditMessage
+	BotMessageTypeLeaveChat
 )
 
 type BotMessage interface {

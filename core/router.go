@@ -24,15 +24,11 @@ func newTypeCommands(commandsCount int) *TypeCommands {
 	}
 }
 
-func (v *TypeCommands) addCommand(i int, command Command, commandType WebhookInputType) {
+func (v *TypeCommands) addCommand(command Command, commandType WebhookInputType) {
 	if command.Code == "" {
 		panic(fmt.Sprintf("Command %v is missing required property ByCode", command))
 	}
-	if i < 0 {
-		v.all = append(v.all, command)
-	} else {
-		v.all[i] = command
-	}
+	v.all = append(v.all, command)
 	if _, ok := v.byCode[command.Code]; !ok {
 		v.byCode[command.Code] = command
 	} else {
@@ -45,23 +41,30 @@ type WebhooksRouter struct {
 	errorFooterText func() string
 }
 
-func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) *WebhooksRouter {
-	r := &WebhooksRouter{
+func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
+	r := WebhooksRouter{
 		commandsByType:  make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
 		errorFooterText: errorFooterText,
 	}
 
 	if commandsByType != nil {
-		for commandType, commands := range commandsByType {
-			typeCommands := newTypeCommands(len(commands))
-			for i, command := range commands {
-				typeCommands.addCommand(i, command, commandType)
-			}
-			r.commandsByType[commandType] = typeCommands
+		for commandsType, commands := range commandsByType {
+			r.AddCommands(commandsType, commands)
 		}
 	}
 
 	return r
+}
+
+func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
+	typeCommands, ok := router.commandsByType[commandsType]
+	if !ok {
+		typeCommands = newTypeCommands(len(commands))
+		router.commandsByType[commandsType] = typeCommands
+	}
+	for _, command := range commands {
+		typeCommands.addCommand(command, commandsType)
+	}
 }
 
 func (router *WebhooksRouter) RegisterCommands(commands []Command) {
@@ -71,7 +74,7 @@ func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 			typeCommands = newTypeCommands(0)
 			router.commandsByType[t] = typeCommands
 		}
-		typeCommands.addCommand(-1, command, t)
+		typeCommands.addCommand(command, t)
 	}
 	for _, command := range commands {
 		if len(command.InputTypes) == 0 {

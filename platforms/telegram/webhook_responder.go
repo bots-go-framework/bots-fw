@@ -11,6 +11,7 @@ import (
 	"bytes"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"strconv"
 )
 
 type TelegramWebhookResponder struct {
@@ -63,6 +64,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 				callbackAnswer.CallbackQueryID = tgUpdate.CallbackQuery.ID
 			}
 			chattable = callbackAnswer
+		case bots.BotMessageTypeLeaveChat:
+			leaveChat := tgbotapi.LeaveChatConfig(m.BotMessage.(LeaveChat))
+			if leaveChat.ChatID == "" {
+				leaveChat.ChatID = strconv.FormatInt(tgUpdate.Chat().ID, 10)
+			}
+			chattable = leaveChat
 		case bots.BotMessageTypeUndefined:
 			err = fmt.Errorf("bot message type %v==undefined", m.BotMessage.BotMessageType())
 			return

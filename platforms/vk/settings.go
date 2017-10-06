@@ -5,8 +5,8 @@ import (
 	"github.com/strongo/bots-framework/core"
 )
 
-func NewVkBot(env strongo.Environment, kind, code, token string, locale strongo.Locale) bots.BotSettings {
-	botSettings := bots.NewBotSettingsWithKind(env, kind, code, token, locale)
+func NewVkBot(env strongo.Environment, profile, code, token string, locale strongo.Locale) bots.BotSettings {
+	botSettings := bots.NewBotSettings(env, profile, code, "", token, locale)
 	botSettings.Locale = locale
 	return botSettings
 }

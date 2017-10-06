@@ -16,3 +16,9 @@ type CallbackAnswer tgbotapi.AnswerCallbackQueryConfig
 func (CallbackAnswer) BotMessageType() bots.BotMessageType {
 	return bots.BotMessageTypeCallbackAnswer
 }
+
+type LeaveChat tgbotapi.LeaveChatConfig
+
+func (LeaveChat) BotMessageType() bots.BotMessageType {
+	return bots.BotMessageTypeLeaveChat
+}

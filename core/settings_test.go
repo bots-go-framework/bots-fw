@@ -11,7 +11,7 @@ func TestNewBotSettings(t *testing.T) {
 		token       = "TestToken2"
 		localeCode5 = "Kode5"
 	)
-	bs := NewBotSettings(EnvLocal, code, token, strongo.Locale{Code5: localeCode5})
+	bs := NewBotSettings(strongo.EnvLocal, "", code, "", token, strongo.Locale{Code5: localeCode5})
 	if bs.Code != code {
 		t.Errorf("Unexpected code: %v", bs.Code)
 	}
