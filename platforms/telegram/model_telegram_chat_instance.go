@@ -17,12 +17,16 @@ type TelegramChatInstance struct {
 	TelegramChatInstanceEntity
 }
 
-func (record *TelegramChatInstance) Kind() string {
+func (TelegramChatInstance) Kind() string {
 	return TelegramChatInstanceKind
 }
 
-func (record *TelegramChatInstance) StrID() string {
+func (record TelegramChatInstance) StrID() string {
 	return record.ID
+}
+
+func (record *TelegramChatInstance) SetStrID(id string) {
+	record.ID = id
 }
 
 var _ db.EntityHolder = (*TelegramChatInstance)(nil)

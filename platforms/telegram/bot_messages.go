@@ -22,3 +22,9 @@ type LeaveChat tgbotapi.LeaveChatConfig
 func (LeaveChat) BotMessageType() bots.BotMessageType {
 	return bots.BotMessageTypeLeaveChat
 }
+
+type ExportChatInviteLink tgbotapi.ExportChatInviteLink
+
+func (ExportChatInviteLink) BotMessageType() bots.BotMessageType {
+	return bots.BotMessageTypeExportChatInviteLink
+}

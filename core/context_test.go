@@ -13,15 +13,21 @@ type TestWebhookContext struct {
 	*WebhookContextBase
 }
 
+var _ WebhookContext = (*TestWebhookContext)(nil)
+
 func (whc TestWebhookContext) BotChatIntID() int64 {
 	return 0
+}
+
+func (whc TestWebhookContext) IsInGroup() bool {
+	return false
 }
 
 func (tc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc TestWebhookContext) CreateBotUser(apiUser WebhookActor) (BotUser, error) {
+func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (BotUser, error) {
 	panic("Not implemented")
 }
 
@@ -37,7 +43,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserById(botUserId interface{}) (BotUser, error) {
+func (whc TestWebhookContext) GetBotUserById(c context.Context, botUserId interface{}) (BotUser, error) {
 	panic("Not implemented")
 }
 
@@ -118,7 +124,7 @@ func (whc TestWebhookContext) NewMessageByCode(messageCode string, a ...interfac
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) NewEditMessage(messageText string) (MessageFromBot, error) {
+func (whc TestWebhookContext) NewEditMessage(text string, format MessageFormat) (MessageFromBot, error) {
 	panic("Not implemented")
 }
 

@@ -100,6 +100,7 @@ const (
 	BotMessageTypeText
 	BotMessageTypeEditMessage
 	BotMessageTypeLeaveChat
+	BotMessageTypeExportChatInviteLink
 )
 
 type BotMessage interface {

@@ -5,7 +5,6 @@ import (
 )
 
 func TestBotChatEntity_PopStepsFromAwaitingReplyUpToSpecificParent(t *testing.T) {
-	logger := &MockLogger{T: t}
 	chatEntity := BotChatEntity{}
 
 	chatEntity.AwaitingReplyTo = "step1/step2/step3"

@@ -21,6 +21,9 @@ func (h GaeBotHost) Context(r *http.Request) context.Context {
 }
 
 func (h GaeBotHost) GetHttpClient(c context.Context) *http.Client {
+	if c == nil {
+		panic("c == nil")
+	}
 	return &http.Client{
 		Transport: &urlfetch.Transport{
 			Context: c,

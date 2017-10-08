@@ -11,7 +11,7 @@ var testCmd = Command{
 	},
 }
 
-var testWhc = TestWebhookContext{}
+var testWhc = &TestWebhookContext{}
 
 func TestCommand_DefaultTitle(t *testing.T) {
 	if testCmd.DefaultTitle(testWhc) != "Title1" {

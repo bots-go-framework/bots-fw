@@ -70,6 +70,12 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 				leaveChat.ChatID = strconv.FormatInt(tgUpdate.Chat().ID, 10)
 			}
 			chattable = leaveChat
+		case bots.BotMessageTypeExportChatInviteLink:
+			exportChatInviteLink := tgbotapi.ExportChatInviteLink(m.BotMessage.(ExportChatInviteLink))
+			if exportChatInviteLink.ChatID == "" {
+				exportChatInviteLink.ChatID = strconv.FormatInt(tgUpdate.Chat().ID, 10)
+			}
+			chattable = exportChatInviteLink
 		case bots.BotMessageTypeUndefined:
 			err = fmt.Errorf("bot message type %v==undefined", m.BotMessage.BotMessageType())
 			return
