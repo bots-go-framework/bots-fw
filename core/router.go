@@ -20,7 +20,7 @@ type TypeCommands struct {
 func newTypeCommands(commandsCount int) *TypeCommands {
 	return &TypeCommands{
 		byCode: make(map[string]Command, commandsCount),
-		all:    make([]Command, commandsCount, commandsCount),
+		all:    make([]Command, 0, commandsCount),
 	}
 }
 
@@ -61,9 +61,17 @@ func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, command
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
 		router.commandsByType[commandsType] = typeCommands
+	} else if commandsType == WebhookInputInlineQuery {
+		panic("Duplicate add of WebhookInputInlineQuery")
+	}
+	if commandsType == WebhookInputInlineQuery && len(commands) > 1 {
+		panic("commandsType == WebhookInputInlineQuery && len(commands) > 1")
 	}
 	for _, command := range commands {
 		typeCommands.addCommand(command, commandsType)
+	}
+	if commandsType == WebhookInputInlineQuery && len(typeCommands.all) > 1 {
+		panic(fmt.Sprintf("commandsType == WebhookInputInlineQuery && len(typeCommands) > 1: %v", typeCommands.all[0]))
 	}
 }
 
