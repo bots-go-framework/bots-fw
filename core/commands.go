@@ -6,7 +6,7 @@ import (
 )
 
 type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
-type CallbackAction func(whc WebhookContext, callbackURL *url.URL) (m MessageFromBot, err error)
+type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
 type CommandMatcher func(Command, WebhookContext) bool
 

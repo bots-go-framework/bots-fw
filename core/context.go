@@ -29,6 +29,7 @@ type WebhookContext interface {
 
 	//Init(w http.ResponseWriter, r *http.Request) error
 	Context() context.Context
+	SetContext(c context.Context)
 
 	ExecutionContext() strongo.ExecutionContext
 	BotAppContext() BotAppContext
@@ -57,6 +58,8 @@ type WebhookContext interface {
 	UpdateLastProcessed(chatEntity BotChat) error
 
 	AppUserIntID() int64
+	AppUserStrID() string
+
 	GetAppUser() (BotAppUser, error)
 	SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 

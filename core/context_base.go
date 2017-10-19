@@ -56,6 +56,14 @@ func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c con
 	return whcb.BotContext.BotHost.DB().RunInTransaction(c, f, options)
 }
 
+func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
+	return whcb.BotContext.BotHost.DB().IsInTransaction(c)
+}
+
+func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) (context.Context) {
+	return whcb.BotContext.BotHost.DB().NonTransactionalContext(tc)
+}
+
 func (whcb *WebhookContextBase) Request() *http.Request {
 	return whcb.r
 }
@@ -117,6 +125,10 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	}
 
 	return whcb.chatID, nil
+}
+
+func (whcb *WebhookContextBase) AppUserStrID() string {
+	return strconv.FormatInt(whcb.AppUserIntID(), 10)
 }
 
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
@@ -403,6 +415,10 @@ func (whcb *WebhookContextBase) AppUserEntity() BotAppUser {
 
 func (whcb *WebhookContextBase) Context() context.Context {
 	return whcb.c
+}
+
+func (whcb *WebhookContextBase) SetContext(c context.Context) {
+	whcb.c = c
 }
 
 func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {

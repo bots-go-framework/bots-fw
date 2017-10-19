@@ -22,6 +22,11 @@ type TelegramWebhookContext struct {
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
 	//whi          telegramWebhookInput
+
+	// This 3 props are cache for getIsGroupAndChatIdByChatInstance()
+	isInGroup bool
+	locale string
+	chatID string
 }
 
 var _ bots.WebhookContext = (*TelegramWebhookContext)(nil)
@@ -132,6 +137,9 @@ func newTelegramWebhookContext(
 }
 
 func (twhc TelegramWebhookContext) IsInGroup() bool {
+	if twhc.isInGroup {
+		return true
+	}
 	chat := twhc.tgInput.TgUpdate().Chat()
 	return chat != nil && chat.IsGroup()
 }
@@ -231,18 +239,25 @@ func (twhc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat)
 }
 
 func (twhc *TelegramWebhookContext) getIsGroupAndChatIdByChatInstance(c context.Context) (isGroup bool, locale, chatID string, err error) {
-	if cbq := twhc.tgInput.TgUpdate().CallbackQuery; cbq != nil && cbq.ChatInstance != "" && (cbq.Message == nil || cbq.Message.Chat == nil || cbq.Message.Chat.ID == 0) {
-		if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil {
-			if !db.IsNotFound(err) {
-				return false, "", "", err
+	log.Debugf(c, "*TelegramWebhookContext.getIsGroupAndChatIdByChatInstance()")
+	if chatID == "" && locale == "" { // we need to cache to make sure not called within transaction
+		if cbq := twhc.tgInput.TgUpdate().CallbackQuery; cbq != nil && cbq.ChatInstance != "" {
+			if cbq.Message != nil && cbq.Message.Chat != nil && cbq.Message.Chat.ID != 0 {
+				log.Errorf(c, "getIsGroupAndChatIdByChatInstance() => should not be here")
+			} else {
+				if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil {
+					if !db.IsNotFound(err) {
+						return false, "", "", err
+					}
+				} else if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
+					twhc.chatID = strconv.FormatInt(tgChatID, 10)
+					twhc.locale = chatInstance.GetPreferredLanguage()
+					twhc.isInGroup = tgChatID < 0
+				}
 			}
-		} else if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
-			chatID = strconv.FormatInt(tgChatID, 10)
-			locale = chatInstance.GetPreferredLanguage()
-			isGroup = tgChatID < 0
 		}
 	}
-	return
+	return twhc.isInGroup, twhc.locale, twhc.chatID, nil
 }
 
 func (twhc *TelegramWebhookContext) ChatEntity() bots.BotChat {
