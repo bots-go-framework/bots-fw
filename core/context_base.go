@@ -26,7 +26,9 @@ type WebhookContextBase struct {
 	botPlatform   BotPlatform
 	input         WebhookInput
 
-	getIsGroupLocaleAndChatID func(c context.Context) (isGroup bool, locale, chatID string, err error)
+	isInGroup bool
+
+	getLocaleAndChatID func() (locale, chatID string, err error) // TODO: Document why we need to pass context. Is it to support transactions?
 
 	locale strongo.Locale
 
@@ -95,8 +97,8 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		whcb.chatID = botChatID
 		return whcb.chatID, nil
 	}
-	if whcb.getIsGroupLocaleAndChatID != nil {
-		if _, _, botChatID, err = whcb.getIsGroupLocaleAndChatID(whcb.c); err != nil {
+	if whcb.getLocaleAndChatID != nil {
+		if _, botChatID, err = whcb.getLocaleAndChatID(); err != nil {
 			return
 		}
 		if botChatID != "" {
@@ -132,15 +134,7 @@ func (whcb *WebhookContextBase) AppUserStrID() string {
 }
 
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
-	isGroup := false
-
-	if whcb.getIsGroupLocaleAndChatID != nil {
-		var err error
-		if isGroup, _, _, err = whcb.getIsGroupLocaleAndChatID(whcb.c); err != nil {
-			panic(err)
-		}
-	}
-	if !isGroup {
+	if !whcb.isInGroup {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
 			appUserIntID = chatEntity.GetAppUserIntID()
 		}
@@ -170,6 +164,10 @@ func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
 	return whcb.botAppContext
 }
 
+func (whcb *WebhookContextBase) IsInGroup() bool {
+	return whcb.isInGroup
+}
+
 func NewWebhookContextBase(
 	r *http.Request,
 	botAppContext BotAppContext,
@@ -178,21 +176,26 @@ func NewWebhookContextBase(
 	webhookInput WebhookInput,
 	botCoreStores BotCoreStores,
 	gaMeasurement *measurement.BufferedSender,
-	getIsGroupLocaleAndChatID func(c context.Context) (isGroup bool, locale, chatID string, err error),
+	isInGroup bool,
+	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
 ) *WebhookContextBase {
+	c := botContext.BotHost.Context(r)
 	whcb := WebhookContextBase{
-		r:                         r,
-		c:                         appengine.NewContext(r),
-		getIsGroupLocaleAndChatID: getIsGroupLocaleAndChatID,
-		gaMeasurement:             gaMeasurement,
-		botAppContext:             botAppContext,
-		botPlatform:               botPlatform,
-		BotContext:                botContext,
-		input:                     webhookInput,
-		BotCoreStores:             botCoreStores,
+		r: r,
+		c: c,
+		getLocaleAndChatID: func() (locale, chatID string, err error) {
+			return getLocaleAndChatID(c)
+		},
+		gaMeasurement: gaMeasurement,
+		botAppContext: botAppContext,
+		botPlatform:   botPlatform,
+		BotContext:    botContext,
+		input:         webhookInput,
+		isInGroup:     isInGroup,
+		BotCoreStores: botCoreStores,
 	}
-	if whcb.getIsGroupLocaleAndChatID != nil {
-		if _, locale, chatID, err := getIsGroupLocaleAndChatID(whcb.c); err != nil {
+	if isInGroup && whcb.getLocaleAndChatID != nil {
+		if locale, chatID, err := whcb.getLocaleAndChatID(); err != nil {
 			panic(err)
 		} else {
 			if chatID != "" {
@@ -366,7 +369,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		return errors.WithMessage(err, "Failed to call whcb.BotChatID()")
 	}
 
-	log.Debugf(c, "loadChatEntityBase(): getIsGroupLocaleAndChatID: %v", botChatID)
+	log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
 	botChatStore := whcb.BotChatStore
 	if botChatStore == nil {

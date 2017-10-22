@@ -33,16 +33,13 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 		webhookInput,
 		botCoreStores,
 		gaMeasurement,
+		false,
 		nil,
 	)
 	return &ViberWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
 	}
-}
-
-func (_ ViberWebhookContext) IsInGroup() bool {
-	panic("not implemented yet")
 }
 
 func (whc *ViberWebhookContext) Close(c context.Context) error {

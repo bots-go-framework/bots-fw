@@ -23,7 +23,7 @@ type TelegramWebhookContext struct {
 	responder      bots.WebhookResponder
 	//whi          telegramWebhookInput
 
-	// This 3 props are cache for getIsGroupAndChatIdByChatInstance()
+	// This 3 props are cache for getLocalAndChatIdByChatInstance()
 	isInGroup bool
 	locale string
 	chatID string
@@ -122,6 +122,9 @@ func newTelegramWebhookContext(
 	twhc := &TelegramWebhookContext{
 		tgInput:            input.(TelegramWebhookInput),
 	}
+	chat := twhc.tgInput.TgUpdate().Chat()
+	isInGroup := chat != nil && chat.IsGroup()
+
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
@@ -130,18 +133,11 @@ func newTelegramWebhookContext(
 		input.(bots.WebhookInput),
 		botCoreStores,
 		gaMeasurement,
-		twhc.getIsGroupAndChatIdByChatInstance,
+		isInGroup,
+		twhc.getLocalAndChatIdByChatInstance,
 	)
 	twhc.WebhookContextBase = whcb
 	return twhc
-}
-
-func (twhc TelegramWebhookContext) IsInGroup() bool {
-	if twhc.isInGroup {
-		return true
-	}
-	chat := twhc.tgInput.TgUpdate().Chat()
-	return chat != nil && chat.IsGroup()
 }
 
 func (twhc TelegramWebhookContext) Close(c context.Context) error {
@@ -238,16 +234,16 @@ func (twhc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat)
 	//return errors.New(fmt.Sprintf("Expected *TelegramChatEntityBase, got: %T", chatEntity))
 }
 
-func (twhc *TelegramWebhookContext) getIsGroupAndChatIdByChatInstance(c context.Context) (isGroup bool, locale, chatID string, err error) {
-	log.Debugf(c, "*TelegramWebhookContext.getIsGroupAndChatIdByChatInstance()")
+func (twhc *TelegramWebhookContext) getLocalAndChatIdByChatInstance(c context.Context) (locale, chatID string, err error) {
+	log.Debugf(c, "*TelegramWebhookContext.getLocalAndChatIdByChatInstance()")
 	if chatID == "" && locale == "" { // we need to cache to make sure not called within transaction
 		if cbq := twhc.tgInput.TgUpdate().CallbackQuery; cbq != nil && cbq.ChatInstance != "" {
 			if cbq.Message != nil && cbq.Message.Chat != nil && cbq.Message.Chat.ID != 0 {
-				log.Errorf(c, "getIsGroupAndChatIdByChatInstance() => should not be here")
+				log.Errorf(c, "getLocalAndChatIdByChatInstance() => should not be here")
 			} else {
 				if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, cbq.ChatInstance); err != nil {
 					if !db.IsNotFound(err) {
-						return false, "", "", err
+						return "", "", err
 					}
 				} else if tgChatID := chatInstance.GetTgChatID(); tgChatID != 0 {
 					twhc.chatID = strconv.FormatInt(tgChatID, 10)
@@ -257,7 +253,7 @@ func (twhc *TelegramWebhookContext) getIsGroupAndChatIdByChatInstance(c context.
 			}
 		}
 	}
-	return twhc.isInGroup, twhc.locale, twhc.chatID, nil
+	return twhc.locale, twhc.chatID, nil
 }
 
 func (twhc *TelegramWebhookContext) ChatEntity() bots.BotChat {

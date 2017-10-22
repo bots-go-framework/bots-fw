@@ -26,6 +26,7 @@ func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botCon
 		webhookInput,
 		botCoreStores,
 		gaMeasurement,
+		false,
 		nil,
 	)
 	return &FbmWebhookContext{
@@ -47,10 +48,6 @@ func (whc *FbmWebhookContext) NewEditMessage(text string, format bots.MessageFor
 //	//return m
 //	panic("not implemented")
 //}
-
-func (_ FbmWebhookContext) IsInGroup() bool {
-	panic("not implemented yet")
-}
 
 func (whc FbmWebhookContext) Close(c context.Context) error {
 	return nil
