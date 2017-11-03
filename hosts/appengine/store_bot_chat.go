@@ -1,7 +1,7 @@
 package gae_host
 
 import (
-	"github.com/qedus/nds"
+	"github.com/strongo/nds"
 	"github.com/strongo/bots-framework/core"
 	"google.golang.org/appengine/datastore"
 	"golang.org/x/net/context"

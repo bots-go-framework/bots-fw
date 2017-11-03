@@ -5,7 +5,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
-	"github.com/qedus/nds"
+	"github.com/strongo/nds"
 	"time"
 	"golang.org/x/net/context"
 	"strconv"
