@@ -33,6 +33,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 	}
 	botChatEntity = s.newBotChatEntity()
 	botChatKey := s.NewBotChatKey(c, botID, botChatID)
+	//c, _ = context.WithDeadline(c, time.Now().Add(time.Second))
 	if err = nds.Get(c, botChatKey, botChatEntity); err != nil {
 		if err != datastore.ErrNoSuchEntity {
 			return
@@ -125,7 +126,7 @@ func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChat
 	}
 	_, err := nds.PutMulti(c, chatKeys, chatEntities)
 	if err == nil {
-		log.Debugf(c, "Successfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
+		//log.Debugf(c, "Successfully saved %v BotChat entities with keys: %v", len(chatKeys), chatKeys)
 		s.botChats = nil
 	} else {
 		log.Errorf(c, "Failed to save %v BotChat entities: %v", len(chatKeys), err)

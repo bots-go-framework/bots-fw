@@ -12,24 +12,13 @@ type TelegramChatInstanceEntityBase struct {
 }
 
 type TelegramChatInstance struct {
-	ID string
-	db.NoIntID
+	db.StringID
 	TelegramChatInstanceEntity
 }
 
 func (TelegramChatInstance) Kind() string {
 	return TelegramChatInstanceKind
 }
-
-func (record TelegramChatInstance) StrID() string {
-	return record.ID
-}
-
-func (record *TelegramChatInstance) SetStrID(id string) {
-	record.ID = id
-}
-
-var _ db.EntityHolder = (*TelegramChatInstance)(nil)
 
 func (record *TelegramChatInstance) Entity() interface{} {
 	if record.TelegramChatInstanceEntity == nil {

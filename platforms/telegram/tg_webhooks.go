@@ -134,7 +134,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 				} else {
 					bodyStr = string(bodyBytes)
 				}
-				log.Debugf(c, "Request body:\n%v", bodyStr)
+				log.Debugf(c, "Request body: %v", bodyStr)
 			} else {
 				log.Debugf(c, "Request len(body): %v", len(bodyBytes))
 			}

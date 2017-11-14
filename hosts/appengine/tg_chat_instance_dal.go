@@ -30,7 +30,7 @@ func (_ tgChatInstanceDalGae) SaveTelegramChatInstance(c context.Context, tgChat
 
 func (_ tgChatInstanceDalGae) NewTelegramChatInstance(chatInstanceID string, chatID int64, preferredLanguage string) (tgChatInstance telegram_bot.TelegramChatInstance) {
 	return telegram_bot.TelegramChatInstance{
-		ID: chatInstanceID,
+		StringID: db.StringID{ID: chatInstanceID},
 		TelegramChatInstanceEntity: &TelegramChatInstanceEntityGae{
 			TelegramChatInstanceEntityBase: telegram_bot.TelegramChatInstanceEntityBase{
 				 TgChatID: chatID,

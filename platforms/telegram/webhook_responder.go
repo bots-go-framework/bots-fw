@@ -28,7 +28,7 @@ func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookCont
 }
 
 func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	log.Debugf(c, "TelegramWebhookResponder.SendMessage(channel=%v, isEdit=%v) => m: %v", channel, m.IsEdit, m)
+	log.Debugf(c, "TelegramWebhookResponder.SendMessage(channel=%v, isEdit=%v)", channel, m.IsEdit)
 	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
@@ -190,11 +190,6 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 			indentedJsonStr = string(jsonStr)
 		}
 		ffjson.Pool(jsonStr)
-		//vals, err := chattable.Values()
-		//if err != nil {
-		//	//pass?
-		//}
-		//log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v------------------------\nAs URL values: %v", m.Text, indentedJsonStr, vals.Encode())
 		log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJsonStr)
 	}
 

@@ -88,7 +88,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	if whcb.chatID != "" {
 		return whcb.chatID, nil
 	}
-	log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
+	//log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
 
 	input := whcb.Input()
 	if botChatID, err = input.BotChatID(); err != nil {
@@ -309,7 +309,7 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 		return whcb.chatEntity
 	}
 	//panic("*WebhookContextBase.ChatEntity()")
-	log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
+	//log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
 	chatID, err := whcb.BotChatID()
 	if err != nil {
 		panic(errors.WithMessage(err, "failed to call whcb.BotChatID()"))
@@ -378,7 +378,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
 	switch err {
 	case nil: // Nothing to do
-		log.Debugf(c, "GetBotChatEntityByID() returned => %v", botChatEntity)
+		//log.Debugf(c, "GetBotChatEntityByID() returned => %v", litter.Sdump(botChatEntity))
 	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")

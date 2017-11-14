@@ -192,12 +192,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 					}
 				}
 			}
-		} else if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
-			log.Debugf(c, "Flushing gaMeasurement (len(queue): %v)...", gaMeasurement.QueueDepth())
+		} else if gaQueueDepth := gaMeasurement.QueueDepth(); gaQueueDepth > 0 { // Zero if GA is disabled
 			if err = gaMeasurement.Flush(); err != nil {
-				log.Errorf(c, "Failed to send to GA: %v", err)
+				log.Warningf(c, "Failed to send to GA %v items: %v", gaQueueDepth, err)
 			} else {
-				log.Debugf(c, "Data sent to GA")
+				log.Debugf(c, "Sent to GA: %v items", gaQueueDepth)
 			}
 		}
 	}()
@@ -218,6 +217,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//}
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
+				var m MessageFromBot
+				m.Text = emoji.ERROR_ICON + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"
+				if _, err := whc.Responder().SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
+					log.Errorf(c, "Failed to report outage: %v", err)
+				}
 			}
 		}
 	}()

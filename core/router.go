@@ -130,9 +130,9 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	c := whc.Context()
 
-	if parentPath == "" {
-		log.Debugf(c, "matchMessageCommands()")
-	}
+	//if parentPath == "" {
+	//	log.Debugf(c, "matchMessageCommands()")
+	//}
 
 	if textMessage, ok := input.(WebhookTextMessage); ok {
 		messageText = textMessage.Text()
@@ -239,11 +239,12 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 
 	typeCommands, found := router.commandsByType[inputType]
 	if !found {
+		log.Debugf(c, "No commands found to match by inputType: %v", len(typeCommands.all), WebhookInputTypeNames[inputType])
 		whc.LogRequest()
 		logInputDetails(whc, false)
 		return
 	}
-	log.Debugf(c, "Found %d commands to match by inputType: %v", len(typeCommands.all), inputType)
+
 	var (
 		matchedCommand *Command
 		commandAction  CommandAction
@@ -275,7 +276,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		if matchedCommand == nil {
 			matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
 			if matchedCommand != nil {
-				log.Debugf(c, "router.matchMessageCommands() => matchedCommand: %v", matchedCommand)
+				log.Debugf(c, "router.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
 			}
 		}
 		if matchedCommand != nil {
