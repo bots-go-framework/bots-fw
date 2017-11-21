@@ -61,7 +61,7 @@ type WebhookContext interface {
 	AppUserStrID() string
 
 	GetAppUser() (BotAppUser, error)
-	SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
+	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
 	BotChatStore

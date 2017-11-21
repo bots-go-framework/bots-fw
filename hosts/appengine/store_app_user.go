@@ -1,7 +1,6 @@
 package gae_host
 
 import (
-	"errors"
 	"fmt"
 	"github.com/strongo/nds"
 	"github.com/strongo/bots-framework/core"
@@ -69,14 +68,14 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	case 1:
 		return keys[0].IntID(), nil
 	default:
-		return 0, errors.New(fmt.Sprintf("Found few app users by %v", botUserKey))
+		return 0, fmt.Errorf("Found few app users by %v", botUserKey)
 	}
 }
 
-func (s GaeAppUserStore) SaveAppUser(c context.Context, appUserId int64, appUserEntity bots.BotAppUser) error {
-	if appUserId == 0 {
-		panic("appUserId == 0")
-	}
-	_, err := nds.Put(c, s.appUserKey(c, appUserId), appUserEntity)
-	return err
-}
+//func (s GaeAppUserStore) SaveAppUser(c context.Context, appUserId int64, appUserEntity bots.BotAppUser) error {
+//	if appUserId == 0 {
+//		panic("appUserId == 0")
+//	}
+//	_, err := nds.Put(c, s.appUserKey(c, appUserId), appUserEntity)
+//	return err
+//}

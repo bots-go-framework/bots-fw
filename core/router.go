@@ -113,7 +113,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 			}
 		}
 		if err == nil && matchedCommand == nil {
-			err = errors.New(fmt.Sprintf("No commands matchet to callback: [%v]", callbackData))
+			err = fmt.Errorf("No commands matchet to callback: [%v]", callbackData)
 			whc.LogRequest()
 		}
 	} else {
@@ -258,9 +258,9 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
 		if err == nil && matchedCommand != nil {
 			if matchedCommand.Code == "" {
-				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand))
+				err = fmt.Errorf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand)
 			} else if matchedCommand.CallbackAction == nil {
-				err = errors.New(fmt.Sprintf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code))
+				err = fmt.Errorf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code)
 			} else {
 				log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
 				commandAction = func(whc WebhookContext) (MessageFromBot, error) {

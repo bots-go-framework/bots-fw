@@ -296,9 +296,9 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
 }
 
-func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
-	return whcb.BotAppUserStore.SaveAppUser(whcb.Context(), appUserID, appUserEntity)
-}
+//func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
+//	return whcb.BotAppUserStore.SaveAppUser(whcb.Context(), appUserID, appUserEntity)
+//}
 
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity

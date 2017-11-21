@@ -1,7 +1,6 @@
 package viber_bot
 
 import (
-	"errors"
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
@@ -105,5 +104,5 @@ func (whc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) err
 		//viberChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
 		return nil
 	}
-	return errors.New(fmt.Sprintf("Expected *ViberChat, got: %T", chatEntity))
+	return fmt.Errorf("Expected *ViberChat, got: %T", chatEntity)
 }

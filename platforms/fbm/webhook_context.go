@@ -167,5 +167,5 @@ func (whc *FbmWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error
 	//	chat.LastSeq = whc.InputMessage().Sequence()
 	//	return nil
 	//}
-	//return errors.New(fmt.Sprintf("Expected *FbmChat, got: %T", chatEntity))
+	//return fmt.Errorf("Expected *FbmChat, got: %T", chatEntity)
 }

@@ -231,7 +231,7 @@ func (twhc *TelegramWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat)
 	//	telegramChat.LastProcessedUpdateID = tc.whi.update.UpdateID
 	//	return nil
 	//}
-	//return errors.New(fmt.Sprintf("Expected *TelegramChatEntityBase, got: %T", chatEntity))
+	//return fmt.Errorf("Expected *TelegramChatEntityBase, got: %T", chatEntity)
 }
 
 func (twhc *TelegramWebhookContext) getLocalAndChatIdByChatInstance(c context.Context) (locale, chatID string, err error) {

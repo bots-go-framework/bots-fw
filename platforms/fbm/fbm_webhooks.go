@@ -165,7 +165,7 @@ func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *ht
 	pageID := receivedMessage.Entries[0].Messaging[0].Recipient.ID
 	fbmBots := handler.bots(c)
 	if botSettings, ok := fbmBots.ByID[pageID]; !ok {
-		err = errors.New(fmt.Sprintf("Bot settings not found by ID: [%v]", pageID))
+		err = fmt.Errorf("Bot settings not found by ID: [%v]", pageID)
 		return
 	} else {
 		botContext = bots.NewBotContext(handler.BotHost, botSettings);

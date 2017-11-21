@@ -46,4 +46,4 @@ func (l logger) Criticalf(c context.Context, format string, args ...interface{})
 	logGae.Criticalf(c, format, args...)
 }
 
-var GaeLogger = (log.Logger)(logger{})
+var GaeLogger = (log.Logger)(logger{}) // TODO: move outside of bots framework

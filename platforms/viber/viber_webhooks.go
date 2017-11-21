@@ -86,8 +86,8 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 	mac.Write(body)
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(expectedMAC, sigMAC) {
-		err = errors.New(fmt.Sprintf("Unexpected signature value:\n\tExpected: %v\n\tGot: %v",
-			hex.EncodeToString(expectedMAC), sig))
+		err = fmt.Errorf("Unexpected signature value:\n\tExpected: %v\n\tGot: %v",
+			hex.EncodeToString(expectedMAC), sig)
 		return
 	}
 

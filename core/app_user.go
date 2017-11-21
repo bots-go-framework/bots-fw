@@ -16,5 +16,5 @@ type BotAppUser interface {
 type BotAppUserStore interface {
 	GetAppUserByID(c context.Context, appUserId int64, appUser BotAppUser) error
 	CreateAppUser(c context.Context, botID string, actor WebhookActor) (appUserId int64, appUserEntity BotAppUser, err error)
-	SaveAppUser(c context.Context, appUserId int64, appUserEntity BotAppUser) error
+	//SaveAppUser(c context.Context, appUserId int64, appUserEntity BotAppUser) error
 }
