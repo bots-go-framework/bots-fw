@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"strconv"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"time"
 )
 

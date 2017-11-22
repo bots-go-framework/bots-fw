@@ -6,8 +6,9 @@ import (
 	"time"
 	"strconv"
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
+	"github.com/strongo/db"
 )
 
 const (
@@ -20,10 +21,18 @@ type TelegramChatEntity interface {
 	GetPreferredLanguage() string
 }
 
+type TelegramChatBase struct {
+	db.StringID
+}
+
+func (tgChat TelegramChatBase) SetID(tgBotID string, tgChatID int64) {
+	tgChat.ID = tgBotID + ":" + strconv.FormatInt(tgChatID, 10) + "@" // TODO: Should we migrated to format "id@bot"?
+}
+
 type TelegramChatEntityBase struct {
 	bots.BotChatEntity
-	TelegramUserID        int    `datastore:",noindex"`
-	TelegramUserIDs       []int  `datastore:",noindex"` // For groups
+	TelegramUserID        int64    `datastore:",noindex"`
+	TelegramUserIDs       []int64  `datastore:",noindex"` // For groups
 	LastProcessedUpdateID int    `datastore:",noindex"`
 	TgChatInstanceID      string `datastore:",noindex"` // Do index
 }
@@ -65,14 +74,14 @@ func (entity *TelegramChatEntityBase) SetBotUserID(id interface{}) {
 	switch id.(type) {
 	case string:
 		var err error
-		entity.TelegramUserID, err = strconv.Atoi(id.(string))
+		entity.TelegramUserID, err = strconv.ParseInt(id.(string), 10, 64)
 		if err != nil {
 			panic(err.Error())
 		}
 	case int:
-		entity.TelegramUserID = id.(int)
+		entity.TelegramUserID = int64(id.(int))
 	case int64:
-		entity.TelegramUserID = id.(int)
+		entity.TelegramUserID = id.(int64)
 	default:
 		panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
 	}

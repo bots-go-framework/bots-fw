@@ -1,7 +1,7 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 const TelegramChatInstanceKind = "TgChatInstance"

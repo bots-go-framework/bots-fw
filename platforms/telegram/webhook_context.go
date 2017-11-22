@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
-	//"github.com/strongo/app/log"
+	//"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"strconv"
 	"golang.org/x/net/context"
-	"github.com/strongo/app/db"
-	"github.com/strongo/app/log"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"github.com/pkg/errors"
 )
 

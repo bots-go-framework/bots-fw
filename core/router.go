@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"net/url"
 	"strings"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/app"
 )
 

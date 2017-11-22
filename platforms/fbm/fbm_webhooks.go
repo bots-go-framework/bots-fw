@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"google.golang.org/appengine"
 	"github.com/pkg/errors"
 	"bytes"

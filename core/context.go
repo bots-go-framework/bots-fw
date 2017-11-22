@@ -5,7 +5,7 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 type WebhookInlineQueryContext interface {

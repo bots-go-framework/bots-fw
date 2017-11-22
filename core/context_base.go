@@ -13,8 +13,8 @@ import (
 	"time"
 	"net/url"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
-	"github.com/strongo/app/db"
+	"github.com/strongo/log"
+	"github.com/strongo/db"
 )
 
 type WebhookContextBase struct {

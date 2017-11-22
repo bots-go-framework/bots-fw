@@ -2,7 +2,7 @@ package bots
 
 import (
 	"fmt"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	"testing"
 )

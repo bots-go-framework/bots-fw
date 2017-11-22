@@ -1,7 +1,7 @@
 package gae_host
 
 import (
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"google.golang.org/appengine/datastore"
 )

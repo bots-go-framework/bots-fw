@@ -2,7 +2,7 @@ package skype
 
 import (
 	"google.golang.org/appengine"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"io/ioutil"
 	"net/http"
 )

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	//"github.com/kylelemons/go-gypsy/yaml"
 	//"bytes"
 	"time"

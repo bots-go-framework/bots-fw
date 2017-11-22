@@ -4,7 +4,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"time"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 type BotPlatform interface {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"net/url"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/julienschmidt/httprouter"
 )
 

@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"reflect"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 )
 
 type GaeAppUserStore struct {

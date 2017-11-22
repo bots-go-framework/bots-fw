@@ -2,7 +2,7 @@ package telegram_bot
 
 import (
 	"golang.org/x/net/context"
-	"github.com/strongo/app/db"
+	"github.com/strongo/db"
 )
 
 type TgChatInstanceDal interface {

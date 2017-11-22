@@ -12,7 +12,7 @@ import (
 	"crypto/sha256"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber/viberinterface"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"encoding/hex"
 	"golang.org/x/net/context"
 	"github.com/julienschmidt/httprouter"

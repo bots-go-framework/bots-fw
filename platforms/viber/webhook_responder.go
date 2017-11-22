@@ -6,7 +6,7 @@ import (
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/pkg/errors"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 )
 
 type ViberWebhookResponder struct {

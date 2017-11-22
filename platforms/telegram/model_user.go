@@ -2,7 +2,7 @@ package telegram_bot
 
 import (
 	"google.golang.org/appengine/datastore"
-	"github.com/strongo/app/gaedb"
+	"github.com/strongo/db/gaedb"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/user"
 )

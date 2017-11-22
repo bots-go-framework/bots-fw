@@ -8,7 +8,7 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"github.com/strongo/app"
 	"encoding/json"
 	"github.com/pkg/errors"

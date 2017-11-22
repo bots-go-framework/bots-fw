@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"golang.org/x/net/context"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 )
 
 type ViberWebhookContext struct {

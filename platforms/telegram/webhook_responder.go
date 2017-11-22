@@ -7,7 +7,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/strongo/app/log"
+	"github.com/strongo/log"
 	"bytes"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
