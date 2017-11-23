@@ -25,8 +25,8 @@ type TelegramChatBase struct {
 	db.StringID
 }
 
-func (tgChat TelegramChatBase) SetID(tgBotID string, tgChatID int64) {
-	tgChat.ID = tgBotID + ":" + strconv.FormatInt(tgChatID, 10) + "@" // TODO: Should we migrated to format "id@bot"?
+func (tgChat *TelegramChatBase) SetID(tgBotID string, tgChatID int64) {
+	tgChat.ID = tgBotID + ":" + strconv.FormatInt(tgChatID, 10) // TODO: Should we migrated to format "id@bot"?
 }
 
 type TelegramChatEntityBase struct {
