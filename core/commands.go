@@ -32,7 +32,7 @@ type Command struct {
 func NewCallbackCommand(code string, action CallbackAction) Command {
 	return Command{
 		Code:           code,
-		Commands: []string{"/" + code},
+		Commands:       []string{"/" + code},
 		CallbackAction: action,
 	}
 }

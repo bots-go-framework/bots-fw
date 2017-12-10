@@ -1,8 +1,8 @@
 package telegram_bot
 
 import (
-	"testing"
 	"google.golang.org/appengine/datastore"
+	"testing"
 )
 
 func TestTelegramUser(t *testing.T) {

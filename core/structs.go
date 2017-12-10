@@ -4,8 +4,8 @@ package bots
 
 import (
 	"github.com/strongo/app"
-	"golang.org/x/net/context"
 	"github.com/strongo/bots-api-fbm"
+	"golang.org/x/net/context"
 	"strconv"
 )
 
@@ -42,7 +42,7 @@ func (bh *BaseHandler) Register(d WebhookDriver, h BotHost) {
 type MessageFormat int
 
 const (
-	MessageFormatText     MessageFormat = iota
+	MessageFormatText MessageFormat = iota
 	MessageFormatHTML
 	MessageFormatMarkdown
 )
@@ -66,7 +66,7 @@ type MessageUID interface {
 type KeyboardType int
 
 const (
-	KeyboardTypeNone       KeyboardType = iota
+	KeyboardTypeNone KeyboardType = iota
 	KeyboardTypeHide
 	KeyboardTypeInline
 	KeyboardTypeBottom
@@ -80,7 +80,7 @@ type Keyboard interface {
 type AttachmentType int
 
 const (
-	AttachmentTypeNone  AttachmentType = iota
+	AttachmentTypeNone AttachmentType = iota
 	AttachmentTypeAudio
 	AttachmentTypeFile
 	AttachmentTypeImage
@@ -94,7 +94,7 @@ type Attachment interface {
 type BotMessageType int
 
 const (
-	BotMessageTypeUndefined      BotMessageType = iota
+	BotMessageTypeUndefined BotMessageType = iota
 	BotMessageTypeCallbackAnswer
 	BotMessageTypeInlineResults
 	BotMessageTypeText
@@ -127,8 +127,8 @@ func (m TextMessageFromBot) BotMessageType() BotMessageType {
 var _ BotMessage = (*TextMessageFromBot)(nil)
 
 type MessageFromBot struct {
-	ToChat                    ChatUID                                `json:",omitempty"`
-	TextMessageFromBot // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
-	BotMessage                BotMessage                             `json:",omitempty"`
-	FbmAttachment             *fbm_api.RequestAttachment             `json:",omitempty"` // deprecated
+	ToChat             ChatUID                    `json:",omitempty"`
+	TextMessageFromBot                            // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	BotMessage         BotMessage                 `json:",omitempty"`
+	FbmAttachment      *fbm_api.RequestAttachment `json:",omitempty"` // deprecated
 }

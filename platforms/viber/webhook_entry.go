@@ -11,4 +11,3 @@ var _ bots.WebhookEntry = (*ViberWebhookEntry)(nil)
 func (whe ViberWebhookEntry) GetID() interface{} {
 	panic("Not implemented")
 }
-

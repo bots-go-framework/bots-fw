@@ -1,12 +1,12 @@
 package viber_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-api-viber/viberinterface"
-	"github.com/pkg/errors"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
+	"golang.org/x/net/context"
 )
 
 type ViberWebhookResponder struct {

@@ -1,15 +1,15 @@
 package viber_bot
 
 import (
-	"strconv"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-viber/viberinterface"
+	"github.com/strongo/bots-framework/core"
+	"strconv"
 	"time"
 )
 
 type viberWebhookMessage struct {
 	ViberWebhookInput
-	m viberinterface.CallbackOnMessage // Can be either input.update.Message or input.update.CallbackQuery.Message
+	m    viberinterface.CallbackOnMessage // Can be either input.update.Message or input.update.CallbackQuery.Message
 	chat ViberWebhookChat
 }
 

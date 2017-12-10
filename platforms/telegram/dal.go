@@ -1,8 +1,8 @@
 package telegram_bot
 
 import (
-	"golang.org/x/net/context"
 	"github.com/strongo/db"
+	"golang.org/x/net/context"
 )
 
 type TgChatInstanceDal interface {
@@ -12,7 +12,7 @@ type TgChatInstanceDal interface {
 }
 
 type dal struct {
-	DB db.Database
+	DB             db.Database
 	TgChatInstance TgChatInstanceDal
 }
 

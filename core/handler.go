@@ -1,10 +1,10 @@
 package bots
 
 import (
-	"net/http"
+	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
-	"github.com/julienschmidt/httprouter"
+	"net/http"
 )
 
 type WebhookHandler interface {

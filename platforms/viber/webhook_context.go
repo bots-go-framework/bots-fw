@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/measurement-protocol"
-	"net/http"
-	"golang.org/x/net/context"
 	"github.com/strongo/log"
+	"github.com/strongo/measurement-protocol"
+	"golang.org/x/net/context"
+	"net/http"
 )
 
 type ViberWebhookContext struct {
@@ -32,7 +32,7 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 		webhookInput,
 		botCoreStores,
 		gaMeasurement,
-		false,
+		func() bool { return false },
 		nil,
 	)
 	return &ViberWebhookContext{

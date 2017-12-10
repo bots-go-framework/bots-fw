@@ -14,8 +14,8 @@ type TelegramWebhookCallbackQuery struct {
 
 var (
 	_ bots.WebhookCallbackQuery = (*TelegramWebhookCallbackQuery)(nil)
-	_ TelegramWebhookInput = (*TelegramWebhookCallbackQuery)(nil)
-	_ bots.WebhookInput = (*TelegramWebhookCallbackQuery)(nil)
+	_ TelegramWebhookInput      = (*TelegramWebhookCallbackQuery)(nil)
+	_ bots.WebhookInput         = (*TelegramWebhookCallbackQuery)(nil)
 )
 
 func (twhcbq TelegramWebhookCallbackQuery) InputType() bots.WebhookInputType {

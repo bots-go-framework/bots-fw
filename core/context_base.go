@@ -2,19 +2,19 @@ package bots
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"net/url"
-	"github.com/pkg/errors"
-	"github.com/strongo/log"
-	"github.com/strongo/db"
 )
 
 type WebhookContextBase struct {
@@ -26,7 +26,7 @@ type WebhookContextBase struct {
 	botPlatform   BotPlatform
 	input         WebhookInput
 
-	isInGroup bool
+	isInGroup func() bool
 
 	getLocaleAndChatID func() (locale, chatID string, err error) // TODO: Document why we need to pass context. Is it to support transactions?
 
@@ -62,7 +62,7 @@ func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
 	return whcb.BotContext.BotHost.DB().IsInTransaction(c)
 }
 
-func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) (context.Context) {
+func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) context.Context {
 	return whcb.BotContext.BotHost.DB().NonTransactionalContext(tc)
 }
 
@@ -134,17 +134,18 @@ func (whcb *WebhookContextBase) AppUserStrID() string {
 }
 
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
-	if !whcb.isInGroup {
+	if !whcb.isInGroup() {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
 			appUserIntID = chatEntity.GetAppUserIntID()
 		}
 	}
 	if appUserIntID == 0 {
-		botUser, err := whcb.GetOrCreateBotUserEntityBase()
-		if err != nil {
-			panic(fmt.Sprintf("Failed to get bot user entity: %v", err))
+
+		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
+			panic(errors.WithMessage(err, "failed to get bot user entity"))
+		} else {
+			appUserIntID = botUser.GetAppUserIntID()
 		}
-		appUserIntID = botUser.GetAppUserIntID()
 	}
 	return
 }
@@ -165,7 +166,7 @@ func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
 }
 
 func (whcb *WebhookContextBase) IsInGroup() bool {
-	return whcb.isInGroup
+	return whcb.isInGroup()
 }
 
 func NewWebhookContextBase(
@@ -176,7 +177,7 @@ func NewWebhookContextBase(
 	webhookInput WebhookInput,
 	botCoreStores BotCoreStores,
 	gaMeasurement *measurement.BufferedSender,
-	isInGroup bool,
+	isInGroup func() bool,
 	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
 ) *WebhookContextBase {
 	c := botContext.BotHost.Context(r)
@@ -194,7 +195,7 @@ func NewWebhookContextBase(
 		isInGroup:     isInGroup,
 		BotCoreStores: botCoreStores,
 	}
-	if isInGroup && whcb.getLocaleAndChatID != nil {
+	if isInGroup() && whcb.getLocaleAndChatID != nil {
 		if locale, chatID, err := whcb.getLocaleAndChatID(); err != nil {
 			panic(err)
 		} else {
@@ -405,7 +406,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 	if chatLocale := botChatEntity.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
 		if err = whcb.SetLocale(chatLocale); err != nil {
-			log.Errorf(c, "Failed to set locate: %v")
+			log.Errorf(c, "failed to set locate: %v", err)
 		}
 	}
 	whcb.chatEntity = botChatEntity

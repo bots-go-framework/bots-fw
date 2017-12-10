@@ -1,20 +1,20 @@
 package fbm_bot
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"github.com/pkg/errors"
-	"bytes"
-	"github.com/pquerna/ffjson/ffjson"
-	"golang.org/x/net/context"
-	"github.com/julienschmidt/httprouter"
 )
 
 func NewFbmWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
@@ -34,6 +34,7 @@ type FbmWebhookHandler struct {
 	bots.BaseHandler
 	bots bots.SettingsProvider
 }
+
 var _ bots.WebhookHandler = (*FbmWebhookHandler)(nil)
 
 func (handler FbmWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
@@ -46,7 +47,6 @@ func (handler FbmWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDrive
 	router.POST(pathPrefix+"/fbm/whitelist", handler.Whitelist)
 }
 
-
 func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := handler.Context(r)
 	httpClient := handler.GetHttpClient(c)
@@ -54,7 +54,7 @@ func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Reques
 
 	fbmBots := handler.bots(c)
 	if botSettings, ok := fbmBots.ByCode[botCode]; ok {
-		message := fbm_api.NewRequestWhitelistDomain("add", "https://" + r.URL.Host)
+		message := fbm_api.NewRequestWhitelistDomain("add", "https://"+r.URL.Host)
 		requestBody, err := ffjson.MarshalFast(message)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -118,7 +118,7 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 				responseText = "Wrong verify_token"
-				log.Debugf(c, responseText + fmt.Sprintf(". Got: '%v', expected[bot=%v]: '%v'.", verifyToken, botCode, botSettings.VerifyToken))
+				log.Debugf(c, responseText+fmt.Sprintf(". Got: '%v', expected[bot=%v]: '%v'.", verifyToken, botCode, botSettings.VerifyToken))
 			}
 			w.Write([]byte(responseText))
 		} else {
@@ -135,7 +135,7 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var (
 		receivedMessage fbm_api.ReceivedMessage
-		bodyBytes []byte
+		bodyBytes       []byte
 	)
 	defer r.Body.Close()
 	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
@@ -168,7 +168,7 @@ func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *ht
 		err = fmt.Errorf("Bot settings not found by ID: [%v]", pageID)
 		return
 	} else {
-		botContext = bots.NewBotContext(handler.BotHost, botSettings);
+		botContext = bots.NewBotContext(handler.BotHost, botSettings)
 	}
 	return
 }

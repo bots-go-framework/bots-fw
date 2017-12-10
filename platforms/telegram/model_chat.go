@@ -2,13 +2,13 @@ package telegram_bot
 
 import (
 	"fmt"
-	"github.com/strongo/bots-framework/core"
-	"time"
-	"strconv"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/db/gaedb"
 	"github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/db"
+	"github.com/strongo/db/gaedb"
+	"google.golang.org/appengine/datastore"
+	"strconv"
+	"time"
 )
 
 const (
@@ -31,10 +31,10 @@ func (tgChat *TelegramChatBase) SetID(tgBotID string, tgChatID int64) {
 
 type TelegramChatEntityBase struct {
 	bots.BotChatEntity
-	TelegramUserID        int64    `datastore:",noindex"`
-	TelegramUserIDs       []int64  `datastore:",noindex"` // For groups
-	LastProcessedUpdateID int    `datastore:",noindex"`
-	TgChatInstanceID      string `datastore:",noindex"` // Do index
+	TelegramUserID        int64   `datastore:",noindex"`
+	TelegramUserIDs       []int64 `datastore:",noindex"` // For groups
+	LastProcessedUpdateID int     `datastore:",noindex"`
+	TgChatInstanceID      string  `datastore:",noindex"` // Do index
 }
 
 func (entity *TelegramChatEntityBase) SetTgChatInstanceID(v string) {

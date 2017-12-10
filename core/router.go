@@ -5,11 +5,11 @@ import (
 	//"net/http"
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"net/url"
 	"strings"
-	"github.com/strongo/log"
-	"github.com/strongo/app"
 )
 
 type TypeCommands struct {
@@ -239,7 +239,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 
 	typeCommands, found := router.commandsByType[inputType]
 	if !found {
-		log.Debugf(c, "No commands found to match by inputType: %v", len(typeCommands.all), WebhookInputTypeNames[inputType])
+		log.Debugf(c, "No commands found to match by inputType: %v", WebhookInputTypeNames[inputType])
 		whc.LogRequest()
 		logInputDetails(whc, false)
 		return

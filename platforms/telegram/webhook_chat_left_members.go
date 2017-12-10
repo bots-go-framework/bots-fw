@@ -19,5 +19,5 @@ func NewTelegramWebhookLeftChatMembersMessage(input telegramWebhookInput) Telegr
 }
 
 func (m *TelegramWebhookLeftChatMembersMessage) LeftChatMembers() []bots.WebhookActor {
-	return []bots.WebhookActor{ m.message.LeftChatMember }
+	return []bots.WebhookActor{m.message.LeftChatMember}
 }

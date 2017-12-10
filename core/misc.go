@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"net/http"
 	"github.com/julienschmidt/httprouter"
+	"net/http"
 )
 
 func PingHandler(w http.ResponseWriter, r *http.Request) {

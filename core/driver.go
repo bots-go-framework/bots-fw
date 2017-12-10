@@ -1,19 +1,19 @@
 package bots
 
 import (
-	"github.com/DebtsTracker/translations/emoji"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/DebtsTracker/translations/emoji"
+	"github.com/julienschmidt/httprouter"
+	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
 	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
-	"github.com/strongo/log"
-	"github.com/strongo/app"
-	"encoding/json"
-	"github.com/pkg/errors"
-	"bytes"
-	"github.com/julienschmidt/httprouter"
 )
 
 // The driver is doing initial request & final response processing

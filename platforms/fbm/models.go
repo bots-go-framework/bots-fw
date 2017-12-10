@@ -1,10 +1,10 @@
 package fbm_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"time"
 	"fmt"
 	"github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/core"
+	"time"
 )
 
 const (
@@ -19,7 +19,7 @@ type FbmUser struct {
 type FbmChat struct {
 	bots.BotChatEntity
 	FbmUserID string //TODO: Is it Facebook User ID?
-	LastSeq int
+	LastSeq   int
 }
 
 func (chat *FbmChat) SetBotUserID(id interface{}) {
@@ -34,7 +34,6 @@ func (chat *FbmChat) SetBotUserID(id interface{}) {
 //func (chat *FbmChat) GetBotUserStringID() string {
 //	return chat.FbmUserID
 //}
-
 
 //func GetUserByFbmUserID(ctx context.Context, telegramUserID int, createIfMissing bool) (*datastore.Key, *common.User, error) {
 //	botUser := bot.BotUser{}

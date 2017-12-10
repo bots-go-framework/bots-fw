@@ -4,11 +4,11 @@ import (
 	//"fmt"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"google.golang.org/appengine/datastore"
 	"github.com/strongo/nds"
-	"time"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 	"strconv"
+	"time"
 	//"reflect"
 )
 
@@ -21,7 +21,7 @@ var _ bots.BotChatStore = (*GaeTelegramChatStore)(nil) // Check for interface im
 func NewGaeTelegramChatStore(newTelegramChatEntity func() bots.BotChat) *GaeTelegramChatStore {
 	return &GaeTelegramChatStore{
 		GaeBotChatStore: GaeBotChatStore{
-			GaeBaseStore: NewGaeBaseStore(telegram_bot.TelegramChatKind),
+			GaeBaseStore:     NewGaeBaseStore(telegram_bot.TelegramChatKind),
 			newBotChatEntity: newTelegramChatEntity,
 			validateBotChatEntityType: func(entity bots.BotChat) {
 				//if _, ok := entity.(*telegram_bot.TelegramChatEntityBase); !ok {
@@ -37,7 +37,6 @@ func NewGaeTelegramChatStore(newTelegramChatEntity func() bots.BotChat) *GaeTele
 		},
 	}
 }
-
 
 func MarkTelegramChatAsForbidden(c context.Context, botID string, tgChatID int64, dtForbidden time.Time) error {
 	return nds.RunInTransaction(c, func(c context.Context) (err error) {

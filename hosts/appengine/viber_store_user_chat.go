@@ -3,11 +3,11 @@ package gae_host
 import (
 	"fmt"
 	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/nds"
-	"time"
-	"golang.org/x/net/context"
 	"github.com/strongo/bots-framework/platforms/viber"
+	"github.com/strongo/nds"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 type GaeViberUserChatStore struct {
@@ -22,7 +22,7 @@ func NewGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *GaeViberUserChat
 	baseStore := NewGaeBaseStore(viber_bot.ViberUserChatKind)
 	return &GaeViberUserChatStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore: baseStore,
+			GaeBaseStore:    baseStore,
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				viberUserChatEntity := viber_bot.NewViberUserChat()
@@ -61,7 +61,6 @@ func NewGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *GaeViberUserChat
 		},
 	}
 }
-
 
 func MarkViberChatAsForbidden(c context.Context, tgChatID int64, dtForbidden time.Time) error {
 	return nds.RunInTransaction(c, func(c context.Context) (err error) {

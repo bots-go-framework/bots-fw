@@ -3,10 +3,10 @@ package bots
 import (
 	"fmt"
 	"github.com/satori/go.uuid"
+	"github.com/strongo/app/user"
 	"net/url"
 	"strings"
 	"time"
-	"github.com/strongo/app/user"
 )
 
 type BotEntity struct {
@@ -44,9 +44,9 @@ type BotChatEntity struct {
 	Type    string `datastore:",noindex"`
 	Title   string `datastore:",noindex"`
 	//
-	AwaitingReplyTo   string    `datastore:",noindex"`
-	PreferredLanguage string    `datastore:",noindex"`
-	GaClientID        []byte    `datastore:",noindex"`
+	AwaitingReplyTo   string `datastore:",noindex"`
+	PreferredLanguage string `datastore:",noindex"`
+	GaClientID        []byte `datastore:",noindex"`
 	DtLastInteraction time.Time
 	InteractionsCount int
 	DtForbidden       time.Time

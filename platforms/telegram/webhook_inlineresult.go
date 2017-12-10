@@ -18,7 +18,6 @@ func NewTelegramWebhookChosenInlineResult(input telegramWebhookInput) TelegramWe
 	return TelegramWebhookChosenInlineResult{telegramWebhookInput: input}
 }
 
-
 func (q TelegramWebhookChosenInlineResult) GetResultID() string {
 	return q.update.ChosenInlineResult.ResultID
 }

@@ -1,10 +1,10 @@
 package bots
 
 import (
+	"github.com/strongo/db"
 	"golang.org/x/net/context"
 	"net/http"
 	"time"
-	"github.com/strongo/db"
 )
 
 type BotPlatform interface {
@@ -27,7 +27,7 @@ type BotContext struct {
 
 func NewBotContext(host BotHost, settings BotSettings) *BotContext {
 	if settings.Code == "" {
-		panic("Bot settings.Code is empty string")
+		panic("ReferredTo settings.Code is empty string")
 	}
 	return &BotContext{
 		BotHost:     host,
@@ -43,23 +43,23 @@ type WebhookEntry interface {
 type WebhookInputType int
 
 const (
-	WebhookInputUnknown             WebhookInputType = iota
-	WebhookInputText                 // Facebook, Telegram, Viber
+	WebhookInputUnknown WebhookInputType = iota
+	WebhookInputText                     // Facebook, Telegram, Viber
 	WebhookInputVoice
 	WebhookInputPhoto
 	WebhookInputAudio
-	WebhookInputContact              // Facebook, Telegram, Viber
+	WebhookInputContact // Facebook, Telegram, Viber
 	WebhookInputPostback
 	WebhookInputDelivery
 	WebhookInputAttachment
-	WebhookInputInlineQuery          // Telegram
+	WebhookInputInlineQuery // Telegram
 	WebhookInputCallbackQuery
-	WebhookInputReferral             // FBM
-	WebhookInputChosenInlineResult   // Telegram
-	WebhookInputSubscribed           // Viber
-	WebhookInputUnsubscribed         // Viber
-	WebhookInputConversationStarted  // Viber
-	WebhookInputNewChatMembers       // Telegram groups
+	WebhookInputReferral            // FBM
+	WebhookInputChosenInlineResult  // Telegram
+	WebhookInputSubscribed          // Viber
+	WebhookInputUnsubscribed        // Viber
+	WebhookInputConversationStarted // Viber
+	WebhookInputNewChatMembers      // Telegram groups
 	WebhookInputLeftChatMembers
 	WebhookInputSticker // Telegram
 
@@ -137,7 +137,6 @@ type WebhookStickerMessage interface {
 	WebhookMessage
 	// TODO: Define sticker message interface
 }
-
 
 type WebhookVoiceMessage interface {
 	WebhookMessage
@@ -240,7 +239,7 @@ type MessengerResponse interface {
 }
 
 type OnMessageSentResponse struct {
-	StatusCode int
+	StatusCode      int
 	TelegramMessage MessengerResponse // TODO: change to some interface
 }
 

@@ -1,8 +1,8 @@
 package viber_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-viber/viberinterface"
+	"github.com/strongo/bots-framework/core"
 )
 
 type ViberWebhookTextMessage struct {

@@ -1,8 +1,8 @@
 package bots
 
 import (
-	"github.com/strongo/log"
 	"github.com/pkg/errors"
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 )
 

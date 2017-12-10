@@ -1,9 +1,9 @@
 package gae_host
 
 import (
+	"github.com/strongo/log"
 	"golang.org/x/net/context"
 	logGae "google.golang.org/appengine/log"
-	"github.com/strongo/log"
 )
 
 type logger struct{}

@@ -2,10 +2,10 @@ package bots
 
 import (
 	"github.com/strongo/app"
+	"github.com/strongo/db"
 	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
 	"net/http"
-	"github.com/strongo/db"
 )
 
 type WebhookInlineQueryContext interface {
@@ -34,7 +34,7 @@ type WebhookContext interface {
 	ExecutionContext() strongo.ExecutionContext
 	BotAppContext() BotAppContext
 
-	MustBotChatID() (string)
+	MustBotChatID() string
 
 	GetBotCode() string
 	GetBotToken() string

@@ -28,13 +28,12 @@ func (m InlineMessageUID) UID() string {
 	return m.InlineMessageID
 }
 
-
 func NewChatMessageUID(chatID int64, messageID int) *ChatMessageUID {
 	return &ChatMessageUID{ChatID: chatID, MessageID: messageID}
 }
 
 type ChatMessageUID struct {
-	ChatID int64
+	ChatID    int64
 	MessageID int
 }
 

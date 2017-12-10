@@ -1,8 +1,8 @@
 package fbm_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/bots-framework/core"
 	"time"
 )
 
@@ -28,7 +28,6 @@ func (self FbmWebhookInput) StringID() string {
 func (whi FbmWebhookInput) BotChatID() (string, error) {
 	return whi.messaging.Sender.ID, nil
 }
-
 
 func (whi FbmWebhookInput) Chat() bots.WebhookChat {
 	return NewFbmWebhookChat(whi.messaging.Sender.ID)
@@ -96,7 +95,6 @@ func (textMessage FbmTextMessage) Text() string {
 
 var _ bots.WebhookTextMessage = (*FbmTextMessage)(nil)
 
-
 func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
 	fbmInput := FbmWebhookInput{messaging: messaging}
 	switch {
@@ -111,4 +109,3 @@ func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
 func (whm FbmTextMessage) IsEdited() bool {
 	return false
 }
-

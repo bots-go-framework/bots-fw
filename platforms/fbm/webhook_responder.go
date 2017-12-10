@@ -1,12 +1,12 @@
 package fbm_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
-	"github.com/strongo/bots-api-fbm"
-	"google.golang.org/appengine/urlfetch"
-	"github.com/strongo/log"
 	"github.com/pkg/errors"
+	"github.com/strongo/bots-api-fbm"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/urlfetch"
 )
 
 type FbmWebhookResponder struct {
@@ -33,7 +33,7 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 		NotificationType: fbm_api.RequestNotificationTypeNoPush,
 		//Recipient: fbm_api.RequestRecipient{},
 		Message: fbm_api.RequestMessage{
-			Text: m.Text,
+			Text:       m.Text,
 			Attachment: m.FbmAttachment,
 		},
 	}

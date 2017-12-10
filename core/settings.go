@@ -1,9 +1,9 @@
 package bots
 
 import (
+	"fmt"
 	"github.com/strongo/app"
 	"golang.org/x/net/context"
-	"fmt"
 )
 
 type BotSettings struct {

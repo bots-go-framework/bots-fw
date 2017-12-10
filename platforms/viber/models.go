@@ -1,10 +1,10 @@
 package viber_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
-	"time"
 	"fmt"
 	"github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/core"
+	"time"
 )
 
 const (
@@ -19,6 +19,7 @@ type ViberUserChatEntity struct {
 	//UserName string `datastore:",noindex"`
 	//Avatar string `datastore:",noindex"`
 }
+
 var _ bots.BotUser = (*ViberUserChatEntity)(nil)
 var _ bots.BotChat = (*ViberUserChatEntity)(nil)
 
@@ -26,7 +27,6 @@ var _ bots.BotChat = (*ViberUserChatEntity)(nil)
 //	bots.BotUserEntity
 //	//TgChatID int64
 //}
-
 
 //var _ bots.BotUser = (*ViberUser)(nil)
 

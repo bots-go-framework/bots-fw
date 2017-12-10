@@ -1,13 +1,13 @@
 package gae_host
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
-	"github.com/strongo/nds"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"github.com/strongo/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"fmt"
-	"github.com/strongo/log"
 	"time"
 )
 
@@ -74,8 +74,8 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 
 	var (
 		appUserId int64
-		appUser bots.BotAppUser
-		newUser bool
+		appUser   bots.BotAppUser
+		newUser   bool
 	)
 
 	err := nds.RunInTransaction(c, func(ctx context.Context) (err error) {
@@ -88,7 +88,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 				return err
 			}
 			if appUserId == 0 {
-				appUserId, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, 	apiUser)
+				appUserId, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
 				if err != nil {
 					log.Errorf(c, "Failed to create app user: %v", err)
 					return err

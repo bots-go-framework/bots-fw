@@ -1,10 +1,10 @@
 package telegram_bot
 
 import (
-	"google.golang.org/appengine/datastore"
-	"github.com/strongo/db/gaedb"
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/app/user"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/db/gaedb"
+	"google.golang.org/appengine/datastore"
 )
 
 const (
@@ -47,8 +47,8 @@ func (entity TelegramUserEntity) Name() string {
 func (entity *TelegramUserEntity) GetNames() user.Names {
 	return user.Names{
 		FirstName: entity.FirstName,
-		LastName: entity.LastName,
-		NickName: entity.UserName,
+		LastName:  entity.LastName,
+		NickName:  entity.UserName,
 	}
 }
 

@@ -3,9 +3,9 @@ package gae_host
 import (
 	"fmt"
 	"github.com/strongo/bots-framework/core"
-	"google.golang.org/appengine/datastore"
-	"golang.org/x/net/context"
 	"github.com/strongo/bots-framework/platforms/fbm"
+	"golang.org/x/net/context"
+	"google.golang.org/appengine/datastore"
 )
 
 type GaeFbmChatStore struct {
@@ -33,7 +33,6 @@ func NewGaeFbmChatStore() *GaeTelegramChatStore {
 		},
 	}
 }
-
 
 //func MarkFacebookChatAsForbidden(c context.Context, botID string, tgChatID int64, dtForbidden time.Time) error {
 //	return nds.RunInTransaction(c, func(c context.Context) (err error) {

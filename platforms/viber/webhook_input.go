@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 type ViberWebhookInput struct {
 	callbackBase viberinterface.CallbackBase
 }

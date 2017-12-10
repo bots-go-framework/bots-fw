@@ -1,8 +1,8 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
 )
 
 type TelegramWebhookAudioMessage struct {
@@ -19,6 +19,6 @@ func (_ TelegramWebhookAudioMessage) InputType() bots.WebhookInputType {
 func NewTelegramWebhookAudioMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookAudioMessage {
 	return TelegramWebhookAudioMessage{
 		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
-		TgMessageType: tgMessageType,
+		TgMessageType:          tgMessageType,
 	}
 }

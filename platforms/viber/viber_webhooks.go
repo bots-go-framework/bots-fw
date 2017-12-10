@@ -1,21 +1,21 @@
 package viber_bot
 
 import (
-	"regexp"
-	"fmt"
-	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/measurement-protocol"
-	"net/http"
-	"io/ioutil"
-	"strings"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber/viberinterface"
+	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"encoding/hex"
+	"github.com/strongo/measurement-protocol"
 	"golang.org/x/net/context"
-	"github.com/julienschmidt/httprouter"
+	"io/ioutil"
+	"net/http"
+	"regexp"
+	"strings"
 )
 
 func NewViberWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
@@ -35,16 +35,16 @@ type ViberWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.SettingsProvider
 }
-var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
 
+var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
 
 func (h ViberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}
 	h.BaseHandler.Register(driver, host)
-	router.POST(pathPrefix + "/viber/callback/", h.HandleWebhookRequest)
-	router.GET(pathPrefix + "/viber/set-webhook", h.SetWebhook)
+	router.POST(pathPrefix+"/viber/callback/", h.HandleWebhookRequest)
+	router.GET(pathPrefix+"/viber/set-webhook", h.SetWebhook)
 }
 
 func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -59,7 +59,7 @@ func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
 func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/") + 1:]
+	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:]
 	botSettings, ok := h.botsBy(c).ByCode[code]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown public account: [%v]", code)
@@ -76,7 +76,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 
 	//viberinterface.CallbackBase{}.UnmarshalJSON()
 	body, _ := ioutil.ReadAll(r.Body)
-	if len(body) < 1024 * 3 {
+	if len(body) < 1024*3 {
 		log.Debugf(c, "Request body: %v", (string)(body))
 	} else {
 		log.Debugf(c, "Request len(body): %v", len(body))
@@ -99,7 +99,9 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 
 	event := match[1]
 
-	unmarshal := func(m interface{ UnmarshalJSON(input []byte) error }) (err error) {
+	unmarshal := func(m interface {
+		UnmarshalJSON(input []byte) error
+	}) (err error) {
 		if err = m.UnmarshalJSON(body); err != nil {
 			err = errors.Wrapf(err, "Failed to unmarshal request body to %T", m)
 		}
@@ -115,7 +117,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		}
 		entriesWithInputs = []bots.EntryInputs{
 			{
-				Entry: ViberWebhookEntry{},
+				Entry:  ViberWebhookEntry{},
 				Inputs: []bots.WebhookInput{NewViberWebhookTextMessage(message)},
 			},
 		}
@@ -152,7 +154,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		}
 		entriesWithInputs = []bots.EntryInputs{
 			{
-				Entry: ViberWebhookEntry{},
+				Entry:  ViberWebhookEntry{},
 				Inputs: []bots.WebhookInput{NewViberWebhookInputConversationStarted(message)},
 			},
 		}

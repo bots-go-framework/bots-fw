@@ -47,7 +47,6 @@ type BotChatStore interface {
 	Close(c context.Context) error // TODO: Was io.Closer, should it?
 }
 
-
 func NewChatID(botID, botChatID string) string {
 	return botID + ":" + botChatID
 }

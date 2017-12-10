@@ -3,21 +3,21 @@ package telegram_bot
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
 	"github.com/strongo/measurement-protocol"
+	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"github.com/strongo/log"
 	//"github.com/kylelemons/go-gypsy/yaml"
 	//"bytes"
-	"time"
-	"github.com/pquerna/ffjson/ffjson"
 	"bytes"
 	"github.com/julienschmidt/httprouter"
+	"github.com/pquerna/ffjson/ffjson"
 	"strings"
+	"time"
 )
 
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
@@ -79,7 +79,9 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 	}
 	botSettings, ok := h.botsBy(c).ByCode[botCode]
 	if !ok {
-		http.Error(w, fmt.Sprintf("Bot not found by code: %v", botCode), http.StatusBadRequest)
+		m := fmt.Sprintf("Bot not found by code: %v", botCode)
+		http.Error(w, m, http.StatusBadRequest)
+		log.Errorf(c, fmt.Sprintf("%v. All bots: %v", m, h.botsBy(c).ByCode))
 		return
 	}
 	bot := tgbotapi.NewBotAPIWithClient(botSettings.Token, client)
@@ -162,7 +164,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 	}
 
 	if input == nil {
-		logRequestBody();
+		logRequestBody()
 		err = errors.WithMessage(bots.ErrNotImplemented, "Telegram input is <nil>")
 		return
 	} else {

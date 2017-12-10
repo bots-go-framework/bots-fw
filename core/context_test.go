@@ -111,7 +111,7 @@ func (whc TestWebhookContext) Context() context.Context { panic("Not implemented
 
 func (whc TestWebhookContext) ChatKey() *datastore.Key                     { panic("Not implemented") }
 func (whc TestWebhookContext) NewChatKey(c context.Context) *datastore.Key { panic("Not implemented") }
-func (whc TestWebhookContext) ChatEntity() BotChat { panic("Not implemented") }
+func (whc TestWebhookContext) ChatEntity() BotChat                         { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }

@@ -27,4 +27,3 @@ func (input FbmPostbackInput) GetData() string {
 func (input FbmPostbackInput) GetMessage() bots.WebhookMessage {
 	return input.FbmWebhookInput
 }
-

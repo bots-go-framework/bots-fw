@@ -1,16 +1,16 @@
 package telegram_bot
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/strongo/bots-api-telegram"
-	"github.com/strongo/bots-framework/core"
-	"golang.org/x/net/context"
-	"net/http"
-	"github.com/strongo/log"
-	"bytes"
 	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
+	"github.com/strongo/bots-api-telegram"
+	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/log"
+	"golang.org/x/net/context"
+	"net/http"
 	"strconv"
 )
 
