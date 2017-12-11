@@ -53,6 +53,9 @@ You can use any Bot API library by implementing couple of simple interface but t
   * [strongo/bots-api-telegram](strongo/bots-api-telegram) - Go library for [**Telegram** Bot API](https://core.telegram.org/bots/api)
   * [strongo/bots-api-fbm](strongo/bots-api-fbm) - Go library for [**Facebook Messenger** Bot API](https://developers.facebook.com/docs/messenger-platform)
   * [strongo/bots-api-viber](strongo/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
+
+## [Can I use - &mdash; features cross-table for bot messenger APIs](can-i-use-bots-api.md)
+We are building a [cross-table of features](can-i-use-bots-api.md) supported by different bot APIs.
   
 ## Contributors
   * [Alexander Trakhimenok](https://ie.linkedin.com/in/alexandertrakhimenok)
