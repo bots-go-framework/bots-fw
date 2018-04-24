@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/strongo/log"
 	"context"
+	"github.com/strongo/log"
 )
 
 type MockLogger struct {

@@ -1,11 +1,11 @@
 package viber_bot
 
 import (
+	"context"
 	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 	"net/http"
 )
 

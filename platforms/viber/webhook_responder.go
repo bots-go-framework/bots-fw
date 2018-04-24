@@ -1,12 +1,12 @@
 package viber_bot
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 )
 
 type ViberWebhookResponder struct {

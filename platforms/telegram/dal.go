@@ -1,8 +1,8 @@
 package telegram_bot
 
 import (
-	"github.com/strongo/db"
 	"context"
+	"github.com/strongo/db"
 )
 
 type TgChatInstanceDal interface {

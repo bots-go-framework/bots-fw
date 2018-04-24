@@ -1,9 +1,9 @@
 package bots
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"context"
 )
 
 // SetAccessGranted marks current context as authenticated

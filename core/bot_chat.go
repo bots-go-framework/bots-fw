@@ -3,8 +3,8 @@ package bots
 import (
 	"time"
 
-	"github.com/satori/go.uuid"
 	"context"
+	"github.com/satori/go.uuid"
 )
 
 // BotChat provides data about bot chat

@@ -3,17 +3,17 @@ package bots
 import (
 	"net/http"
 
+	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/db"
 	"github.com/strongo/gamp"
-	"context"
 )
 
 // WebhookInlineQueryContext provides context for inline query (TODO: check & document)
 type WebhookInlineQueryContext interface {
 }
 
-type GaQueuer interface {// TODO: can be unexported?
+type GaQueuer interface { // TODO: can be unexported?
 	Queue(message gamp.Message) error
 }
 

@@ -13,8 +13,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/gamp"
+	"github.com/strongo/log"
 )
 
 // WebhookDriver is doing initial request & final response processing.
@@ -132,7 +132,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			return
 		}
 	}
-	
+
 	var (
 		whc               WebhookContext // TODO: How do deal with Facebook multiple entries per request?
 		measurementSender *gamp.BufferedClient

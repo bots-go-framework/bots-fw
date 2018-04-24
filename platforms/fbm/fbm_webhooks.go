@@ -2,6 +2,7 @@ package fbm_bot
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
@@ -9,7 +10,6 @@ import (
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 	"google.golang.org/appengine"
 	"io/ioutil"
 	"net/http"

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/strongo/db"
 	"context"
+	"github.com/strongo/db"
 )
 
 // BotPlatform describes current bot platform

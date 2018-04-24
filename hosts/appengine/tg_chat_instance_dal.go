@@ -1,12 +1,12 @@
 package gae_host
 
 import (
+	"context"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"context"
 	"google.golang.org/appengine/datastore"
 )
 

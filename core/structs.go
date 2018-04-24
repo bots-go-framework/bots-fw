@@ -5,9 +5,9 @@ package bots
 import (
 	"strconv"
 
+	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/bots-api-fbm"
-	"context"
 )
 
 // EntryInputs provides information on parsed inputs from bot API request

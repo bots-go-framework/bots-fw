@@ -9,8 +9,8 @@ import (
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/log"
 	"github.com/strongo/gamp"
+	"github.com/strongo/log"
 )
 
 // TypeCommands container for commands

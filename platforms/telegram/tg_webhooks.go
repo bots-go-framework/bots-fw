@@ -1,13 +1,13 @@
 package telegram_bot
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 	"io/ioutil"
 	"net/http"
 	//"github.com/kylelemons/go-gypsy/yaml"

@@ -1,6 +1,7 @@
 package viber_bot
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -10,7 +11,6 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"context"
 	"io/ioutil"
 	"net/http"
 	"regexp"

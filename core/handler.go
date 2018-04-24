@@ -3,8 +3,8 @@ package bots
 import (
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"context"
+	"github.com/julienschmidt/httprouter"
 )
 
 // WebhookHandler handles requests from a specific bot API

@@ -3,8 +3,8 @@ package bots
 import (
 	"fmt"
 
-	"github.com/strongo/app"
 	"context"
+	"github.com/strongo/app"
 )
 
 // BotSettings keeps parameters of a bot

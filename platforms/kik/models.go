@@ -1,6 +1,5 @@
 package kik
 
-import ()
 import "github.com/strongo/bots-framework/core"
 
 const (
