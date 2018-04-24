@@ -67,9 +67,8 @@ func CommandTextNoTrans(title, icon string) string {
 		return title
 	} else if title != "" && icon != "" {
 		return title + " " + icon
-	} else {
-		return "<NO_TITLE_OR_ICON>"
 	}
+	return "<NO_TITLE_OR_ICON>"
 }
 
 // DefaultTitle returns a default title for a command in current locale
