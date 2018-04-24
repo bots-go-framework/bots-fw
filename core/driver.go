@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DebtsTracker/translations/emoji"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
@@ -17,6 +16,9 @@ import (
 	"github.com/strongo/log"
 	"context"
 )
+
+// ErrorIcon is used to report errors to user
+var ErrorIcon = "🚨"
 
 // WebhookDriver is doing initial request & final response processing.
 // That includes logging, creating input messages in a general format, sending response.
@@ -126,7 +128,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			if whc != nil {
 				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
-						if _, err := responder.SendMessage(c, whc.NewMessage(emoji.ERROR_ICON+" "+messageText), BotApiSendMessageOverResponse); err != nil {
+						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), BotApiSendMessageOverResponse); err != nil {
 							log.Errorf(c, errors.WithMessage(err, "failed to report error to user").Error())
 						}
 					}
@@ -162,7 +164,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			if err := botCoreStores.BotChatStore.Close(c); err != nil {
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
 				var m MessageFromBot
-				m.Text = emoji.ERROR_ICON + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"
+				m.Text = ErrorIcon + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"
 				if _, err := whc.Responder().SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
 					log.Errorf(c, "Failed to report outage: %v", err)
 				}
