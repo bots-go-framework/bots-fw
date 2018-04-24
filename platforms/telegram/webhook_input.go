@@ -44,6 +44,29 @@ func (whi telegramWebhookInput) GetID() interface{} {
 	return whi.update.UpdateID
 }
 
+func message2input(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
+	switch {
+	case tgMessage.Text != "":
+		return NewTelegramWebhookTextMessage(input, tgMessageType, tgMessage)
+	case tgMessage.Contact != nil:
+		return NewTelegramWebhookContact(input)
+	case tgMessage.NewChatMembers != nil:
+		return NewTelegramWebhookNewChatMembersMessage(input)
+	case tgMessage.LeftChatMember != nil:
+		return NewTelegramWebhookLeftChatMembersMessage(input)
+	case tgMessage.Voice != nil:
+		return NewTelegramWebhookVoiceMessage(input, tgMessageType, tgMessage)
+	case tgMessage.Photo != nil:
+		return NewTelegramWebhookPhotoMessage(input, tgMessageType, tgMessage)
+	case tgMessage.Audio != nil:
+		return NewTelegramWebhookAudioMessage(input, tgMessageType, tgMessage)
+	case tgMessage.Sticker != nil:
+		return NewTelegramWebhookStickerMessage(input, tgMessageType, tgMessage)
+	default:
+		return nil
+	}
+}
+
 func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
 	input := telegramWebhookInput{update: update, logRequest: logRequest}
 
@@ -60,36 +83,13 @@ func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.W
 
 	default:
 
-		message2input := func(tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
-			switch {
-			case tgMessage.Text != "":
-				return NewTelegramWebhookTextMessage(input, tgMessageType, tgMessage)
-			case tgMessage.Contact != nil:
-				return NewTelegramWebhookContact(input)
-			case tgMessage.NewChatMembers != nil:
-				return NewTelegramWebhookNewChatMembersMessage(input)
-			case tgMessage.LeftChatMember != nil:
-				return NewTelegramWebhookLeftChatMembersMessage(input)
-			case tgMessage.Voice != nil:
-				return NewTelegramWebhookVoiceMessage(input, tgMessageType, tgMessage)
-			case tgMessage.Photo != nil:
-				return NewTelegramWebhookPhotoMessage(input, tgMessageType, tgMessage)
-			case tgMessage.Audio != nil:
-				return NewTelegramWebhookAudioMessage(input, tgMessageType, tgMessage)
-			case tgMessage.Sticker != nil:
-				return NewTelegramWebhookStickerMessage(input, tgMessageType, tgMessage)
-			default:
-				return nil
-			}
-		}
-
 		switch {
 
 		case update.Message != nil:
-			return message2input(TelegramMessageTypeRegular, update.Message), nil
+			return message2input(input, TelegramMessageTypeRegular, update.Message), nil
 
 		case update.EditedMessage != nil:
-			return message2input(TelegramMessageTypeEdited, update.EditedMessage), nil
+			return message2input(input, TelegramMessageTypeEdited, update.EditedMessage), nil
 
 		case update.ChannelPost != nil:
 			channelPost, _ := ffjson.MarshalFast(update.ChannelPost)
