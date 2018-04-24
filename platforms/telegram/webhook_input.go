@@ -13,6 +13,7 @@ type telegramWebhookInput struct {
 	logRequest func()
 }
 
+// TelegramWebhookInput is a wrapper of telegram update struct to bots framework interface
 type TelegramWebhookInput interface {
 	TgUpdate() *tgbotapi.Update
 }
@@ -25,6 +26,7 @@ func (whi telegramWebhookInput) LogRequest() {
 
 var _ TelegramWebhookInput = (*telegramWebhookInput)(nil)
 
+// TelegramWebhookUpdateProvider indicates that input can provide original Telegram update struct
 type TelegramWebhookUpdateProvider interface {
 	TgUpdate() *tgbotapi.Update
 }
@@ -67,6 +69,7 @@ func message2input(input telegramWebhookInput, tgMessageType TelegramMessageType
 	}
 }
 
+// NewTelegramWebhookInput maps telegram update struct to bots framework interface
 func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
 	input := telegramWebhookInput{update: update, logRequest: logRequest}
 
