@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
+	"context"
 )
 
 // WebhookDriver is doing initial request & final response processing.
@@ -82,56 +83,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
 
-	if err != nil {
-		if _, ok := err.(ErrAuthFailed); ok {
-			log.Warningf(c, "Auth failed: %v", err)
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		} else if errors.Cause(err) == ErrNotImplemented {
-			log.Debugf(c, err.Error())
-			w.WriteHeader(http.StatusNoContent)
-			//http.Error(w, "", http.StatusOK) // TODO: Decide how to handle it properly, return http.StatusNotImplemented?
-		} else if _, ok := err.(*json.SyntaxError); ok {
-			log.Debugf(c, errors.Wrap(err, "Request body is not valid JSON").Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		} else {
-			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	if botContext == nil {
-		if entriesWithInputs == nil {
-			log.Warningf(c, "botContext == nil, entriesWithInputs == nil")
-		} else if len(entriesWithInputs) == 0 {
-			log.Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
-		} else {
-			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
-		}
-		return
-	}
-
-	if entriesWithInputs == nil {
-		log.Errorf(c, "entriesWithInputs == nil")
+	if d.invalidContextOrInputs(c, w, r, botContext, entriesWithInputs, err) {
 		return
 	}
 
 	log.Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
-
-	switch botContext.BotSettings.Env {
-	case strongo.EnvLocal:
-		if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-	case strongo.EnvProduction:
-		if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
-			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-	}
 
 	var (
 		whc               WebhookContext // TODO: How do deal with Facebook multiple entries per request?
@@ -164,26 +120,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
 			if sendStats { // Zero if GA is disabled
-				gaMessage := gamp.NewException(messageText, true)
-
-				if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-					gaMessage.Common = whc.GaCommon()
-				} else {
-					gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371" // TODO: move hardcoded value
-					gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().Id()
-				}
-
-				if err := measurementSender.Queue(gaMessage); err != nil {
-					log.Errorf(c, "Failed to queue exception details for GA: %v", err)
-				} else {
-					log.Debugf(c, "Exception details queued for GA.")
-				}
-
-				if err = measurementSender.Flush(); err != nil {
-					log.Errorf(c, "Failed to send exception details to GA: %v", err)
-				} else {
-					log.Debugf(c, "Exception details sent to GA.")
-				}
+				d.reportErrorToGA(whc, measurementSender, messageText)
 			}
 
 			if whc != nil {
@@ -233,53 +170,125 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 	}()
 
-	logInput := func(i int, input WebhookInput) {
-		switch input.(type) {
-		case WebhookTextMessage:
-			sender := input.GetSender()
-			log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
-		case WebhookNewChatMembersMessage:
-			newMembers := input.(WebhookNewChatMembersMessage).NewChatMembers()
-			var b bytes.Buffer
-			b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
-			for i, member := range newMembers {
-				b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
-			}
-			log.Debugf(c, b.String())
-		case WebhookContactMessage:
-			sender := input.GetSender()
-			contactMessage := input.(WebhookContactMessage)
-			log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
-		case WebhookCallbackQuery:
-			callbackQuery := input.(WebhookCallbackQuery)
-			callbackData := callbackQuery.GetData()
-			sender := input.GetSender()
-			log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
-		case WebhookInlineQuery:
-			sender := input.GetSender()
-			log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
-		case WebhookChosenInlineResult:
-			sender := input.GetSender()
-			log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
-		case WebhookReferralMessage:
-			sender := input.GetSender()
-			log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
-		default:
-			log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
-		}
-	}
-
-	dispatch := botContext.BotSettings.Router.Dispatch
 
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
 			if input == nil {
 				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 			}
-			logInput(i, input)
+			d.logInput(c, i, input)
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, measurementSender)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-			dispatch(responder, whc)
+			botContext.BotSettings.Router.Dispatch(responder, whc)
 		}
+	}
+}
+
+func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *BotContext, entriesWithInputs []EntryInputs, err error) bool {
+	if err != nil {
+		if _, ok := err.(ErrAuthFailed); ok {
+			log.Warningf(c, "Auth failed: %v", err)
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		} else if errors.Cause(err) == ErrNotImplemented {
+			log.Debugf(c, err.Error())
+			w.WriteHeader(http.StatusNoContent)
+			//http.Error(w, "", http.StatusOK) // TODO: Decide how to handle it properly, return http.StatusNotImplemented?
+		} else if _, ok := err.(*json.SyntaxError); ok {
+			log.Debugf(c, errors.Wrap(err, "Request body is not valid JSON").Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return true
+	} else if botContext == nil {
+		if entriesWithInputs == nil {
+			log.Warningf(c, "botContext == nil, entriesWithInputs == nil")
+		} else if len(entriesWithInputs) == 0 {
+			log.Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
+		} else {
+			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
+		}
+		return true
+	} else if entriesWithInputs == nil {
+		log.Errorf(c, "entriesWithInputs == nil")
+		return true
+	}
+
+	switch botContext.BotSettings.Env {
+	case strongo.EnvLocal:
+		if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
+			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
+			w.WriteHeader(http.StatusBadRequest)
+			return true
+		}
+	case strongo.EnvProduction:
+		if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
+			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
+			w.WriteHeader(http.StatusBadRequest)
+			return true
+		}
+	}
+
+	return false
+}
+
+func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
+	gaMessage := gamp.NewException(messageText, true)
+
+	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
+		gaMessage.Common = whc.GaCommon()
+	} else {
+		gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371" // TODO: move hardcoded value
+		gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().Id()
+	}
+
+	c := whc.Context()
+	if err := measurementSender.Queue(gaMessage); err != nil {
+		log.Errorf(c, "Failed to queue exception details for GA: %v", err)
+	} else {
+		log.Debugf(c, "Exception details queued for GA.")
+	}
+
+	if err := measurementSender.Flush(); err != nil {
+		log.Errorf(c, "Failed to send exception details to GA: %v", err)
+	} else {
+		log.Debugf(c, "Exception details sent to GA.")
+	}
+}
+
+func (BotDriver) logInput(c context.Context, i int, input WebhookInput) {
+	switch input.(type) {
+	case WebhookTextMessage:
+		sender := input.GetSender()
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+	case WebhookNewChatMembersMessage:
+		newMembers := input.(WebhookNewChatMembersMessage).NewChatMembers()
+		var b bytes.Buffer
+		b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
+		for i, member := range newMembers {
+			b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
+		}
+		log.Debugf(c, b.String())
+	case WebhookContactMessage:
+		sender := input.GetSender()
+		contactMessage := input.(WebhookContactMessage)
+		log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
+	case WebhookCallbackQuery:
+		callbackQuery := input.(WebhookCallbackQuery)
+		callbackData := callbackQuery.GetData()
+		sender := input.GetSender()
+		log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+	case WebhookInlineQuery:
+		sender := input.GetSender()
+		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+	case WebhookChosenInlineResult:
+		sender := input.GetSender()
+		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+	case WebhookReferralMessage:
+		sender := input.GetSender()
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+	default:
+		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 	}
 }
