@@ -24,7 +24,7 @@ func ConfigureKikHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf("Failed to create request: %v", err)))
 	}
-	request.Header.Set("Authorization", fmt.Sprintf("Basic %v", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v:%v", BOT_USERNAME, API_KEY)))))
+	request.Header.Set("Authorization", fmt.Sprintf("Basic %v", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%v:%v", "BOT_USERNAME", "API_KEY")))))
 	request.Header.Set("Content-Type", "application/json")
 
 	res, err := client.Do(request)
