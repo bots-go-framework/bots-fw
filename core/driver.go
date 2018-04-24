@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-	"context"
 )
 
 // ErrorIcon is used to report errors to user
@@ -32,7 +32,7 @@ type BotDriver struct {
 	Analytics  AnalyticsSettings
 	botHost    BotHost
 	appContext BotAppContext
-	//router          *WebhooksRouter //
+	//router          *WebhooksRouter
 	panicTextFooter string
 }
 
@@ -171,7 +171,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 		}
 	}()
-
 
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
