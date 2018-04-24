@@ -80,29 +80,27 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 
 	err := nds.RunInTransaction(c, func(ctx context.Context) (err error) {
 		botUserKey := s.botUserKey(ctx, botUserID)
-		err = nds.Get(ctx, botUserKey, botUserEntity)
 
-		if err == datastore.ErrNoSuchEntity {
-			appUserId, err := s.gaeAppUserStore.getAppUserIdByBotUserKey(c, botUserKey)
-			if err != nil {
-				return err
+		if err = nds.Get(ctx, botUserKey, botUserEntity); err == datastore.ErrNoSuchEntity {
+			var appUserId int64
+			if appUserId, err = s.gaeAppUserStore.getAppUserIdByBotUserKey(c, botUserKey); err != nil {
+				return
 			}
 			if appUserId == 0 {
 				appUserId, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
 				if err != nil {
 					log.Errorf(c, "Failed to create app user: %v", err)
-					return err
+					return
 				}
 				newUser = true
 			}
 			botUserEntity.SetAppUserIntID(appUserId)
 			botUserEntity.SetDtUpdated(time.Now())
-			botUserKey, err = nds.Put(ctx, botUserKey, botUserEntity)
-		} else if err != nil {
-			return err
+			if _, err = nds.Put(ctx, botUserKey, botUserEntity); err != nil {
+				return
+			}
 		}
-
-		return nil
+		return
 	}, &datastore.TransactionOptions{XG: true})
 
 	if err != nil {
