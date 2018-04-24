@@ -62,7 +62,7 @@ func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c con
 	return whcb.BotContext.BotHost.DB().RunInTransaction(c, f, options)
 }
 
-// IsInTransaction detects if request is withing a transaction
+// IsInTransaction detects if request is within a transaction
 func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
 	return whcb.BotContext.BotHost.DB().IsInTransaction(c)
 }

@@ -86,15 +86,15 @@ func (e *BotChatEntity) AddClientLanguage(languageCode string) (changed bool) {
 }
 
 //func (e *BotChatEntity) GetBotUserIntID() int {
-//	panic("Should be overwritted in subclass")
+//	panic("Should be overwritten in subclass")
 //}
 //
 //func (e *BotChatEntity) GetBotUserStringID() string {
-//	panic("Should be overwritted in subclass")
+//	panic("Should be overwritten in subclass")
 //}
 
 func (e *BotChatEntity) SetBotUserID(id interface{}) {
-	panic(fmt.Sprintf("Should be overwritted in subclass, got: %T=%v", id, id))
+	panic(fmt.Sprintf("Should be overwritten in subclass, got: %T=%v", id, id))
 }
 
 func (e *BotChatEntity) SetDtLastInteraction(v time.Time) {

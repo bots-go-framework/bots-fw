@@ -121,7 +121,7 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 			}
 			w.Write([]byte(responseText))
 		} else {
-			log.Debugf(c, "Unkown bot '%v'", botCode)
+			log.Debugf(c, "Unknown bot '%v'", botCode)
 			w.WriteHeader(http.StatusForbidden)
 		}
 	case http.MethodPost:

@@ -41,7 +41,7 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	}
 	log.Debugf(c, "Request body: %v", (string)(requestBody))
 	if response.Status == 0 {
-		log.Debugf(c, "Succesfully sent to Viber")
+		log.Debugf(c, "Successfully sent to Viber")
 	} else {
 		switch response.Status { // https://developers.viber.com/customer/en/portal/articles/2541337-error-codes?b_id=15145
 		case 2:
