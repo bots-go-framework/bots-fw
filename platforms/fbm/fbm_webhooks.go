@@ -16,6 +16,7 @@ import (
 	"strings"
 )
 
+// NewFbmWebhookHandler returns handler that handles FBM messages
 func NewFbmWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) FbmWebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
@@ -29,6 +30,7 @@ func NewFbmWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.
 	}
 }
 
+// FbmWebhookHandler handles FBM messages
 type FbmWebhookHandler struct {
 	bots.BaseHandler
 	bots bots.SettingsProvider
@@ -36,6 +38,7 @@ type FbmWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*FbmWebhookHandler)(nil)
 
+// RegisterWebhookHandler registers HTTP handler for handling FBM messages
 func (handler FbmWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
@@ -46,6 +49,7 @@ func (handler FbmWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDrive
 	router.POST(pathPrefix+"/fbm/whitelist", handler.Whitelist)
 }
 
+// Whitelist need to be documented
 func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := handler.Context(r)
 	httpClient := handler.GetHttpClient(c)
@@ -78,6 +82,7 @@ func (handler FbmWebhookHandler) Whitelist(w http.ResponseWriter, r *http.Reques
 
 }
 
+// Subscribe subscribes for webhook updates from FBM
 func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := handler.Context(r)
 	httpClient := handler.GetHttpClient(c)
@@ -101,6 +106,7 @@ func (handler FbmWebhookHandler) Subscribe(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// HandleWebhookRequest handles webhook request from FBM
 func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	c := appengine.NewContext(r)
 	log.Debugf(c, "FbmWebhookHandler.HandleWebhookRequest()")
@@ -131,6 +137,7 @@ func (handler FbmWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *
 	}
 }
 
+// GetBotContextAndInputs maps FBM request to bots-framework struct
 func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var (
 		receivedMessage fbm_api.ReceivedMessage
@@ -172,10 +179,12 @@ func (handler FbmWebhookHandler) GetBotContextAndInputs(c context.Context, r *ht
 	return
 }
 
+// CreateWebhookContext creates context for handling FBM webhook requests
 func (_ FbmWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) bots.WebhookContext {
 	return NewFbmWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
+// GetResponder creates responder that can send messages to FBM
 func (_ FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
 	if fbmWhc, ok := whc.(*FbmWebhookContext); ok {
 		return NewFbmWebhookResponder(fbmWhc)
@@ -184,6 +193,7 @@ func (_ FbmWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookC
 	}
 }
 
+// CreateBotCoreStores create DAL for bot framework
 func (handler FbmWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
 	return handler.BotHost.GetBotCoreStores(FbmPlatformID, appContext, r)
 }
