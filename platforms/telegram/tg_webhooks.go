@@ -69,7 +69,8 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 }
 
 func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
-	ctxWithDeadline, _ := context.WithTimeout(c, 30*time.Second)
+	ctxWithDeadline, cancel := context.WithTimeout(c, 30*time.Second)
+	defer cancel()
 	client := h.GetHttpClient(ctxWithDeadline)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
