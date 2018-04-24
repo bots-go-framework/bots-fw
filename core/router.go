@@ -306,10 +306,10 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		whc.LogRequest()
 		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
 		if whc.Chat().IsGroupChat() {
-			//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND), Format: MessageFormatHTML}
+			//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
 			//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
-			m = whc.NewMessageByCode(MESSAGE_TEXT_I_DID_NOT_UNDERSTAND_THE_COMMAND)
+			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
 			chatEntity := whc.ChatEntity()
 			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
 				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
@@ -439,7 +439,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 		if inputType == WebhookInputText || inputType == WebhookInputContact {
 			// Todo: Try to get chat ID from user?
 			m := whc.NewMessage(
-				whc.Translate(MESSAGE_TEXT_OOPS_SOMETHING_WENT_WRONG) +
+				whc.Translate(MessageTextOopsSomethingWentWrong) +
 					"\n\n" +
 					emoji.ERROR_ICON +
 					fmt.Sprintf(" Server error - failed to process message: %v", err),

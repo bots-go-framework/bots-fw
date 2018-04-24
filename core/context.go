@@ -13,6 +13,7 @@ import (
 type WebhookInlineQueryContext interface {
 }
 
+// GaQueuer queues messages for sending to Google Analytics
 type GaQueuer interface { // TODO: can be unexported?
 	Queue(message gamp.Message) error
 }
