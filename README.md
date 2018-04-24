@@ -11,7 +11,7 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 
 ## Conitious Integration
-[![Build Status](https://drone.io/github.com/strongo/bots-framework/status.png)](https://drone.io/github.com/strongo/bots-framework/latest)
+[![CircleCI](https://circleci.com/gh/strongo/bots-framework.svg?style=svg)](https://circleci.com/gh/strongo/bots-framework)
 
 ## Usage
 
