@@ -50,26 +50,26 @@ type WebhookEntry interface {
 type WebhookInputType int
 
 const (
-	WebhookInputUnknown             WebhookInputType = iota
+	WebhookInputUnknown WebhookInputType = iota
 	WebhookInputNotImplemented
-	WebhookInputText                 // Facebook, Telegram, Viber
+	WebhookInputText // Facebook, Telegram, Viber
 	WebhookInputVoice
 	WebhookInputPhoto
 	WebhookInputAudio
-	WebhookInputContact              // Facebook, Telegram, Viber
+	WebhookInputContact // Facebook, Telegram, Viber
 	WebhookInputPostback
 	WebhookInputDelivery
 	WebhookInputAttachment
-	WebhookInputInlineQuery          // Telegram
+	WebhookInputInlineQuery // Telegram
 	WebhookInputCallbackQuery
-	WebhookInputReferral             // FBM
-	WebhookInputChosenInlineResult   // Telegram
-	WebhookInputSubscribed           // Viber
-	WebhookInputUnsubscribed         // Viber
-	WebhookInputConversationStarted  // Viber
-	WebhookInputNewChatMembers       // Telegram groups
+	WebhookInputReferral            // FBM
+	WebhookInputChosenInlineResult  // Telegram
+	WebhookInputSubscribed          // Viber
+	WebhookInputUnsubscribed        // Viber
+	WebhookInputConversationStarted // Viber
+	WebhookInputNewChatMembers      // Telegram groups
 	WebhookInputLeftChatMembers
-	WebhookInputSticker              // Telegram
+	WebhookInputSticker // Telegram
 )
 
 var WebhookInputTypeNames = map[WebhookInputType]string{
@@ -299,8 +299,8 @@ type BotApiSendMessageChannel string
 
 const (
 	// BotApiSendMessageOverHTTPS indicates message should be sent over HTTPS
-	BotApiSendMessageOverHTTPS    = BotApiSendMessageChannel("https")
-	
+	BotApiSendMessageOverHTTPS = BotApiSendMessageChannel("https")
+
 	// BotApiSendMessageOverResponse indicates message should be sent in HTTP response
 	BotApiSendMessageOverResponse = BotApiSendMessageChannel("response")
 )
