@@ -3,8 +3,7 @@ package fbm_bot
 import (
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ type FbmWebhookContext struct {
 
 var _ bots.WebhookContext = (*FbmWebhookContext)(nil)
 
-func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *FbmWebhookContext {
+func NewFbmWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) *FbmWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,

@@ -3,15 +3,17 @@ package bots
 import (
 	"fmt"
 	//"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"net/url"
-	"strings"
+	"github.com/strongo/gamp"
 )
 
+// TypeCommands container for commands
 type TypeCommands struct {
 	all    []Command
 	byCode map[string]Command
@@ -36,11 +38,13 @@ func (v *TypeCommands) addCommand(command Command, commandType WebhookInputType)
 	}
 }
 
+// WebhooksRouter maps routes to commands
 type WebhooksRouter struct {
 	commandsByType  map[WebhookInputType]*TypeCommands
 	errorFooterText func() string
 }
 
+// NewWebhookRouter creates new router
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
 	r := WebhooksRouter{
 		commandsByType:  make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
@@ -56,6 +60,7 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 	return r
 }
 
+// AddCommands add commands to a router
 func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
 	typeCommands, ok := router.commandsByType[commandsType]
 	if !ok {
@@ -75,6 +80,7 @@ func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, command
 	}
 }
 
+// RegisterCommands is registering commands with router
 func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 	addCommand := func(t WebhookInputType, command Command) {
 		typeCommands, ok := router.commandsByType[t]
@@ -100,16 +106,16 @@ func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 	}
 }
 
-func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeCommands *TypeCommands) (matchedCommand *Command, callbackUrl *url.URL, err error) {
+func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeCommands *TypeCommands) (matchedCommand *Command, callbackURL *url.URL, err error) {
 	if len(typeCommands.all) > 0 {
 		callbackData := input.GetData()
-		callbackUrl, err = url.Parse(callbackData)
+		callbackURL, err = url.Parse(callbackData)
 		if err != nil {
 			log.Errorf(whc.Context(), "Failed to parse callback data to URL: %v", err.Error())
 		} else {
-			callbackPath := callbackUrl.Path
+			callbackPath := callbackURL.Path
 			if command, ok := typeCommands.byCode[callbackPath]; ok {
-				return &command, callbackUrl, nil
+				return &command, callbackURL, nil
 			}
 		}
 		if err == nil && matchedCommand == nil {
@@ -119,7 +125,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 	} else {
 		panic("len(typeCommands.all) == 0")
 	}
-	return nil, callbackUrl, err
+	return nil, callbackURL, err
 }
 
 func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, parentPath string, commands []Command) (matchedCommand *Command) {
@@ -188,7 +194,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 			log.Debugf(c, "%v matched by command.FullName()", command.Code)
 			matchedCommand = &command
 			return
-		} else {
+			// } else {
 			//log.Debugf(c, "command(code=%v).Title(whc): %v", command.ByCode, command.DefaultTitle(whc))
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
@@ -223,10 +229,12 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 	return
 }
 
+// DispatchInlineQuery dispatches inlines query
 func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 
 }
 
+// Dispatch query to commands
 func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
 	//defer func() {
@@ -254,8 +262,8 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 	input := whc.Input()
 	switch input.(type) {
 	case WebhookCallbackQuery:
-		var callbackUrl *url.URL
-		matchedCommand, callbackUrl, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
+		var callbackURL *url.URL
+		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
 		if err == nil && matchedCommand != nil {
 			if matchedCommand.Code == "" {
 				err = fmt.Errorf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand)
@@ -264,7 +272,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			} else {
 				log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
 				commandAction = func(whc WebhookContext) (MessageFromBot, error) {
-					return matchedCommand.CallbackAction(whc, callbackUrl)
+					return matchedCommand.CallbackAction(whc, callbackURL)
 				}
 			}
 		}
@@ -378,16 +386,16 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	inputType := whc.InputType()
 	if err == nil {
 		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
-			const FAILED_TO_SEND_MESSAGE_TO_MESSENGER = "failed to send a message to messenger"
+			const failedToSendMessageToMessenger = "failed to send a message to messenger"
 			if strings.Contains(err.Error(), "message is not modified") { // TODO: This check is specific to Telegram and should be abstracted
-				logText := FAILED_TO_SEND_MESSAGE_TO_MESSENGER
+				logText := failedToSendMessageToMessenger
 				if inputType == WebhookInputCallbackQuery {
 					logText += "(can be duplicate callback)"
 				}
 				log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
 				err = nil
 			} else {
-				log.Errorf(c, errors.WithMessage(err, FAILED_TO_SEND_MESSAGE_TO_MESSENGER).Error()) //TODO: Decide how do we handle this
+				log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) //TODO: Decide how do we handle this
 			}
 		}
 		if matchedCommand != nil {
@@ -395,7 +403,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 
 				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
 				pathPrefix := "bot/"
-				var pageview measurement.Pageview
+				var pageview gamp.Pageview
 				var chatEntity BotChat
 				if inputType != WebhookInputCallbackQuery {
 					chatEntity = whc.ChatEntity()
@@ -404,17 +412,16 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 					path := chatEntity.GetAwaitingReplyTo()
 					if path == "" {
 						path = matchedCommand.Code
-					} else if pathUrl, err := url.Parse(path); err == nil {
-						path = pathUrl.Path
+					} else if pathURL, err := url.Parse(path); err == nil {
+						path = pathURL.Path
 					}
-					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
+					pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 				} else {
-					pageview = measurement.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
+					pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
 				}
 
 				pageview.Common = whc.GaCommon()
-				err := gaMeasurement.Queue(pageview)
-				if err != nil {
+				if err := gaMeasurement.Queue(pageview); err != nil {
 					log.Warningf(c, "Failed to send page view to GA: %v", err)
 				}
 			}
@@ -422,7 +429,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	} else {
 		log.Errorf(c, err.Error())
 		if env == strongo.EnvProduction && gaMeasurement != nil {
-			exceptionMessage := measurement.NewException(err.Error(), false)
+			exceptionMessage := gamp.NewException(err.Error(), false)
 			exceptionMessage.Common = whc.GaCommon()
 			err = gaMeasurement.Queue(exceptionMessage)
 			if err != nil {

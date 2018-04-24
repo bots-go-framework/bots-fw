@@ -2,21 +2,23 @@ package bots
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
-	"github.com/strongo/app"
-	"github.com/strongo/db"
-	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+	"github.com/strongo/app"
+	"github.com/strongo/db"
+	"github.com/strongo/log"
+	"github.com/strongo/gamp"
+	"context"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
+// WebhookContextBase provides base implementation of WebhookContext interface
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
 	r             *http.Request
@@ -43,33 +45,39 @@ type WebhookContextBase struct {
 
 	BotCoreStores
 
-	gaMeasurement *measurement.BufferedSender
+	gaMeasurement GaQueuer
 }
 
 func (whcb *WebhookContextBase) SetChatID(v string) {
 	whcb.chatID = v
 }
 
+// LogRequest logs request data to logging system
 func (whcb *WebhookContextBase) LogRequest() {
 	whcb.input.LogRequest()
 }
 
+// RunInTransaction starts a transaction. This needed to coordinate application & framework changes.
 func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
 	return whcb.BotContext.BotHost.DB().RunInTransaction(c, f, options)
 }
 
+// IsInTransaction detects if request is withing a transaction
 func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
 	return whcb.BotContext.BotHost.DB().IsInTransaction(c)
 }
 
+// NonTransactionalContext creates a non transaction context for operations that needs to be executed outside of transaction.
 func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) context.Context {
 	return whcb.BotContext.BotHost.DB().NonTransactionalContext(tc)
 }
 
+// Request returns reference to current HTTP request
 func (whcb *WebhookContextBase) Request() *http.Request {
 	return whcb.r
 }
 
+// Environment defines current environment (PROD, DEV, LOCAL, etc)
 func (whcb *WebhookContextBase) Environment() strongo.Environment {
 	return whcb.BotContext.BotSettings.Env
 }
@@ -111,11 +119,11 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		callbackQuery := input.(WebhookCallbackQuery)
 		data := callbackQuery.GetData()
 		if strings.Contains(data, "chat=") {
-			if values, err := url.ParseQuery(data); err != nil {
+			values, err := url.ParseQuery(data)
+			if err != nil {
 				return "", errors.WithMessage(err, "Failed to GetData() from webhookInput.InputCallbackQuery()")
-			} else {
-				whcb.chatID = values.Get("chat")
 			}
+			whcb.chatID = values.Get("chat")
 		}
 	case WebhookInlineQuery:
 		// pass
@@ -129,10 +137,12 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	return whcb.chatID, nil
 }
 
+// AppUserStrID return current app user ID as a string
 func (whcb *WebhookContextBase) AppUserStrID() string {
 	return strconv.FormatInt(whcb.AppUserIntID(), 10)
 }
 
+// AppUserIntID return current app user ID as integer
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 	if !whcb.isInGroup() {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
@@ -150,6 +160,7 @@ func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 	return
 }
 
+// GetAppUser loads information about current app user from persistent storage
 func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserIntID()
 	appUser := whcb.BotAppContext().NewBotAppUserEntity()
@@ -157,14 +168,17 @@ func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/
 	return appUser, err
 }
 
+// ExecutionContext returns an execution context for strongo app
 func (whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
 	return whcb
 }
 
+// BotAppContext returns bot app context
 func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
 	return whcb.botAppContext
 }
 
+// IsInGroup signals if the bot request is send within group chat
 func (whcb *WebhookContextBase) IsInGroup() bool {
 	return whcb.isInGroup()
 }
@@ -176,7 +190,7 @@ func NewWebhookContextBase(
 	botContext BotContext,
 	webhookInput WebhookInput,
 	botCoreStores BotCoreStores,
-	gaMeasurement *measurement.BufferedSender,
+	gaMeasurement GaQueuer,
 	isInGroup func() bool,
 	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
 ) *WebhookContextBase {
@@ -235,14 +249,14 @@ func (whcb *WebhookContextBase) InputType() WebhookInputType {
 	return whcb.input.InputType()
 }
 
-func (whcb *WebhookContextBase) GaMeasurement() *measurement.BufferedSender {
+func (whcb *WebhookContextBase) GaMeasurement() GaQueuer {
 	return whcb.gaMeasurement
 }
 
-func (whcb *WebhookContextBase) GaCommon() measurement.Common {
+func (whcb *WebhookContextBase) GaCommon() gamp.Common {
 	if whcb.chatEntity != nil {
 		c := whcb.Context()
-		return measurement.Common{
+		return gamp.Common{
 			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
 			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
 			ClientID:      whcb.chatEntity.GetGaClientID().String(),
@@ -251,18 +265,18 @@ func (whcb *WebhookContextBase) GaCommon() measurement.Common {
 			DataSource:    "bot",
 		}
 	}
-	return measurement.Common{
+	return gamp.Common{
 		DataSource: "bot",
 		ClientID:   "c7ea15eb-3333-4d47-a002-9d1a14996371",
 	}
 }
 
-func (whcb *WebhookContextBase) GaEvent(category, action string) measurement.Event {
-	return measurement.NewEvent(category, action, whcb.GaCommon())
+func (whcb *WebhookContextBase) GaEvent(category, action string) gamp.Event {
+	return gamp.NewEvent(category, action, whcb.GaCommon())
 }
 
-func (whcb *WebhookContextBase) GaEventWithLabel(category, action, label string) measurement.Event {
-	return measurement.NewEventWithLabel(category, action, label, whcb.GaCommon())
+func (whcb *WebhookContextBase) GaEventWithLabel(category, action, label string) gamp.Event {
+	return gamp.NewEventWithLabel(category, action, label, whcb.GaCommon())
 }
 
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
@@ -289,9 +303,9 @@ func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface
 	return whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5, args...)
 }
 
-func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
-	return whcb.BotContext.BotHost.GetHttpClient(whcb.c)
-}
+//func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
+//	return whcb.BotContext.BotHost.GetHttpClient(whcb.c)
+//}
 
 func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
@@ -348,9 +362,9 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		whcb.gaMeasurement.Queue(whcb.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.Id())) // TODO: Should be outside
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			gaEvent := measurement.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
+			gaEvent := gamp.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
 			gaEvent.Label = whcb.botPlatform.Id()
-			whcb.GaMeasurement().Queue(gaEvent)
+			whcb.gaMeasurement.Queue(gaEvent)
 		}
 	} else {
 		log.Infof(c, "Found existing bot user entity")
@@ -390,7 +404,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			gaEvent := measurement.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
+			gaEvent := gamp.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
 			gaEvent.Label = whcb.botPlatform.Id()
 			whcb.GaMeasurement().Queue(gaEvent)
 		}
@@ -413,10 +427,12 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	return err
 }
 
+// AppUserEntity current app user entity from data storage
 func (whcb *WebhookContextBase) AppUserEntity() BotAppUser {
 	return whcb.appUser
 }
 
+// Context for current request
 func (whcb *WebhookContextBase) Context() context.Context {
 	return whcb.c
 }

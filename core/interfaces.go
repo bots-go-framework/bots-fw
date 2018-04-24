@@ -1,17 +1,20 @@
 package bots
 
 import (
-	"github.com/strongo/db"
-	"golang.org/x/net/context"
 	"net/http"
 	"time"
+
+	"github.com/strongo/db"
+	"context"
 )
 
+// BotPlatform describes current bot platform
 type BotPlatform interface {
 	Id() string
 	Version() string
 }
 
+// BotHost describes current bot app host environment
 type BotHost interface {
 	Context(r *http.Request) context.Context
 	GetHttpClient(c context.Context) *http.Client
@@ -19,12 +22,14 @@ type BotHost interface {
 	DB() db.Database
 }
 
+// BotContext describes current bot app host & settings
 type BotContext struct {
 	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
 	BotHost     BotHost
 	BotSettings BotSettings
 }
 
+// NewBotContext creates current bot host & settings
 func NewBotContext(host BotHost, settings BotSettings) *BotContext {
 	if settings.Code == "" {
 		panic("ReferredTo settings.Code is empty string")

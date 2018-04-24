@@ -9,8 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongo/db"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 	"strconv"
 )
@@ -136,7 +135,7 @@ func newTelegramWebhookContext(
 	r *http.Request, botContext bots.BotContext,
 	input TelegramWebhookInput,
 	botCoreStores bots.BotCoreStores,
-	gaMeasurement *measurement.BufferedSender,
+	gaMeasurement bots.GaQueuer,
 ) *TelegramWebhookContext {
 	twhc := &TelegramWebhookContext{
 		tgInput: input.(TelegramWebhookInput),
@@ -208,7 +207,7 @@ func (twhc *TelegramWebhookContext) Init(w http.ResponseWriter, r *http.Request)
 }
 
 func (twhc *TelegramWebhookContext) BotApi() *tgbotapi.BotAPI {
-	return tgbotapi.NewBotAPIWithClient(twhc.BotContext.BotSettings.Token, twhc.GetHttpClient())
+	return tgbotapi.NewBotAPIWithClient(twhc.BotContext.BotSettings.Token, twhc.BotContext.BotHost.GetHttpClient(twhc.Context()))
 }
 
 func (twhc *TelegramWebhookContext) GetAppUser() (bots.BotAppUser, error) {

@@ -6,7 +6,7 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type ViberWebhookResponder struct {
@@ -25,7 +25,7 @@ func NewViberWebhookResponder(whc *ViberWebhookContext) ViberWebhookResponder {
 func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
 	log.Debugf(c, "ViberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
-	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.GetHttpClient())
+	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.BotContext.BotHost.GetHttpClient(c))
 	log.Debugf(c, "Keyboard: %v", m.Keyboard)
 
 	var viberKeyboard *viberinterface.Keyboard

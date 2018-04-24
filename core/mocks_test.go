@@ -2,9 +2,10 @@ package bots
 
 import (
 	"fmt"
-	"github.com/strongo/log"
-	"golang.org/x/net/context"
 	"testing"
+
+	"github.com/strongo/log"
+	"context"
 )
 
 type MockLogger struct {
@@ -13,7 +14,7 @@ type MockLogger struct {
 	Infos    []string
 }
 
-func (_ *MockLogger) Name() string {
+func (*MockLogger) Name() string {
 	return "MockLogger"
 }
 

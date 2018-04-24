@@ -1,11 +1,13 @@
 package bots
 
 import (
-	"github.com/satori/go.uuid"
-	"golang.org/x/net/context"
 	"time"
+
+	"github.com/satori/go.uuid"
+	"context"
 )
 
+// BotChat provides data about bot chat
 type BotChat interface {
 	GetBotID() string
 	SetBotID(botID string)
@@ -40,6 +42,7 @@ type BotChat interface {
 	GetGaClientID() uuid.UUID
 }
 
+// BotChatStore is interface for DAL to store bot chat data
 type BotChatStore interface {
 	GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error)
 	SaveBotChat(c context.Context, botID, botChatID string, chatEntity BotChat) error
@@ -47,6 +50,7 @@ type BotChatStore interface {
 	Close(c context.Context) error // TODO: Was io.Closer, should it?
 }
 
+// NewChatID create a new bot chat ID, returns string
 func NewChatID(botID, botChatID string) string {
 	return botID + ":" + botChatID
 }

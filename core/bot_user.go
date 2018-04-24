@@ -1,10 +1,12 @@
 package bots
 
 import (
-	"golang.org/x/net/context"
 	"time"
+
+	"context"
 )
 
+// BotUser interface provides information about bot user
 type BotUser interface {
 	GetAppUserIntID() int64
 	IsAccessGranted() bool
@@ -13,6 +15,7 @@ type BotUser interface {
 	SetDtUpdated(time time.Time)
 }
 
+// BotUserStore provider to store information about bot user
 type BotUserStore interface {
 	GetBotUserById(c context.Context, botUserID interface{}) (BotUser, error)
 	SaveBotUser(c context.Context, botUserID interface{}, botUserEntity BotUser) error

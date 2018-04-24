@@ -5,7 +5,7 @@ import (
 	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/db"
 	"github.com/strongo/db/gaedb"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"

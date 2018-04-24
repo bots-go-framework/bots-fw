@@ -10,8 +10,7 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -63,7 +62,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 	botSettings, ok := h.botsBy(c).ByCode[code]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown public account: [%v]", code)
-		err = bots.AuthFailedError(errMess)
+		err = bots.ErrAuthFailed(errMess)
 		return
 	}
 
@@ -173,7 +172,7 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 	return
 }
 
-func (_ ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) bots.WebhookContext {
+func (_ ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) bots.WebhookContext {
 	return NewViberWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 

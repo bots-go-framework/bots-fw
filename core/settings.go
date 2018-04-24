@@ -2,10 +2,12 @@ package bots
 
 import (
 	"fmt"
+
 	"github.com/strongo/app"
-	"golang.org/x/net/context"
+	"context"
 )
 
+// BotSettings keeps parameters of a bot
 type BotSettings struct {
 	Env              strongo.Environment
 	ID               string
@@ -19,6 +21,7 @@ type BotSettings struct {
 	Router           WebhooksRouter
 }
 
+// NewBotSettings configures bot application
 func NewBotSettings(mode strongo.Environment, profile, code, id, token string, locale strongo.Locale) BotSettings {
 	if profile == "" {
 		panic("Missing required parameter: profile")
@@ -42,23 +45,26 @@ func NewBotSettings(mode strongo.Environment, profile, code, id, token string, l
 	}
 }
 
+// SettingsProvider returns settings per different keys (ID, code, API token, locale)
 type SettingsProvider func(c context.Context) SettingsBy
 
+// SettingsBy keeps settings per different keys (ID, code, API token, locale)
 type SettingsBy struct {
 	// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 	ByCode     map[string]BotSettings
-	ByApiToken map[string]BotSettings
+	ByAPIToken map[string]BotSettings
 	ByLocale   map[string][]BotSettings
 	ByID       map[string]BotSettings
 	HasRouter  bool
 }
 
+// NewBotSettingsBy create settings per different keys (ID, code, API token, locale)
 func NewBotSettingsBy(router func(profile string) WebhooksRouter, bots ...BotSettings) SettingsBy {
 	count := len(bots)
 	settingsBy := SettingsBy{
 		HasRouter:  router != nil,
 		ByCode:     make(map[string]BotSettings, count),
-		ByApiToken: make(map[string]BotSettings, count),
+		ByAPIToken: make(map[string]BotSettings, count),
 		ByLocale:   make(map[string][]BotSettings, count),
 		ByID:       make(map[string]BotSettings, count),
 	}
@@ -71,10 +77,10 @@ func NewBotSettingsBy(router func(profile string) WebhooksRouter, bots ...BotSet
 		} else {
 			settingsBy.ByCode[bot.Code] = bot
 		}
-		if _, ok := settingsBy.ByApiToken[bot.Token]; ok {
+		if _, ok := settingsBy.ByAPIToken[bot.Token]; ok {
 			panic(fmt.Sprintf("Bot with duplicate token: %v", bot.Token))
 		} else {
-			settingsBy.ByApiToken[bot.Token] = bot
+			settingsBy.ByAPIToken[bot.Token] = bot
 		}
 		if bot.ID != "" {
 			if _, ok := settingsBy.ByID[bot.ID]; ok {

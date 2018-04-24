@@ -7,8 +7,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
+	"context"
 	"io/ioutil"
 	"net/http"
 	//"github.com/kylelemons/go-gypsy/yaml"
@@ -110,10 +109,10 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	//log.Debugf(c, "TelegramWebhookHandler.GetBotContextAndInputs()")
 	token := r.URL.Query().Get("token")
-	botSettings, ok := h.botsBy(c).ByApiToken[token]
+	botSettings, ok := h.botsBy(c).ByAPIToken[token]
 	if !ok {
 		errMess := fmt.Sprintf("Unknown token: [%v]", token)
-		err = bots.AuthFailedError(errMess)
+		err = bots.ErrAuthFailed(errMess)
 		return
 	}
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
@@ -186,7 +185,7 @@ func (h TelegramWebhookHandler) CreateWebhookContext(
 	r *http.Request, botContext bots.BotContext,
 	webhookInput bots.WebhookInput,
 	botCoreStores bots.BotCoreStores,
-	gaMeasurement *measurement.BufferedSender,
+	gaMeasurement bots.GaQueuer,
 ) bots.WebhookContext {
 	return newTelegramWebhookContext(
 		appContext, r, botContext, webhookInput.(TelegramWebhookInput), botCoreStores, gaMeasurement)

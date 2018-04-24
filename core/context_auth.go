@@ -3,9 +3,10 @@ package bots
 import (
 	"github.com/pkg/errors"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 )
 
+// SetAccessGranted marks current context as authenticated
 func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	c := whc.Context()
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
@@ -38,25 +39,23 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserById(c, botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
+	} else if botUser.IsAccessGranted() == value {
+		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 	} else {
-		if botUser.IsAccessGranted() == value {
-			log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
-		} else {
-			err = whc.RunInTransaction(c, func(c context.Context) error {
-				botUser.SetAccessGranted(value)
-				if botUser, err = whc.GetBotUserById(c, botUserID); err != nil {
-					return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)
+		err = whc.RunInTransaction(c, func(c context.Context) error {
+			botUser.SetAccessGranted(value)
+			if botUser, err = whc.GetBotUserById(c, botUserID); err != nil {
+				return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)
+			}
+			if changed := botUser.SetAccessGranted(value); changed {
+				if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
+					err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
 				}
-				if changed := botUser.SetAccessGranted(value); changed {
-					if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
-						err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
-					}
-				}
-				return err
-			}, nil)
-		}
-		return err
+			}
+			return err
+		}, nil)
 	}
+	return err
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
 }
 

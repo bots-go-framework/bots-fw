@@ -3,18 +3,27 @@ package bots
 import (
 	"fmt"
 	"net/url"
+	"strings"
 )
 
+// CommandAction defines an action bot can perform in response to a command
 type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
+
+// CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
+// CommandMatcher returns true if action is matched to user input
 type CommandMatcher func(Command, WebhookContext) bool
 
-const DEFAULT_TITLE = ""
-const SHORT_TITLE = "short_title"
+// DefaultTitle key
+const DefaultTitle = "" //
 
-//const LONG_TITLE = "long_title"
+// ShortTitle key
+const ShortTitle = "short_title"
 
+//const LongTitle = "long_title"
+
+// Command defines command metadata and action
 type Command struct {
 	InputTypes     []WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
 	Icon           string
@@ -29,6 +38,7 @@ type Command struct {
 	CallbackAction CallbackAction
 }
 
+// NewCallbackCommand create a definition of a callback command
 func NewCallbackCommand(code string, action CallbackAction) Command {
 	return Command{
 		Code:           code,
@@ -41,13 +51,15 @@ func (c Command) String() string {
 	return fmt.Sprintf("Command{Code: '%v', InputTypes: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputTypes, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
 }
 
+// CommandText returns a title for a command
 func (whcb *WebhookContextBase) CommandText(title, icon string) string {
-	if title != "" {
+	if title != "" && !strings.HasPrefix(title, "/") {
 		title = whcb.Translate(title)
 	}
 	return CommandTextNoTrans(title, icon)
 }
 
+// CommandTextNoTrans returns a title for a command (pre-translated)
 func CommandTextNoTrans(title, icon string) string {
 	if title == "" && icon != "" {
 		return icon
@@ -60,13 +72,15 @@ func CommandTextNoTrans(title, icon string) string {
 	}
 }
 
+// DefaultTitle returns a default title for a command in current locale
 func (c Command) DefaultTitle(whc WebhookContext) string {
-	return c.TitleByKey(DEFAULT_TITLE, whc)
+	return c.TitleByKey(DefaultTitle, whc)
 }
 
+// TitleByKey returns a short/long title for a command in current locale
 func (c Command) TitleByKey(key string, whc WebhookContext) string {
 	var title string
-	if key == DEFAULT_TITLE && c.Title != "" {
+	if key == DefaultTitle && c.Title != "" {
 		title = c.Title
 	} else if val, ok := c.Titles[key]; ok {
 		title = val

@@ -2,7 +2,7 @@ package gae_host
 
 import (
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	logGae "google.golang.org/appengine/log"
 )
 

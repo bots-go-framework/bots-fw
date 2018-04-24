@@ -5,7 +5,7 @@ import (
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/urlfetch"
 )
 

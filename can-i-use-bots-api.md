@@ -82,6 +82,44 @@ In case of `Yes` or `limited` there is a link to documentation where applicable.
     <td align=center>?</td>
 </tr>
 <tr>
+    <td colspan=6><b>Messages management</b></td>
+</tr>
+<tr>
+    <td>&nbsp;&nbsp;Edit message</td>
+    <td align=center>✅ limited</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+</tr>
+<tr>
+    <td>&nbsp;&nbsp;Delete message</td>
+    <td align=center>✅ limited</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+</tr>
+<tr>
+    <td colspan=6><b>Group chats</b></td>
+</tr>
+<tr>
+    <td>&nbsp;&nbsp;Can be added to group</td>
+    <td align=center>✅ Yes</td>
+    <td align=center>❌ no</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+</tr>
+<tr>
+    <td>&nbsp;&nbsp;Group administration</td>
+    <td align=center>✅ Yes</td>
+    <td align=center>❌ no</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+    <td align=center>?</td>
+</tr>
+<tr>
     <td colspan=6><b>Security</b></td>
 </tr>
 <tr>

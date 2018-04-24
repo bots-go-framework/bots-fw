@@ -2,11 +2,12 @@ package bots
 
 import (
 	"fmt"
-	"github.com/strongo/app"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
 	"net/http"
 	"time"
+
+	"github.com/strongo/app"
+	"context"
+	"google.golang.org/appengine/datastore"
 )
 
 type TestWebhookContext struct {
@@ -23,7 +24,7 @@ func (whc TestWebhookContext) IsInGroup() bool {
 	return false
 }
 
-func (tc TestWebhookContext) Close(c context.Context) error {
+func (whc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
@@ -43,7 +44,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserById(c context.Context, botUserId interface{}) (BotUser, error) {
+func (whc TestWebhookContext) GetBotUserByID(c context.Context, botUserID interface{}) (BotUser, error) {
 	panic("Not implemented")
 }
 
@@ -132,7 +133,6 @@ func (whc TestWebhookContext) Responder() WebhookResponder {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetHttpClient() *http.Client                  { panic("Not implemented") }
 func (whc TestWebhookContext) IsNewerThen(chatEntity BotChat) bool          { panic("Not implemented") }
 func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { panic("Not implemented") }
 

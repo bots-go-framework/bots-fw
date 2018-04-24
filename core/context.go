@@ -1,24 +1,33 @@
 package bots
 
 import (
+	"net/http"
+
 	"github.com/strongo/app"
 	"github.com/strongo/db"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
-	"net/http"
+	"github.com/strongo/gamp"
+	"context"
 )
 
+// WebhookInlineQueryContext provides context for inline query (TODO: check & document)
 type WebhookInlineQueryContext interface {
 }
 
-type GaContext interface {
-	GaMeasurement() *measurement.BufferedSender
-	GaCommon() measurement.Common
-	GaEvent(category, action string) measurement.Event
-	GaEventWithLabel(category, action, label string) measurement.Event
+type GaQueuer interface {// TODO: can be unexported?
+	Queue(message gamp.Message) error
 }
 
+// GaContext provides context to Google Analytics
+type GaContext interface {
+	GaMeasurement() GaQueuer
+	GaCommon() gamp.Common
+	GaEvent(category, action string) gamp.Event
+	GaEventWithLabel(category, action, label string) gamp.Event
+}
+
+// WebhookContext provides context for current request from user to bot
 type WebhookContext interface {
+	// TODO: Make interface smaller?
 	GaContext
 	db.TransactionCoordinator
 	Environment() strongo.Environment
@@ -54,7 +63,6 @@ type WebhookContext interface {
 	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
-	GetHttpClient() *http.Client
 	UpdateLastProcessed(chatEntity BotChat) error
 
 	AppUserIntID() int64
@@ -72,15 +80,18 @@ type WebhookContext interface {
 	Responder() WebhookResponder
 }
 
+// BotState provides state of the bot (TODO: document how is used)
 type BotState interface {
 	IsNewerThen(chatEntity BotChat) bool
 }
 
+// BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 type BotInputProvider interface {
 	Input() WebhookInput
 }
 
-type BotApiUser interface {
+// BotAPIUser provides info about current bot user
+type BotAPIUser interface {
 	//IdAsString() string
 	//IdAsInt64() int64
 	FirstName() string

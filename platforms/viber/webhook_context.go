@@ -5,8 +5,7 @@ import (
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 
@@ -23,7 +22,7 @@ func (whc *ViberWebhookContext) NewEditMessage(text string, format bots.MessageF
 	panic("Not supported by Viber")
 }
 
-func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement *measurement.BufferedSender) *ViberWebhookContext {
+func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) *ViberWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
@@ -76,7 +75,7 @@ func (whc *ViberWebhookContext) Init(w http.ResponseWriter, r *http.Request) err
 }
 
 func (whc *ViberWebhookContext) BotApi() *viberbotapi.ViberBotApi {
-	return viberbotapi.NewViberBotApiWithHttpClient(whc.BotContext.BotSettings.Token, whc.GetHttpClient())
+	return viberbotapi.NewViberBotApiWithHttpClient(whc.BotContext.BotSettings.Token, whc.BotContext.BotHost.GetHttpClient(whc.Context()))
 }
 
 func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {

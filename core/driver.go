@@ -4,25 +4,27 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"runtime/debug"
+	"strings"
+	"time"
+
 	"github.com/DebtsTracker/translations/emoji"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/log"
-	"github.com/strongo/measurement-protocol"
-	"net/http"
-	"runtime/debug"
-	"strings"
-	"time"
+	"github.com/strongo/gamp"
 )
 
-// The driver is doing initial request & final response processing
-// That includes logging, creating input messages in a general format, sending response
+// WebhookDriver is doing initial request & final response processing.
+// That includes logging, creating input messages in a general format, sending response.
 type WebhookDriver interface {
 	RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler)
 	HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler)
 }
 
+// BotDriver keeps information about bots and map requests to appropriate handlers
 type BotDriver struct {
 	Analytics  AnalyticsSettings
 	botHost    BotHost
@@ -33,11 +35,13 @@ type BotDriver struct {
 
 var _ WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
 
+// AnalyticsSettings keeps data for Google Analytics
 type AnalyticsSettings struct {
 	GaTrackingID string // TODO: Refactor to list of analytics providers
 	Enabled      func(r *http.Request) bool
 }
 
+// NewBotDriver registers new bot driver (TODO: describe why we need it)
 func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, panicTextFooter string) WebhookDriver {
 	if appContext.AppUserEntityKind() == "" {
 		panic("appContext.AppUserEntityKind() is empty")
@@ -54,14 +58,14 @@ func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host B
 	}
 }
 
-var ErrNotImplemented = errors.New("Not implemented")
-
+// RegisterWebhookHandlers adds handlers to a bot driver
 func (d BotDriver) RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler) {
 	for _, webhookHandler := range webhookHandlers {
 		webhookHandler.RegisterWebhookHandler(d, d.botHost, httpRouter, pathPrefix)
 	}
 }
 
+// HandleWebhook takes and HTTP request and process it
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler) {
 	started := time.Now()
 	c := d.botHost.Context(r)
@@ -79,7 +83,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
 
 	if err != nil {
-		if _, ok := err.(AuthFailedError); ok {
+		if _, ok := err.(ErrAuthFailed); ok {
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		} else if errors.Cause(err) == ErrNotImplemented {
@@ -114,8 +118,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	log.Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
 
-	env := botContext.BotSettings.Env
-	switch env {
+	switch botContext.BotSettings.Env {
 	case strongo.EnvLocal:
 		if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
@@ -129,13 +132,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			return
 		}
 	}
-
+	
 	var (
-		whc           WebhookContext // TODO: How do deal with Facebook multiple entries per request?
-		gaMeasurement *measurement.BufferedSender
+		whc               WebhookContext // TODO: How do deal with Facebook multiple entries per request?
+		measurementSender *gamp.BufferedClient
 	)
+
+	var sendStats bool
 	{ // Initiate Google Analytics Measurement API client
-		var sendStats bool
 		if d.Analytics.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
 			//log.Debugf(c, "d.AnalyticsSettings.Enabled == nil, botContext.BotSettings.Env: %v, sendStats: %v", strongo.EnvironmentNames[botContext.BotSettings.Env], sendStats)
@@ -144,39 +148,38 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//log.Debugf(c, "d.AnalyticsSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
-			trackingID := d.Analytics.GaTrackingID
 			botHost := botContext.BotHost
-			gaMeasurement = measurement.NewBufferedSender([]string{trackingID}, true, botHost.GetHttpClient(c))
-		} else {
-			gaMeasurement = measurement.NewDiscardingBufferedSender()
+			measurementSender = gamp.NewBufferedClient("", botHost.GetHttpClient(c), nil)
 		}
 	}
 
 	defer func() {
 		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
-		gaMeasurement.Queue(measurement.NewTiming(time.Now().Sub(started)))
-		if recovered := recover(); recovered != nil {
+		if sendStats {
+			measurementSender.Queue(gamp.NewTiming(time.Now().Sub(started)))
+		}
+
+		reportError := func(recovered interface{}) {
 			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
 			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
-			if gaMeasurement.QueueDepth() > 0 { // Zero if GA is disabled
-				gaMessage := measurement.NewException(messageText, true)
+			if sendStats { // Zero if GA is disabled
+				gaMessage := gamp.NewException(messageText, true)
 
 				if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
 					gaMessage.Common = whc.GaCommon()
 				} else {
-					gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371"
-					gaMessage.Common.DataSource = "bot"
+					gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371" // TODO: move hardcoded value
+					gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().Id()
 				}
 
-				if err := gaMeasurement.Queue(gaMessage); err != nil {
+				if err := measurementSender.Queue(gaMessage); err != nil {
 					log.Errorf(c, "Failed to queue exception details for GA: %v", err)
 				} else {
 					log.Debugf(c, "Exception details queued for GA.")
 				}
 
-				log.Debugf(c, "Flushing gaMeasurement (with exeception, len(queue): %v)...", gaMeasurement.QueueDepth())
-				if err = gaMeasurement.Flush(); err != nil {
+				if err = measurementSender.Flush(); err != nil {
 					log.Errorf(c, "Failed to send exception details to GA: %v", err)
 				} else {
 					log.Debugf(c, "Exception details sent to GA.")
@@ -192,11 +195,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 					}
 				}
 			}
-		} else if gaQueueDepth := gaMeasurement.QueueDepth(); gaQueueDepth > 0 { // Zero if GA is disabled
-			if err = gaMeasurement.Flush(); err != nil {
-				log.Warningf(c, "Failed to send to GA %v items: %v", gaQueueDepth, err)
+		}
+
+		if recovered := recover(); recovered != nil {
+			reportError(recovered)
+		} else if sendStats {
+			if err = measurementSender.Flush(); err != nil {
+				log.Warningf(c, "Failed to flush to GA: %v", err)
 			} else {
-				log.Debugf(c, "Sent to GA: %v items", gaQueueDepth)
+				log.Debugf(c, "Sent to GA: %v items", measurementSender.QueueDepth())
 			}
 		}
 	}()
@@ -270,7 +277,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 			}
 			logInput(i, input)
-			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, gaMeasurement)
+			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, measurementSender)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
 			dispatch(responder, whc)
 		}

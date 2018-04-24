@@ -7,7 +7,7 @@ import (
 var testCmd = Command{
 	Title: "Title1",
 	Titles: map[string]string{
-		SHORT_TITLE: "ttl1",
+		ShortTitle: "ttl1",
 	},
 }
 
@@ -20,7 +20,7 @@ func TestCommand_DefaultTitle(t *testing.T) {
 }
 
 func TestCommand_TitleByKey(t *testing.T) {
-	if testCmd.TitleByKey(SHORT_TITLE, testWhc) != "ttl1" {
+	if testCmd.TitleByKey(ShortTitle, testWhc) != "ttl1" {
 		t.Error("Wrong title")
 	}
 }

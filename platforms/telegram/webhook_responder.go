@@ -9,7 +9,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 	"strconv"
 )
@@ -209,7 +209,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	case bots.BotApiSendMessageOverHTTPS:
 		botApi := tgbotapi.NewBotAPIWithClient(
 			r.whc.BotContext.BotSettings.Token,
-			r.whc.GetHttpClient(),
+			r.whc.BotContext.BotHost.GetHttpClient(c),
 		)
 		botApi.EnableDebug(c)
 		if message, err := botApi.Send(chattable); err != nil {

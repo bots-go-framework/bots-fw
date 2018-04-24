@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/fbm"
-	"golang.org/x/net/context"
+	"context"
 	"google.golang.org/appengine/datastore"
 )
 
