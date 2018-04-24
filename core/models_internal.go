@@ -106,8 +106,8 @@ func (e *BotChatEntity) GetGaClientID() uuid.UUID {
 	var v uuid.UUID
 	var err error
 	if len(e.GaClientID) == 0 {
-		v = uuid.NewV4()
-		e.GaClientID = v.Bytes()
+		v = uuid.Must(uuid.NewV4())
+		e.GaClientID = v[:]
 	} else if v, err = uuid.FromBytes(e.GaClientID); err != nil {
 		panic(fmt.Sprintf("Failed to create UUID from bytes: len(%v)=%v", e.GaClientID, len(e.GaClientID)))
 	}
