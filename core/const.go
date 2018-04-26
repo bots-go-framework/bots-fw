@@ -10,5 +10,5 @@ const (
 	MessageTextBotDidNotUnderstandTheCommand = "MessageTextBotDidNotUnderstandTheCommand"
 
 	// MessageTextOopsSomethingWentWrong is an i18n constant
-	MessageTextOopsSomethingWentWrong        = "MessageTextOopsSomethingWentWrong"
+	MessageTextOopsSomethingWentWrong = "MessageTextOopsSomethingWentWrong"
 )

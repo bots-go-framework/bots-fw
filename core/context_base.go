@@ -213,7 +213,7 @@ func NewWebhookContextBase(
 		BotCoreStores: botCoreStores,
 	}
 	whcb.gaContext = gaContext{
-		whcb: &whcb,
+		whcb:          &whcb,
 		gaMeasurement: gaMeasurement,
 	}
 	if isInGroup() && whcb.getLocaleAndChatID != nil {
@@ -238,27 +238,27 @@ func (whcb *WebhookContextBase) Input() WebhookInput {
 }
 
 // Chat returns webhook chat
-func (whcb *WebhookContextBase) Chat() WebhookChat {  // TODO: remove
+func (whcb *WebhookContextBase) Chat() WebhookChat { // TODO: remove
 	return whcb.input.Chat()
 }
 
 // GetRecipient returns receiver of the message
-func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient {  // TODO: remove
+func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient { // TODO: remove
 	return whcb.input.GetRecipient()
 }
 
 // GetSender returns sender of the message
-func (whcb *WebhookContextBase) GetSender() WebhookSender {  // TODO: remove
+func (whcb *WebhookContextBase) GetSender() WebhookSender { // TODO: remove
 	return whcb.input.GetSender()
 }
 
 // GetTime returns time of the message
-func (whcb *WebhookContextBase) GetTime() time.Time {  // TODO: remove
+func (whcb *WebhookContextBase) GetTime() time.Time { // TODO: remove
 	return whcb.input.GetTime()
 }
 
 // InputType returns input type
-func (whcb *WebhookContextBase) InputType() WebhookInputType {  // TODO: remove
+func (whcb *WebhookContextBase) InputType() WebhookInputType { // TODO: remove
 	return whcb.input.InputType()
 }
 
@@ -268,7 +268,7 @@ func (gac gaContext) GaMeasurement() GaQueuer {
 }
 
 type gaContext struct {
-	whcb *WebhookContextBase
+	whcb          *WebhookContextBase
 	gaMeasurement GaQueuer
 }
 
@@ -304,7 +304,6 @@ func (gac gaContext) GaCommon() gamp.Common {
 		ClientID:   "c7ea15eb-3333-4d47-a002-9d1a14996371",
 	}
 }
-
 
 func (gac gaContext) GaEvent(category, action string) gamp.Event { // TODO: remove
 	return gamp.NewEvent(category, action, gac.GaCommon())

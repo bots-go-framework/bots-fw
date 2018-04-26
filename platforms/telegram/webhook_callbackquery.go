@@ -7,7 +7,7 @@ import (
 )
 
 // TgWebhookCallbackQuery is wrapper on callback query
-type TgWebhookCallbackQuery struct {// TODO: make non-exportable
+type TgWebhookCallbackQuery struct { // TODO: make non-exportable
 	tgWebhookInput
 	//callbackQuery *tgbotapi.CallbackQuery
 	//message       bots.WebhookMessage

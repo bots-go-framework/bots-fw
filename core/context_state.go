@@ -6,7 +6,7 @@ import (
 
 const (
 	// AwaitingReplyToPathSeparator separates parts of the command state
-	AwaitingReplyToPathSeparator           = "/"
+	AwaitingReplyToPathSeparator = "/"
 
 	// AwaitingReplyToPath2QuerySeparator separates path and query parts of state
 	AwaitingReplyToPath2QuerySeparator = "?"

@@ -75,17 +75,17 @@ const (
 	// WebhookInputCallbackQuery is inline input type
 	WebhookInputCallbackQuery
 	// WebhookInputReferral is callback input type
-	WebhookInputReferral            // FBM
+	WebhookInputReferral // FBM
 	// WebhookInputChosenInlineResult is chosen inline result input type
-	WebhookInputChosenInlineResult  // Telegram
+	WebhookInputChosenInlineResult // Telegram
 	// WebhookInputSubscribed is subscribed input type
-	WebhookInputSubscribed          // Viber
+	WebhookInputSubscribed // Viber
 	// WebhookInputUnsubscribed is unsubscribed input type
-	WebhookInputUnsubscribed        // Viber
+	WebhookInputUnsubscribed // Viber
 	// WebhookInputConversationStarted is converstation started input type
 	WebhookInputConversationStarted // Viber
 	// WebhookInputNewChatMembers is new chat memebers input type
-	WebhookInputNewChatMembers      // Telegram groups
+	WebhookInputNewChatMembers // Telegram groups
 	// WebhookInputLeftChatMembers is left chat members input type
 	WebhookInputLeftChatMembers
 	// WebhookInputSticker is sticker input type
