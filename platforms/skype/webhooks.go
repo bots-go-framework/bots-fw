@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-func SkypeWebhookHandler(w http.ResponseWriter, r *http.Request) {
+// WebhookHandler is handler of Skype API webhooks
+func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	log.Infof(c, "FbmWebhookHandler")
 	if r.Method == http.MethodGet {

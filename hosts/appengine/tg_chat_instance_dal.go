@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -13,35 +13,35 @@ import (
 type tgChatInstanceDalGae struct {
 }
 
-var _ telegram_bot.TgChatInstanceDal = (*tgChatInstanceDalGae)(nil)
+var _ telegram.TgChatInstanceDal = (*tgChatInstanceDalGae)(nil)
 
-func NewTgChatInstanceKey(c context.Context, id string) *datastore.Key {
-	return datastore.NewKey(c, telegram_bot.TelegramChatInstanceKind, id, 0, nil)
+func newTgChatInstanceKey(c context.Context, id string) *datastore.Key {
+	return datastore.NewKey(c, telegram.ChatInstanceKind, id, 0, nil)
 }
-func (tgChatInstanceDalGae tgChatInstanceDalGae) GetTelegramChatInstanceByID(c context.Context, id string) (tgChatInstance telegram_bot.TelegramChatInstance, err error) {
+func (tgChatInstanceDalGae tgChatInstanceDalGae) GetTelegramChatInstanceByID(c context.Context, id string) (tgChatInstance telegram.ChatInstance, err error) {
 	tgChatInstance = tgChatInstanceDalGae.NewTelegramChatInstance(id, 0, "")
-	if err = gaedb.Get(c, NewTgChatInstanceKey(c, id), tgChatInstance.Entity()); err == datastore.ErrNoSuchEntity {
+	if err = gaedb.Get(c, newTgChatInstanceKey(c, id), tgChatInstance.Entity()); err == datastore.ErrNoSuchEntity {
 		tgChatInstance.SetEntity(nil)
-		err = db.NewErrNotFoundByStrID(telegram_bot.TelegramChatInstanceKind, id, err)
+		err = db.NewErrNotFoundByStrID(telegram.ChatInstanceKind, id, err)
 		return
 	}
 	return
 }
 
-func (_ tgChatInstanceDalGae) SaveTelegramChatInstance(c context.Context, tgChatInstance telegram_bot.TelegramChatInstance) (err error) {
-	if _, err = gaedb.Put(c, NewTgChatInstanceKey(c, tgChatInstance.ID), tgChatInstance.TelegramChatInstanceEntity); err != nil {
+func (tgChatInstanceDalGae) SaveTelegramChatInstance(c context.Context, tgChatInstance telegram.ChatInstance) (err error) {
+	if _, err = gaedb.Put(c, newTgChatInstanceKey(c, tgChatInstance.ID), tgChatInstance.ChatInstanceEntity); err != nil {
 		err = errors.WithMessage(err, fmt.Sprintf(
-			"failed to store to GAE datastore tgChatInstance.TelegramChatInstanceEntity: %T(%+v)",
-			tgChatInstance.TelegramChatInstanceEntity, tgChatInstance.TelegramChatInstanceEntity))
+			"failed to store to GAE datastore tgChatInstance.ChatInstanceEntity: %T(%+v)",
+			tgChatInstance.ChatInstanceEntity, tgChatInstance.ChatInstanceEntity))
 	}
 	return
 }
 
-func (_ tgChatInstanceDalGae) NewTelegramChatInstance(chatInstanceID string, chatID int64, preferredLanguage string) (tgChatInstance telegram_bot.TelegramChatInstance) {
-	return telegram_bot.TelegramChatInstance{
+func (tgChatInstanceDalGae) NewTelegramChatInstance(chatInstanceID string, chatID int64, preferredLanguage string) (tgChatInstance telegram.ChatInstance) {
+	return telegram.ChatInstance{
 		StringID: db.StringID{ID: chatInstanceID},
-		TelegramChatInstanceEntity: &TelegramChatInstanceEntityGae{
-			TelegramChatInstanceEntityBase: telegram_bot.TelegramChatInstanceEntityBase{
+		ChatInstanceEntity: &TelegramChatInstanceEntityGae{
+			ChatInstanceEntityBase: telegram.ChatInstanceEntityBase{
 				TgChatID:          chatID,
 				PreferredLanguage: preferredLanguage,
 			},
@@ -50,5 +50,5 @@ func (_ tgChatInstanceDalGae) NewTelegramChatInstance(chatInstanceID string, cha
 }
 
 func init() {
-	telegram_bot.DAL.TgChatInstance = tgChatInstanceDalGae{}
+	telegram.DAL.TgChatInstance = tgChatInstanceDalGae{}
 }

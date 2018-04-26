@@ -1,18 +1,22 @@
-package viber_bot
+package viber
 
 import "github.com/strongo/bots-framework/core"
 
-type ViberPlatform struct {
+// Platform describes Viber bot platform
+type Platform struct {
 }
 
-var _ bots.BotPlatform = (*ViberPlatform)(nil)
+var _ bots.BotPlatform = (*Platform)(nil)
 
-const ViberPlatformID = "viber"
+// PlatformID is 'viber'
+const PlatformID = "viber"
 
-func (p ViberPlatform) Id() string {
-	return ViberPlatformID
+// ID return ID of Viber platform
+func (p Platform) ID() string {
+	return PlatformID
 }
 
-func (p ViberPlatform) Version() string {
+// Version return supported version of Viber API
+func (p Platform) Version() string {
 	return "1"
 }

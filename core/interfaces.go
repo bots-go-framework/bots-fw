@@ -10,14 +10,14 @@ import (
 
 // BotPlatform describes current bot platform
 type BotPlatform interface {
-	Id() string
+	ID() string
 	Version() string
 }
 
 // BotHost describes current bot app host environment
 type BotHost interface {
 	Context(r *http.Request) context.Context
-	GetHttpClient(c context.Context) *http.Client
+	GetHTTPClient(c context.Context) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
 	DB() db.Database
 }
@@ -50,28 +50,49 @@ type WebhookEntry interface {
 type WebhookInputType int
 
 const (
+	// WebhookInputUnknown is unknown input type
 	WebhookInputUnknown WebhookInputType = iota
+	// WebhookInputNotImplemented is not implemented input type
 	WebhookInputNotImplemented
+	// WebhookInputText is text input type
 	WebhookInputText // Facebook, Telegram, Viber
+	// WebhookInputVoice is voice input type
 	WebhookInputVoice
+	// WebhookInputPhoto is photo input type
 	WebhookInputPhoto
+	// WebhookInputAudio is audio input type
 	WebhookInputAudio
+	// WebhookInputContact is contact input type
 	WebhookInputContact // Facebook, Telegram, Viber
+	// WebhookInputPostback is unknown input type
 	WebhookInputPostback
+	// WebhookInputDelivery is postback input type
 	WebhookInputDelivery
+	// WebhookInputAttachment is delivery report input type
 	WebhookInputAttachment
+	// WebhookInputInlineQuery is attachment input type
 	WebhookInputInlineQuery // Telegram
+	// WebhookInputCallbackQuery is inline input type
 	WebhookInputCallbackQuery
+	// WebhookInputReferral is callback input type
 	WebhookInputReferral            // FBM
+	// WebhookInputChosenInlineResult is chosen inline result input type
 	WebhookInputChosenInlineResult  // Telegram
+	// WebhookInputSubscribed is subscribed input type
 	WebhookInputSubscribed          // Viber
+	// WebhookInputUnsubscribed is unsubscribed input type
 	WebhookInputUnsubscribed        // Viber
+	// WebhookInputConversationStarted is converstation started input type
 	WebhookInputConversationStarted // Viber
+	// WebhookInputNewChatMembers is new chat memebers input type
 	WebhookInputNewChatMembers      // Telegram groups
+	// WebhookInputLeftChatMembers is left chat members input type
 	WebhookInputLeftChatMembers
+	// WebhookInputSticker is sticker input type
 	WebhookInputSticker // Telegram
 )
 
+// WebhookInputTypeNames names for input type
 var WebhookInputTypeNames = map[WebhookInputType]string{
 	//WebhookInputContact:				  "Contact",
 	WebhookInputUnknown:             "unknown",
@@ -193,31 +214,31 @@ type WebhookNewChatMembersMessage interface {
 	NewChatMembers() []WebhookActor
 }
 
-// WebhookNewChatMembersMessage represents single message about a member leaving a chat
+// WebhookLeftChatMembersMessage represents single message about a member leaving a chat
 type WebhookLeftChatMembersMessage interface {
 	BotChatID() (string, error)
 	LeftChatMembers() []WebhookActor
 }
 
-// WebhookContactMessage represents chat of a messenger
+// WebhookChat represents chat of a messenger
 type WebhookChat interface {
 	GetID() string
 	GetType() string
 	IsGroupChat() bool
 }
 
-// WebhookContactMessage represents single postback message
+// WebhookPostback represents single postback message
 type WebhookPostback interface {
 	PostbackMessage() interface{}
 	Payload() string
 }
 
-// WebhookContactMessage represents a subscription message
+// WebhookSubscribed represents a subscription message
 type WebhookSubscribed interface {
 	SubscribedMessage() interface{}
 }
 
-// WebhookContactMessage represents a message when user unsubscribe
+// WebhookUnsubscribed represents a message when user unsubscribe
 type WebhookUnsubscribed interface {
 	UnsubscribedMessage() interface{}
 }
@@ -227,7 +248,7 @@ type WebhookConversationStarted interface {
 	ConversationStartedMessage() interface{}
 }
 
-// WebhookConversationStarted represents a single inline message
+// WebhookInlineQuery represents a single inline message
 type WebhookInlineQuery interface {
 	GetID() interface{}
 	GetInlineQueryID() string
@@ -237,12 +258,12 @@ type WebhookInlineQuery interface {
 	//GetLocation() - TODO: Not implemented yet
 }
 
-// WebhookConversationStarted represents a single delivery report message
+// WebhookDelivery represents a single delivery report message
 type WebhookDelivery interface {
 	Payload() string
 }
 
-// WebhookConversationStarted represents a single report message on chosen inline result
+// WebhookChosenInlineResult represents a single report message on chosen inline result
 type WebhookChosenInlineResult interface {
 	GetResultID() string
 	GetInlineMessageID() string // Telegram only?
@@ -251,7 +272,7 @@ type WebhookChosenInlineResult interface {
 	//GetLocation() - TODO: Not implemented yet
 }
 
-// WebhookConversationStarted represents a single callback query message
+// WebhookCallbackQuery represents a single callback query message
 type WebhookCallbackQuery interface {
 	GetID() interface{}
 	GetInlineMessageID() string // Telegram only?
@@ -261,25 +282,25 @@ type WebhookCallbackQuery interface {
 	Chat() WebhookChat
 }
 
-// WebhookConversationStarted represents attachment to a message
+// WebhookAttachment represents attachment to a message
 type WebhookAttachment interface {
 	Type() string       // Enum(image, video, audio) for Facebook
 	PayloadUrl() string // 'payload.url' for Facebook
 }
 
-// WebhookConversationStarted represents response from a messenger
+// MessengerResponse represents response from a messenger
 type MessengerResponse interface {
 }
 
-// WebhookConversationStarted represents response on message sent event
+// OnMessageSentResponse represents response on message sent event
 type OnMessageSentResponse struct {
 	StatusCode      int
 	TelegramMessage MessengerResponse // TODO: change to some interface
 }
 
-// WebhookConversationStarted is an API provider to send messages through a messenger
+// WebhookResponder is an API provider to send messages through a messenger
 type WebhookResponder interface {
-	SendMessage(c context.Context, m MessageFromBot, channel BotApiSendMessageChannel) (OnMessageSentResponse, error)
+	SendMessage(c context.Context, m MessageFromBot, channel BotAPISendMessageChannel) (OnMessageSentResponse, error)
 }
 
 // InputMessage represents single input message
@@ -294,13 +315,13 @@ type BotCoreStores struct {
 	BotAppUserStore
 }
 
-// BotApiSendMessageChannel specifies messenger channel
-type BotApiSendMessageChannel string
+// BotAPISendMessageChannel specifies messenger channel
+type BotAPISendMessageChannel string
 
 const (
-	// BotApiSendMessageOverHTTPS indicates message should be sent over HTTPS
-	BotApiSendMessageOverHTTPS = BotApiSendMessageChannel("https")
+	// BotAPISendMessageOverHTTPS indicates message should be sent over HTTPS
+	BotAPISendMessageOverHTTPS = BotAPISendMessageChannel("https")
 
-	// BotApiSendMessageOverResponse indicates message should be sent in HTTP response
-	BotApiSendMessageOverResponse = BotApiSendMessageChannel("response")
+	// BotAPISendMessageOverResponse indicates message should be sent in HTTP response
+	BotAPISendMessageOverResponse = BotAPISendMessageChannel("response")
 )

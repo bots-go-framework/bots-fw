@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"testing"

@@ -1,10 +1,18 @@
-package telegram_bot
+package telegram
 
-type TelegramMessageType string
+// TgMessageType represents tpye of Telegram message
+type TgMessageType string
 
 const (
-	TelegramMessageTypeRegular           = "message"
-	TelegramMessageTypeEdited            = "edited_message"
-	TelegramMessageTypeChannelPost       = "channel_post"
-	TelegramMessageTypeEditedChannelPost = "edited_channel_post"
+	// TgMessageTypeRegular is 'message'
+	TgMessageTypeRegular                 = "message"
+
+	// TgMessageTypeEdited is 'edited_message'
+	TgMessageTypeEdited                  = "edited_message"
+
+	// TgMessageTypeChannelPost is 'channel_post'
+	TgMessageTypeChannelPost             = "channel_post"
+
+	// TgMessageTypeEditedChannelPost is 'edited_channel_post'
+	TgMessageTypeEditedChannelPost = "edited_channel_post"
 )

@@ -1,4 +1,4 @@
-package fbm_bot
+package fbm
 
 import (
 	"github.com/strongo/bots-framework/core"
@@ -6,5 +6,5 @@ import (
 )
 
 func TestFbmPostbackInputIsWebhookCallbackQuery(t *testing.T) {
-	var _ bots.WebhookCallbackQuery = FbmPostbackInput{}
+	var _ bots.WebhookCallbackQuery = postbackInput{}
 }

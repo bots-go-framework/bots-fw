@@ -1,44 +1,44 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramSender struct {
+type tgSender struct {
 	tgUser *tgbotapi.User
 }
 
-func (TelegramSender) IsBotUser() bool { // TODO: Can we get rid of it here?
+func (tgSender) IsBotUser() bool { // TODO: Can we get rid of it here?
 	return false
 }
 
-var _ bots.WebhookSender = (*TelegramSender)(nil)
+var _ bots.WebhookSender = (*tgSender)(nil)
 
-func (s TelegramSender) GetID() interface{} {
+func (s tgSender) GetID() interface{} {
 	return s.tgUser.ID
 }
 
-func (s TelegramSender) GetFirstName() string {
+func (s tgSender) GetFirstName() string {
 	return s.tgUser.FirstName
 }
 
-func (s TelegramSender) GetLastName() string {
+func (s tgSender) GetLastName() string {
 	return s.tgUser.LastName
 }
 
-func (s TelegramSender) GetUserName() string {
+func (s tgSender) GetUserName() string {
 	return s.tgUser.UserName
 }
 
-func (TelegramSender) Platform() string {
-	return TelegramPlatformID
+func (tgSender) Platform() string {
+	return PlatformID
 }
 
-func (TelegramSender) GetAvatar() string {
+func (tgSender) GetAvatar() string {
 	return ""
 }
 
-func (s TelegramSender) GetLanguage() string {
+func (s tgSender) GetLanguage() string {
 	return s.tgUser.LanguageCode
 }

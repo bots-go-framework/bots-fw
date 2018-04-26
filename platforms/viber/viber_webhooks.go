@@ -1,4 +1,4 @@
-package viber_bot
+package viber
 
 import (
 	"context"
@@ -17,27 +17,28 @@ import (
 	"strings"
 )
 
-func NewViberWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) ViberWebhookHandler {
+// NewViberWebhookHandler creates new Viber webhook handler
+func NewViberWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) bots.WebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
 	}
-	return ViberWebhookHandler{
+	return viberWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
-			BotPlatform:        ViberPlatform{},
+			BotPlatform:        Platform{},
 			TranslatorProvider: translatorProvider,
 		},
 	}
 }
 
-type ViberWebhookHandler struct {
+type viberWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.SettingsProvider
 }
 
-var _ bots.WebhookHandler = (*ViberWebhookHandler)(nil)
+var _ bots.WebhookHandler = (*viberWebhookHandler)(nil)
 
-func (h ViberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+func (h viberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}
@@ -46,7 +47,7 @@ func (h ViberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, h
 	router.GET(pathPrefix+"/viber/set-webhook", h.SetWebhook)
 }
 
-func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h viberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	switch r.Method {
 	case http.MethodPost:
 		h.HandleWebhook(w, r, h)
@@ -57,7 +58,7 @@ func (h ViberWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http
 
 var reEvent = regexp.MustCompile(`"event"\s*:\s*"(\w+)"`)
 
-func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+func (h viberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	code := r.URL.Path[strings.LastIndex(r.URL.Path, "/")+1:]
 	botSettings, ok := h.botsBy(c).ByCode[code]
 	if !ok {
@@ -116,8 +117,8 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		}
 		entriesWithInputs = []bots.EntryInputs{
 			{
-				Entry:  ViberWebhookEntry{},
-				Inputs: []bots.WebhookInput{NewViberWebhookTextMessage(message)},
+				Entry:  WebhookEntry{},
+				Inputs: []bots.WebhookInput{newViberWebhookTextMessage(message)},
 			},
 		}
 	//entriesWithInputs := append(entriesWithInputs, )
@@ -153,8 +154,8 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		}
 		entriesWithInputs = []bots.EntryInputs{
 			{
-				Entry:  ViberWebhookEntry{},
-				Inputs: []bots.WebhookInput{NewViberWebhookInputConversationStarted(message)},
+				Entry:  WebhookEntry{},
+				Inputs: []bots.WebhookInput{newViberWebhookInputConversationStarted(message)},
 			},
 		}
 	case "webhook":
@@ -172,18 +173,17 @@ func (h ViberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 	return
 }
 
-func (_ ViberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) bots.WebhookContext {
-	return NewViberWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
+func (viberWebhookHandler) CreateWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) bots.WebhookContext {
+	return newViberWebhookContext(appContext, r, botContext, webhookInput, botCoreStores, gaMeasurement)
 }
 
-func (_ ViberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
-	if viberWhc, ok := whc.(*ViberWebhookContext); ok {
-		return NewViberWebhookResponder(viberWhc)
-	} else {
-		panic(fmt.Sprintf("Expected ViberWebhookContext, got: %T", whc))
+func (viberWebhookHandler) GetResponder(_ http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
+	if viberWhc, ok := whc.(*viberWebhookContext); ok {
+		return newViberWebhookResponder(viberWhc)
 	}
+	panic(fmt.Sprintf("Expected viberWebhookContext, got: %T", whc))
 }
 
-func (handler ViberWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	return handler.BotHost.GetBotCoreStores(ViberPlatformID, appContext, r)
+func (h viberWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
+	return h.BotHost.GetBotCoreStores(PlatformID, appContext, r)
 }

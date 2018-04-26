@@ -1,23 +1,23 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookLeftChatMembersMessage struct {
-	telegramWebhookMessage
+type tgWebhookLeftChatMembersMessage struct {
+	tgWebhookMessage
 }
 
-func (_ TelegramWebhookLeftChatMembersMessage) InputType() bots.WebhookInputType {
+func (tgWebhookLeftChatMembersMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputLeftChatMembers
 }
 
-var _ bots.WebhookLeftChatMembersMessage = (*TelegramWebhookLeftChatMembersMessage)(nil)
+var _ bots.WebhookLeftChatMembersMessage = (*tgWebhookLeftChatMembersMessage)(nil)
 
-func NewTelegramWebhookLeftChatMembersMessage(input telegramWebhookInput) TelegramWebhookNewChatMembersMessage {
-	return TelegramWebhookNewChatMembersMessage{telegramWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
+func newTgWebhookLeftChatMembersMessage(input tgWebhookInput) tgWebhookNewChatMembersMessage {
+	return tgWebhookNewChatMembersMessage{tgWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
 }
 
-func (m *TelegramWebhookLeftChatMembersMessage) LeftChatMembers() []bots.WebhookActor {
+func (m *tgWebhookLeftChatMembersMessage) LeftChatMembers() []bots.WebhookActor {
 	return []bots.WebhookActor{m.message.LeftChatMember}
 }

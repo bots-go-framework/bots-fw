@@ -1,4 +1,4 @@
-package fbm_bot
+package fbm
 
 import (
 	"context"
@@ -9,20 +9,23 @@ import (
 	"google.golang.org/appengine/urlfetch"
 )
 
-type FbmWebhookResponder struct {
-	whc *FbmWebhookContext
+// webhookResponder responds to FB Messenger
+type webhookResponder struct {
+	whc *fbmWebhookContext
 }
 
-var _ bots.WebhookResponder = (*FbmWebhookResponder)(nil)
+var _ bots.WebhookResponder = (*webhookResponder)(nil)
 
-func NewFbmWebhookResponder(whc *FbmWebhookContext) FbmWebhookResponder {
-	responder := FbmWebhookResponder{whc: whc} // We need a dedicated to get rid of type assertion
+// newFbmWebhookResponder creates new responder to FBM
+func newFbmWebhookResponder(whc *fbmWebhookContext) webhookResponder {
+	responder := webhookResponder{whc: whc} // We need a dedicated to get rid of type assertion
 	whc.responder = responder
 	return responder
 }
 
-func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	log.Debugf(c, "FbmWebhookResponder.SendMessage()...")
+// SendMessage sends message to FBM
+func (r webhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotAPISendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
+	log.Debugf(c, "webhookResponder.SendMessage()...")
 
 	if m.Text != "" && m.FbmAttachment != nil {
 		err = errors.New("m.Text is empty string && m.FbmAttachment != nil")
@@ -46,9 +49,9 @@ func (r FbmWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBo
 		return
 	}
 
-	graphApi := fbm_api.NewGraphApi(urlfetch.Client(c), r.whc.GetBotSettings().Token)
+	graphAPI := fbm_api.NewGraphApi(urlfetch.Client(c), r.whc.GetBotSettings().Token)
 
-	if err = graphApi.SendMessage(c, request); err != nil {
+	if err = graphAPI.SendMessage(c, request); err != nil {
 		return
 	}
 

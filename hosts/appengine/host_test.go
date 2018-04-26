@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"testing"
@@ -6,14 +6,14 @@ import (
 
 const noPanic = "The code did not panic"
 
-func TestGaeBotHost_GetHttpClient_nilRequest(t *testing.T) {
+func TestGaeBotHost_GetHTTPClient_nilRequest(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error(noPanic)
 		}
 	}()
 
-	GaeBotHost{}.GetHttpClient(nil)
+	GaeBotHost{}.GetHTTPClient(nil)
 }
 
 func TestGaeBotHost_GetBotCoreStores_nil(t *testing.T) {

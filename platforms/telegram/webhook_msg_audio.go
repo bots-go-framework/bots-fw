@@ -1,24 +1,24 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookAudioMessage struct {
-	telegramWebhookMessage
-	TgMessageType TelegramMessageType
+type tgWebhookAudioMessage struct {
+	tgWebhookMessage
+	TgMessageType TgMessageType
 }
 
-var _ bots.WebhookAudioMessage = (*TelegramWebhookAudioMessage)(nil)
+var _ bots.WebhookAudioMessage = (*tgWebhookAudioMessage)(nil)
 
-func (_ TelegramWebhookAudioMessage) InputType() bots.WebhookInputType {
+func (tgWebhookAudioMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputAudio
 }
 
-func NewTelegramWebhookAudioMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookAudioMessage {
-	return TelegramWebhookAudioMessage{
-		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
-		TgMessageType:          tgMessageType,
+func newTgWebhookAudioMessage(input tgWebhookInput, tgMessageType TgMessageType, tgMessage *tgbotapi.Message) tgWebhookAudioMessage {
+	return tgWebhookAudioMessage{
+		tgWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
+		TgMessageType:    tgMessageType,
 	}
 }

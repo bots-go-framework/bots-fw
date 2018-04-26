@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"context"
@@ -19,27 +19,28 @@ import (
 	"time"
 )
 
-func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) TelegramWebhookHandler {
+// NewTelegramWebhookHandler creates new Telegram webhooks handler
+func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) bots.WebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
 	}
-	return TelegramWebhookHandler{
+	return tgWebhookHandler{
 		botsBy: botsBy,
 		BaseHandler: bots.BaseHandler{
-			BotPlatform:        TelegramPlatform{},
+			BotPlatform:        Platform{},
 			TranslatorProvider: translatorProvider,
 		},
 	}
 }
 
-type TelegramWebhookHandler struct {
+type tgWebhookHandler struct {
 	bots.BaseHandler
 	botsBy bots.SettingsProvider
 }
 
-var _ bots.WebhookHandler = (*TelegramWebhookHandler)(nil)
+var _ bots.WebhookHandler = (*tgWebhookHandler)(nil)
 
-func (h TelegramWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+func (h tgWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}
@@ -53,7 +54,7 @@ func (h TelegramWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver
 	})
 }
 
-func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (h tgWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -68,10 +69,10 @@ func (h TelegramWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *h
 	h.HandleWebhook(w, r, h)
 }
 
-func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
+func (h tgWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
 	ctxWithDeadline, cancel := context.WithTimeout(c, 30*time.Second)
 	defer cancel()
-	client := h.GetHttpClient(ctxWithDeadline)
+	client := h.GetHTTPClient(ctxWithDeadline)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
 		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
@@ -88,9 +89,9 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 	bot.EnableDebug(c)
 	//bot.Debug = true
 
-	webhookUrl := fmt.Sprintf("https://%v/bot/tg/hook?id=%v&token=%v", r.Host, botCode, bot.Token)
+	webhookURL := fmt.Sprintf("https://%v/bot/tg/hook?id=%v&token=%v", r.Host, botCode, bot.Token)
 
-	webhookConfig := tgbotapi.NewWebhook(webhookUrl)
+	webhookConfig := tgbotapi.NewWebhook(webhookURL)
 	webhookConfig.AllowedUpdates = []string{
 		"message",
 		"edited_message",
@@ -107,8 +108,8 @@ func (h TelegramWebhookHandler) SetWebhook(c context.Context, w http.ResponseWri
 	}
 }
 
-func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
-	//log.Debugf(c, "TelegramWebhookHandler.GetBotContextAndInputs()")
+func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
+	//log.Debugf(c, "tgWebhookHandler.GetBotContextAndInputs()")
 	token := r.URL.Query().Get("token")
 	botSettings, ok := h.botsBy(c).ByAPIToken[token]
 	if !ok {
@@ -158,7 +159,7 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 
 	entriesWithInputs = []bots.EntryInputs{
 		{
-			Entry:  TelegramWebhookEntry{update: update},
+			Entry:  tgWebhookEntry{update: update},
 			Inputs: []bots.WebhookInput{input},
 		},
 	}
@@ -167,13 +168,12 @@ func (h TelegramWebhookHandler) GetBotContextAndInputs(c context.Context, r *htt
 		logRequestBody()
 		err = errors.WithMessage(bots.ErrNotImplemented, "Telegram input is <nil>")
 		return
-	} else {
-		log.Debugf(c, "Telegram input type: %T", input)
 	}
+	log.Debugf(c, "Telegram input type: %T", input)
 	return
 }
 
-func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update *tgbotapi.Update, err error) {
+func (h tgWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update *tgbotapi.Update, err error) {
 	update = new(tgbotapi.Update)
 	if err = ffjson.UnmarshalFast(content, update); err != nil {
 		return
@@ -181,7 +181,7 @@ func (h TelegramWebhookHandler) unmarshalUpdate(c context.Context, content []byt
 	return
 }
 
-func (h TelegramWebhookHandler) CreateWebhookContext(
+func (h tgWebhookHandler) CreateWebhookContext(
 	appContext bots.BotAppContext,
 	r *http.Request, botContext bots.BotContext,
 	webhookInput bots.WebhookInput,
@@ -189,17 +189,16 @@ func (h TelegramWebhookHandler) CreateWebhookContext(
 	gaMeasurement bots.GaQueuer,
 ) bots.WebhookContext {
 	return newTelegramWebhookContext(
-		appContext, r, botContext, webhookInput.(TelegramWebhookInput), botCoreStores, gaMeasurement)
+		appContext, r, botContext, webhookInput.(TgWebhookInput), botCoreStores, gaMeasurement)
 }
 
-func (h TelegramWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
-	if twhc, ok := whc.(*TelegramWebhookContext); ok {
-		return NewTelegramWebhookResponder(w, twhc)
-	} else {
-		panic(fmt.Sprintf("Expected TelegramWebhookContext, got: %T", whc))
+func (h tgWebhookHandler) GetResponder(w http.ResponseWriter, whc bots.WebhookContext) bots.WebhookResponder {
+	if twhc, ok := whc.(*tgWebhookContext); ok {
+		return newTgWebhookResponder(w, twhc)
 	}
+	panic(fmt.Sprintf("Expected tgWebhookContext, got: %T", whc))
 }
 
-func (h TelegramWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
-	return h.BotHost.GetBotCoreStores(TelegramPlatformID, appContext, r)
+func (h tgWebhookHandler) CreateBotCoreStores(appContext bots.BotAppContext, r *http.Request) bots.BotCoreStores {
+	return h.BotHost.GetBotCoreStores(PlatformID, appContext, r)
 }

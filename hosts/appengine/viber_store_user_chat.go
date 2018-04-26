@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -10,27 +10,27 @@ import (
 	"time"
 )
 
-type GaeViberUserChatStore struct {
+type gaeViberUserChatStore struct {
 	GaeBotChatStore
 	GaeBotUserStore
 }
 
-var _ bots.BotChatStore = (*GaeViberUserChatStore)(nil) // Check for interface implementation at compile time
-var _ bots.BotUserStore = (*GaeViberUserChatStore)(nil) // Check for interface implementation at compile time
+var _ bots.BotChatStore = (*gaeViberUserChatStore)(nil) // Check for interface implementation at compile time
+var _ bots.BotUserStore = (*gaeViberUserChatStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *GaeViberUserChatStore {
-	baseStore := NewGaeBaseStore(viber_bot.ViberUserChatKind)
-	return &GaeViberUserChatStore{
+func newGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *gaeViberUserChatStore {
+	baseStore := NewGaeBaseStore(viber.UserChatKind)
+	return &gaeViberUserChatStore{
 		GaeBotUserStore: GaeBotUserStore{
 			GaeBaseStore:    baseStore,
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
-				viberUserChatEntity := viber_bot.NewViberUserChat()
+				viberUserChatEntity := viber.NewUserChat()
 				return &viberUserChatEntity
 			},
 			validateBotUserEntityType: func(entity bots.BotUser) {
-				if _, ok := entity.(*viber_bot.ViberUserChatEntity); !ok {
-					panic(fmt.Sprintf("Expected *viber_bot.ViberUserChatEntity but received %T", entity))
+				if _, ok := entity.(*viber.UserChatEntity); !ok {
+					panic(fmt.Sprintf("Expected *viber.UserChatEntity but received %T", entity))
 				}
 			},
 			botUserKey: func(c context.Context, botUserId interface{}) *datastore.Key {
@@ -38,34 +38,34 @@ func NewGaeViberUserChatStore(gaeAppUserStore GaeAppUserStore) *GaeViberUserChat
 					if stringID == "" {
 						panic("botUserKey(): stringID is empty")
 					}
-					return datastore.NewKey(c, viber_bot.ViberUserChatKind, stringID, 0, nil)
-				} else {
-					panic(fmt.Sprintf("Expected botUserId as int, got: %T", botUserId))
+					return datastore.NewKey(c, viber.UserChatKind, stringID, 0, nil)
 				}
+				panic(fmt.Sprintf("Expected botUserId as int, got: %T", botUserId))
 			},
 		},
 		GaeBotChatStore: GaeBotChatStore{
 			GaeBaseStore: baseStore,
 			newBotChatEntity: func() bots.BotChat {
-				viberUserChatEntity := viber_bot.NewViberUserChat()
+				viberUserChatEntity := viber.NewUserChat()
 				return &viberUserChatEntity
 			},
 			validateBotChatEntityType: func(entity bots.BotChat) {
-				if _, ok := entity.(*viber_bot.ViberUserChatEntity); !ok {
-					panic(fmt.Sprintf("Expected *viber_bot.ViberUserChatEntity but received %T", entity))
+				if _, ok := entity.(*viber.UserChatEntity); !ok {
+					panic(fmt.Sprintf("Expected *viber.UserChatEntity but received %T", entity))
 				}
 			},
 			NewBotChatKey: func(c context.Context, botID, botChatID string) *datastore.Key {
-				return datastore.NewKey(c, viber_bot.ViberUserChatKind, botChatID, 0, nil)
+				return datastore.NewKey(c, viber.UserChatKind, botChatID, 0, nil)
 			},
 		},
 	}
 }
 
+// MarkViberChatAsForbidden marks chat as forbidden - TODO: is not used? consider deletion
 func MarkViberChatAsForbidden(c context.Context, tgChatID int64, dtForbidden time.Time) error {
 	return nds.RunInTransaction(c, func(c context.Context) (err error) {
-		key := datastore.NewKey(c, viber_bot.ViberUserChatKind, "", tgChatID, nil)
-		var userChatEntity viber_bot.ViberUserChatEntity
+		key := datastore.NewKey(c, viber.UserChatKind, "", tgChatID, nil)
+		var userChatEntity viber.UserChatEntity
 		if err = nds.Get(c, key, &userChatEntity); err != nil {
 			return
 		}

@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"reflect"
 )
 
+// GaeAppUserStore DAL
 type GaeAppUserStore struct {
 	appUserEntityKind string
 	appUserEntityType reflect.Type
@@ -19,6 +20,7 @@ type GaeAppUserStore struct {
 
 var _ bots.BotAppUserStore = (*GaeAppUserStore)(nil)
 
+// NewGaeAppUserStore created new DAL
 func NewGaeAppUserStore(appUserEntityKind string, appUserEntityType reflect.Type, newUserEntity func() bots.BotAppUser) GaeAppUserStore {
 	return GaeAppUserStore{
 		appUserEntityType: appUserEntityType,
@@ -30,18 +32,21 @@ func NewGaeAppUserStore(appUserEntityKind string, appUserEntityType reflect.Type
 
 // ************************** Helper functions **************************
 
-func (s GaeAppUserStore) appUserKey(c context.Context, appUserId int64) *datastore.Key {
-	return datastore.NewKey(c, s.appUserEntityKind, "", appUserId, nil)
+func (s GaeAppUserStore) appUserKey(c context.Context, appUserID int64) *datastore.Key {
+	return datastore.NewKey(c, s.appUserEntityKind, "", appUserID, nil)
 }
 
 // ************************** Implementations of  bots.AppUserStore **************************
-func (s GaeAppUserStore) GetAppUserByID(c context.Context, appUserId int64, appUser bots.BotAppUser) error {
-	if appUserId == 0 {
-		panic("appUserId == 0")
+
+// GetAppUserByID returns application user ID
+func (s GaeAppUserStore) GetAppUserByID(c context.Context, appUserID int64, appUser bots.BotAppUser) error {
+	if appUserID == 0 {
+		panic("appUserID == 0")
 	}
-	return nds.Get(c, s.appUserKey(c, appUserId), appUser)
+	return nds.Get(c, s.appUserKey(c, appUserID), appUser)
 }
 
+// CreateAppUser creates app user entity in DB
 func (s GaeAppUserStore) CreateAppUser(c context.Context, botID string, actor bots.WebhookActor) (int64, bots.BotAppUser, error) {
 	return s.createAppUser(c, botID, actor)
 }
@@ -54,7 +59,7 @@ func (s GaeAppUserStore) createAppUser(c context.Context, botID string, actor bo
 	return key.IntID(), appUserEntity, err
 }
 
-func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey *datastore.Key) (int64, error) {
+func (s GaeAppUserStore) getAppUserIDByBotUserKey(c context.Context, botUserKey *datastore.Key) (int64, error) {
 	query := datastore.NewQuery(s.appUserEntityKind).Filter("TelegramUserIDs =", botUserKey.IntID()).KeysOnly().Limit(2)
 	//appUsers := reflect.MakeSlice(reflect.SliceOf(s.appUserEntityType), 0, 2)
 	keys, err := query.GetAll(c, nil)
@@ -72,10 +77,10 @@ func (s GaeAppUserStore) getAppUserIdByBotUserKey(c context.Context, botUserKey 
 	}
 }
 
-//func (s GaeAppUserStore) SaveAppUser(c context.Context, appUserId int64, appUserEntity bots.BotAppUser) error {
-//	if appUserId == 0 {
-//		panic("appUserId == 0")
+//func (s GaeAppUserStore) SaveAppUser(c context.Context, appUserID int64, appUserEntity bots.BotAppUser) error {
+//	if appUserID == 0 {
+//		panic("appUserID == 0")
 //	}
-//	_, err := nds.Put(c, s.appUserKey(c, appUserId), appUserEntity)
+//	_, err := nds.Put(c, s.appUserKey(c, appUserID), appUserEntity)
 //	return err
 //}

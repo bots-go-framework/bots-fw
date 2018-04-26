@@ -1,4 +1,4 @@
-package viber_bot
+package viber
 
 import (
 	"fmt"
@@ -10,18 +10,21 @@ import (
 const (
 	//ViberChatKind = "ViberChat"
 	//ViberUserKind = "ViberUser"
-	ViberUserChatKind = "ViberUserChat"
+
+	// UserChatKind is user chat kind name
+	UserChatKind = "ViberUserChat"
 )
 
-type ViberUserChatEntity struct {
+// UserChatEntity is bot chat entity for Viber
+type UserChatEntity struct {
 	bots.BotChatEntity
 	//ViberUserID string `datastore:",noindex"` // Duplicate of key.StringID(), required for GetBotUserStringID()
 	//UserName string `datastore:",noindex"`
 	//Avatar string `datastore:",noindex"`
 }
 
-var _ bots.BotUser = (*ViberUserChatEntity)(nil)
-var _ bots.BotChat = (*ViberUserChatEntity)(nil)
+var _ bots.BotUser = (*UserChatEntity)(nil)
+var _ bots.BotChat = (*UserChatEntity)(nil)
 
 //type ViberUser struct { //TODO: Get rid of the entity. Move props like Name to ViberChat entity.
 //	bots.BotUserEntity
@@ -37,8 +40,9 @@ var _ bots.BotChat = (*ViberUserChatEntity)(nil)
 //
 //var _ bots.BotChat = (*ViberChat)(nil)
 
-func NewViberUserChat() ViberUserChatEntity {
-	return ViberUserChatEntity{
+// NewUserChat creates new UserChatEntity
+func NewUserChat() UserChatEntity {
+	return UserChatEntity{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
 				OwnedByUser: user.OwnedByUser{
@@ -49,7 +53,8 @@ func NewViberUserChat() ViberUserChatEntity {
 	}
 }
 
-func (chat *ViberUserChatEntity) SetAppUserIntID(id int64) {
+// SetAppUserIntID sets app user int ID
+func (chat *UserChatEntity) SetAppUserIntID(id int64) {
 	chat.AppUserIntID = id
 }
 
@@ -57,7 +62,8 @@ func (chat *ViberUserChatEntity) SetAppUserIntID(id int64) {
 //	return chat.ViberUserID
 //}
 
-func (chat *ViberUserChatEntity) SetBotUserID(id interface{}) {
+// SetBotUserID sets bot user ID
+func (chat *UserChatEntity) SetBotUserID(id interface{}) {
 	if _, ok := id.(string); ok {
 		// Ignore as stored in the key. chat.ViberUserID = stringID
 		return

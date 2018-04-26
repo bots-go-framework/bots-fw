@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -11,16 +11,19 @@ import (
 	"net/http"
 )
 
+// GaeBotHost represent information on current hosting platform
 type GaeBotHost struct {
 }
 
 var _ bots.BotHost = (*GaeBotHost)(nil)
 
+// Context creates context for http.Request
 func (h GaeBotHost) Context(r *http.Request) context.Context {
 	return appengine.NewContext(r)
 }
 
-func (h GaeBotHost) GetHttpClient(c context.Context) *http.Client {
+// GetHTTPClient creates an HTTP client using AppEngine's URL fetch
+func (h GaeBotHost) GetHTTPClient(c context.Context) *http.Client {
 	if c == nil {
 		panic("c == nil")
 	}
@@ -31,10 +34,12 @@ func (h GaeBotHost) GetHttpClient(c context.Context) *http.Client {
 	}
 }
 
+// DB returns database instance
 func (h GaeBotHost) DB() db.Database {
 	return gaedb.NewDatabase()
 }
 
+// GetBotCoreStores returns bot DAL
 func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppContext, r *http.Request) (stores bots.BotCoreStores) {
 	appUserStore := NewGaeAppUserStore(appContext.AppUserEntityKind(), appContext.AppUserEntityType(), appContext.NewBotAppUserEntity)
 	stores.BotAppUserStore = appUserStore
@@ -44,14 +49,14 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 		if tgChatStore := appContext.GetBotChatEntityFactory(platform); tgChatStore != nil {
 			stores.BotChatStore = NewGaeTelegramChatStore(tgChatStore)
 		} else {
-			stores.BotChatStore = NewGaeTelegramChatStore(func() bots.BotChat { return telegram_bot.NewTelegramChatEntity() })
+			stores.BotChatStore = NewGaeTelegramChatStore(func() bots.BotChat { return telegram.NewTelegramChatEntity() })
 		}
-		stores.BotUserStore = NewGaeTelegramUserStore(appUserStore)
+		stores.BotUserStore = newGaeTelegramUserStore(appUserStore)
 	case "fbm": // pass
 		stores.BotChatStore = NewGaeFbmChatStore()
-		stores.BotUserStore = NewGaeFacebookUserStore(appUserStore)
+		stores.BotUserStore = newGaeFacebookUserStore(appUserStore)
 	case "viber": // pass
-		userChatStore := NewGaeViberUserChatStore(appUserStore)
+		userChatStore := newGaeViberUserChatStore(appUserStore)
 		stores.BotChatStore = userChatStore
 		stores.BotUserStore = userChatStore
 	default:

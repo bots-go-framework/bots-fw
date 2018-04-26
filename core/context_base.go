@@ -45,9 +45,10 @@ type WebhookContextBase struct {
 
 	BotCoreStores
 
-	gaMeasurement GaQueuer
+	gaContext gaContext
 }
 
+// SetChatID sets chat ID
 func (whcb *WebhookContextBase) SetChatID(v string) {
 	whcb.chatID = v
 }
@@ -82,6 +83,7 @@ func (whcb *WebhookContextBase) Environment() strongo.Environment {
 	return whcb.BotContext.BotSettings.Env
 }
 
+// MustBotChatID returns bot chat ID and panic if missing it
 func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	var err error
 	if chatID, err = whcb.BotChatID(); err != nil {
@@ -92,6 +94,7 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 	return
 }
 
+// BotChatID returns bot chat ID
 func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	if whcb.chatID != "" {
 		return whcb.chatID, nil
@@ -183,6 +186,7 @@ func (whcb *WebhookContextBase) IsInGroup() bool {
 	return whcb.isInGroup()
 }
 
+// NewWebhookContextBase creates base bot context
 func NewWebhookContextBase(
 	r *http.Request,
 	botAppContext BotAppContext,
@@ -201,13 +205,16 @@ func NewWebhookContextBase(
 		getLocaleAndChatID: func() (locale, chatID string, err error) {
 			return getLocaleAndChatID(c)
 		},
-		gaMeasurement: gaMeasurement,
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
 		BotContext:    botContext,
 		input:         webhookInput,
 		isInGroup:     isInGroup,
 		BotCoreStores: botCoreStores,
+	}
+	whcb.gaContext = gaContext{
+		whcb: &whcb,
+		gaMeasurement: gaMeasurement,
 	}
 	if isInGroup() && whcb.getLocaleAndChatID != nil {
 		if locale, chatID, err := whcb.getLocaleAndChatID(); err != nil {
@@ -225,43 +232,70 @@ func NewWebhookContextBase(
 	return &whcb
 }
 
+// Input returns webhook intput
 func (whcb *WebhookContextBase) Input() WebhookInput {
 	return whcb.input
 }
 
-func (whcb *WebhookContextBase) Chat() WebhookChat {
+// Chat returns webhook chat
+func (whcb *WebhookContextBase) Chat() WebhookChat {  // TODO: remove
 	return whcb.input.Chat()
 }
 
-func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient {
+// GetRecipient returns receiver of the message
+func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient {  // TODO: remove
 	return whcb.input.GetRecipient()
 }
 
-func (whcb *WebhookContextBase) GetSender() WebhookSender {
+// GetSender returns sender of the message
+func (whcb *WebhookContextBase) GetSender() WebhookSender {  // TODO: remove
 	return whcb.input.GetSender()
 }
 
-func (whcb *WebhookContextBase) GetTime() time.Time {
+// GetTime returns time of the message
+func (whcb *WebhookContextBase) GetTime() time.Time {  // TODO: remove
 	return whcb.input.GetTime()
 }
 
-func (whcb *WebhookContextBase) InputType() WebhookInputType {
+// InputType returns input type
+func (whcb *WebhookContextBase) InputType() WebhookInputType {  // TODO: remove
 	return whcb.input.InputType()
 }
 
-func (whcb *WebhookContextBase) GaMeasurement() GaQueuer {
-	return whcb.gaMeasurement
+// GaMeasurement returns a provider to send information to Google Analytics
+func (gac gaContext) GaMeasurement() GaQueuer {
+	return gac.gaMeasurement
 }
 
-func (whcb *WebhookContextBase) GaCommon() gamp.Common {
+type gaContext struct {
+	whcb *WebhookContextBase
+	gaMeasurement GaQueuer
+}
+
+// GA provides interface to Google Analytics
+func (whcb *WebhookContextBase) GA() GaContext {
+	return whcb.gaContext
+}
+
+func (gac gaContext) Queue(message gamp.Message) error {
+	return gac.gaMeasurement.Queue(message)
+}
+
+// func (gac gaContext) Flush() error {
+// 	return gac.gaMeasurement.
+// }
+//
+// GaCommon creates context for Google Analytics
+func (gac gaContext) GaCommon() gamp.Common {
+	whcb := gac.whcb
 	if whcb.chatEntity != nil {
 		c := whcb.Context()
 		return gamp.Common{
 			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
 			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
 			ClientID:      whcb.chatEntity.GetGaClientID().String(),
-			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.Id(), whcb.GetBotCode()),
-			UserAgent:     fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.Id(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
+			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
+			UserAgent:     fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.ID(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
 			DataSource:    "bot",
 		}
 	}
@@ -271,42 +305,50 @@ func (whcb *WebhookContextBase) GaCommon() gamp.Common {
 	}
 }
 
-func (whcb *WebhookContextBase) GaEvent(category, action string) gamp.Event {
-	return gamp.NewEvent(category, action, whcb.GaCommon())
+
+func (gac gaContext) GaEvent(category, action string) gamp.Event { // TODO: remove
+	return gamp.NewEvent(category, action, gac.GaCommon())
 }
 
-func (whcb *WebhookContextBase) GaEventWithLabel(category, action, label string) gamp.Event {
-	return gamp.NewEventWithLabel(category, action, label, whcb.GaCommon())
+func (gac gaContext) GaEventWithLabel(category, action, label string) gamp.Event {
+	return gamp.NewEventWithLabel(category, action, label, gac.GaCommon())
 }
 
+// BotPlatform inidates on which bot platform we process message
 func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 	return whcb.botPlatform
 }
 
+// GetBotSettings settings of the current bot
 func (whcb *WebhookContextBase) GetBotSettings() BotSettings {
 	return whcb.BotContext.BotSettings
 }
 
+// GetBotCode returns current bot code
 func (whcb *WebhookContextBase) GetBotCode() string {
 	return whcb.BotContext.BotSettings.Code
 }
 
+// GetBotToken returns current bot API token
 func (whcb *WebhookContextBase) GetBotToken() string {
 	return whcb.BotContext.BotSettings.Token
 }
 
+// Translate translates string
 func (whcb *WebhookContextBase) Translate(key string, args ...interface{}) string {
 	return whcb.Translator.Translate(key, whcb.Locale().Code5, args...)
 }
 
+// TranslateNoWarning translates string without warnings
 func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface{}) string {
 	return whcb.Translator.TranslateNoWarning(key, whcb.locale.Code5, args...)
 }
 
-//func (whcb *WebhookContextBase) GetHttpClient() *http.Client {
-//	return whcb.BotContext.BotHost.GetHttpClient(whcb.c)
+//func (whcb *WebhookContextBase) GetHTTPClient() *http.Client {
+//	return whcb.BotContext.BotHost.GetHTTPClient(whcb.c)
 //}
 
+// HasChatEntity return true if messages is within chat
 func (whcb *WebhookContextBase) HasChatEntity() bool {
 	return whcb.chatEntity != nil
 }
@@ -315,10 +357,12 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 //	return whcb.BotAppUserStore.SaveAppUser(whcb.Context(), appUserID, appUserEntity)
 //}
 
+// SetChatEntity sets app entity for the context (loaded from DB)
 func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
 	whcb.chatEntity = chatEntity
 }
 
+// ChatEntity returns app entity for the context (loaded from DB)
 func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	if whcb.chatEntity != nil {
 		return whcb.chatEntity
@@ -339,12 +383,13 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	return whcb.chatEntity
 }
 
+// GetOrCreateBotUserEntityBase to be documented
 func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
 	c := whcb.Context()
 	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()
 	botUserID := sender.GetID()
-	botUser, err := whcb.GetBotUserById(c, botUserID)
+	botUser, err := whcb.GetBotUserByID(c, botUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -357,14 +402,13 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		}
 		log.Infof(c, "Bot user entity created")
 
-		whcb.gaMeasurement.Queue(whcb.GaEvent("users", "user-created")) //TODO: Should be outside
+		ga := whcb.gaContext
+		ga.Queue(ga.GaEvent("users", "user-created")) //TODO: Should be outside
 
-		whcb.gaMeasurement.Queue(whcb.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.Id())) // TODO: Should be outside
+		ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())) // TODO: Should be outside
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			gaEvent := gamp.NewEvent("bot-users", "bot-user-created", whcb.GaCommon())
-			gaEvent.Label = whcb.botPlatform.Id()
-			whcb.gaMeasurement.Queue(gaEvent)
+			ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID()))
 		}
 	} else {
 		log.Infof(c, "Found existing bot user entity")
@@ -404,9 +448,8 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			gaEvent := gamp.NewEvent("bot-chats", "bot-chat-created", whcb.GaCommon())
-			gaEvent.Label = whcb.botPlatform.Id()
-			whcb.GaMeasurement().Queue(gaEvent)
+			ga := whcb.gaContext
+			ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-chat-created", whcb.botPlatform.ID()))
 		}
 	default:
 		return err
@@ -437,14 +480,17 @@ func (whcb *WebhookContextBase) Context() context.Context {
 	return whcb.c
 }
 
+// SetContext sets current context // TODO: explain why we need this as probably should be in constructor?
 func (whcb *WebhookContextBase) SetContext(c context.Context) {
 	whcb.c = c
 }
 
+// NewMessageByCode creates new translated message by i18n code
 func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {
 	return whcb.NewMessage(fmt.Sprintf(whcb.Translate(messageCode), a...))
 }
 
+// MessageText returns text of received message
 func (whcb *WebhookContextBase) MessageText() string {
 	if tm, ok := whcb.Input().(WebhookTextMessage); ok {
 		return tm.Text()
@@ -452,12 +498,14 @@ func (whcb *WebhookContextBase) MessageText() string {
 	return ""
 }
 
+// NewMessage creates new message from bot
 func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
 	m.Text = text
 	m.Format = MessageFormatHTML
 	return
 }
 
+// Locale indicates current language
 func (whcb WebhookContextBase) Locale() strongo.Locale {
 	if whcb.locale.Code5 == "" {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
@@ -472,6 +520,7 @@ func (whcb WebhookContextBase) Locale() strongo.Locale {
 	return whcb.locale
 }
 
+// SetLocale sets current language
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	locale, err := whcb.botAppContext.SupportedLocales().GetLocaleByCode5(code5)
 	if err != nil {

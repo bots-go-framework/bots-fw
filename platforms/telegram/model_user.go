@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/app/user"
@@ -8,27 +8,32 @@ import (
 )
 
 const (
-	TelegramUserKind = "TgUser"
+	// TgUserKind is kind name for Telegram user entity
+	TgUserKind = "TgUser"
 )
 
-type TelegramUserEntity struct {
+// TgUserEntity is Telegram user DB entity (without ID)
+type TgUserEntity struct {
 	bots.BotUserEntity
 	//TgChatID int64
 }
 
-var _ bots.BotUser = (*TelegramUserEntity)(nil)
-var _ user.AccountEntity = (*TelegramUserEntity)(nil)
+var _ bots.BotUser = (*TgUserEntity)(nil)
+var _ user.AccountEntity = (*TgUserEntity)(nil)
 
-type TelegramUser struct {
+// TgUser is Telegram user DB record (with ID)
+type TgUser struct {
 	ID int64
-	TelegramUserEntity
+	TgUserEntity
 }
 
-func (_ TelegramUser) GetEmail() string {
+// GetEmail returns empty string
+func (TgUser) GetEmail() string {
 	return ""
 }
 
-func (entity TelegramUserEntity) Name() string {
+// Name returns full display name cmbined from (first+last, nick) name
+func (entity TgUserEntity) Name() string {
 	if entity.FirstName == "" && entity.LastName == "" {
 		return "@" + entity.UserName
 	}
@@ -44,7 +49,8 @@ func (entity TelegramUserEntity) Name() string {
 	return "@" + entity.UserName + " - " + name
 }
 
-func (entity *TelegramUserEntity) GetNames() user.Names {
+// GetNames return user names
+func (entity *TgUserEntity) GetNames() user.Names {
 	return user.Names{
 		FirstName: entity.FirstName,
 		LastName:  entity.LastName,
@@ -52,15 +58,18 @@ func (entity *TelegramUserEntity) GetNames() user.Names {
 	}
 }
 
-func (entity *TelegramUserEntity) IsEmailConfirmed() bool {
+// IsEmailConfirmed returns false
+func (entity *TgUserEntity) IsEmailConfirmed() bool {
 	return false
 }
 
-func (entity *TelegramUserEntity) Load(ps []datastore.Property) error {
+// Load is for datastore
+func (entity *TgUserEntity) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *TelegramUserEntity) Save() (properties []datastore.Property, err error) {
+// Save is for datastore
+func (entity *TgUserEntity) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}

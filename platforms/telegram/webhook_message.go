@@ -1,26 +1,26 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
 	"strconv"
 )
 
-type telegramWebhookMessage struct {
-	telegramWebhookInput
+type tgWebhookMessage struct {
+	tgWebhookInput
 	message *tgbotapi.Message // Can be either whi.update.Message or whi.update.CallbackQuery.Message
 }
 
-func (whm telegramWebhookMessage) IntID() int64 {
+func (whm tgWebhookMessage) IntID() int64 {
 	return (int64)(whm.message.MessageID)
 }
 
-func newTelegramWebhookMessage(input telegramWebhookInput, message *tgbotapi.Message) telegramWebhookMessage {
+func newTelegramWebhookMessage(input tgWebhookInput, message *tgbotapi.Message) tgWebhookMessage {
 	if message == nil {
 		panic("message == nil")
 	}
-	return telegramWebhookMessage{telegramWebhookInput: input, message: message}
+	return tgWebhookMessage{tgWebhookInput: input, message: message}
 }
 
-func (whm telegramWebhookMessage) BotChatID() (string, error) {
+func (whm tgWebhookMessage) BotChatID() (string, error) {
 	return strconv.FormatInt(whm.message.Chat.ID, 10), nil
 }

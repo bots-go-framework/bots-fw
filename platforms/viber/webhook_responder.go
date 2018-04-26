@@ -1,4 +1,4 @@
-package viber_bot
+package viber
 
 import (
 	"context"
@@ -9,23 +9,24 @@ import (
 	"github.com/strongo/log"
 )
 
-type ViberWebhookResponder struct {
+// viberWebhookResponder is wrapper for Viber API
+type viberWebhookResponder struct {
 	//w   http.ResponseWriter
-	whc *ViberWebhookContext
+	whc *viberWebhookContext
 }
 
-var _ bots.WebhookResponder = (*ViberWebhookResponder)(nil)
+var _ bots.WebhookResponder = (*viberWebhookResponder)(nil)
 
-func NewViberWebhookResponder(whc *ViberWebhookContext) ViberWebhookResponder {
-	responder := ViberWebhookResponder{whc: whc} // We need a dedicated to get rid of type assertion
+func newViberWebhookResponder(whc *viberWebhookContext) viberWebhookResponder {
+	responder := viberWebhookResponder{whc: whc} // We need a dedicated to get rid of type assertion
 	whc.responder = responder
 	return responder
 }
 
-func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	log.Debugf(c, "ViberWebhookResponder.SendMessage()...")
+func (r viberWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotAPISendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
+	log.Debugf(c, "viberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
-	viberBotApi := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.BotContext.BotHost.GetHttpClient(c))
+	viberBotAPI := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, r.whc.BotContext.BotHost.GetHTTPClient(c))
 	log.Debugf(c, "Keyboard: %v", m.Keyboard)
 
 	var viberKeyboard *viberinterface.Keyboard
@@ -34,11 +35,12 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	}
 
 	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, viberKeyboard)
-	requestBody, response, err := viberBotApi.SendMessage(textMessage)
+	requestBody, response, err := viberBotAPI.SendMessage(textMessage)
 	if err != nil {
 		err = errors.Wrap(err, "Failed to send message to Viber")
 		log.Errorf(c, err.Error())
 	}
+
 	log.Debugf(c, "Request body: %v", (string)(requestBody))
 	if response.Status == 0 {
 		log.Debugf(c, "Successfully sent to Viber")
@@ -50,6 +52,5 @@ func (r ViberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 			log.Errorf(c, "Viber response.Status=%v: %v", response.Status, response.StatusMessage)
 		}
 	}
-
 	return resp, err
 }

@@ -27,15 +27,15 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 		)
 	
 		driver.RegisterWebhookHandlers(httpRouter, "/bot",
-			telegram_bot.NewTelegramWebhookHandler(
+			telegram.NewTelegramWebhookHandler(
 				telegramBotsWithRouter, // Maps of bots by code, language, token, etc...
 				newTranslator, // Creates translator that gets a context.Context (for logging purpose)
 			),
-			viber_bot.NewViberWebhookHandler(
+			viber.NewViberWebhookHandler(
 				viber.Bots,
 				newTranslator,
 			),
-			fbm_bot.NewFbmWebhookHandler(
+			fbm.NewFbmWebhookHandler(
 				fbm.Bots,
 				newTranslator,
 			),

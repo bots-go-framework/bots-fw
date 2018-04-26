@@ -1,18 +1,22 @@
-package fbm_bot
+package fbm
 
 import "github.com/strongo/bots-framework/core"
 
-const FbmPlatformID = "fbm"
+// PlatformID is platform ID for FBM
+const PlatformID = "fbm"
 
-type FbmPlatform struct {
+// Platform describes FBM platform
+type Platform struct {
 }
 
-var _ bots.BotPlatform = (*FbmPlatform)(nil)
+var _ bots.BotPlatform = (*Platform)(nil)
 
-func (p FbmPlatform) Id() string {
-	return FbmPlatformID
+// ID returns ID of FBM platform
+func (p Platform) ID() string {
+	return PlatformID
 }
 
-func (p FbmPlatform) Version() string {
+// Version returns version of the platform
+func (p Platform) Version() string {
 	return "1"
 }

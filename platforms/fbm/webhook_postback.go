@@ -1,29 +1,35 @@
-package fbm_bot
+package fbm
 
 import "github.com/strongo/bots-framework/core"
 
-type FbmPostbackInput struct {
-	FbmWebhookInput
+// postbackInput is postback input
+type postbackInput struct {
+	webhookInput
 }
 
-var _ bots.WebhookCallbackQuery = (*FbmPostbackInput)(nil)
+var _ bots.WebhookCallbackQuery = (*postbackInput)(nil)
 
-func (input FbmPostbackInput) GetID() interface{} {
+// GetID returns ID
+func (input postbackInput) GetID() interface{} {
 	return input.messaging.Timestamp
 }
 
-func (input FbmPostbackInput) GetInlineMessageID() string {
+// GetInlineMessageID is not supported by FBM
+func (input postbackInput) GetInlineMessageID() string {
 	return ""
 }
 
-func (input FbmPostbackInput) GetFrom() bots.WebhookSender {
-	return input.FbmWebhookInput.GetSender()
+// GetFrom returns sender
+func (input postbackInput) GetFrom() bots.WebhookSender {
+	return input.webhookInput.GetSender()
 }
 
-func (input FbmPostbackInput) GetData() string {
+// GetData returns payload
+func (input postbackInput) GetData() string {
 	return input.messaging.Postback.Payload
 }
 
-func (input FbmPostbackInput) GetMessage() bots.WebhookMessage {
-	return input.FbmWebhookInput
+// GetMessage returns message
+func (input postbackInput) GetMessage() bots.WebhookMessage {
+	return input.webhookInput
 }

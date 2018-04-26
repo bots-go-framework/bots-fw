@@ -20,7 +20,8 @@ type GaQueuer interface { // TODO: can be unexported?
 
 // GaContext provides context to Google Analytics
 type GaContext interface {
-	GaMeasurement() GaQueuer
+	GaQueuer
+	// Flush() error
 	GaCommon() gamp.Common
 	GaEvent(category, action string) gamp.Event
 	GaEventWithLabel(category, action, label string) gamp.Event
@@ -29,7 +30,7 @@ type GaContext interface {
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface {
 	// TODO: Make interface smaller?
-	GaContext
+	GA() GaContext
 	db.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider

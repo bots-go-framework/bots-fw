@@ -1,28 +1,28 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookStickerMessage struct {
-	telegramWebhookMessage
-	TgMessageType TelegramMessageType
+type tgWebhookStickerMessage struct {
+	tgWebhookMessage
+	TgMessageType TgMessageType
 }
 
-var _ bots.WebhookStickerMessage = (*TelegramWebhookStickerMessage)(nil)
+var _ bots.WebhookStickerMessage = (*tgWebhookStickerMessage)(nil)
 
-func (_ TelegramWebhookStickerMessage) InputType() bots.WebhookInputType {
+func (tgWebhookStickerMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputSticker
 }
 
-func NewTelegramWebhookStickerMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookStickerMessage {
-	return TelegramWebhookStickerMessage{
-		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
-		TgMessageType:          tgMessageType,
+func newTgWebhookStickerMessage(input tgWebhookInput, tgMessageType TgMessageType, tgMessage *tgbotapi.Message) tgWebhookStickerMessage {
+	return tgWebhookStickerMessage{
+		tgWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
+		TgMessageType:    tgMessageType,
 	}
 }
 
-//func (whm TelegramWebhookStickerMessage) IsEdited() bool {
-//	return whm.TgMessageType == TelegramMessageTypeEdited || whm.TgMessageType == TelegramMessageTypeEditedChannelPost
+//func (whm tgWebhookStickerMessage) IsEdited() bool {
+//	return whm.TgMessageType == TgMessageTypeEdited || whm.TgMessageType == TgMessageTypeEditedChannelPost
 //}

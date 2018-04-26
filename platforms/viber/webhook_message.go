@@ -1,4 +1,4 @@
-package viber_bot
+package viber
 
 import (
 	"github.com/strongo/bots-api-viber/viberinterface"
@@ -8,9 +8,9 @@ import (
 )
 
 type viberWebhookMessage struct {
-	ViberWebhookInput
+	webhookInput
 	m    viberinterface.CallbackOnMessage // Can be either input.update.Message or input.update.CallbackQuery.Message
-	chat ViberWebhookChat
+	chat viberWebhookChat
 }
 
 func (whm viberWebhookMessage) IntID() int64 {
@@ -42,5 +42,5 @@ func (whm viberWebhookMessage) GetTime() time.Time {
 }
 
 func newViberWebhookMessage(m viberinterface.CallbackOnMessage) viberWebhookMessage {
-	return viberWebhookMessage{ViberWebhookInput: newViberWebhookInput(m.CallbackBase), m: m, chat: NewViberWebhookChat(m.Sender.ID)}
+	return viberWebhookMessage{webhookInput: newViberWebhookInput(m.CallbackBase), m: m, chat: newViberWebhookChat(m.Sender.ID)}
 }

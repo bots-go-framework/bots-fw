@@ -1,39 +1,46 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookInlineQuery struct {
-	telegramWebhookInput
+// TgWebhookInlineQuery is wrapper
+type TgWebhookInlineQuery struct {
+	tgWebhookInput
 }
 
-func (_ TelegramWebhookInlineQuery) InputType() bots.WebhookInputType {
+// InputType returns WebhookInputInlineQuery
+func (TgWebhookInlineQuery) InputType() bots.WebhookInputType {
 	return bots.WebhookInputInlineQuery
 }
 
-var _ bots.WebhookInlineQuery = (*TelegramWebhookInlineQuery)(nil)
+var _ bots.WebhookInlineQuery = (*TgWebhookInlineQuery)(nil)
 
-func NewTelegramWebhookInlineQuery(input telegramWebhookInput) TelegramWebhookInlineQuery {
-	return TelegramWebhookInlineQuery{telegramWebhookInput: input}
+func newTelegramWebhookInlineQuery(input tgWebhookInput) TgWebhookInlineQuery {
+	return TgWebhookInlineQuery{tgWebhookInput: input}
 }
 
-func (q TelegramWebhookInlineQuery) GetInlineQueryID() string {
-	return q.update.InlineQuery.ID
+// GetInlineQueryID return inline query ID
+func (iq TgWebhookInlineQuery) GetInlineQueryID() string {
+	return iq.update.InlineQuery.ID
 }
 
-func (q TelegramWebhookInlineQuery) GetQuery() string {
-	return q.update.InlineQuery.Query
+// GetQuery returns query string
+func (iq TgWebhookInlineQuery) GetQuery() string {
+	return iq.update.InlineQuery.Query
 }
 
-func (iq TelegramWebhookInlineQuery) GetFrom() bots.WebhookSender {
-	return TelegramSender{tgUser: iq.update.InlineQuery.From}
+// GetFrom returns recipient
+func (iq TgWebhookInlineQuery) GetFrom() bots.WebhookSender {
+	return tgSender{tgUser: iq.update.InlineQuery.From}
 }
 
-func (iq TelegramWebhookInlineQuery) GetOffset() string {
+// GetOffset returns offset
+func (iq TgWebhookInlineQuery) GetOffset() string {
 	return iq.update.InlineQuery.Offset
 }
 
-func (iq TelegramWebhookInlineQuery) BotChatID() (string, error) {
+// BotChatID returns bot chat ID
+func (iq TgWebhookInlineQuery) BotChatID() (string, error) {
 	return "", nil
 }

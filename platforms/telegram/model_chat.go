@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"fmt"
@@ -12,24 +12,29 @@ import (
 )
 
 const (
-	TelegramChatKind = "TgChat"
+	// ChatKind is kind name of Telegram chat entity
+	ChatKind = "TgChat"
 )
 
-type TelegramChatEntity interface {
+// TgChatEntity is Telegram chat entity interface
+type TgChatEntity interface {
 	SetTgChatInstanceID(v string)
 	GetTgChatInstanceID() string
 	GetPreferredLanguage() string
 }
 
-type TelegramChatBase struct {
+// TgChatBase holds base properties of Telegram chat entity
+type TgChatBase struct {
 	db.StringID
 }
 
-func (tgChat *TelegramChatBase) SetID(tgBotID string, tgChatID int64) {
+// SetID sets ID
+func (tgChat *TgChatBase) SetID(tgBotID string, tgChatID int64) {
 	tgChat.ID = tgBotID + ":" + strconv.FormatInt(tgChatID, 10) // TODO: Should we migrated to format "id@bot"?
 }
 
-type TelegramChatEntityBase struct {
+// TgChatEntityBase holds base properties of Telegram chat entity
+type TgChatEntityBase struct {
 	bots.BotChatEntity
 	TelegramUserID        int64   `datastore:",noindex"`
 	TelegramUserIDs       []int64 `datastore:",noindex"` // For groups
@@ -37,22 +42,26 @@ type TelegramChatEntityBase struct {
 	TgChatInstanceID      string  `datastore:",noindex"` // Do index
 }
 
-func (entity *TelegramChatEntityBase) SetTgChatInstanceID(v string) {
+// SetTgChatInstanceID is what it is
+func (entity *TgChatEntityBase) SetTgChatInstanceID(v string) {
 	entity.TgChatInstanceID = v
 }
 
-func (entity *TelegramChatEntityBase) GetTgChatInstanceID() string {
+// GetTgChatInstanceID is what it is
+func (entity *TgChatEntityBase) GetTgChatInstanceID() string {
 	return entity.TgChatInstanceID
 }
 
-func (entity *TelegramChatEntityBase) GetPreferredLanguage() string {
+// GetPreferredLanguage returns preferred language for the chat
+func (entity *TgChatEntityBase) GetPreferredLanguage() string {
 	return entity.PreferredLanguage
 }
 
-var _ bots.BotChat = (*TelegramChatEntityBase)(nil)
+var _ bots.BotChat = (*TgChatEntityBase)(nil)
 
-func NewTelegramChatEntity() *TelegramChatEntityBase {
-	return &TelegramChatEntityBase{
+// NewTelegramChatEntity create new telegram chat entity
+func NewTelegramChatEntity() *TgChatEntityBase {
+	return &TgChatEntityBase{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
 				OwnedByUser: user.OwnedByUser{
@@ -63,14 +72,16 @@ func NewTelegramChatEntity() *TelegramChatEntityBase {
 	}
 }
 
-func (entity *TelegramChatEntityBase) SetAppUserIntID(id int64) {
+// SetAppUserIntID sets app user int ID
+func (entity *TgChatEntityBase) SetAppUserIntID(id int64) {
 	if entity.IsGroup && id != 0 {
-		panic("TelegramChatEntityBase.IsGroup && id != 0")
+		panic("TgChatEntityBase.IsGroup && id != 0")
 	}
 	entity.AppUserIntID = id
 }
 
-func (entity *TelegramChatEntityBase) SetBotUserID(id interface{}) {
+// SetBotUserID sets bot user int ID
+func (entity *TgChatEntityBase) SetBotUserID(id interface{}) {
 	switch id.(type) {
 	case string:
 		var err error
@@ -87,11 +98,13 @@ func (entity *TelegramChatEntityBase) SetBotUserID(id interface{}) {
 	}
 }
 
-func (entity *TelegramChatEntityBase) Load(ps []datastore.Property) error {
+// Load loads entity from datastore
+func (entity *TgChatEntityBase) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-func (entity *TelegramChatEntityBase) Save() (properties []datastore.Property, err error) {
+// Save saves entity to datastore
+func (entity *TgChatEntityBase) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
 	}
@@ -101,7 +114,8 @@ func (entity *TelegramChatEntityBase) Save() (properties []datastore.Property, e
 	return
 }
 
-func (entity *TelegramChatEntityBase) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
+// CleanProperties cleands properties
+func (entity *TgChatEntityBase) CleanProperties(properties []datastore.Property) ([]datastore.Property, error) {
 	if entity.IsGroup && entity.AppUserIntID != 0 {
 		for _, userID := range entity.AppUserIntIDs {
 			if userID == entity.AppUserIntID {
@@ -115,7 +129,7 @@ func (entity *TelegramChatEntityBase) CleanProperties(properties []datastore.Pro
 
 	for i, userID := range entity.AppUserIntIDs {
 		if userID == 0 {
-			panic(fmt.Sprintf("*TelegramChatEntityBase.AppUserIntIDs[%d] == 0", i))
+			panic(fmt.Sprintf("*TgChatEntityBase.AppUserIntIDs[%d] == 0", i))
 		}
 	}
 

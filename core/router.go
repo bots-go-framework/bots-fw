@@ -168,7 +168,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	for _, command := range commands {
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
-			awaitingReplyPrefix := strings.TrimLeft(parentPath+AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code, AWAITING_REPLY_TO_PATH_SEPARATOR)
+			awaitingReplyPrefix := strings.TrimLeft(parentPath+AwaitingReplyToPathSeparator+command.Code, AwaitingReplyToPathSeparator)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				//log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
@@ -205,13 +205,13 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 		if !awaitingReplyCommandFound {
 			awaitingReplyToPath := AwaitingReplyToPath(awaitingReplyTo)
-			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code) {
+			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator+command.Code) {
 				awaitingReplyCommand = command
 				switch {
 				case awaitingReplyToPath == command.Code:
 					log.Debugf(c, "%v matched by: awaitingReplyToPath == command.ByCode", command.Code)
-				case strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR+command.Code):
-					log.Debugf(c, "%v matched by: strings.HasSuffix(awaitingReplyToPath, AWAITING_REPLY_TO_PATH_SEPARATOR + command.ByCode)", command.Code)
+				case strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator+command.Code):
+					log.Debugf(c, "%v matched by: strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator + command.ByCode)", command.Code)
 				}
 				awaitingReplyCommandFound = true
 				continue
@@ -348,7 +348,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 		if textMessage.IsEdited() { // TODO: Should be in app logic, move out of core
 			m := whc.NewMessage("🙇 Sorry, editing messages is not supported. Please send a new message.")
 			log.Warningf(c, "TODO: Edited messages are not supported by framework yet. Move check to app.")
-			whc.Responder().SendMessage(c, m, BotApiSendMessageOverResponse)
+			whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
 			return
 		}
 	case WebhookInputContact:
@@ -371,7 +371,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	}
 
 	m := whc.NewMessage("Sorry, unknown input type") // TODO: Move out of framework to app.
-	whc.Responder().SendMessage(c, m, BotApiSendMessageOverResponse)
+	whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
 
 	return
 }
@@ -379,13 +379,13 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 
 	c := whc.Context()
-	gaMeasurement := whc.GaMeasurement()
+	ga := whc.GA()
 	//gam.GeographicalOverride()
 
 	env := whc.GetBotSettings().Env
 	inputType := whc.InputType()
 	if err == nil {
-		if _, err = responder.SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
+		if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
 			const failedToSendMessageToMessenger = "failed to send a message to messenger"
 			if strings.Contains(err.Error(), "message is not modified") { // TODO: This check is specific to Telegram and should be abstracted
 				logText := failedToSendMessageToMessenger
@@ -399,9 +399,9 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 			}
 		}
 		if matchedCommand != nil {
-			if gaMeasurement != nil {
+			if ga != nil {
 
-				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().Id()))
+				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 				pathPrefix := "bot/"
 				var pageview gamp.Pageview
 				var chatEntity BotChat
@@ -420,18 +420,18 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 					pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
 				}
 
-				pageview.Common = whc.GaCommon()
-				if err := gaMeasurement.Queue(pageview); err != nil {
+				pageview.Common = ga.GaCommon()
+				if err := ga.Queue(pageview); err != nil {
 					log.Warningf(c, "Failed to send page view to GA: %v", err)
 				}
 			}
 		}
 	} else {
 		log.Errorf(c, err.Error())
-		if env == strongo.EnvProduction && gaMeasurement != nil {
+		if env == strongo.EnvProduction && ga != nil {
 			exceptionMessage := gamp.NewException(err.Error(), false)
-			exceptionMessage.Common = whc.GaCommon()
-			err = gaMeasurement.Queue(exceptionMessage)
+			exceptionMessage.Common = ga.GaCommon()
+			err = ga.Queue(exceptionMessage)
 			if err != nil {
 				log.Warningf(c, "Failed to send page view to GA: %v", err)
 			}
@@ -451,7 +451,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 				}
 			}
 
-			if _, respErr := responder.SendMessage(c, m, BotApiSendMessageOverResponse); respErr != nil {
+			if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
 				log.Errorf(c, "Failed to report to user a server error: %v", respErr)
 			}
 		}

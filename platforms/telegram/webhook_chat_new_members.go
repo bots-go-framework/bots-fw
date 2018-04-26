@@ -1,24 +1,24 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookNewChatMembersMessage struct {
-	telegramWebhookMessage
+type tgWebhookNewChatMembersMessage struct {
+	tgWebhookMessage
 }
 
-func (_ TelegramWebhookNewChatMembersMessage) InputType() bots.WebhookInputType {
+func (tgWebhookNewChatMembersMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputNewChatMembers
 }
 
-var _ bots.WebhookNewChatMembersMessage = (*TelegramWebhookNewChatMembersMessage)(nil)
+var _ bots.WebhookNewChatMembersMessage = (*tgWebhookNewChatMembersMessage)(nil)
 
-func NewTelegramWebhookNewChatMembersMessage(input telegramWebhookInput) TelegramWebhookNewChatMembersMessage {
-	return TelegramWebhookNewChatMembersMessage{telegramWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
+func newTgWebhookNewChatMembersMessage(input tgWebhookInput) tgWebhookNewChatMembersMessage {
+	return tgWebhookNewChatMembersMessage{tgWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
 }
 
-func (m TelegramWebhookNewChatMembersMessage) NewChatMembers() []bots.WebhookActor {
+func (m tgWebhookNewChatMembersMessage) NewChatMembers() []bots.WebhookActor {
 	members := make([]bots.WebhookActor, len(m.message.NewChatMembers))
 	for i, m := range m.message.NewChatMembers {
 		members[i] = m

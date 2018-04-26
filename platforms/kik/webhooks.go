@@ -9,10 +9,12 @@ import (
 	"strings"
 )
 
-func KikWebhookHandler(w http.ResponseWriter, r *http.Request) {
+// WebhookHandler handles Kik requests
+func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 
+// ConfigureKikHandler configures kik bot
 func ConfigureKikHandler(w http.ResponseWriter, r *http.Request) {
 	//This works
 	// curl -H "Content-Type: application/json" -d '{"webhook": "https://debtstracker-io.appspot.com/bot/kik/webhook", "features": {"manuallySendReadReceipts": false, "receiveReadReceipts": false, "receiveDeliveryReceipts": false, "receiveIsTyping": false}}' -u 'debtstracker:1e296a7a-762a-4a00-9152-e9f410cacde1' 'https://api.kik.com/v1/config'

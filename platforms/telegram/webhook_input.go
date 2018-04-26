@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/pkg/errors"
@@ -8,62 +8,62 @@ import (
 	"time"
 )
 
-type telegramWebhookInput struct {
+type tgWebhookInput struct {
 	update     *tgbotapi.Update // TODO: Make a pointer?
 	logRequest func()
 }
 
-// TelegramWebhookInput is a wrapper of telegram update struct to bots framework interface
-type TelegramWebhookInput interface {
+// TgWebhookInput is a wrapper of telegram update struct to bots framework interface
+type TgWebhookInput interface {
 	TgUpdate() *tgbotapi.Update
 }
 
-func (whi telegramWebhookInput) LogRequest() {
+func (whi tgWebhookInput) LogRequest() {
 	if whi.logRequest != nil {
 		whi.logRequest()
 	}
 }
 
-var _ TelegramWebhookInput = (*telegramWebhookInput)(nil)
+var _ TgWebhookInput = (*tgWebhookInput)(nil)
 
-// TelegramWebhookUpdateProvider indicates that input can provide original Telegram update struct
-type TelegramWebhookUpdateProvider interface {
+// tgWebhookUpdateProvider indicates that input can provide original Telegram update struct
+type tgWebhookUpdateProvider interface {
 	TgUpdate() *tgbotapi.Update
 }
 
-func (whi telegramWebhookInput) TgUpdate() *tgbotapi.Update {
+func (whi tgWebhookInput) TgUpdate() *tgbotapi.Update {
 	return whi.update
 }
 
-var _ bots.WebhookInput = (*TelegramWebhookTextMessage)(nil)
-var _ bots.WebhookInput = (*TelegramWebhookContactMessage)(nil)
-var _ bots.WebhookInput = (*TelegramWebhookInlineQuery)(nil)
-var _ bots.WebhookInput = (*TelegramWebhookChosenInlineResult)(nil)
-var _ bots.WebhookInput = (*TelegramWebhookCallbackQuery)(nil)
-var _ bots.WebhookInput = (*TelegramWebhookNewChatMembersMessage)(nil)
+var _ bots.WebhookInput = (*tgWebhookTextMessage)(nil)
+var _ bots.WebhookInput = (*tgWebhookContactMessage)(nil)
+var _ bots.WebhookInput = (*TgWebhookInlineQuery)(nil)
+var _ bots.WebhookInput = (*tgWebhookChosenInlineResult)(nil)
+var _ bots.WebhookInput = (*TgWebhookCallbackQuery)(nil)
+var _ bots.WebhookInput = (*tgWebhookNewChatMembersMessage)(nil)
 
-func (whi telegramWebhookInput) GetID() interface{} {
+func (whi tgWebhookInput) GetID() interface{} {
 	return whi.update.UpdateID
 }
 
-func message2input(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
+func message2input(input tgWebhookInput, tgMessageType TgMessageType, tgMessage *tgbotapi.Message) bots.WebhookInput {
 	switch {
 	case tgMessage.Text != "":
-		return NewTelegramWebhookTextMessage(input, tgMessageType, tgMessage)
+		return newTgWebhookTextMessage(input, tgMessageType, tgMessage)
 	case tgMessage.Contact != nil:
-		return NewTelegramWebhookContact(input)
+		return newTgWebhookContact(input)
 	case tgMessage.NewChatMembers != nil:
-		return NewTelegramWebhookNewChatMembersMessage(input)
+		return newTgWebhookNewChatMembersMessage(input)
 	case tgMessage.LeftChatMember != nil:
-		return NewTelegramWebhookLeftChatMembersMessage(input)
+		return newTgWebhookLeftChatMembersMessage(input)
 	case tgMessage.Voice != nil:
-		return NewTelegramWebhookVoiceMessage(input, tgMessageType, tgMessage)
+		return newTgWebhookVoiceMessage(input, tgMessageType, tgMessage)
 	case tgMessage.Photo != nil:
-		return NewTelegramWebhookPhotoMessage(input, tgMessageType, tgMessage)
+		return newTgWebhookPhotoMessage(input, tgMessageType, tgMessage)
 	case tgMessage.Audio != nil:
-		return NewTelegramWebhookAudioMessage(input, tgMessageType, tgMessage)
+		return newTgWebhookAudioMessage(input, tgMessageType, tgMessage)
 	case tgMessage.Sticker != nil:
-		return NewTelegramWebhookStickerMessage(input, tgMessageType, tgMessage)
+		return newTgWebhookStickerMessage(input, tgMessageType, tgMessage)
 	default:
 		return nil
 	}
@@ -71,38 +71,38 @@ func message2input(input telegramWebhookInput, tgMessageType TelegramMessageType
 
 // NewTelegramWebhookInput maps telegram update struct to bots framework interface
 func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.WebhookInput, error) {
-	input := telegramWebhookInput{update: update, logRequest: logRequest}
+	input := tgWebhookInput{update: update, logRequest: logRequest}
 
 	switch {
 
 	case update.InlineQuery != nil:
-		return NewTelegramWebhookInlineQuery(input), nil
+		return newTelegramWebhookInlineQuery(input), nil
 
 	case update.CallbackQuery != nil:
-		return NewTelegramWebhookCallbackQuery(input), nil
+		return newTelegramWebhookCallbackQuery(input), nil
 
 	case update.ChosenInlineResult != nil:
-		return NewTelegramWebhookChosenInlineResult(input), nil
+		return newTelegramWebhookChosenInlineResult(input), nil
 
 	default:
 
 		switch {
 
 		case update.Message != nil:
-			return message2input(input, TelegramMessageTypeRegular, update.Message), nil
+			return message2input(input, TgMessageTypeRegular, update.Message), nil
 
 		case update.EditedMessage != nil:
-			return message2input(input, TelegramMessageTypeEdited, update.EditedMessage), nil
+			return message2input(input, TgMessageTypeEdited, update.EditedMessage), nil
 
 		case update.ChannelPost != nil:
 			channelPost, _ := ffjson.MarshalFast(update.ChannelPost)
 			return nil, errors.WithMessage(bots.ErrNotImplemented, "ChannelPost is not supported at the moment: "+string(channelPost))
-			//return message2input(TelegramMessageTypeChannelPost, update.ChannelPost), nil
+			//return message2input(TgMessageTypeChannelPost, update.ChannelPost), nil
 
 		case update.EditedChannelPost != nil:
 			editedChannelPost, _ := ffjson.MarshalFast(update.EditedChannelPost)
 			return nil, errors.WithMessage(bots.ErrNotImplemented, "EditedChannelPost is not supported at the moment: "+string(editedChannelPost))
-			//	return message2input(TelegramMessageTypeEditedChannelPost, update.EditedChannelPost), nil
+			//	return message2input(TgMessageTypeEditedChannelPost, update.EditedChannelPost), nil
 
 		default:
 			return nil, bots.ErrNotImplemented
@@ -111,21 +111,21 @@ func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.W
 	}
 }
 
-func (whi telegramWebhookInput) GetSender() bots.WebhookSender {
+func (whi tgWebhookInput) GetSender() bots.WebhookSender {
 	switch {
 	case whi.update.Message != nil:
-		return TelegramSender{tgUser: whi.update.Message.From}
+		return tgSender{tgUser: whi.update.Message.From}
 	case whi.update.EditedMessage != nil:
-		return TelegramSender{tgUser: whi.update.EditedMessage.From}
+		return tgSender{tgUser: whi.update.EditedMessage.From}
 	case whi.update.CallbackQuery != nil:
-		return TelegramSender{tgUser: whi.update.CallbackQuery.From}
+		return tgSender{tgUser: whi.update.CallbackQuery.From}
 	case whi.update.InlineQuery != nil:
-		return TelegramSender{tgUser: whi.update.InlineQuery.From}
+		return tgSender{tgUser: whi.update.InlineQuery.From}
 	case whi.update.ChosenInlineResult != nil:
-		return TelegramSender{tgUser: whi.update.ChosenInlineResult.From}
+		return tgSender{tgUser: whi.update.ChosenInlineResult.From}
 	//case whi.update.ChannelPost != nil:
 	//	chat := whi.update.ChannelPost.Chat
-	//	return TelegramSender{  // TODO: Seems to be dirty hack.
+	//	return tgSender{  // TODO: Seems to be dirty hack.
 	//		tgUser: &tgbotapi.User{
 	//			ID: int(chat.ID),
 	//			Name: chat.Name,
@@ -138,11 +138,11 @@ func (whi telegramWebhookInput) GetSender() bots.WebhookSender {
 	}
 }
 
-func (whi telegramWebhookInput) GetRecipient() bots.WebhookRecipient {
+func (whi tgWebhookInput) GetRecipient() bots.WebhookRecipient {
 	panic("Not implemented")
 }
 
-func (whi telegramWebhookInput) GetTime() time.Time {
+func (whi tgWebhookInput) GetTime() time.Time {
 	if whi.update.Message != nil {
 		return whi.update.Message.Time()
 	}
@@ -152,11 +152,11 @@ func (whi telegramWebhookInput) GetTime() time.Time {
 	return time.Time{}
 }
 
-func (whi telegramWebhookInput) StringID() string {
+func (whi tgWebhookInput) StringID() string {
 	return ""
 }
 
-func (whi telegramWebhookInput) TelegramChatID() int64 {
+func (whi tgWebhookInput) TelegramChatID() int64 {
 	if whi.update.Message != nil {
 		return whi.update.Message.Chat.ID
 	}
@@ -166,18 +166,18 @@ func (whi telegramWebhookInput) TelegramChatID() int64 {
 	panic("Can't get Telgram chat ID from `update.Message` or `update.EditedMessage`.")
 }
 
-func (whi telegramWebhookInput) Chat() bots.WebhookChat {
+func (whi tgWebhookInput) Chat() bots.WebhookChat {
 	update := whi.update
 	if update.Message != nil {
-		return TelegramWebhookChat{
+		return TgWebhookChat{
 			chat: update.Message.Chat,
 		}
 	} else if update.EditedMessage != nil {
-		return TelegramWebhookChat{
+		return TgWebhookChat{
 			chat: update.EditedMessage.Chat,
 		}
 	} else if callbackQuery := update.CallbackQuery; callbackQuery != nil && callbackQuery.Message != nil {
-		return TelegramWebhookChat{
+		return TgWebhookChat{
 			chat: callbackQuery.Message.Chat,
 		}
 	}

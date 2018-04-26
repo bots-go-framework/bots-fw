@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"bytes"
@@ -14,22 +14,22 @@ import (
 	"strconv"
 )
 
-type TelegramWebhookResponder struct {
+type tgWebhookResponder struct {
 	w   http.ResponseWriter
-	whc *TelegramWebhookContext
+	whc *tgWebhookContext
 }
 
-var _ bots.WebhookResponder = (*TelegramWebhookResponder)(nil)
+var _ bots.WebhookResponder = (*tgWebhookResponder)(nil)
 
-func NewTelegramWebhookResponder(w http.ResponseWriter, whc *TelegramWebhookContext) TelegramWebhookResponder {
-	responder := TelegramWebhookResponder{w: w, whc: whc}
+func newTgWebhookResponder(w http.ResponseWriter, whc *tgWebhookContext) tgWebhookResponder {
+	responder := tgWebhookResponder{w: w, whc: whc}
 	whc.responder = responder
 	return responder
 }
 
-func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotApiSendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	log.Debugf(c, "TelegramWebhookResponder.SendMessage(channel=%v, isEdit=%v)", channel, m.IsEdit)
-	if channel != bots.BotApiSendMessageOverHTTPS && channel != bots.BotApiSendMessageOverResponse {
+func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotAPISendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
+	log.Debugf(c, "tgWebhookResponder.SendMessage(channel=%v, isEdit=%v)", channel, m.IsEdit)
+	if channel != bots.BotAPISendMessageOverHTTPS && channel != bots.BotAPISendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
 	//ctx := tc.Context()
@@ -46,7 +46,7 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		return ""
 	}
 
-	tgUpdate := r.whc.Input().(TelegramWebhookUpdateProvider).TgUpdate()
+	tgUpdate := r.whc.Input().(tgWebhookUpdateProvider).TgUpdate()
 
 	var botMessage bots.BotMessage
 
@@ -177,21 +177,21 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 		return
 	}
 
-	if jsonStr, err := ffjson.Marshal(chattable); err != nil {
+	jsonStr, err := ffjson.Marshal(chattable)
+	if err != nil {
 		log.Errorf(c, "Failed to marshal message config to json: %v\n\tJSON: %v\n\tchattable: %v", err, jsonStr, chattable)
 		ffjson.Pool(jsonStr)
 		return resp, err
-	} else {
-		var indentedJson bytes.Buffer
-		var indentedJsonStr string
-		if indentedErr := json.Indent(&indentedJson, jsonStr, "", "\t"); indentedErr == nil {
-			indentedJsonStr = indentedJson.String()
-		} else {
-			indentedJsonStr = string(jsonStr)
-		}
-		ffjson.Pool(jsonStr)
-		log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJsonStr)
 	}
+	var indentedJSON bytes.Buffer
+	var indentedJSONStr string
+	if indentedErr := json.Indent(&indentedJSON, jsonStr, "", "\t"); indentedErr == nil {
+		indentedJSONStr = indentedJSON.String()
+	} else {
+		indentedJSONStr = string(jsonStr)
+	}
+	ffjson.Pool(jsonStr)
+	log.Debugf(c, "Sending to Telegram, Text: %v\n------------------------\nAs JSON: %v", m.Text, indentedJSONStr)
 
 	//if values, err := chattable.Values(); err != nil {
 	//	log.Errorf(c, "Failed to marshal message config to url.Values: %v", err)
@@ -201,34 +201,32 @@ func (r TelegramWebhookResponder) SendMessage(c context.Context, m bots.MessageF
 	//}
 
 	switch channel {
-	case bots.BotApiSendMessageOverResponse:
+	case bots.BotAPISendMessageOverResponse:
 		if _, err := tgbotapi.ReplyToResponse(chattable, r.w); err != nil {
 			log.Errorf(c, "Failed to send message to Telegram throw HTTP response: %v", err)
 		}
 		return resp, err
-	case bots.BotApiSendMessageOverHTTPS:
-		botApi := tgbotapi.NewBotAPIWithClient(
+	case bots.BotAPISendMessageOverHTTPS:
+		botAPI := tgbotapi.NewBotAPIWithClient(
 			r.whc.BotContext.BotSettings.Token,
-			r.whc.BotContext.BotHost.GetHttpClient(c),
+			r.whc.BotContext.BotHost.GetHTTPClient(c),
 		)
-		botApi.EnableDebug(c)
-		if message, err := botApi.Send(chattable); err != nil {
+		botAPI.EnableDebug(c)
+		message, err := botAPI.Send(chattable)
+		if err != nil {
 			return resp, err
+		} else if message.MessageID != 0 {
+			log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
 		} else {
-			if message.MessageID != 0 {
-				log.Debugf(c, "Telegram API: MessageID=%v", message.MessageID)
+			messageJSON, err := ffjson.Marshal(message)
+			if err != nil {
+				log.Warningf(c, "Telegram API response as raw: %v", message)
 			} else {
-				if messageJson, err := ffjson.Marshal(message); err != nil {
-					log.Warningf(c, "Telegram API response as raw: %v", message)
-					ffjson.Pool(messageJson)
-				} else {
-					log.Debugf(c, "Telegram API response as JSON: %v", string(messageJson))
-					ffjson.Pool(messageJson)
-				}
+				log.Debugf(c, "Telegram API response as JSON: %v", string(messageJSON))
 			}
-
-			return bots.OnMessageSentResponse{TelegramMessage: message}, nil
+			ffjson.Pool(messageJSON)
 		}
+		return bots.OnMessageSentResponse{TelegramMessage: message}, nil
 	default:
 		panic(fmt.Sprintf("Unknown channel: %v", channel))
 	}

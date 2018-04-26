@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
-func LineWebhookHandler(w http.ResponseWriter, r *http.Request) {
+// WebhookHandler is handler of Line API webhooks
+func WebhookHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }

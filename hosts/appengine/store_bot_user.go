@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// Persist user to GAE datastore
+// GaeBotUserStore persist user to GAE datastore
 type GaeBotUserStore struct {
 	GaeBaseStore
 	//botUsers 					  map[interface{}]bots.BotUser
@@ -24,18 +24,21 @@ type GaeBotUserStore struct {
 var _ bots.BotUserStore = (*GaeBotUserStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.BotUserStore **************************
-func (s GaeBotUserStore) GetBotUserById(c context.Context, botUserId interface{}) (bots.BotUser, error) { // Former LoadBotUserEntity
+
+// GetBotUserByID returns bot user by ID
+func (s GaeBotUserStore) GetBotUserByID(c context.Context, botUserID interface{}) (bots.BotUser, error) { // Former LoadBotUserEntity
 	//if s.botUsers == nil {
 	//	s.botUsers = make(map[int]bots.BotUser, 1)
 	//}
 	botUserEntity := s.newBotUserEntity(nil)
-	err := nds.Get(c, s.botUserKey(c, botUserId), botUserEntity)
+	err := nds.Get(c, s.botUserKey(c, botUserID), botUserEntity)
 	if err == datastore.ErrNoSuchEntity {
 		return nil, nil
 	}
 	return botUserEntity, err
 }
 
+// SaveBotUser saves bot user by ID
 func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, userEntity bots.BotUser) error { // Former SaveBotUserEntity
 	// TODO: Architecture needs refactoring as it not transactional save
 	// We load bot user entity outside of here (out of transaction) and save here. It can change since then.
@@ -67,13 +70,14 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 	return err
 }
 
+// CreateBotUser creates bot user
 func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser bots.WebhookActor) (bots.BotUser, error) {
 	log.Debugf(c, "GaeBotUserStore.CreateBotUser(botID=%v, apiUser=%T) started...", botID, apiUser)
 	botUserID := apiUser.GetID()
 	botUserEntity := s.newBotUserEntity(apiUser)
 
 	var (
-		appUserId int64
+		appUserID int64
 		appUser   bots.BotAppUser
 		newUser   bool
 	)
@@ -82,19 +86,18 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 		botUserKey := s.botUserKey(ctx, botUserID)
 
 		if err = nds.Get(ctx, botUserKey, botUserEntity); err == datastore.ErrNoSuchEntity {
-			var appUserId int64
-			if appUserId, err = s.gaeAppUserStore.getAppUserIdByBotUserKey(c, botUserKey); err != nil {
+			if appUserID, err = s.gaeAppUserStore.getAppUserIDByBotUserKey(c, botUserKey); err != nil {
 				return
 			}
-			if appUserId == 0 {
-				appUserId, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
+			if appUserID == 0 {
+				appUserID, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
 				if err != nil {
 					log.Errorf(c, "Failed to create app user: %v", err)
 					return
 				}
 				newUser = true
 			}
-			botUserEntity.SetAppUserIntID(appUserId)
+			botUserEntity.SetAppUserIntID(appUserID)
 			botUserEntity.SetDtUpdated(time.Now())
 			if _, err = nds.Put(ctx, botUserKey, botUserEntity); err != nil {
 				return
@@ -107,9 +110,9 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 		return nil, err
 	}
 
-	if newUser && appUserId != 0 && appUser != nil {
+	if newUser && appUserID != 0 && appUser != nil {
 		// Workaround - check for missing entity
-		appUserKey := datastore.NewKey(c, "User", "", appUserId, nil)
+		appUserKey := datastore.NewKey(c, "User", "", appUserID, nil)
 		if err = nds.Get(c, appUserKey, botUserEntity); err != nil {
 			if err == datastore.ErrNoSuchEntity {
 				if err = nds.RunInTransaction(c, func(tc context.Context) (err error) {

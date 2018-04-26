@@ -1,28 +1,29 @@
-package viber_bot
+package viber
 
 import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 )
 
-type ViberWebhookTextMessage struct {
+// viberWebhookTextMessage is Viber text message
+type viberWebhookTextMessage struct {
 	viberWebhookMessage
 }
 
-var _ bots.WebhookTextMessage = (*ViberWebhookTextMessage)(nil)
+var _ bots.WebhookTextMessage = (*viberWebhookTextMessage)(nil)
 
-func (_ ViberWebhookTextMessage) InputType() bots.WebhookInputType {
+func (viberWebhookTextMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputText
 }
 
-func NewViberWebhookTextMessage(m viberinterface.CallbackOnMessage) ViberWebhookTextMessage {
-	return ViberWebhookTextMessage{viberWebhookMessage: newViberWebhookMessage(m)}
+func newViberWebhookTextMessage(m viberinterface.CallbackOnMessage) viberWebhookTextMessage {
+	return viberWebhookTextMessage{viberWebhookMessage: newViberWebhookMessage(m)}
 }
 
-func (whm ViberWebhookTextMessage) Text() string {
+func (whm viberWebhookTextMessage) Text() string {
 	return whm.m.Message.Text
 }
 
-func (whm ViberWebhookTextMessage) IsEdited() bool {
+func (whm viberWebhookTextMessage) IsEdited() bool {
 	return false
 }

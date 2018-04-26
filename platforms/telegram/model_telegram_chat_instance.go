@@ -1,63 +1,75 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/db"
 )
 
-const TelegramChatInstanceKind = "TgChatInstance"
+// ChatInstanceKind is kind name of TgChatInstance entity
+const ChatInstanceKind = "TgChatInstance"
 
-type TelegramChatInstanceEntityBase struct {
+// ChatInstanceEntityBase is base struct
+type ChatInstanceEntityBase struct {
 	TgChatID          int64  `datastore:",noindex"`
 	PreferredLanguage string `datastore:",noindex"`
 }
 
-type TelegramChatInstance struct {
+// ChatInstance is base struct
+type ChatInstance struct {
 	db.StringID
-	TelegramChatInstanceEntity
+	ChatInstanceEntity
 }
 
-var _ db.EntityHolder = (*TelegramChatInstance)(nil)
+var _ db.EntityHolder = (*ChatInstance)(nil)
 
-func (TelegramChatInstance) Kind() string {
-	return TelegramChatInstanceKind
+// Kind return ChatInstanceKind
+func (ChatInstance) Kind() string {
+	return ChatInstanceKind
 }
 
-func (TelegramChatInstance) NewEntity() interface{} {
+// NewEntity creates new entity
+func (ChatInstance) NewEntity() interface{} {
 	panic("not supported")
 }
 
-func (record *TelegramChatInstance) Entity() interface{} {
-	return record.TelegramChatInstanceEntity
+// Entity returns entity for saving
+func (record *ChatInstance) Entity() interface{} {
+	return record.ChatInstanceEntity
 }
 
-var NewTelegramChatInstanceEntity func() TelegramChatInstanceEntity
+// NewChatInstanceEntity is pointer to func() ChatInstanceEntity
+var NewChatInstanceEntity func() ChatInstanceEntity
 
-func (record *TelegramChatInstance) SetEntity(entity interface{}) {
+// SetEntity sets entity to record
+func (record *ChatInstance) SetEntity(entity interface{}) {
 	if entity == nil {
-		record.TelegramChatInstanceEntity = nil
+		record.ChatInstanceEntity = nil
 	} else {
-		record.TelegramChatInstanceEntity = entity.(TelegramChatInstanceEntity)
+		record.ChatInstanceEntity = entity.(ChatInstanceEntity)
 	}
 }
 
-//func (record *TelegramChatInstance) SetStrID(id string) {
+//func (record *ChatInstance) SetStrID(id string) {
 //	record.ID = id
 //}
 
-type TelegramChatInstanceEntity interface {
+// ChatInstanceEntity describes chat instance entity interface
+type ChatInstanceEntity interface {
 	GetTgChatID() int64
 	GetPreferredLanguage() string
 	SetPreferredLanguage(v string)
 }
 
-func (entity TelegramChatInstanceEntityBase) GetTgChatID() int64 {
+// GetTgChatID returns Telegram chat ID
+func (entity ChatInstanceEntityBase) GetTgChatID() int64 {
 	return entity.TgChatID
 }
 
-func (entity TelegramChatInstanceEntityBase) GetPreferredLanguage() string {
+// GetPreferredLanguage returns preferred language for the chat
+func (entity ChatInstanceEntityBase) GetPreferredLanguage() string {
 	return entity.PreferredLanguage
 }
 
-func (entity *TelegramChatInstanceEntityBase) SetPreferredLanguage(v string) {
+// SetPreferredLanguage sets preferred language for the chat
+func (entity *ChatInstanceEntityBase) SetPreferredLanguage(v string) {
 	entity.PreferredLanguage = v
 }

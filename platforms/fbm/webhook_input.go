@@ -1,4 +1,4 @@
-package fbm_bot
+package fbm
 
 import (
 	"github.com/strongo/bots-api-fbm"
@@ -6,86 +6,86 @@ import (
 	"time"
 )
 
-// FbmWebhookInput provides information on current FBM message
-type FbmWebhookInput struct {
+// webhookInput provides information on current FBM message
+type webhookInput struct {
 	messaging fbm_api.Messaging
 }
 
-var _ bots.WebhookInput = (*FbmWebhookInput)(nil)
-var _ bots.WebhookMessage = (*FbmWebhookInput)(nil)
+var _ bots.WebhookInput = (*webhookInput)(nil)
+var _ bots.WebhookMessage = (*webhookInput)(nil)
 
 // IntID is not supported, use StringID
-func (_ FbmWebhookInput) IntID() int64 {
+func (webhookInput) IntID() int64 {
 	panic("Not supported")
 }
 
 // LogRequest is not implemented yet
-func (_ FbmWebhookInput) LogRequest() {
+func (webhookInput) LogRequest() {
 	panic("Not implemented")
 }
 
 // StringID returns an unique FBM message ID
-func (whi FbmWebhookInput) StringID() string {
+func (whi webhookInput) StringID() string {
 	return whi.messaging.Message.MID
 }
 
 // BotChatID returns FBM chat ID for the message
-func (whi FbmWebhookInput) BotChatID() (string, error) {
+func (whi webhookInput) BotChatID() (string, error) {
 	return whi.messaging.Sender.ID, nil
 }
 
-// BotChat returns instance of FBM chat from app storage
-func (whi FbmWebhookInput) Chat() bots.WebhookChat {
+// Chat returns instance of FBM chat from app storage
+func (whi webhookInput) Chat() bots.WebhookChat {
 	return NewFbmWebhookChat(whi.messaging.Sender.ID)
 }
 
 // GetSender returns information about sender of the FBM message
-func (whi FbmWebhookInput) GetSender() bots.WebhookSender {
+func (whi webhookInput) GetSender() bots.WebhookSender {
 	return whi.messaging.Sender
 }
 
 // GetRecipient returns information about receiver of the FBM message
-func (whi FbmWebhookInput) GetRecipient() bots.WebhookRecipient {
+func (whi webhookInput) GetRecipient() bots.WebhookRecipient {
 	return whi.messaging.Recipient
 }
 
 // GetTime returns when the mesage was sent
-func (whi FbmWebhookInput) GetTime() time.Time {
+func (whi webhookInput) GetTime() time.Time {
 	return time.Unix(whi.messaging.Timestamp, 0)
 }
 
-// GetTime returns the input message
-func (whi FbmWebhookInput) InputMessage() bots.WebhookMessage {
+// InputMessage returns the input message
+func (whi webhookInput) InputMessage() bots.WebhookMessage {
 	panic("Not implemented return whi.messaging.Message") // TODO: Do we really need .Chat() in Message interface?
 }
 
 // InputPostback is not supported or not implemented
-func (whi FbmWebhookInput) InputPostback() bots.WebhookPostback {
+func (whi webhookInput) InputPostback() bots.WebhookPostback {
 	return nil
 }
 
 // InputDelivery is not supported or not implemented
-func (whi FbmWebhookInput) InputDelivery() bots.WebhookDelivery {
+func (whi webhookInput) InputDelivery() bots.WebhookDelivery {
 	return nil
 }
 
 // InputInlineQuery is not supported
-func (whi FbmWebhookInput) InputInlineQuery() bots.WebhookInlineQuery {
+func (whi webhookInput) InputInlineQuery() bots.WebhookInlineQuery {
 	panic("Not supported")
 }
 
 // InputCallbackQuery is not implemented yet
-func (whi FbmWebhookInput) InputCallbackQuery() bots.WebhookCallbackQuery {
+func (whi webhookInput) InputCallbackQuery() bots.WebhookCallbackQuery {
 	panic("Not implemented")
 }
 
 // InputChosenInlineResult is not supported
-func (whi FbmWebhookInput) InputChosenInlineResult() bots.WebhookChosenInlineResult {
+func (whi webhookInput) InputChosenInlineResult() bots.WebhookChosenInlineResult {
 	panic("Not supported")
 }
 
 // InputType returns type of the message
-func (whi FbmWebhookInput) InputType() bots.WebhookInputType {
+func (whi webhookInput) InputType() bots.WebhookInputType {
 	switch {
 	case whi.messaging.Message != nil:
 		if len(whi.messaging.Message.Attachments) > 0 {
@@ -101,31 +101,31 @@ func (whi FbmWebhookInput) InputType() bots.WebhookInputType {
 	return bots.WebhookInputUnknown
 }
 
-// FbmTextMessage provides information about text message
-type FbmTextMessage struct {
-	FbmWebhookInput
+// textMessage provides information about text message
+type textMessage struct {
+	webhookInput
 }
 
 // Text returns text of the message
-func (textMessage FbmTextMessage) Text() string {
+func (textMessage textMessage) Text() string {
 	return textMessage.messaging.Message.Text()
 }
 
-var _ bots.WebhookTextMessage = (*FbmTextMessage)(nil)
+var _ bots.WebhookTextMessage = (*textMessage)(nil)
 
 // NewFbmWebhookInput maps API struct to framework struct
 func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
-	fbmInput := FbmWebhookInput{messaging: messaging}
+	fbmInput := webhookInput{messaging: messaging}
 	switch {
 	case messaging.Message != nil:
-		return FbmTextMessage{FbmWebhookInput: fbmInput}
+		return textMessage{webhookInput: fbmInput}
 	case messaging.Postback != nil:
-		return FbmPostbackInput{FbmWebhookInput: fbmInput}
+		return postbackInput{webhookInput: fbmInput}
 	}
 	return fbmInput
 }
 
 // IsEdited indicates if message was edited. Always false for FBM
-func (whm FbmTextMessage) IsEdited() bool {
+func (textMessage textMessage) IsEdited() bool {
 	return false
 }

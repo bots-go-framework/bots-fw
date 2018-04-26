@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -46,4 +46,5 @@ func (l logger) Criticalf(c context.Context, format string, args ...interface{})
 	logGae.Criticalf(c, format, args...)
 }
 
+// GaeLogger is a logger for GAE environment
 var GaeLogger = (log.Logger)(logger{}) // TODO: move outside of bots framework

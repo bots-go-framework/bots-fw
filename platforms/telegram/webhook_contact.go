@@ -1,35 +1,35 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookContactMessage struct {
-	telegramWebhookMessage
+type tgWebhookContactMessage struct {
+	tgWebhookMessage
 }
 
-func (_ TelegramWebhookContactMessage) InputType() bots.WebhookInputType {
+func (tgWebhookContactMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputContact
 }
 
-var _ bots.WebhookContactMessage = (*TelegramWebhookContactMessage)(nil)
+var _ bots.WebhookContactMessage = (*tgWebhookContactMessage)(nil)
 
-func NewTelegramWebhookContact(input telegramWebhookInput) TelegramWebhookContactMessage {
-	return TelegramWebhookContactMessage{telegramWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
+func newTgWebhookContact(input tgWebhookInput) tgWebhookContactMessage {
+	return tgWebhookContactMessage{tgWebhookMessage: newTelegramWebhookMessage(input, input.update.Message)}
 }
 
-func (m TelegramWebhookContactMessage) FirstName() string {
+func (m tgWebhookContactMessage) FirstName() string {
 	return m.update.Message.Contact.FirstName
 }
 
-func (m TelegramWebhookContactMessage) LastName() string {
+func (m tgWebhookContactMessage) LastName() string {
 	return m.update.Message.Contact.LastName
 }
 
-func (m TelegramWebhookContactMessage) PhoneNumber() string {
+func (m tgWebhookContactMessage) PhoneNumber() string {
 	return m.update.Message.Contact.PhoneNumber
 }
 
-func (m TelegramWebhookContactMessage) UserID() interface{} {
+func (m tgWebhookContactMessage) UserID() interface{} {
 	return m.update.Message.Contact.UserID
 }

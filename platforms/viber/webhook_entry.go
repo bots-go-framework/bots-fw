@@ -1,13 +1,15 @@
-package viber_bot
+package viber
 
 import "github.com/strongo/bots-framework/core"
 
-type ViberWebhookEntry struct {
-	ViberWebhookInput
+// WebhookEntry base struct for Viber entities
+type WebhookEntry struct {
+	webhookInput
 }
 
-var _ bots.WebhookEntry = (*ViberWebhookEntry)(nil)
+var _ bots.WebhookEntry = (*WebhookEntry)(nil)
 
-func (whe ViberWebhookEntry) GetID() interface{} {
+// GetID is not implemented
+func (whe WebhookEntry) GetID() interface{} {
 	panic("Not implemented")
 }

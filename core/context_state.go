@@ -5,18 +5,25 @@ import (
 )
 
 const (
-	AWAITING_REPLY_TO_PATH_SEPARATOR       = "/"
-	AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR = "?"
-	AWAITING_REPLY_TO_PARAMS_SEPARATOR     = "&"
+	// AwaitingReplyToPathSeparator separates parts of the command state
+	AwaitingReplyToPathSeparator           = "/"
+
+	// AwaitingReplyToPath2QuerySeparator separates path and query parts of state
+	AwaitingReplyToPath2QuerySeparator = "?"
+
+	// AwaitingReplyToParamsSeparator separates params of command state
+	AwaitingReplyToParamsSeparator = "&"
 )
 
+// AwaitingReplyToPath returns just path part of command state
 func AwaitingReplyToPath(awaitingReplyTo string) string {
-	s := strings.Split(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR)
+	s := strings.Split(awaitingReplyTo, AwaitingReplyToPath2QuerySeparator)
 	return s[0]
 }
 
+// AwaitingReplyToQuery returns just query part of command state
 func AwaitingReplyToQuery(awaitingReplyTo string) string {
-	s := strings.Split(awaitingReplyTo, AWAITING_REPLY_TO_PATH2QUERY_SEPARATOR)
+	s := strings.Split(awaitingReplyTo, AwaitingReplyToPath2QuerySeparator)
 	if len(s) > 1 {
 		return s[1]
 	}

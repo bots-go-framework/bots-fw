@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"context"
@@ -10,46 +10,44 @@ import (
 	"time"
 )
 
-type GaeFacebookUserStore struct {
+type gaeFacebookUserStore struct {
 	GaeBotUserStore
 }
 
-var _ bots.BotUserStore = (*GaeFacebookUserStore)(nil) // Check for interface implementation at compile time
+var _ bots.BotUserStore = (*gaeFacebookUserStore)(nil) // Check for interface implementation at compile time
 
-func NewGaeFacebookUserStore(gaeAppUserStore GaeAppUserStore) GaeFacebookUserStore {
-	return GaeFacebookUserStore{
+func newGaeFacebookUserStore(gaeAppUserStore GaeAppUserStore) gaeFacebookUserStore {
+	return gaeFacebookUserStore{
 		GaeBotUserStore: GaeBotUserStore{
-			GaeBaseStore:    NewGaeBaseStore(fbm_bot.FbmUserKind),
+			GaeBaseStore:    NewGaeBaseStore(fbm.BotUserKind),
 			gaeAppUserStore: gaeAppUserStore,
 			newBotUserEntity: func(apiUser bots.WebhookActor) bots.BotUser {
 				if apiUser == nil {
-					return &fbm_bot.FbmUser{}
-				} else {
-					return &fbm_bot.FbmUser{
-						BotUserEntity: bots.BotUserEntity{
-							BotEntity: bots.BotEntity{
-								OwnedByUser: user.OwnedByUser{
-									DtCreated: time.Now(),
-								},
+					return &fbm.BotUser{}
+				}
+				return &fbm.BotUser{
+					BotUserEntity: bots.BotUserEntity{
+						BotEntity: bots.BotEntity{
+							OwnedByUser: user.OwnedByUser{
+								DtCreated: time.Now(),
 							},
-							FirstName: apiUser.GetFirstName(),
-							LastName:  apiUser.GetLastName(),
-							UserName:  apiUser.GetUserName(),
 						},
-					}
+						FirstName: apiUser.GetFirstName(),
+						LastName:  apiUser.GetLastName(),
+						UserName:  apiUser.GetUserName(),
+					},
 				}
 			},
 			validateBotUserEntityType: func(entity bots.BotUser) {
-				if _, ok := entity.(*fbm_bot.FbmUser); !ok {
-					panic(fmt.Sprintf("Expected *fbm_bot.FbmUser but received %T", entity))
+				if _, ok := entity.(*fbm.BotUser); !ok {
+					panic(fmt.Sprintf("Expected *fbm.BotUser but received %T", entity))
 				}
 			},
 			botUserKey: func(c context.Context, botUserId interface{}) *datastore.Key {
 				if stringID, ok := botUserId.(string); ok {
-					return datastore.NewKey(c, fbm_bot.FbmUserKind, stringID, 0, nil)
-				} else {
-					panic(fmt.Sprintf("Expected botUserId as string, got: %T", botUserId))
+					return datastore.NewKey(c, fbm.BotUserKind, stringID, 0, nil)
 				}
+				panic(fmt.Sprintf("Expected botUserId as string, got: %T", botUserId))
 			},
 		},
 	}

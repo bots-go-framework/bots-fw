@@ -5,15 +5,20 @@ import (
 )
 
 const (
-	LineChatKind = "LineChat"
-	LineUserKind = "LineUser"
+	// ChatKind return Line chat entity kind name
+	ChatKind = "LineChat"
+
+	// UserKind return Line user entity kind name
+	UserKind = "LineUser"
 )
 
-type LineUser struct {
+// User is Line user entity
+type User struct {
 	*bots.BotUserEntity
 }
 
-type LineChat struct {
+// Chat is Line chat entity
+type Chat struct {
 	*bots.BotChatEntity
 	LineUserID int
 }

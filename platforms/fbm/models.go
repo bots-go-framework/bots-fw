@@ -1,4 +1,4 @@
-package fbm_bot
+package fbm
 
 import (
 	"fmt"
@@ -8,21 +8,27 @@ import (
 )
 
 const (
-	FbmChatKind = "FbmChat"
-	FbmUserKind = "FbmUser"
+	// ChatKind is kind name for FBM chat entity
+	ChatKind = "Chat"
+
+	// BotUserKind is kind name for FBM user entity
+	BotUserKind = "FbmUser"
 )
 
-type FbmUser struct {
+// BotUser entity
+type BotUser struct {
 	bots.BotUserEntity
 }
 
-type FbmChat struct {
+// Chat entity
+type Chat struct {
 	bots.BotChatEntity
 	FbmUserID string //TODO: Is it Facebook User ID?
 	LastSeq   int
 }
 
-func (chat *FbmChat) SetBotUserID(id interface{}) {
+// SetBotUserID sets bot user ID
+func (chat *Chat) SetBotUserID(id interface{}) {
 	switch id.(type) {
 	case string:
 		chat.FbmUserID = id.(string)
@@ -31,7 +37,7 @@ func (chat *FbmChat) SetBotUserID(id interface{}) {
 	}
 }
 
-//func (chat *FbmChat) GetBotUserStringID() string {
+//func (chat *Chat) GetBotUserStringID() string {
 //	return chat.FbmUserID
 //}
 
@@ -47,8 +53,9 @@ func (chat *FbmChat) SetBotUserID(id interface{}) {
 //	return nil, nil, err
 //}
 
-func NewFbmChat() FbmChat {
-	return FbmChat{
+// NewFbmChat create new FBM chat entity
+func NewFbmChat() Chat {
+	return Chat{
 		BotChatEntity: bots.BotChatEntity{
 			BotEntity: bots.BotEntity{
 				OwnedByUser: user.OwnedByUser{

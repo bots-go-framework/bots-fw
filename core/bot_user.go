@@ -17,7 +17,7 @@ type BotUser interface {
 
 // BotUserStore provider to store information about bot user
 type BotUserStore interface {
-	GetBotUserById(c context.Context, botUserID interface{}) (BotUser, error)
+	GetBotUserByID(c context.Context, botUserID interface{}) (BotUser, error)
 	SaveBotUser(c context.Context, botUserID interface{}, botUserEntity BotUser) error
 	CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (BotUser, error)
 	//io.Closer

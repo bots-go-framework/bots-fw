@@ -1,24 +1,24 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookPhotoMessage struct {
-	telegramWebhookMessage
-	TgMessageType TelegramMessageType
+type tgWebhookPhotoMessage struct {
+	tgWebhookMessage
+	TgMessageType TgMessageType
 }
 
-var _ bots.WebhookPhotoMessage = (*TelegramWebhookPhotoMessage)(nil)
+var _ bots.WebhookPhotoMessage = (*tgWebhookPhotoMessage)(nil)
 
-func (_ TelegramWebhookPhotoMessage) InputType() bots.WebhookInputType {
+func (tgWebhookPhotoMessage) InputType() bots.WebhookInputType {
 	return bots.WebhookInputPhoto
 }
 
-func NewTelegramWebhookPhotoMessage(input telegramWebhookInput, tgMessageType TelegramMessageType, tgMessage *tgbotapi.Message) TelegramWebhookPhotoMessage {
-	return TelegramWebhookPhotoMessage{
-		telegramWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
-		TgMessageType:          tgMessageType,
+func newTgWebhookPhotoMessage(input tgWebhookInput, tgMessageType TgMessageType, tgMessage *tgbotapi.Message) tgWebhookPhotoMessage {
+	return tgWebhookPhotoMessage{
+		tgWebhookMessage: newTelegramWebhookMessage(input, tgMessage),
+		TgMessageType:    tgMessageType,
 	}
 }

@@ -107,14 +107,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 		if sendStats {
 			botHost := botContext.BotHost
-			measurementSender = gamp.NewBufferedClient("", botHost.GetHttpClient(c), nil)
+			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(c), nil)
 		}
 	}
 
 	defer func() {
 		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
-			measurementSender.Queue(gamp.NewTiming(time.Now().Sub(started)))
+			measurementSender.Queue(gamp.NewTiming(time.Now().Sub(started))) // TODO: Where GA Tracking ID?
 		}
 
 		reportError := func(recovered interface{}) {
@@ -128,7 +128,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			if whc != nil {
 				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
-						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), BotApiSendMessageOverResponse); err != nil {
+						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), BotAPISendMessageOverResponse); err != nil {
 							log.Errorf(c, errors.WithMessage(err, "failed to report error to user").Error())
 						}
 					}
@@ -165,7 +165,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				log.Errorf(c, "Failed to close BotChatStore: %v", err)
 				var m MessageFromBot
 				m.Text = ErrorIcon + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"
-				if _, err := whc.Responder().SendMessage(c, m, BotApiSendMessageOverHTTPS); err != nil {
+				if _, err := whc.Responder().SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
 					log.Errorf(c, "Failed to report outage: %v", err)
 				}
 			}
@@ -235,17 +235,18 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 }
 
 func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
+	ga := whc.GA()
 	gaMessage := gamp.NewException(messageText, true)
 
 	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-		gaMessage.Common = whc.GaCommon()
+		gaMessage.Common = ga.GaCommon()
 	} else {
 		gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371" // TODO: move hardcoded value
-		gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().Id()
+		gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().ID()
 	}
 
 	c := whc.Context()
-	if err := measurementSender.Queue(gaMessage); err != nil {
+	if err := ga.Queue(gaMessage); err != nil {
 		log.Errorf(c, "Failed to queue exception details for GA: %v", err)
 	} else {
 		log.Debugf(c, "Exception details queued for GA.")

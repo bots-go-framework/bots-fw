@@ -1,4 +1,4 @@
-package gae_host
+package gaehost
 
 import (
 	"github.com/strongo/bots-framework/platforms/telegram"
@@ -6,16 +6,19 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
+// TelegramChatInstanceEntityGae DAL to Telegram chat entity
 type TelegramChatInstanceEntityGae struct {
-	telegram_bot.TelegramChatInstanceEntityBase
+	telegram.ChatInstanceEntityBase
 }
 
-var _ telegram_bot.TelegramChatInstanceEntity = (*TelegramChatInstanceEntityGae)(nil)
+var _ telegram.ChatInstanceEntity = (*TelegramChatInstanceEntityGae)(nil)
 
+// Load Telegram chat entity
 func (entity *TelegramChatInstanceEntityGae) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
+// Save saves Telegram chat entity
 func (entity *TelegramChatInstanceEntityGae) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
@@ -29,7 +32,7 @@ func (entity *TelegramChatInstanceEntityGae) Save() (properties []datastore.Prop
 }
 
 func init() {
-	telegram_bot.NewTelegramChatInstanceEntity = func() telegram_bot.TelegramChatInstanceEntity {
+	telegram.NewChatInstanceEntity = func() telegram.ChatInstanceEntity {
 		return new(TelegramChatInstanceEntityGae)
 	}
 }

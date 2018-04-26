@@ -1,27 +1,27 @@
-package viber_bot
+package viber
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type ViberWebhookChat struct {
+type viberWebhookChat struct {
 	viberUserID string
 }
 
-var _ bots.WebhookChat = (*ViberWebhookChat)(nil)
+var _ bots.WebhookChat = (*viberWebhookChat)(nil)
 
-func (wh ViberWebhookChat) GetID() string {
+func (wh viberWebhookChat) GetID() string {
 	return wh.viberUserID
 }
 
-func (wh ViberWebhookChat) GetType() string {
+func (wh viberWebhookChat) GetType() string {
 	return "private"
 }
 
-func (wh ViberWebhookChat) IsGroupChat() bool {
+func (wh viberWebhookChat) IsGroupChat() bool {
 	return false
 }
 
-func NewViberWebhookChat(viberUserID string) ViberWebhookChat {
-	return ViberWebhookChat{viberUserID: viberUserID}
+func newViberWebhookChat(viberUserID string) viberWebhookChat {
+	return viberWebhookChat{viberUserID: viberUserID}
 }

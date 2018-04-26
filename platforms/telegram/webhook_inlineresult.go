@@ -1,42 +1,42 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-framework/core"
 )
 
-type TelegramWebhookChosenInlineResult struct {
-	telegramWebhookInput
+type tgWebhookChosenInlineResult struct {
+	tgWebhookInput
 }
 
-var _ bots.WebhookChosenInlineResult = (*TelegramWebhookChosenInlineResult)(nil)
+var _ bots.WebhookChosenInlineResult = (*tgWebhookChosenInlineResult)(nil)
 
-func (_ TelegramWebhookChosenInlineResult) InputType() bots.WebhookInputType {
+func (tgWebhookChosenInlineResult) InputType() bots.WebhookInputType {
 	return bots.WebhookInputChosenInlineResult
 }
 
-func NewTelegramWebhookChosenInlineResult(input telegramWebhookInput) TelegramWebhookChosenInlineResult {
-	return TelegramWebhookChosenInlineResult{telegramWebhookInput: input}
+func newTelegramWebhookChosenInlineResult(input tgWebhookInput) tgWebhookChosenInlineResult {
+	return tgWebhookChosenInlineResult{tgWebhookInput: input}
 }
 
-func (q TelegramWebhookChosenInlineResult) GetResultID() string {
+func (q tgWebhookChosenInlineResult) GetResultID() string {
 	return q.update.ChosenInlineResult.ResultID
 }
 
-func (q TelegramWebhookChosenInlineResult) GetQuery() string {
+func (q tgWebhookChosenInlineResult) GetQuery() string {
 	return q.update.ChosenInlineResult.Query
 }
 
-func (q TelegramWebhookChosenInlineResult) GetInlineMessageID() string {
+func (q tgWebhookChosenInlineResult) GetInlineMessageID() string {
 	if q.update.ChosenInlineResult != nil {
 		return q.update.ChosenInlineResult.InlineMessageID
 	}
 	return ""
 }
 
-func (iq TelegramWebhookChosenInlineResult) GetFrom() bots.WebhookSender {
-	return TelegramSender{tgUser: iq.update.ChosenInlineResult.From}
+func (q tgWebhookChosenInlineResult) GetFrom() bots.WebhookSender {
+	return tgSender{tgUser: q.update.ChosenInlineResult.From}
 }
 
-func (q TelegramWebhookChosenInlineResult) BotChatID() (string, error) {
+func (q tgWebhookChosenInlineResult) BotChatID() (string, error) {
 	return "", nil
 }

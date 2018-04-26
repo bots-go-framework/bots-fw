@@ -1,4 +1,4 @@
-package viber_bot
+package viber
 
 import (
 	"context"
@@ -9,24 +9,24 @@ import (
 	"net/http"
 )
 
-type ViberWebhookContext struct {
+type viberWebhookContext struct {
 	*bots.WebhookContextBase
 	//update         viberbotapi.Update // TODO: Consider removing?
 	responseWriter http.ResponseWriter
 	responder      bots.WebhookResponder
 }
 
-var _ bots.WebhookContext = (*ViberWebhookContext)(nil)
+var _ bots.WebhookContext = (*viberWebhookContext)(nil)
 
-func (whc *ViberWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
+func (whc *viberWebhookContext) NewEditMessage(text string, format bots.MessageFormat) (m bots.MessageFromBot, err error) {
 	panic("Not supported by Viber")
 }
 
-func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) *ViberWebhookContext {
+func newViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botContext bots.BotContext, webhookInput bots.WebhookInput, botCoreStores bots.BotCoreStores, gaMeasurement bots.GaQueuer) *viberWebhookContext {
 	whcb := bots.NewWebhookContextBase(
 		r,
 		appContext,
-		ViberPlatform{},
+		Platform{},
 		botContext,
 		webhookInput,
 		botCoreStores,
@@ -34,51 +34,51 @@ func NewViberWebhookContext(appContext bots.BotAppContext, r *http.Request, botC
 		func() bool { return false },
 		nil,
 	)
-	return &ViberWebhookContext{
+	return &viberWebhookContext{
 		//update: update,
 		WebhookContextBase: whcb,
 	}
 }
 
-func (whc *ViberWebhookContext) Close(c context.Context) error {
+func (whc *viberWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc *ViberWebhookContext) Responder() bots.WebhookResponder {
+func (whc *viberWebhookContext) Responder() bots.WebhookResponder {
 	return whc.responder
 }
 
-type ViberBotApiUser struct {
+type viberBotAPIUser struct {
 	//user viberbotapi.User
 }
 
-func (tc ViberBotApiUser) FirstName() string {
+func (tc viberBotAPIUser) FirstName() string {
 	return ""
 	//return tc.user.FirstName
 }
 
-func (tc ViberBotApiUser) LastName() string {
+func (tc viberBotAPIUser) LastName() string {
 	return ""
 	//return tc.user.LastName
 }
 
-//func (tc ViberBotApiUser) IdAsString() string {
+//func (tc viberBotAPIUser) IdAsString() string {
 //	return ""
 //}
 
-//func (tc ViberBotApiUser) IdAsInt64() int64 {
+//func (tc viberBotAPIUser) IdAsInt64() int64 {
 //	return int64(tc.user.ID)
 //}
 
-func (whc *ViberWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
+func (whc *viberWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (whc *ViberWebhookContext) BotApi() *viberbotapi.ViberBotApi {
-	return viberbotapi.NewViberBotApiWithHttpClient(whc.BotContext.BotSettings.Token, whc.BotContext.BotHost.GetHttpClient(whc.Context()))
+func (whc *viberWebhookContext) BotAPI() *viberbotapi.ViberBotApi {
+	return viberbotapi.NewViberBotApiWithHttpClient(whc.BotContext.BotSettings.Token, whc.BotContext.BotHost.GetHTTPClient(whc.Context()))
 }
 
-func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
+func (whc *viberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	log.Warningf(whc.Context(), "IsNewerThen")
 	//if viberChat, ok := whc.ChatEntity().(*ViberChat); ok && viberChat != nil {
 	//	return whc.InputMessage().Sequence() > viberChat.LastProcessedUpdateID
@@ -86,11 +86,11 @@ func (whc *ViberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {
 	return true
 }
 
-func (whc *ViberWebhookContext) NewChatEntity() bots.BotChat {
-	return new(ViberUserChatEntity)
+func (whc *viberWebhookContext) NewChatEntity() bots.BotChat {
+	return new(UserChatEntity)
 }
 
-func (whc *ViberWebhookContext) getViberSenderID() string {
+func (whc *viberWebhookContext) getViberSenderID() string {
 	senderID := whc.GetSender().GetID()
 	if viberUserID, ok := senderID.(string); ok {
 		return viberUserID
@@ -98,8 +98,8 @@ func (whc *ViberWebhookContext) getViberSenderID() string {
 	panic("string expected")
 }
 
-func (whc *ViberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
-	if _, ok := chatEntity.(*ViberUserChatEntity); ok {
+func (whc *viberWebhookContext) UpdateLastProcessed(chatEntity bots.BotChat) error {
+	if _, ok := chatEntity.(*UserChatEntity); ok {
 		//viberChat.LastProcessedUpdateID = tc.InputMessage().Sequence()
 		return nil
 	}

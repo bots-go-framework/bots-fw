@@ -1,4 +1,4 @@
-package telegram_bot
+package telegram
 
 import (
 	"github.com/strongo/bots-api-telegram"
@@ -6,17 +6,17 @@ import (
 	"time"
 )
 
-type TelegramWebhookEntry struct {
+type tgWebhookEntry struct {
 	update *tgbotapi.Update
 }
 
-var _ bots.WebhookEntry = (*TelegramWebhookEntry)(nil)
+var _ bots.WebhookEntry = (*tgWebhookEntry)(nil)
 
-func (e TelegramWebhookEntry) GetID() interface{} {
+func (e tgWebhookEntry) GetID() interface{} {
 	return e.update.UpdateID
 }
 
-func (e TelegramWebhookEntry) GetTime() time.Time {
+func (e tgWebhookEntry) GetTime() time.Time {
 	if e.update.Message != nil {
 		return e.update.Message.Time()
 	}

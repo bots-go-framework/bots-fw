@@ -1,18 +1,22 @@
-package telegram_bot
+package telegram
 
 import "github.com/strongo/bots-framework/core"
 
-type TelegramPlatform struct {
+// Platform describes Telegram platform
+type Platform struct {
 }
 
-var _ bots.BotPlatform = (*TelegramPlatform)(nil)
+var _ bots.BotPlatform = (*Platform)(nil)
 
-const TelegramPlatformID = "telegram"
+// PlatformID is 'telegram'
+const PlatformID = "telegram"
 
-func (p TelegramPlatform) Id() string {
-	return TelegramPlatformID
+// ID returns 'telegram'
+func (p Platform) ID() string {
+	return PlatformID
 }
 
-func (p TelegramPlatform) Version() string {
+// Version returns '2.0'
+func (p Platform) Version() string {
 	return "2.0"
 }

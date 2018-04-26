@@ -375,7 +375,7 @@ func (j *EntryInput) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 		return err
 	}
 	buf.WriteString(`,"Input":`)
-	/* Interface types must use runtime reflection. type=bots.WebhookInput kind=interface */
+	/* Interface types must use runtime reflection. type=bots.webhookInput kind=interface */
 	err = buf.Encode(j.Input)
 	if err != nil {
 		return err
@@ -547,10 +547,10 @@ handle_Entry:
 
 handle_Input:
 
-	/* handler: j.Input type=bots.WebhookInput kind=interface quoted=false*/
+	/* handler: j.Input type=bots.webhookInput kind=interface quoted=false*/
 
 	{
-		/* Falling back. type=bots.WebhookInput kind=interface */
+		/* Falling back. type=bots.webhookInput kind=interface */
 		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
 			return fs.WrapErr(err)
@@ -620,7 +620,7 @@ func (j *EntryInputs) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 			if i != 0 {
 				buf.WriteString(`,`)
 			}
-			/* Interface types must use runtime reflection. type=bots.WebhookInput kind=interface */
+			/* Interface types must use runtime reflection. type=bots.webhookInput kind=interface */
 			err = buf.Encode(v)
 			if err != nil {
 				return err
@@ -797,7 +797,7 @@ handle_Entry:
 
 handle_Inputs:
 
-	/* handler: j.Inputs type=[]bots.WebhookInput kind=slice quoted=false*/
+	/* handler: j.Inputs type=[]bots.webhookInput kind=slice quoted=false*/
 
 	{
 
@@ -838,10 +838,10 @@ handle_Inputs:
 					wantVal = true
 				}
 
-				/* handler: tmpJInputs type=bots.WebhookInput kind=interface quoted=false*/
+				/* handler: tmpJInputs type=bots.webhookInput kind=interface quoted=false*/
 
 				{
-					/* Falling back. type=bots.WebhookInput kind=interface */
+					/* Falling back. type=bots.webhookInput kind=interface */
 					tbuf, err := fs.CaptureField(tok)
 					if err != nil {
 						return fs.WrapErr(err)

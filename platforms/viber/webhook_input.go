@@ -1,22 +1,25 @@
-package viber_bot
+package viber
 
 import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"time"
 )
 
-type ViberWebhookInput struct {
+// webhookInput wrapper for Viber message
+type webhookInput struct {
 	callbackBase viberinterface.CallbackBase
 }
 
-func (_ ViberWebhookInput) LogRequest() {
+// LogRequest logs request (not implemented yet)
+func (webhookInput) LogRequest() {
 	panic("Not implemented")
 }
 
-func newViberWebhookInput(callbackBase viberinterface.CallbackBase) ViberWebhookInput {
-	return ViberWebhookInput{callbackBase: callbackBase}
+func newViberWebhookInput(callbackBase viberinterface.CallbackBase) webhookInput {
+	return webhookInput{callbackBase: callbackBase}
 }
 
-func (whi ViberWebhookInput) GetTime() time.Time {
+// GetTime returns sent time of the message
+func (whi webhookInput) GetTime() time.Time {
 	return time.Unix(whi.callbackBase.Timestamp, 0)
 }

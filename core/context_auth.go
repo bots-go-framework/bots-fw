@@ -37,14 +37,14 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 
 	botUserID := whc.GetSender().GetID()
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	if botUser, err := whc.GetBotUserById(c, botUserID); err != nil {
+	if botUser, err := whc.GetBotUserByID(c, botUserID); err != nil {
 		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
 	} else if botUser.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 	} else {
 		err = whc.RunInTransaction(c, func(c context.Context) error {
 			botUser.SetAccessGranted(value)
-			if botUser, err = whc.GetBotUserById(c, botUserID); err != nil {
+			if botUser, err = whc.GetBotUserByID(c, botUserID); err != nil {
 				return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)
 			}
 			if changed := botUser.SetAccessGranted(value); changed {
