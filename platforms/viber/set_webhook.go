@@ -24,7 +24,7 @@ func (h viberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request, 
 		log.Errorf(c, fmt.Sprintf("%v. All bots: %v", m, h.botsBy(c).ByCode))
 		return
 	}
-	bot := viberbotapi.NewViberBotApiWithHttpClient(botSettings.Token, client)
+	bot := viberbotapi.NewViberBotAPIWithHTTPClient(botSettings.Token, client)
 	//bot.Debug = true
 
 	webhookURL := fmt.Sprintf("https://%v/bot/viber/callback/%v", r.Host, url.QueryEscape(botSettings.Code))
