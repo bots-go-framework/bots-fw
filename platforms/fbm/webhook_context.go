@@ -57,7 +57,7 @@ func (whc fbmWebhookContext) Responder() bots.WebhookResponder {
 }
 
 type fbmBotAPIUser struct {
-	user fbm_api.Sender
+	user fbmbotapi.Sender
 }
 
 func (tc fbmBotAPIUser) FirstName() string {
@@ -135,7 +135,7 @@ func (whc *fbmWebhookContext) getFbmSenderID() string {
 	panic("string expected")
 }
 
-func (whc *fbmWebhookContext) NewFbmMessage(text string) fbm_api.SendMessage {
+func (whc *fbmWebhookContext) NewFbmMessage(text string) fbmbotapi.SendMessage {
 	////inputMessage := whc.InputMessage()
 	////if inputMessage != nil {
 	////ctx := whc.Context()

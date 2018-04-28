@@ -1350,7 +1350,7 @@ handle_FbmAttachment:
 		}
 
 		if j.FbmAttachment == nil {
-			j.FbmAttachment = new(fbm_api.RequestAttachment)
+			j.FbmAttachment = new(fbmbotapi.RequestAttachment)
 		}
 
 		err = j.FbmAttachment.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)

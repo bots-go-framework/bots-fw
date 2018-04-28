@@ -57,7 +57,7 @@ func (handler webhookHandler) Whitelist(w http.ResponseWriter, r *http.Request, 
 
 	fbmBots := handler.bots(c)
 	if botSettings, ok := fbmBots.ByCode[botCode]; ok {
-		message := fbm_api.NewRequestWhitelistDomain("add", "https://"+r.URL.Host)
+		message := fbmbotapi.NewRequestWhitelistDomain("add", "https://"+r.URL.Host)
 		requestBody, err := ffjson.MarshalFast(message)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -140,7 +140,7 @@ func (handler webhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *htt
 // GetBotContextAndInputs maps FBM request to bots-framework struct
 func (handler webhookHandler) GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *bots.BotContext, entriesWithInputs []bots.EntryInputs, err error) {
 	var (
-		receivedMessage fbm_api.ReceivedMessage
+		receivedMessage fbmbotapi.ReceivedMessage
 		bodyBytes       []byte
 	)
 	defer r.Body.Close()

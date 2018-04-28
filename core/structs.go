@@ -177,8 +177,8 @@ var _ BotMessage = (*TextMessageFromBot)(nil)
 
 // MessageFromBot keeps all the details of answer from bot to user
 type MessageFromBot struct {
-	ToChat             ChatUID                    `json:",omitempty"`
+	ToChat             ChatUID                      `json:",omitempty"`
 	TextMessageFromBot                            // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
-	BotMessage         BotMessage                 `json:",omitempty"`
-	FbmAttachment      *fbm_api.RequestAttachment `json:",omitempty"` // deprecated
+	BotMessage         BotMessage                   `json:",omitempty"`
+	FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }

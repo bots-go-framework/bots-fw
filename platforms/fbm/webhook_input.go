@@ -8,7 +8,7 @@ import (
 
 // webhookInput provides information on current FBM message
 type webhookInput struct {
-	messaging fbm_api.Messaging
+	messaging fbmbotapi.Messaging
 }
 
 var _ bots.WebhookInput = (*webhookInput)(nil)
@@ -114,7 +114,7 @@ func (textMessage textMessage) Text() string {
 var _ bots.WebhookTextMessage = (*textMessage)(nil)
 
 // NewFbmWebhookInput maps API struct to framework struct
-func NewFbmWebhookInput(messaging fbm_api.Messaging) bots.WebhookInput {
+func NewFbmWebhookInput(messaging fbmbotapi.Messaging) bots.WebhookInput {
 	fbmInput := webhookInput{messaging: messaging}
 	switch {
 	case messaging.Message != nil:

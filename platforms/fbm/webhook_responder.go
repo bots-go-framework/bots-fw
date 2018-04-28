@@ -32,24 +32,24 @@ func (r webhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, 
 		return
 	}
 
-	request := fbm_api.Request{
-		NotificationType: fbm_api.RequestNotificationTypeNoPush,
+	request := fbmbotapi.Request{
+		NotificationType: fbmbotapi.RequestNotificationTypeNoPush,
 		//Recipient: fbm_api.RequestRecipient{},
-		Message: fbm_api.RequestMessage{
+		Message: fbmbotapi.RequestMessage{
 			Text:       m.Text,
 			Attachment: m.FbmAttachment,
 		},
 	}
 
-	if request.Recipient.Id, err = r.whc.BotChatID(); err != nil {
+	if request.Recipient.ID, err = r.whc.BotChatID(); err != nil {
 		err = errors.WithMessage(err, "failed to call r.whc.BotChatID()")
 		return
-	} else if request.Recipient.Id == "" {
+	} else if request.Recipient.ID == "" {
 		err = errors.New("Unknown recipient as r.whc.BotChatID() returned an empty string")
 		return
 	}
 
-	graphAPI := fbm_api.NewGraphApi(urlfetch.Client(c), r.whc.GetBotSettings().Token)
+	graphAPI := fbmbotapi.NewGraphAPI(urlfetch.Client(c), r.whc.GetBotSettings().Token)
 
 	if err = graphAPI.SendMessage(c, request); err != nil {
 		return
