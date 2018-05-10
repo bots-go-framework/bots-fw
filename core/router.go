@@ -60,6 +60,15 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 	return r
 }
 
+
+func (router WebhooksRouter) CommandsCount() int {
+	var count int
+	for _, v := range router.commandsByType {
+		count += len(v.all)
+	}
+	return count
+}
+
 // AddCommands add commands to a router
 func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
 	typeCommands, ok := router.commandsByType[commandsType]
