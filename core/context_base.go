@@ -383,7 +383,7 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 		return nil
 	}
 	if err := whcb.loadChatEntityBase(); err != nil {
-		panic(errors.Wrap(err, "Failed to call whcb.getChatEntityBase()"))
+		panic(errors.WithMessage(err, "failed to call whcb.getChatEntityBase()"))
 	}
 	return whcb.chatEntity
 }
@@ -400,9 +400,8 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	}
 	if botUser == nil {
 		log.Infof(c, "Bot user entity not found, creating a new one...")
-		botUser, err = whcb.CreateBotUser(c, whcb.GetBotCode(), sender)
-		if err != nil {
-			log.Errorf(c, "Failed to create bot user: %v", err)
+		if botUser, err = whcb.CreateBotUser(c, whcb.GetBotCode(), sender); err != nil {
+			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to create bot user: %v", err)
 			return nil, err
 		}
 		log.Infof(c, "Bot user entity created")

@@ -77,60 +77,56 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 	botUserEntity := s.newBotUserEntity(apiUser)
 
 	var (
-		appUserID int64
-		appUser   bots.BotAppUser
-		newUser   bool
+		appUserID    int64
+		appUser      bots.BotAppUser
+		isNewAppUser bool
 	)
 
 	err := nds.RunInTransaction(c, func(ctx context.Context) (err error) {
 		botUserKey := s.botUserKey(ctx, botUserID)
 
-		if err = nds.Get(ctx, botUserKey, botUserEntity); err == datastore.ErrNoSuchEntity {
-			if appUserID, err = s.gaeAppUserStore.getAppUserIDByBotUserKey(c, botUserKey); err != nil {
+		switch err = nds.Get(ctx, botUserKey, botUserEntity); err {
+		case nil:
+			appUserID = botUserEntity.GetAppUserIntID()
+			return
+		case datastore.ErrNoSuchEntity:
+			// We need to create entity, so continue execution
+		default: // err != nil && err != datastore.ErrNoSuchEntity
+			return
+		}
+
+		// First try to search for existing users by Bot ID in case if entity was deleted
+		if appUserID, err = s.gaeAppUserStore.getAppUserIDByBotUserKey(c, botUserKey); err != nil {
+			return
+		}
+
+		if appUserID == 0 { // This is most expected case
+			appUserID, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
+			if err != nil {
+				log.Errorf(c, "Failed to create app user: %v", err)
 				return
 			}
 			if appUserID == 0 {
-				appUserID, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
-				if err != nil {
-					log.Errorf(c, "Failed to create app user: %v", err)
-					return
-				}
-				newUser = true
+				panic("appUserID == 0")
 			}
-			botUserEntity.SetAppUserIntID(appUserID)
-			botUserEntity.SetDtUpdated(time.Now())
-			if _, err = nds.Put(ctx, botUserKey, botUserEntity); err != nil {
-				return
-			}
+			isNewAppUser = true
+		}
+
+		botUserEntity.SetAppUserIntID(appUserID)
+		botUserEntity.SetDtUpdated(time.Now())
+
+		if _, err = nds.Put(ctx, botUserKey, botUserEntity); err != nil {
+			return
 		}
 		return
 	}, &datastore.TransactionOptions{XG: true})
 
+
 	if err != nil {
-		return nil, err
+		return nil, errors.WithMessage(err, "failed to create bot user")
 	}
 
-	if newUser && appUserID != 0 && appUser != nil {
-		// Workaround - check for missing entity
-		appUserKey := datastore.NewKey(c, "User", "", appUserID, nil)
-		if err = nds.Get(c, appUserKey, botUserEntity); err != nil {
-			if err == datastore.ErrNoSuchEntity {
-				if err = nds.RunInTransaction(c, func(tc context.Context) (err error) {
-					if err = nds.Get(c, appUserKey, make(datastore.PropertyList, 0)); err != nil {
-						if err == datastore.ErrNoSuchEntity {
-							_, err = nds.Put(c, appUserKey, appUser) // Try to re-create
-						}
-						log.Errorf(c, err.Error())
-						err = nil
-					}
-					return
-				}, nil); err != nil {
-					return botUserEntity, err
-				}
-			}
-			return botUserEntity, err
-		}
-	}
+	log.Debugf(c, "GaeBotUserStore.CreateBotUser() => appUserID: %v, isNewAppUser: %v", appUserID, isNewAppUser)
 
 	return botUserEntity, nil
 }
