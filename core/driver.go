@@ -114,7 +114,13 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	defer func() {
 		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
-			measurementSender.Queue(gamp.NewTiming(time.Now().Sub(started))) // TODO: Where GA Tracking ID?
+			if d.Analytics.GaTrackingID == "" {
+				log.Warningf(c, "driver.Analytics.GaTrackingID is not set")
+			} else {
+				timing := gamp.NewTiming(time.Now().Sub(started))
+				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
+				measurementSender.Queue(timing)
+			}
 		}
 
 		reportError := func(recovered interface{}) {
@@ -247,15 +253,15 @@ func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.Buf
 
 	c := whc.Context()
 	if err := ga.Queue(gaMessage); err != nil {
-		log.Errorf(c, "Failed to queue exception details for GA: %v", err)
+		log.Errorf(c, "Failed to queue exception message for GA: %v", err)
 	} else {
-		log.Debugf(c, "Exception details queued for GA.")
+		log.Debugf(c, "Exception message queued for GA.")
 	}
 
 	if err := measurementSender.Flush(); err != nil {
-		log.Errorf(c, "Failed to send exception details to GA: %v", err)
+		log.Errorf(c, "Failed to flush GA buffer after exception: %v", err)
 	} else {
-		log.Debugf(c, "Exception details sent to GA.")
+		log.Debugf(c, "GA buffer flushed after exception")
 	}
 }
 

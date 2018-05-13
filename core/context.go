@@ -23,8 +23,8 @@ type GaContext interface {
 	GaQueuer
 	// Flush() error
 	GaCommon() gamp.Common
-	GaEvent(category, action string) gamp.Event
-	GaEventWithLabel(category, action, label string) gamp.Event
+	GaEvent(category, action string) *gamp.Event
+	GaEventWithLabel(category, action, label string) *gamp.Event
 }
 
 // WebhookContext provides context for current request from user to bot

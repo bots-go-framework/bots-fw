@@ -6,8 +6,8 @@ import (
 )
 
 // NewFbmBot creates definition of a new FB Messenger bot
-func NewFbmBot(mode strongo.Environment, profile, code, id, token, verifyToken string, locale strongo.Locale) bots.BotSettings {
-	botSettings := bots.NewBotSettings(mode, profile, code, id, token, locale)
+func NewFbmBot(mode strongo.Environment, profile, code, id, token, verifyToken, gaToken string, locale strongo.Locale) bots.BotSettings {
+	botSettings := bots.NewBotSettings(mode, profile, code, id, token, gaToken, locale)
 	botSettings.VerifyToken = verifyToken
 	return botSettings
 }

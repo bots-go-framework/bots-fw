@@ -278,6 +278,12 @@ func (whcb *WebhookContextBase) GA() GaContext {
 }
 
 func (gac gaContext) Queue(message gamp.Message) error {
+	if message.GetTrackingID() == "" {
+		message.SetTrackingID(gac.whcb.GetBotSettings().GAToken)
+		if message.GetTrackingID() == "" {
+			return errors.WithMessage(gamp.ErrNoTrackingID, fmt.Sprintf("gaContext.Queue(%v)", message))
+		}
+	}
 	return gac.gaMeasurement.Queue(message)
 }
 
@@ -305,11 +311,11 @@ func (gac gaContext) GaCommon() gamp.Common {
 	}
 }
 
-func (gac gaContext) GaEvent(category, action string) gamp.Event { // TODO: remove
+func (gac gaContext) GaEvent(category, action string) *gamp.Event { // TODO: remove
 	return gamp.NewEvent(category, action, gac.GaCommon())
 }
 
-func (gac gaContext) GaEventWithLabel(category, action, label string) gamp.Event {
+func (gac gaContext) GaEventWithLabel(category, action, label string) *gamp.Event {
 	return gamp.NewEventWithLabel(category, action, label, gac.GaCommon())
 }
 

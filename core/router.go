@@ -430,7 +430,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 				}
 
 				pageview.Common = ga.GaCommon()
-				if err := ga.Queue(pageview); err != nil {
+				if err := ga.Queue(&pageview); err != nil {
 					log.Warningf(c, "Failed to send page view to GA: %v", err)
 				}
 			}

@@ -62,7 +62,7 @@ func (h tgWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Re
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Criticalf(h.Context(r), "Unhandled exception in Telegram handler: %v", err)
+			log.Criticalf(h.Context(r), "Unhandled panic in Telegram handler: %v", err)
 		}
 	}()
 

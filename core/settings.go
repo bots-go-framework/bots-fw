@@ -19,10 +19,11 @@ type BotSettings struct {
 	VerifyToken      string // Used by Facebook
 	Locale           strongo.Locale
 	Router           WebhooksRouter
+	GAToken          string // TODO: Refactor tu support multiple or move out
 }
 
 // NewBotSettings configures bot application
-func NewBotSettings(mode strongo.Environment, profile, code, id, token string, locale strongo.Locale) BotSettings {
+func NewBotSettings(mode strongo.Environment, profile, code, id, token, gaToken string, locale strongo.Locale) BotSettings {
 	if profile == "" {
 		panic("Missing required parameter: profile")
 	}
@@ -42,6 +43,7 @@ func NewBotSettings(mode strongo.Environment, profile, code, id, token string, l
 		Env:     mode,
 		Token:   token,
 		Locale:  locale,
+		GAToken: gaToken,
 	}
 }
 
