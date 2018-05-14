@@ -306,7 +306,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		commandAction = matchedCommand.Action
 	}
 	if err != nil {
-		router.processCommandResponse(matchedCommand, responder, whc, m, err)
+		router.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
@@ -385,96 +385,103 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 }
 
 func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+	if err != nil {
+		router.processCommandResponseError(whc, matchedCommand, responder, err)
+		return
+	}
 
 	c := whc.Context()
 	ga := whc.GA()
 	// gam.GeographicalOverride()
 
-	env := whc.GetBotSettings().Env
 	inputType := whc.InputType()
-	if err == nil {
-		if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
-			const failedToSendMessageToMessenger = "failed to send a message to messenger"
-			// switch err.(type) {
-			// case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
-				// tgError := err.(tgbotapi.APIResponse)
-				// switch tgError.ErrorCode {
-				// case 400: // Bad request
-				errText := err.Error()
-				switch {
-				case strings.Contains(errText, "message is not modified"):
-					logText := failedToSendMessageToMessenger
-					if inputType == WebhookInputCallbackQuery {
-						logText += "(can be duplicate callback)"
-					}
-					log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
-					err = nil
-				case strings.Contains(errText, "message to edit not found"):
-					log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
-					err = nil
-				}
-				// }
-			// }
-			if err != nil {
-				log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) // TODO: Decide how do we handle this
+	if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
+		const failedToSendMessageToMessenger = "failed to send a message to messenger"
+		// switch err.(type) {
+		// case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
+		// tgError := err.(tgbotapi.APIResponse)
+		// switch tgError.ErrorCode {
+		// case 400: // Bad request
+		errText := err.Error()
+		switch {
+		case strings.Contains(errText, "message is not modified"):
+			logText := failedToSendMessageToMessenger
+			if inputType == WebhookInputCallbackQuery {
+				logText += "(can be duplicate callback)"
 			}
+			log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
+			err = nil
+		case strings.Contains(errText, "message to edit not found"):
+			log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
+			err = nil
 		}
-		if matchedCommand != nil {
-			if ga != nil {
+		// }
+		// }
+		if err != nil {
+			log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) // TODO: Decide how do we handle this
+		}
+	}
+	if matchedCommand != nil {
+		if ga != nil {
 
-				gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
-				pathPrefix := "bot/"
-				var pageview gamp.Pageview
-				var chatEntity BotChat
-				if inputType != WebhookInputCallbackQuery {
-					chatEntity = whc.ChatEntity()
-				}
-				if inputType != WebhookInputCallbackQuery && chatEntity != nil {
-					path := chatEntity.GetAwaitingReplyTo()
-					if path == "" {
-						path = matchedCommand.Code
-					} else if pathURL, err := url.Parse(path); err == nil {
-						path = pathURL.Path
-					}
-					pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
-				} else {
-					pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
-				}
-
-				pageview.Common = ga.GaCommon()
-				if err := ga.Queue(&pageview); err != nil {
-					log.Warningf(c, "Failed to send page view to GA: %v", err)
-				}
+			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
+			pathPrefix := "bot/"
+			var pageview gamp.Pageview
+			var chatEntity BotChat
+			if inputType != WebhookInputCallbackQuery {
+				chatEntity = whc.ChatEntity()
 			}
-		}
-	} else {
-		log.Errorf(c, err.Error())
-		if env == strongo.EnvProduction && ga != nil {
-			exceptionMessage := gamp.NewException(err.Error(), false)
-			exceptionMessage.Common = ga.GaCommon()
-			err = ga.Queue(exceptionMessage)
-			if err != nil {
+			if inputType != WebhookInputCallbackQuery && chatEntity != nil {
+				path := chatEntity.GetAwaitingReplyTo()
+				if path == "" {
+					path = matchedCommand.Code
+				} else if pathURL, err := url.Parse(path); err == nil {
+					path = pathURL.Path
+				}
+				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
+			} else {
+				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
+			}
+
+			pageview.Common = ga.GaCommon()
+			if err := ga.Queue(&pageview); err != nil {
 				log.Warningf(c, "Failed to send page view to GA: %v", err)
 			}
 		}
-		if inputType == WebhookInputText || inputType == WebhookInputContact {
-			// Todo: Try to get chat ID from user?
-			m := whc.NewMessage(
-				whc.Translate(MessageTextOopsSomethingWentWrong) +
-					"\n\n" +
-					emoji.ERROR_ICON +
-					fmt.Sprintf(" Server error - failed to process message: %v", err),
-			)
+	}
+}
 
-			if router.errorFooterText != nil {
-				if footer := router.errorFooterText(); footer != "" {
-					m.Text += "\n\n" + footer
-				}
-			}
+func (router *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
+	c := whc.Context()
+	log.Errorf(c, err.Error())
+	env := whc.GetBotSettings().Env
+	ga := whc.GA()
+	if env == strongo.EnvProduction && ga != nil {
+		exceptionMessage := gamp.NewException(err.Error(), false)
+		exceptionMessage.Common = ga.GaCommon()
+		err = ga.Queue(exceptionMessage)
+		if err != nil {
+			log.Warningf(c, "Failed to send page view to GA: %v", err)
+		}
+	}
+	inputType := whc.InputType()
+	if inputType == WebhookInputText || inputType == WebhookInputContact {
+		// TODO: Try to get chat ID from user?
+		m := whc.NewMessage(
+			whc.Translate(MessageTextOopsSomethingWentWrong) +
+				"\n\n" +
+				emoji.ERROR_ICON +
+				fmt.Sprintf(" Server error - failed to process message: %v", err),
+		)
 
-			if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
-				log.Errorf(c, "Failed to report to user a server error: %v", respErr)
+		if router.errorFooterText != nil {
+			if footer := router.errorFooterText(); footer != "" {
+				m.Text += "\n\n" + footer
 			}
+		}
+
+		if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
+			log.Errorf(c, "Failed to report to user a server error: %v", respErr)
 		}
 	}
 }
