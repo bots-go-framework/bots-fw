@@ -2,7 +2,7 @@ package bots
 
 import (
 	"fmt"
-	//"net/http"
+	// "net/http"
 	"net/url"
 	"strings"
 
@@ -11,7 +11,6 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-	"github.com/strongo/bots-api-telegram"
 )
 
 // TypeCommands container for commands
@@ -60,7 +59,6 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 
 	return r
 }
-
 
 func (router WebhooksRouter) CommandsCount() int {
 	var count int
@@ -146,9 +144,9 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	c := whc.Context()
 
-	//if parentPath == "" {
-	//	log.Debugf(c, "matchMessageCommands()")
-	//}
+	// if parentPath == "" {
+	// 	log.Debugf(c, "matchMessageCommands()")
+	// }
 
 	if textMessage, ok := input.(WebhookTextMessage); ok {
 		messageText = textMessage.Text()
@@ -156,7 +154,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 	}
 
 	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
-	//log.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
+	// log.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
 
 	var awaitingReplyCommandFound bool
 
@@ -181,8 +179,8 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 			awaitingReplyPrefix := strings.TrimLeft(parentPath+AwaitingReplyToPathSeparator+command.Code, AwaitingReplyToPathSeparator)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
-				//log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
-				//log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
+				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+				// log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
 				if matchedCommand = router.matchMessageCommands(whc, input, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					log.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
@@ -190,7 +188,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 					continue
 				}
 			} else {
-				//log.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+				// log.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 			}
 		}
 
@@ -205,7 +203,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 			matchedCommand = &command
 			return
 			// } else {
-			//log.Debugf(c, "command(code=%v).Title(whc): %v", command.ByCode, command.DefaultTitle(whc))
+			// log.Debugf(c, "command(code=%v).Title(whc): %v", command.ByCode, command.DefaultTitle(whc))
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
 			log.Debugf(c, "%v matched by command.matcher()", command.Code)
@@ -227,14 +225,14 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 				continue
 			}
 		}
-		//log.Debugf(c, "%v - not matched, matchedCommand: %v", command.ByCode, matchedCommand)
+		// log.Debugf(c, "%v - not matched, matchedCommand: %v", command.ByCode, matchedCommand)
 	}
 	if awaitingReplyCommandFound {
 		matchedCommand = &awaitingReplyCommand
-		//log.Debugf(c, "Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.ByCode)
+		// log.Debugf(c, "Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.ByCode)
 	} else {
 		matchedCommand = nil
-		//log.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
+		// log.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
 	}
 	return
 }
@@ -247,11 +245,11 @@ func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 // Dispatch query to commands
 func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
-	//defer func() {
-	//	if err := recover(); err != nil {
-	//		log.Criticalf(c, "*WebhooksRouter.Dispatch() => PANIC: %v", err)
-	//	}
-	//}()
+	// defer func() {
+	// 	if err := recover(); err != nil {
+	// 		log.Criticalf(c, "*WebhooksRouter.Dispatch() => PANIC: %v", err)
+	// 	}
+	// }()
 
 	inputType := whc.InputType()
 
@@ -316,8 +314,8 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		whc.LogRequest()
 		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
 		if whc.Chat().IsGroupChat() {
-			//m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
-			//router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
+			// router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
 			chatEntity := whc.ChatEntity()
@@ -331,7 +329,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		if matchedCommand.Code == "" {
 			log.Debugf(c, "Matched to: %v", matchedCommand)
 		} else {
-			log.Debugf(c, "Matched to: %v", matchedCommand.Code) //runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+			log.Debugf(c, "Matched to: %v", matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		}
 		var err error
 		if commandAction == nil {
@@ -390,34 +388,35 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 
 	c := whc.Context()
 	ga := whc.GA()
-	//gam.GeographicalOverride()
+	// gam.GeographicalOverride()
 
 	env := whc.GetBotSettings().Env
 	inputType := whc.InputType()
 	if err == nil {
 		if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
 			const failedToSendMessageToMessenger = "failed to send a message to messenger"
-			switch err.(type) {
-			case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
-				tgError := err.(tgbotapi.APIResponse)
-				switch tgError.ErrorCode {
-				case 400: // Bad request
-					switch {
-					case strings.Contains(tgError.Description, "message is not modified"):
-						logText := failedToSendMessageToMessenger
-						if inputType == WebhookInputCallbackQuery {
-							logText += "(can be duplicate callback)"
-						}
-						log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
-						err = nil
-					case strings.Contains(tgError.Description, "message to edit not found"):
-						log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
-						err = nil
+			// switch err.(type) {
+			// case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
+				// tgError := err.(tgbotapi.APIResponse)
+				// switch tgError.ErrorCode {
+				// case 400: // Bad request
+				errText := err.Error()
+				switch {
+				case strings.Contains(errText, "message is not modified"):
+					logText := failedToSendMessageToMessenger
+					if inputType == WebhookInputCallbackQuery {
+						logText += "(can be duplicate callback)"
 					}
+					log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
+					err = nil
+				case strings.Contains(errText, "message to edit not found"):
+					log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
+					err = nil
 				}
-			}
+				// }
+			// }
 			if err != nil {
-				log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) //TODO: Decide how do we handle this
+				log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) // TODO: Decide how do we handle this
 			}
 		}
 		if matchedCommand != nil {
