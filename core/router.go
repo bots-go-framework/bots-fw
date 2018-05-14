@@ -11,6 +11,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
+	"github.com/strongo/bots-api-telegram"
 )
 
 // TypeCommands container for commands
@@ -396,14 +397,26 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	if err == nil {
 		if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
 			const failedToSendMessageToMessenger = "failed to send a message to messenger"
-			if strings.Contains(err.Error(), "message is not modified") { // TODO: This check is specific to Telegram and should be abstracted
-				logText := failedToSendMessageToMessenger
-				if inputType == WebhookInputCallbackQuery {
-					logText += "(can be duplicate callback)"
+			switch err.(type) {
+			case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
+				tgError := err.(tgbotapi.APIResponse)
+				switch tgError.ErrorCode {
+				case 400: // Bad request
+					switch {
+					case strings.Contains(tgError.Description, "message is not modified"):
+						logText := failedToSendMessageToMessenger
+						if inputType == WebhookInputCallbackQuery {
+							logText += "(can be duplicate callback)"
+						}
+						log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
+						err = nil
+					case strings.Contains(tgError.Description, "message to edit not found"):
+						log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
+						err = nil
+					}
 				}
-				log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
-				err = nil
-			} else {
+			}
+			if err != nil {
 				log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) //TODO: Decide how do we handle this
 			}
 		}
