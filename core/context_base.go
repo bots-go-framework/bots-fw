@@ -278,6 +278,9 @@ func (whcb *WebhookContextBase) GA() GaContext {
 }
 
 func (gac gaContext) Queue(message gamp.Message) error {
+	if gac.gaMeasurement == nil { // TODO: not good :(
+		return nil
+	}
 	if message.GetTrackingID() == "" {
 		message.SetTrackingID(gac.whcb.GetBotSettings().GAToken)
 		if message.GetTrackingID() == "" {
