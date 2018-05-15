@@ -12,7 +12,7 @@ import (
 // BotEntity holds properties common to al bot entitites
 type BotEntity struct {
 	AccessGranted bool
-	user.OwnedByUser
+	user.OwnedByUserWithIntID
 }
 
 // IsAccessGranted indicates if access to the bot has been granted

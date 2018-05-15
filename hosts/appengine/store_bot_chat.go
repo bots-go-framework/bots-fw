@@ -86,7 +86,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 // SaveBotChat saves bot chat
 func (s *GaeBotChatStore) SaveBotChat(c context.Context, botID, botChatID string, chatEntity bots.BotChat) error { // Former SaveBotChatEntity
 	s.validateBotChatEntityType(chatEntity)
-	chatEntity.SetDtUpdated(time.Now())
+	chatEntity.SetUpdatedTime(time.Now())
 	_, err := nds.Put(c, s.NewBotChatKey(c, botID, botChatID), chatEntity)
 	return err
 }
@@ -122,7 +122,7 @@ func (s *GaeBotChatStore) Close(c context.Context) error { // Former SaveBotChat
 	now := time.Now()
 	for chatID, chatEntity := range s.botChats {
 		s.validateBotChatEntityType(chatEntity)
-		chatEntity.SetDtUpdated(now)
+		chatEntity.SetUpdatedTime(now)
 		chatEntity.SetDtLastInteraction(now)
 		chatKeys = append(chatKeys, datastore.NewKey(c, s.entityKind, chatID, 0, nil))
 		chatEntities = append(chatEntities, chatEntity)

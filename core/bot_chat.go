@@ -5,6 +5,7 @@ import (
 
 	"context"
 	"github.com/satori/go.uuid"
+	"github.com/strongo/app/user"
 )
 
 // BotChat provides data about bot chat
@@ -29,7 +30,7 @@ type BotChat interface {
 	GetPreferredLanguage() string
 	SetPreferredLanguage(value string)
 
-	SetDtUpdated(time time.Time)
+	user.UpdatedTimeSetter
 	SetDtLastInteraction(time time.Time)
 
 	GetAwaitingReplyTo() string

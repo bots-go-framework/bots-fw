@@ -27,18 +27,16 @@ func newGaeTelegramUserStore(gaeAppUserStore GaeAppUserStore) gaeTelegramUserSto
 				if apiUser == nil {
 					return &telegram.TgUserEntity{}
 				}
-				return &telegram.TgUserEntity{
-					BotUserEntity: bots.BotUserEntity{
-						BotEntity: bots.BotEntity{
-							OwnedByUser: user.OwnedByUser{
-								DtCreated: time.Now(),
-							},
-						},
-						FirstName: apiUser.GetFirstName(),
-						LastName:  apiUser.GetLastName(),
-						UserName:  apiUser.GetUserName(),
-					},
+				botEntity := bots.BotEntity{
+					OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(0, time.Now()),
 				}
+				botUserEntity := bots.BotUserEntity{
+					BotEntity: botEntity,
+					FirstName: apiUser.GetFirstName(),
+					LastName:  apiUser.GetLastName(),
+					UserName:  apiUser.GetUserName(),
+				}
+				return &telegram.TgUserEntity{BotUserEntity: botUserEntity}
 			},
 			validateBotUserEntityType: func(entity bots.BotUser) {
 				if _, ok := entity.(*telegram.TgUserEntity); !ok {

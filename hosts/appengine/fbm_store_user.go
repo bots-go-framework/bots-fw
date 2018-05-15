@@ -27,11 +27,7 @@ func newGaeFacebookUserStore(gaeAppUserStore GaeAppUserStore) gaeFacebookUserSto
 				}
 				return &fbm.BotUser{
 					BotUserEntity: bots.BotUserEntity{
-						BotEntity: bots.BotEntity{
-							OwnedByUser: user.OwnedByUser{
-								DtCreated: time.Now(),
-							},
-						},
+						BotEntity: bots.BotEntity{OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(0, time.Now())},
 						FirstName: apiUser.GetFirstName(),
 						LastName:  apiUser.GetLastName(),
 						UserName:  apiUser.GetUserName(),

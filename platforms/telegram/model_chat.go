@@ -63,11 +63,7 @@ var _ bots.BotChat = (*TgChatEntityBase)(nil)
 func NewTelegramChatEntity() *TgChatEntityBase {
 	return &TgChatEntityBase{
 		BotChatEntity: bots.BotChatEntity{
-			BotEntity: bots.BotEntity{
-				OwnedByUser: user.OwnedByUser{
-					DtCreated: time.Now(),
-				},
-			},
+			BotEntity: bots.BotEntity{OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(0, time.Now())},
 		},
 	}
 }

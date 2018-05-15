@@ -57,11 +57,7 @@ func (chat *Chat) SetBotUserID(id interface{}) {
 func NewFbmChat() Chat {
 	return Chat{
 		BotChatEntity: bots.BotChatEntity{
-			BotEntity: bots.BotEntity{
-				OwnedByUser: user.OwnedByUser{
-					DtCreated: time.Now(),
-				},
-			},
+			BotEntity: bots.BotEntity{OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(0, time.Now())},
 		},
 	}
 }

@@ -44,11 +44,7 @@ var _ bots.BotChat = (*UserChatEntity)(nil)
 func NewUserChat() UserChatEntity {
 	return UserChatEntity{
 		BotChatEntity: bots.BotChatEntity{
-			BotEntity: bots.BotEntity{
-				OwnedByUser: user.OwnedByUser{
-					DtCreated: time.Now(),
-				},
-			},
+			BotEntity: bots.BotEntity{OwnedByUserWithIntID: user.NewOwnedByUserWithIntID(0, time.Now())},
 		},
 	}
 }

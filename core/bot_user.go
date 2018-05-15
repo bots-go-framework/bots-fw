@@ -1,9 +1,8 @@
 package bots
 
 import (
-	"time"
-
 	"context"
+	"github.com/strongo/app/user"
 )
 
 // BotUser interface provides information about bot user
@@ -12,7 +11,7 @@ type BotUser interface {
 	IsAccessGranted() bool
 	SetAccessGranted(value bool) bool
 	SetAppUserIntID(appUserID int64)
-	SetDtUpdated(time time.Time)
+	user.UpdatedTimeSetter
 }
 
 // BotUserStore provider to store information about bot user
