@@ -163,7 +163,7 @@ func (whi tgWebhookInput) TelegramChatID() int64 {
 	if whi.update.EditedMessage != nil {
 		return whi.update.EditedMessage.Chat.ID
 	}
-	panic("Can't get Telgram chat ID from `update.Message` or `update.EditedMessage`.")
+	panic("Can't get Telegram chat ID from `update.Message` or `update.EditedMessage`.")
 }
 
 func (whi tgWebhookInput) Chat() bots.WebhookChat {
