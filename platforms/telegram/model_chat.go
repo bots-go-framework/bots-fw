@@ -36,10 +36,10 @@ func (tgChat *TgChatBase) SetID(tgBotID string, tgChatID int64) {
 // TgChatEntityBase holds base properties of Telegram chat entity
 type TgChatEntityBase struct {
 	bots.BotChatEntity
-	TelegramUserID        int64   `datastore:",noindex"`
+	TelegramUserID        int64   `datastore:",noindex,omitempty"`
 	TelegramUserIDs       []int64 `datastore:",noindex"` // For groups
-	LastProcessedUpdateID int     `datastore:",noindex"`
-	TgChatInstanceID      string  `datastore:",noindex"` // Do index
+	LastProcessedUpdateID int     `datastore:",noindex,omitempty"`
+	TgChatInstanceID      string  `datastore:",noindex,omitempty"` // Do index
 }
 
 // SetTgChatInstanceID is what it is

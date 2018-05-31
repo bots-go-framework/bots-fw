@@ -45,17 +45,17 @@ type BotChatEntity struct {
 	AppUserIntIDs []int64
 	BotID         string `datastore:",noindex"`
 	//
-	IsGroup bool   `datastore:",noindex"`
-	Type    string `datastore:",noindex"`
-	Title   string `datastore:",noindex"`
+	IsGroup bool   `datastore:",noindex,omitempty"`
+	Type    string `datastore:",noindex,omitempty"`
+	Title   string `datastore:",noindex,omitempty"`
 	//
-	AwaitingReplyTo   string `datastore:",noindex"`
-	PreferredLanguage string `datastore:",noindex"`
-	GaClientID        []byte `datastore:",noindex"`
-	DtLastInteraction time.Time
-	InteractionsCount int
-	DtForbidden       time.Time
-	DtForbiddenLast   time.Time `datastore:",noindex"`
+	AwaitingReplyTo   string    `datastore:",noindex,omitempty"`
+	PreferredLanguage string    `datastore:",noindex,omitempty"`
+	GaClientID        []byte    `datastore:",noindex,omitempty"`
+	DtLastInteraction time.Time `datastore:",omitempty"`
+	InteractionsCount int       `datastore:",omitempty"`
+	DtForbidden       time.Time `datastore:",omitempty"`
+	DtForbiddenLast   time.Time `datastore:",noindex,omitempty"`
 	LanguageCodes     []string  `datastore:",noindex"` // UI languages
 }
 
@@ -95,13 +95,13 @@ func (e *BotChatEntity) AddClientLanguage(languageCode string) (changed bool) {
 	return false
 }
 
-//func (e *BotChatEntity) GetBotUserIntID() int {
-//	panic("Should be overwritten in subclass")
-//}
+// func (e *BotChatEntity) GetBotUserIntID() int {
+// 	panic("Should be overwritten in subclass")
+// }
 //
-//func (e *BotChatEntity) GetBotUserStringID() string {
-//	panic("Should be overwritten in subclass")
-//}
+// func (e *BotChatEntity) GetBotUserStringID() string {
+// 	panic("Should be overwritten in subclass")
+// }
 
 // SetBotUserID sets bot user ID
 func (e *BotChatEntity) SetBotUserID(id interface{}) {
@@ -185,8 +185,8 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string)
 			}
 			steps = steps[:i]
 			break
-			//} else {
-			//log.Infof(c, "steps[%v]: %v != %v:", i, steps[i], step)
+			// } else {
+			// log.Infof(c, "steps[%v]: %v != %v:", i, steps[i], step)
 		}
 	}
 }

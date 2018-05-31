@@ -34,7 +34,7 @@ func (tgChat *Chat) SetEntity(entity interface{}) {
 }
 
 type ChatEntity struct {
-	UserGroupID string `datastore:",index"` // Do index
+	UserGroupID string `datastore:",index,omitempty"` // Do index
 	TgChatEntityBase
 }
 
