@@ -38,7 +38,7 @@ type viberWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*viberWebhookHandler)(nil)
 
-func (h viberWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+func (h viberWebhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}

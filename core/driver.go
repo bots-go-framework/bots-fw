@@ -64,7 +64,7 @@ func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host B
 // RegisterWebhookHandlers adds handlers to a bot driver
 func (d BotDriver) RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler) {
 	for _, webhookHandler := range webhookHandlers {
-		webhookHandler.RegisterWebhookHandler(d, d.botHost, httpRouter, pathPrefix)
+		webhookHandler.RegisterHttpHandlers(d, d.botHost, httpRouter, pathPrefix)
 	}
 }
 

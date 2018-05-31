@@ -38,6 +38,14 @@ type Command struct {
 	CallbackAction CallbackAction
 }
 
+func NewInlineQueryCommand(code string, action CommandAction) Command {
+	return Command{
+		Code:           code,
+		InputTypes: []WebhookInputType{WebhookInputInlineQuery},
+		Action: action,
+	}
+}
+
 // NewCallbackCommand create a definition of a callback command
 func NewCallbackCommand(code string, action CallbackAction) Command {
 	return Command{

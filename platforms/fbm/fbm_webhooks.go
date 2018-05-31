@@ -39,7 +39,7 @@ type webhookHandler struct {
 var _ bots.WebhookHandler = (*webhookHandler)(nil)
 
 // RegisterWebhookHandler registers HTTP handler for handling FBM messages
-func (handler webhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+func (handler webhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}

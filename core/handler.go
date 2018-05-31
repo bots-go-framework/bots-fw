@@ -9,7 +9,7 @@ import (
 
 // WebhookHandler handles requests from a specific bot API
 type WebhookHandler interface {
-	RegisterWebhookHandler(driver WebhookDriver, botHost BotHost, router *httprouter.Router, pathPrefix string)
+	RegisterHttpHandlers(driver WebhookDriver, botHost BotHost, router *httprouter.Router, pathPrefix string)
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
 	CreateBotCoreStores(appContext BotAppContext, r *http.Request) BotCoreStores

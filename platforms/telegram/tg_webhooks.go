@@ -40,17 +40,21 @@ type tgWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*tgWebhookHandler)(nil)
 
-func (h tgWebhookHandler) RegisterWebhookHandler(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
+func (h tgWebhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
 	}
 	h.BaseHandler.Register(driver, host)
 
 	pathPrefix = strings.TrimSuffix(pathPrefix, "/")
-	router.POST(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest) // TODO: Remove obsolete
+	//router.POST(pathPrefix+"/telegram/webhook", h.HandleWebhookRequest) // TODO: Remove obsolete
 	router.POST(pathPrefix+"/tg/hook", h.HandleWebhookRequest)
 	router.GET(pathPrefix+"/tg/set-webhook", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		h.SetWebhook(h.Context(r), w, r)
+	})
+	router.GET(pathPrefix + "/tg/test", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		log.Debugf(h.Context(r), "Test request")
+		w.Write([]byte("Test response"))
 	})
 }
 
@@ -70,6 +74,7 @@ func (h tgWebhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *http.Re
 }
 
 func (h tgWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r *http.Request) {
+	log.Debugf(c, "tgWebhookHandler.SetWebhook()")
 	ctxWithDeadline, cancel := context.WithTimeout(c, 30*time.Second)
 	defer cancel()
 	client := h.GetHTTPClient(ctxWithDeadline)
