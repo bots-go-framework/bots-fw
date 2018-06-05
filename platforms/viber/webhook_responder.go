@@ -26,7 +26,7 @@ func newViberWebhookResponder(whc *viberWebhookContext) viberWebhookResponder {
 func (r viberWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotAPISendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
 	log.Debugf(c, "viberWebhookResponder.SendMessage()...")
 	botSettings := r.whc.GetBotSettings()
-	viberBotAPI := viberbotapi.NewViberBotAPIWithHTTPClient(botSettings.Token, r.whc.BotContext.BotHost.GetHTTPClient(c))
+	viberBotAPI := viberbotapi.NewViberBotAPIWithHTTPClient(botSettings.Token, r.whc.BotContext().BotHost.GetHTTPClient(c))
 	log.Debugf(c, "Keyboard: %v", m.Keyboard)
 
 	var viberKeyboard *viberinterface.Keyboard

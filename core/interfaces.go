@@ -22,7 +22,7 @@ type BotHost interface {
 	DB() db.Database
 }
 
-// BotContext describes current bot app host & settings
+// botContext describes current bot app host & settings
 type BotContext struct {
 	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
 	BotHost     BotHost

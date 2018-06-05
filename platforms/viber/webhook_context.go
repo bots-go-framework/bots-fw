@@ -75,7 +75,8 @@ func (whc *viberWebhookContext) Init(w http.ResponseWriter, r *http.Request) err
 }
 
 func (whc *viberWebhookContext) BotAPI() *viberbotapi.ViberBotAPI {
-	return viberbotapi.NewViberBotAPIWithHTTPClient(whc.BotContext.BotSettings.Token, whc.BotContext.BotHost.GetHTTPClient(whc.Context()))
+	botContext := whc.BotContext()
+	return viberbotapi.NewViberBotAPIWithHTTPClient(botContext.BotSettings.Token, botContext.BotHost.GetHTTPClient(whc.Context()))
 }
 
 func (whc *viberWebhookContext) IsNewerThen(chatEntity bots.BotChat) bool {

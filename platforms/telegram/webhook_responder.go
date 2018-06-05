@@ -207,9 +207,10 @@ func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot
 		}
 		return resp, err
 	case bots.BotAPISendMessageOverHTTPS:
+		botContext := r.whc.BotContext()
 		botAPI := tgbotapi.NewBotAPIWithClient(
-			r.whc.BotContext.BotSettings.Token,
-			r.whc.BotContext.BotHost.GetHTTPClient(c),
+			botContext.BotSettings.Token,
+			botContext.BotHost.GetHTTPClient(c),
 		)
 		botAPI.EnableDebug(c)
 		message, err := botAPI.Send(chattable)

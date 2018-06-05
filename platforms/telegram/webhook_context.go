@@ -207,7 +207,8 @@ func (twhc *tgWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 }
 
 func (twhc *tgWebhookContext) BotAPI() *tgbotapi.BotAPI {
-	return tgbotapi.NewBotAPIWithClient(twhc.BotContext.BotSettings.Token, twhc.BotContext.BotHost.GetHTTPClient(twhc.Context()))
+	botContext := twhc.BotContext()
+	return tgbotapi.NewBotAPIWithClient(botContext.BotSettings.Token, botContext.BotHost.GetHTTPClient(twhc.Context()))
 }
 
 func (twhc *tgWebhookContext) GetAppUser() (bots.BotAppUser, error) {

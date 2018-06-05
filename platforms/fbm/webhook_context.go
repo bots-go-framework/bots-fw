@@ -81,7 +81,7 @@ func (whc *fbmWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 }
 
 //func (whc *fbmWebhookContext) BotAPI() *fbm_api.BotAPI {
-//	return fbm_api.NewBotAPIWithClient(whc.BotContext.BotSettings.Token, whc.GetHTTPClient())
+//	return fbm_api.NewBotAPIWithClient(whc.BotContext().BotSettings.Token, whc.GetHTTPClient())
 //}
 
 func (whc *fbmWebhookContext) BotChatIntID() (chatID int64) {

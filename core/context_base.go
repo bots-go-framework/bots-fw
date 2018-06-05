@@ -24,7 +24,7 @@ type WebhookContextBase struct {
 	r             *http.Request
 	c             context.Context
 	botAppContext BotAppContext
-	BotContext    BotContext
+	botContext    BotContext // TODO: rename to something strongo
 	botPlatform   BotPlatform
 	input         WebhookInput
 
@@ -48,6 +48,10 @@ type WebhookContextBase struct {
 	gaContext gaContext
 }
 
+func (whcb *WebhookContextBase) BotContext() BotContext {
+	return whcb.botContext
+}
+
 // SetChatID sets chat ID
 func (whcb *WebhookContextBase) SetChatID(v string) {
 	whcb.chatID = v
@@ -60,17 +64,17 @@ func (whcb *WebhookContextBase) LogRequest() {
 
 // RunInTransaction starts a transaction. This needed to coordinate application & framework changes.
 func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
-	return whcb.BotContext.BotHost.DB().RunInTransaction(c, f, options)
+	return whcb.botContext.BotHost.DB().RunInTransaction(c, f, options)
 }
 
 // IsInTransaction detects if request is within a transaction
 func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
-	return whcb.BotContext.BotHost.DB().IsInTransaction(c)
+	return whcb.botContext.BotHost.DB().IsInTransaction(c)
 }
 
 // NonTransactionalContext creates a non transaction context for operations that needs to be executed outside of transaction.
 func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) context.Context {
-	return whcb.BotContext.BotHost.DB().NonTransactionalContext(tc)
+	return whcb.botContext.BotHost.DB().NonTransactionalContext(tc)
 }
 
 // Request returns reference to current HTTP request
@@ -80,7 +84,7 @@ func (whcb *WebhookContextBase) Request() *http.Request {
 
 // Environment defines current environment (PROD, DEV, LOCAL, etc)
 func (whcb *WebhookContextBase) Environment() strongo.Environment {
-	return whcb.BotContext.BotSettings.Env
+	return whcb.botContext.BotSettings.Env
 }
 
 // MustBotChatID returns bot chat ID and panic if missing it
@@ -207,7 +211,7 @@ func NewWebhookContextBase(
 		},
 		botAppContext: botAppContext,
 		botPlatform:   botPlatform,
-		BotContext:    botContext,
+		botContext:    botContext,
 		input:         webhookInput,
 		isInGroup:     isInGroup,
 		BotCoreStores: botCoreStores,
@@ -329,17 +333,17 @@ func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 
 // GetBotSettings settings of the current bot
 func (whcb *WebhookContextBase) GetBotSettings() BotSettings {
-	return whcb.BotContext.BotSettings
+	return whcb.botContext.BotSettings
 }
 
 // GetBotCode returns current bot code
 func (whcb *WebhookContextBase) GetBotCode() string {
-	return whcb.BotContext.BotSettings.Code
+	return whcb.botContext.BotSettings.Code
 }
 
 // GetBotToken returns current bot API token
 func (whcb *WebhookContextBase) GetBotToken() string {
-	return whcb.BotContext.BotSettings.Token
+	return whcb.botContext.BotSettings.Token
 }
 
 // Translate translates string
@@ -353,7 +357,7 @@ func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface
 }
 
 //func (whcb *WebhookContextBase) GetHTTPClient() *http.Client {
-//	return whcb.BotContext.BotHost.GetHTTPClient(whcb.c)
+//	return whcb.botContext.BotHost.GetHTTPClient(whcb.c)
 //}
 
 // HasChatEntity return true if messages is within chat
@@ -522,7 +526,7 @@ func (whcb WebhookContextBase) Locale() strongo.Locale {
 				}
 			}
 		}
-		whcb.locale = whcb.BotContext.BotSettings.Locale
+		whcb.locale = whcb.botContext.BotSettings.Locale
 	}
 	return whcb.locale
 }
