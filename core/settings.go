@@ -25,16 +25,16 @@ type BotSettings struct {
 // NewBotSettings configures bot application
 func NewBotSettings(mode strongo.Environment, profile, code, id, token, gaToken string, locale strongo.Locale) BotSettings {
 	if profile == "" {
-		panic("Missing required parameter: profile")
+		panic("NewBotSettings: missing required parameter: profile")
 	}
 	if code == "" {
-		panic("Missing required parameter: code")
+		panic("NewBotSettings: missing required parameter: code")
 	}
 	if token == "" {
-		panic("Missing required parameter: token")
+		panic("NewBotSettings: missing required parameter: token")
 	}
 	if locale.Code5 == "" {
-		panic("Missing required parameter: locale.Code5")
+		panic("NewBotSettings: missing required parameter: locale.Code5")
 	}
 	return BotSettings{
 		Profile: profile,

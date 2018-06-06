@@ -80,7 +80,7 @@ func (h tgWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r
 	client := h.GetHTTPClient(ctxWithDeadline)
 	botCode := r.URL.Query().Get("code")
 	if botCode == "" {
-		http.Error(w, "Missing required parameter: code", http.StatusBadRequest)
+		http.Error(w, "tgWebhookHandler: Missing required parameter: code", http.StatusBadRequest)
 		return
 	}
 	botSettings, ok := h.botsBy(c).ByCode[botCode]
