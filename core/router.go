@@ -107,8 +107,15 @@ func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 				addCommand(WebhookInputCallbackQuery, command)
 			}
 		} else {
+			callbackAdded := false
 			for _, t := range command.InputTypes {
 				addCommand(t, command)
+				if t == WebhookInputCallbackQuery {
+					callbackAdded = true
+				}
+			}
+			if command.CallbackAction != nil && !callbackAdded {
+				addCommand(WebhookInputCallbackQuery, command)
 			}
 		}
 	}
