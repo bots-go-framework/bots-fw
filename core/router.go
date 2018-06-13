@@ -160,7 +160,19 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 		messageTextLowerCase = strings.ToLower(messageText)
 	}
 
-	awaitingReplyTo := whc.ChatEntity().GetAwaitingReplyTo()
+	var awaitingReplyTo string
+
+	chatEntity := whc.ChatEntity()
+	isCommandText := true
+	if !strings.HasPrefix(messageText, "/") { // For telegram only?
+		awaitingReplyTo = chatEntity.GetAwaitingReplyTo()
+	}
+	defer func() {
+		if isCommandText && matchedCommand != nil {
+			chatEntity.SetAwaitingReplyTo("")
+		}
+	}()
+
 	// log.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
 
 	var awaitingReplyCommandFound bool
