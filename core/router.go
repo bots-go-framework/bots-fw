@@ -143,35 +143,24 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 	return nil, callbackURL, err
 }
 
-func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, parentPath string, commands []Command) (matchedCommand *Command) {
-	var (
-		messageText, messageTextLowerCase string
-		awaitingReplyCommand              Command
-	)
-
+func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
 	c := whc.Context()
+
+	var awaitingReplyCommand Command
+	messageTextLowerCase := strings.ToLower(messageText)
+
 
 	// if parentPath == "" {
 	// 	log.Debugf(c, "matchMessageCommands()")
 	// }
 
-	if textMessage, ok := input.(WebhookTextMessage); ok {
-		messageText = textMessage.Text()
-		messageTextLowerCase = strings.ToLower(messageText)
-	}
-
 	var awaitingReplyTo string
 
 	chatEntity := whc.ChatEntity()
-	isCommandText := true
-	if !strings.HasPrefix(messageText, "/") { // For telegram only?
+
+	if !isCommandText {
 		awaitingReplyTo = chatEntity.GetAwaitingReplyTo()
 	}
-	defer func() {
-		if isCommandText && matchedCommand != nil {
-			chatEntity.SetAwaitingReplyTo("")
-		}
-	}()
 
 	// log.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
 
@@ -179,8 +168,8 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	{
 		commandText := messageTextLowerCase
-		if strings.HasPrefix(commandText, "/") && strings.Contains(commandText, "@") {
-			commandText = commandText[:strings.Index(commandText, "@")]
+		if atIndex := strings.Index(commandText, "@"); isCommandText && atIndex >= 0 {
+			commandText = commandText[:atIndex]
 		}
 		for _, command := range commands {
 			for _, commandName := range command.Commands {
@@ -200,7 +189,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				// log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
-				if matchedCommand = router.matchMessageCommands(whc, input, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matchedCommand = router.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					log.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
@@ -287,6 +276,7 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 		m              MessageFromBot
 	)
 	input := whc.Input()
+	var isCommandText bool
 	switch input.(type) {
 	case WebhookCallbackQuery:
 		var callbackURL *url.URL
@@ -309,7 +299,12 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			matchedCommand = &typeCommands.all[0]
 		}
 		if matchedCommand == nil {
-			matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), "", typeCommands.all)
+			var messageText string
+			if textMessage, ok := input.(WebhookTextMessage); ok {
+				messageText = textMessage.Text()
+				isCommandText = strings.HasPrefix(messageText, "/")
+			}
+			matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), isCommandText, messageText, "", typeCommands.all)
 			if matchedCommand != nil {
 				log.Debugf(c, "router.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
 			}
@@ -332,21 +327,23 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 	if matchedCommand == nil {
 		whc.LogRequest()
 		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
-		if whc.Chat().IsGroupChat() {
+		if chat := whc.Chat(); chat != nil && chat.IsGroupChat() {
 			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
 			// router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
 			chatEntity := whc.ChatEntity()
-			if chatEntity != nil && chatEntity.GetAwaitingReplyTo() != "" {
-				m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", chatEntity.GetAwaitingReplyTo())
+			if chatEntity != nil {
+				if awaitingReplyTo := chatEntity.GetAwaitingReplyTo(); awaitingReplyTo != "" {
+					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", awaitingReplyTo)
+				}
 			}
 			log.Debugf(c, "No command found for the message: %v", input)
 			router.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
 	} else {
 		if matchedCommand.Code == "" {
-			log.Debugf(c, "Matched to: %v", matchedCommand)
+			log.Debugf(c, "Matched to: %+v", matchedCommand)
 		} else {
 			log.Debugf(c, "Matched to: %v", matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		}
@@ -355,6 +352,11 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 			err = errors.New("No action for matched command")
 		} else {
 			m, err = commandAction(whc)
+			// awaitingReplyToAfter := chatEntity.GetAwaitingReplyTo()
+			// if isCommandText && awaitingReplyToAfter == awaitingReplyToBefore { // TODO: Looks dangerous? Should be commands be responsible?
+			// 	log.Debugf(c, "Auto-resetting AwaitingReplyTo when not changed after processing and isCommandText=true")
+			// 	chatEntity.SetAwaitingReplyTo("")
+			// }
 		}
 		router.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}
