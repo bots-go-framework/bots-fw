@@ -139,7 +139,14 @@ func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot
 			editMessageTextConfig.ParseMode = parseMode()
 			editMessageTextConfig.DisableWebPagePreview = m.DisableWebPagePreview
 			if m.Keyboard != nil {
-				editMessageTextConfig.ReplyMarkup = m.Keyboard.(*tgbotapi.InlineKeyboardMarkup)
+				switch keyboard := m.Keyboard.(type) {
+				case *tgbotapi.InlineKeyboardMarkup:
+					editMessageTextConfig.ReplyMarkup = keyboard
+				//case tgbotapi.ForceReply:
+				//	editMessageTextConfig.ReplyMarkup = keyboard
+				default:
+					panic(fmt.Sprintf("m.Keyboard has unsupported type %T", m.Keyboard))
+				}
 			}
 			chattable = editMessageTextConfig
 		} else {

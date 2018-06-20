@@ -186,7 +186,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			d.logInput(c, i, input)
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, measurementSender)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-			botContext.BotSettings.Router.Dispatch(responder, whc)
+			botContext.BotSettings.Router.Dispatch(webhookHandler, responder, whc)
 		}
 	}
 }

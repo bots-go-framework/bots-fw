@@ -121,6 +121,8 @@ func (router *WebhooksRouter) RegisterCommands(commands []Command) {
 	}
 }
 
+var ErrNoCommandsMatched = errors.New("no commands matched")
+
 func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeCommands *TypeCommands) (matchedCommand *Command, callbackURL *url.URL, err error) {
 	if len(typeCommands.all) > 0 {
 		callbackData := input.GetData()
@@ -134,7 +136,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 			}
 		}
 		if err == nil && matchedCommand == nil {
-			err = fmt.Errorf("No commands matchet to callback: [%v]", callbackData)
+			log.Errorf(whc.Context(), errors.WithMessage(ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
 			whc.LogRequest()
 		}
 	} else {
@@ -251,7 +253,7 @@ func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 }
 
 // Dispatch query to commands
-func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookContext) {
+func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
@@ -327,6 +329,10 @@ func (router *WebhooksRouter) Dispatch(responder WebhookResponder, whc WebhookCo
 	if matchedCommand == nil {
 		whc.LogRequest()
 		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
+		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
+			router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			return
+		}
 		if chat := whc.Chat(); chat != nil && chat.IsGroupChat() {
 			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
 			// router.processCommandResponse(matchedCommand, responder, whc, m, nil)

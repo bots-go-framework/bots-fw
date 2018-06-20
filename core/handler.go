@@ -15,5 +15,6 @@ type WebhookHandler interface {
 	CreateBotCoreStores(appContext BotAppContext, r *http.Request) BotCoreStores
 	CreateWebhookContext(appContext BotAppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores BotCoreStores, gaMeasurement GaQueuer) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHTTPClient()
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
+	HandleUnmatched(whc WebhookContext) (m MessageFromBot)
 	//ProcessInput(input webhookInput, entry *WebhookEntry)
 }

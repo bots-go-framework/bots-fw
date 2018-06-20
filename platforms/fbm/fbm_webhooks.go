@@ -38,6 +38,10 @@ type webhookHandler struct {
 
 var _ bots.WebhookHandler = (*webhookHandler)(nil)
 
+func (h webhookHandler) HandleUnmatched(whc bots.WebhookContext) (m bots.MessageFromBot) {
+	return
+}
+
 // RegisterWebhookHandler registers HTTP handler for handling FBM messages
 func (handler webhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {

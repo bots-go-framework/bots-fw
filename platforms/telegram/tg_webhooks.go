@@ -40,6 +40,17 @@ type tgWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*tgWebhookHandler)(nil)
 
+func (h tgWebhookHandler) HandleUnmatched(whc bots.WebhookContext) (m bots.MessageFromBot){
+	switch whc.InputType() {
+	case bots.WebhookInputCallbackQuery:
+		m.BotMessage = CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{
+			Text: "⚠️ Error: Not matched to any command",
+			ShowAlert: true,
+		})
+	}
+	return
+}
+
 func (h tgWebhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")

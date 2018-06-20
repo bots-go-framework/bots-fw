@@ -38,6 +38,10 @@ type viberWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*viberWebhookHandler)(nil)
 
+func (h viberWebhookHandler) HandleUnmatched(whc bots.WebhookContext) (m bots.MessageFromBot) {
+	return
+}
+
 func (h viberWebhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host bots.BotHost, router *httprouter.Router, pathPrefix string) {
 	if router == nil {
 		panic("router == nil")
