@@ -145,11 +145,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if recovered := recover(); recovered != nil {
 			reportError(recovered)
 		} else if sendStats {
+			log.Debugf(c, "Flushing GA...")
 			if err = measurementSender.Flush(); err != nil {
 				log.Warningf(c, "Failed to flush to GA: %v", err)
 			} else {
 				log.Debugf(c, "Sent to GA: %v items", measurementSender.QueueDepth())
 			}
+		} else {
+			log.Debugf(c, "GA: sendStats=false")
 		}
 	}()
 

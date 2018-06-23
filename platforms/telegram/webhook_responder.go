@@ -28,7 +28,7 @@ func newTgWebhookResponder(w http.ResponseWriter, whc *tgWebhookContext) tgWebho
 }
 
 func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, channel bots.BotAPISendMessageChannel) (resp bots.OnMessageSentResponse, err error) {
-	log.Debugf(c, "tgWebhookResponder.SendMessage(channel=%v, isEdit=%v)", channel, m.IsEdit)
+	log.Debugf(c, "tgWebhookResponder.SendMessage(channel=%v, isEdit=%v)\nm: %+v", channel, m.IsEdit, m)
 	if channel != bots.BotAPISendMessageOverHTTPS && channel != bots.BotAPISendMessageOverResponse {
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
@@ -151,7 +151,8 @@ func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot
 			chattable = editMessageTextConfig
 		} else {
 			err = fmt.Errorf("can't edit telegram message as got unknown output: %v", m)
-			return
+			panic(err)
+			// return
 		}
 	} else if m.Text != "" {
 		messageConfig := r.whc.NewTgMessage(m.Text)
