@@ -98,16 +98,27 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 	var sendStats bool
 	{ // Initiate Google Analytics Measurement API client
+
 		if d.Analytics.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
-			//log.Debugf(c, "d.AnalyticsSettings.Enabled == nil, botContext.BotSettings.Env: %v, sendStats: %v", strongo.EnvironmentNames[botContext.BotSettings.Env], sendStats)
 		} else {
-			sendStats = d.Analytics.Enabled(r)
+			if sendStats = d.Analytics.Enabled(r); !sendStats {
+
+			}
 			//log.Debugf(c, "d.AnalyticsSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
 			botHost := botContext.BotHost
-			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(c), nil)
+			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(c), func(err error) {
+				log.Errorf(c, "Failed to log to GA: %v", err)
+			})
+		} else {
+			envName, ok := strongo.EnvironmentNames[botContext.BotSettings.Env]
+			if !ok {
+				envName = "UNKNOWN"
+			}
+			log.Debugf(c, "d.Analytics.Enabled=%v, botContext.BotSettings.Env=%v:%v, sendStats=%v",
+				d.Analytics.Enabled, botContext.BotSettings.Env, envName, sendStats)
 		}
 	}
 
