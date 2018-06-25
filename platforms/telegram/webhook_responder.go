@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type tgWebhookResponder struct {
@@ -33,6 +34,10 @@ func (r tgWebhookResponder) SendMessage(c context.Context, m bots.MessageFromBot
 		panic(fmt.Sprintf("Unknown channel: [%v]. Expected either 'https' or 'response'.", channel))
 	}
 	//ctx := tc.Context()
+
+	var cancel context.CancelFunc
+	c, cancel = context.WithTimeout(c, 10*time.Second)
+	defer cancel()
 
 	var chattable tgbotapi.Chattable
 

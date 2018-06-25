@@ -424,14 +424,9 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	inputType := whc.InputType()
 	if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
 		const failedToSendMessageToMessenger = "failed to send a message to messenger"
-		// switch err.(type) {
-		// case tgbotapi.APIResponse: // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
-		// tgError := err.(tgbotapi.APIResponse)
-		// switch tgError.ErrorCode {
-		// case 400: // Bad request
 		errText := err.Error()
 		switch {
-		case strings.Contains(errText, "message is not modified"):
+		case strings.Contains(errText, "message is not modified"): // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
 			logText := failedToSendMessageToMessenger
 			if inputType == WebhookInputCallbackQuery {
 				logText += "(can be duplicate callback)"
