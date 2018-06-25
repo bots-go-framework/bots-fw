@@ -274,7 +274,7 @@ type WebhookChosenInlineResult interface {
 
 // WebhookCallbackQuery represents a single callback query message
 type WebhookCallbackQuery interface {
-	GetID() interface{}
+	GetID() string
 	GetInlineMessageID() string // Telegram only?
 	GetFrom() WebhookSender
 	GetMessage() WebhookMessage

@@ -1,6 +1,9 @@
 package fbm
 
-import "github.com/strongo/bots-framework/core"
+import (
+	"github.com/strongo/bots-framework/core"
+	"strconv"
+)
 
 // postbackInput is postback input
 type postbackInput struct {
@@ -10,8 +13,8 @@ type postbackInput struct {
 var _ bots.WebhookCallbackQuery = (*postbackInput)(nil)
 
 // GetID returns ID
-func (input postbackInput) GetID() interface{} {
-	return input.messaging.Timestamp
+func (input postbackInput) GetID() string {
+	return strconv.FormatInt(input.messaging.Timestamp, 10)
 }
 
 // GetInlineMessageID is not supported by FBM

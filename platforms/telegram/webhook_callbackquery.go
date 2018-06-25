@@ -36,8 +36,8 @@ func newTelegramWebhookCallbackQuery(input tgWebhookInput) TgWebhookCallbackQuer
 }
 
 // GetID returns update ID
-func (twhcbq TgWebhookCallbackQuery) GetID() interface{} {
-	return twhcbq.update.UpdateID
+func (twhcbq TgWebhookCallbackQuery) GetID() string {
+	return twhcbq.update.CallbackQuery.ID
 }
 
 // Sequence returns update ID
