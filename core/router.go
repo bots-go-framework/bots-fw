@@ -130,6 +130,13 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 		if err != nil {
 			log.Errorf(whc.Context(), "Failed to parse callback data to URL: %v", err.Error())
 		} else {
+			for _, c := range typeCommands.all {
+				if c.Matcher != nil {
+					if c.Matcher(c, whc) {
+						return &c, callbackURL, nil
+					}
+				}
+			}
 			callbackPath := callbackURL.Path
 			if command, ok := typeCommands.byCode[callbackPath]; ok {
 				return &command, callbackURL, nil
