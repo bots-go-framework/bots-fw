@@ -75,8 +75,8 @@ type WebhookContext interface {
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
-	BotChatStore
-	BotUserStore
+	BotChatStore // TODO: Migrate to strongo/db
+	BotUserStore // TODO: Migrate to strongo/db
 	WebhookInput
 	strongo.SingleLocaleTranslator
 
