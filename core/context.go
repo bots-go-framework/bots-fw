@@ -77,7 +77,7 @@ type WebhookContext interface {
 	BotState
 	BotChatStore // TODO: Migrate to strongo/db
 	BotUserStore // TODO: Migrate to strongo/db
-	WebhookInput
+	WebhookInput // TODO: Should be removed!!!
 	strongo.SingleLocaleTranslator
 
 	Responder() WebhookResponder
