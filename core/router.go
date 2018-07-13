@@ -216,7 +216,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 		}
 
 		if command.DefaultTitle(whc) == messageText {
-			log.Debugf(c, "%v matched by command.FullName()", command.Code)
+			log.Debugf(c, "%v matched by command.GetFullName()", command.Code)
 			matchedCommand = &command
 			return
 			// } else {

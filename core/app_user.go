@@ -12,6 +12,7 @@ type BotAppUser interface {
 	strongo.AppUser
 	//GetAppUserIntID() int64
 	SetBotUserID(platform, botID, botUserID string)
+	GetFullName() string
 }
 
 // BotAppUserStore interface for storing user information to persistent store
