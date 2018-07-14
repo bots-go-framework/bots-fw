@@ -11,7 +11,8 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-)
+
+	)
 
 // TypeCommands container for commands
 type TypeCommands struct {
@@ -158,7 +159,6 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 	var awaitingReplyCommand Command
 	messageTextLowerCase := strings.ToLower(messageText)
 
-
 	// if parentPath == "" {
 	// 	log.Debugf(c, "matchMessageCommands()")
 	// }
@@ -259,6 +259,55 @@ func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 
 }
 
+func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error) {
+	c := whc.Context()
+	q := callbackUrl.Query()
+	lang := q.Get("l")
+	if len(lang) == 2 {
+		lang = lang + "-" + strings.ToUpper(lang)
+	}
+	switch lang {
+	case "":
+		// No language selected, for example back from submenu
+	case "en-EN":
+		lang = "en-US" //
+	case "fa-FA":
+		lang = "fa-IR" //
+	default:
+		//if len(lang) != 5 {
+		//	m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{
+		//		Text: "Unknown language: " + lang,
+		//	})
+		//	log.Errorf(whc.Context(), "Unknown language: "+lang)
+		//	return
+		//}
+	}
+	if lang != "" {
+		chatEntity := whc.ChatEntity() // We need it to be loaded before changing current locale
+		currentLang := q.Get("cl")
+		currentLocaleCode5 := whc.Locale().Code5
+		log.Debugf(whc.Context(), "query: %v, lang: %v, currentLang: %v, currentLocaleCode5: %v", q, lang, currentLang, currentLocaleCode5)
+		if lang != currentLocaleCode5 {
+			if err = whc.SetLocale(lang); err != nil {
+				log.Errorf(c, "Failed to set current locale to %v: %v", lang, err)
+				err = nil
+			} else {
+				if currentLocaleCode5 = whc.Locale().Code5; currentLocaleCode5 != lang {
+					log.Errorf(c, "Locale not set, expected %v, got: %v", lang, currentLocaleCode5)
+				}
+				chatEntity.SetPreferredLanguage(lang)
+			}
+		}
+		//if lang == currentLang {
+		//	m.BotMessage = telegram.CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{
+		//		Text: "It is already current language",
+		//	})
+		//	return
+		//}
+	}
+	return
+}
+
 // Dispatch query to commands
 func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
@@ -297,6 +346,9 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 				err = fmt.Errorf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code)
 			} else {
 				log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
+				if m, err = changeLocaleIfLangPassed(whc, callbackURL); err != nil || m.Text != "" {
+					return
+				}
 				commandAction = func(whc WebhookContext) (MessageFromBot, error) {
 					return matchedCommand.CallbackAction(whc, callbackURL)
 				}
