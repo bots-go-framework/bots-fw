@@ -44,8 +44,9 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 ## Sample bots built with Strongo Bots Framework
 The best way to learn is to see examples of usage. Here is few:
-  * [**Bidding Tic-Tac-Toe**](https://github.com/prizarena/bidding-tictactoe) - open source game right in your Telegram chat.
-  * [**Rock-Paper-Scissors**](https://github.com/prizarena/rock-paper-scissors) - open source game right in your Telegram chat.
+  * [**Reversi** game](https://github.com/prizarena/reversi) - open source game.
+  * [**Bidding Tic-Tac-Toe**](https://github.com/prizarena/bidding-tictactoe) - open source game.
+  * [**Rock-Paper-Scissors**](https://github.com/prizarena/rock-paper-scissors) - open source game.
   * [**Debtus.app**](http://debtus.app/) —  a bot & a reminder service that helps to track your debts & credits.
   Sends automated reminders to you & your debtors (_in messenger, email, SMS_).
 
