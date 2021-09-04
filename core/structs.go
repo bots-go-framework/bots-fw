@@ -48,6 +48,7 @@ func (bh *BaseHandler) Register(d WebhookDriver, h BotHost) {
 // MessageFormat specify formatting of a text message to BOT (e.g. Text, HTML, MarkDown)
 type MessageFormat int
 
+//goland:noinspection GoUnusedConst
 const (
 	// MessageFormatText is for text messages
 	MessageFormatText MessageFormat = iota
@@ -81,6 +82,7 @@ type MessageUID interface {
 // KeyboardType defines keyboard type
 type KeyboardType int
 
+//goland:noinspection GoUnusedConst
 const (
 	// KeyboardTypeNone for no keyboard
 	KeyboardTypeNone KeyboardType = iota
@@ -107,6 +109,7 @@ type Keyboard interface {
 // AttachmentType to a bot message
 type AttachmentType int
 
+//goland:noinspection GoUnusedConst
 const (
 	// AttachmentTypeNone says there is no attachment
 	AttachmentTypeNone AttachmentType = iota
@@ -176,9 +179,10 @@ func (m TextMessageFromBot) BotMessageType() BotMessageType {
 var _ BotMessage = (*TextMessageFromBot)(nil)
 
 // MessageFromBot keeps all the details of answer from bot to user
+//goland:noinspection GoDeprecation
 type MessageFromBot struct {
 	ToChat             ChatUID                      `json:",omitempty"`
-	TextMessageFromBot                            // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	TextMessageFromBot                              // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
 	BotMessage         BotMessage                   `json:",omitempty"`
 	FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }
