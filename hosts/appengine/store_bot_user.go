@@ -78,7 +78,6 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 
 	var (
 		appUserID    int64
-		appUser      bots.BotAppUser
 		isNewAppUser bool
 	)
 
@@ -101,7 +100,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 		}
 
 		if appUserID == 0 { // This is most expected case
-			appUserID, appUser, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
+			appUserID, _, err = s.gaeAppUserStore.createAppUser(ctx, botID, apiUser)
 			if err != nil {
 				log.Errorf(c, "Failed to create app user: %v", err)
 				return
@@ -120,7 +119,6 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 		}
 		return
 	}, &datastore.TransactionOptions{XG: true})
-
 
 	if err != nil {
 		return nil, errors.WithMessage(err, "failed to create bot user")

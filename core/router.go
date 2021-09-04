@@ -11,8 +11,7 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-
-	)
+)
 
 // TypeCommands container for commands
 type TypeCommands struct {
@@ -46,6 +45,7 @@ type WebhooksRouter struct {
 }
 
 // NewWebhookRouter creates new router
+//goland:noinspection GoUnusedExportedFunction
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
 	r := WebhooksRouter{
 		commandsByType:  make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
@@ -143,10 +143,10 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 				return &command, callbackURL, nil
 			}
 		}
-		if err == nil && matchedCommand == nil {
-			log.Errorf(whc.Context(), errors.WithMessage(ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
-			whc.LogRequest()
-		}
+		//if matchedCommand == nil {
+		log.Errorf(whc.Context(), errors.WithMessage(ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
+		whc.LogRequest()
+		//}
 	} else {
 		panic("len(typeCommands.all) == 0")
 	}
@@ -256,7 +256,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 // DispatchInlineQuery dispatches inlines query
 func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
-
+	panic(fmt.Errorf("not implemented, responder: %+v", responder))
 }
 
 func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error) {
@@ -442,7 +442,10 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 		if textMessage.IsEdited() { // TODO: Should be in app logic, move out of core
 			m := whc.NewMessage("🙇 Sorry, editing messages is not supported. Please send a new message.")
 			log.Warningf(c, "TODO: Edited messages are not supported by framework yet. Move check to app.")
-			whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
+			_, err := whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
+			if err != nil {
+				log.Errorf(c, "failed to send message: %v", err)
+			}
 			return
 		}
 	case WebhookInputContact:
@@ -465,7 +468,10 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	}
 
 	m := whc.NewMessage("Sorry, unknown input type") // TODO: Move out of framework to app.
-	whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
+	_, err := whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
+	if err != nil {
+		log.Errorf(c, "Failed to send message: %v", err)
+	}
 
 	return
 }
@@ -571,7 +577,7 @@ func (router *WebhooksRouter) processCommandResponseError(whc WebhookContext, ma
 		}
 
 		if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
-			log.Errorf(c, "Failed to report to user a server error: %v", respErr)
+			log.Errorf(c, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 		}
 	}
 }

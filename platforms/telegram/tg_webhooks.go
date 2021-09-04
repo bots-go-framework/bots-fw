@@ -20,6 +20,7 @@ import (
 )
 
 // NewTelegramWebhookHandler creates new Telegram webhooks handler
+//goland:noinspection GoUnusedExportedFunction
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) bots.WebhookHandler {
 	if translatorProvider == nil {
 		panic("translatorProvider == nil")
@@ -40,11 +41,11 @@ type tgWebhookHandler struct {
 
 var _ bots.WebhookHandler = (*tgWebhookHandler)(nil)
 
-func (h tgWebhookHandler) HandleUnmatched(whc bots.WebhookContext) (m bots.MessageFromBot){
+func (h tgWebhookHandler) HandleUnmatched(whc bots.WebhookContext) (m bots.MessageFromBot) {
 	switch whc.InputType() {
 	case bots.WebhookInputCallbackQuery:
 		m.BotMessage = CallbackAnswer(tgbotapi.AnswerCallbackQueryConfig{
-			Text: "⚠️ Error: Not matched to any command",
+			Text:      "⚠️ Error: Not matched to any command",
 			ShowAlert: true,
 		})
 	}
@@ -63,9 +64,11 @@ func (h tgWebhookHandler) RegisterHttpHandlers(driver bots.WebhookDriver, host b
 	router.GET(pathPrefix+"/tg/set-webhook", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		h.SetWebhook(h.Context(r), w, r)
 	})
-	router.GET(pathPrefix + "/tg/test", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	router.GET(pathPrefix+"/tg/test", func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Debugf(h.Context(r), "Test request")
-		w.Write([]byte("Test response"))
+		if _, err := w.Write([]byte("Test response")); err != nil {
+			log.Errorf(r.Context(), "Failed to write test response: %v", err)
+		}
 	})
 }
 
@@ -118,9 +121,13 @@ func (h tgWebhookHandler) SetWebhook(c context.Context, w http.ResponseWriter, r
 	if response, err := bot.SetWebhook(webhookConfig); err != nil {
 		log.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		if _, err := w.Write([]byte(err.Error())); err != nil {
+			log.Errorf(c, "Failed to write error to response: %v", err)
+		}
 	} else {
-		w.Write([]byte(fmt.Sprintf("Webhook set\nErrorCode: %d\nDescription: %v\nContent: %v", response.ErrorCode, response.Description, string(response.Result))))
+		if _, err := w.Write([]byte(fmt.Sprintf("Webhook set\nErrorCode: %d\nDescription: %v\nContent: %v", response.ErrorCode, response.Description, string(response.Result)))); err != nil {
+			log.Errorf(c, "Failed to write error to response: %v", err)
+		}
 	}
 }
 
@@ -135,9 +142,15 @@ func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Requ
 	}
 	botContext = bots.NewBotContext(h.BotHost, botSettings)
 	var bodyBytes []byte
-	defer r.Body.Close()
+	defer func() {
+		if r.Body != nil {
+			if err := r.Body.Close(); err != nil {
+				log.Errorf(c, "Failed to close request body: %v", err)
+			}
+		}
+	}()
 	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
-		errors.Wrap(err, "Failed to read request body")
+		err = errors.Wrap(err, "Failed to read request body")
 		return
 	}
 
@@ -189,7 +202,7 @@ func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Requ
 	return
 }
 
-func (h tgWebhookHandler) unmarshalUpdate(c context.Context, content []byte) (update *tgbotapi.Update, err error) {
+func (h tgWebhookHandler) unmarshalUpdate(_ context.Context, content []byte) (update *tgbotapi.Update, err error) {
 	update = new(tgbotapi.Update)
 	if err = ffjson.UnmarshalFast(content, update); err != nil {
 		return

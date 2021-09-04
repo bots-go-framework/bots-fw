@@ -56,4 +56,3 @@ func (entity *ChatEntity) Save() (properties []datastore.Property, err error) {
 	}
 	return
 }
-

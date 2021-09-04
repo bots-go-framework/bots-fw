@@ -38,15 +38,17 @@ type Command struct {
 	CallbackAction CallbackAction
 }
 
+//goland:noinspection GoUnusedExportedFunction
 func NewInlineQueryCommand(code string, action CommandAction) Command {
 	return Command{
-		Code:           code,
+		Code:       code,
 		InputTypes: []WebhookInputType{WebhookInputInlineQuery},
-		Action: action,
+		Action:     action,
 	}
 }
 
 // NewCallbackCommand create a definition of a callback command
+//goland:noinspection GoUnusedExportedFunction
 func NewCallbackCommand(code string, action CallbackAction) Command {
 	return Command{
 		Code:           code,
