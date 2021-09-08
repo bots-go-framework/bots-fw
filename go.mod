@@ -15,7 +15,7 @@ require (
 	github.com/strongo/db v0.0.0-20180625225948-9cd86c7c1934
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
-	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
+	github.com/strongo/nds b0e0bc7676aa
 	google.golang.org/appengine v1.6.7
 )
 
