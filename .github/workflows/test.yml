@@ -1,4 +1,11 @@
-on: [ push, pull_request ]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 name: Lint, Vet, Test & Build
 jobs:
 
