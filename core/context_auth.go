@@ -3,6 +3,7 @@ package bots
 import (
 	"context"
 	"github.com/pkg/errors"
+	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/log"
 )
 
@@ -15,7 +16,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 		if chatEntity.IsAccessGranted() == value {
 			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 		} else {
-			if err = whc.RunInTransaction(c, func(c context.Context) (err error) {
+			if err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 				var chatID string
 				if chatID, err = whc.BotChatID(); err != nil {
 					return
@@ -42,7 +43,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	} else if botUser.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 	} else {
-		err = whc.RunInTransaction(c, func(c context.Context) error {
+		err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 			botUser.SetAccessGranted(value)
 			if botUser, err = whc.GetBotUserByID(c, botUserID); err != nil {
 				return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)

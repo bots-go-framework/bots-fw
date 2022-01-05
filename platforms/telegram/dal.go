@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"context"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/dal"
 )
 
 // TgChatInstanceDal is DAL for telegram chat instance entity
@@ -12,10 +12,10 @@ type TgChatInstanceDal interface {
 	SaveTelegramChatInstance(c context.Context, tgChatInstance ChatInstance) (err error)
 }
 
-type dal struct {
-	DB             db.Database
+type dal1 struct {
+	DB             dal.Database
 	TgChatInstance TgChatInstanceDal
 }
 
 // DAL is data access layer
-var DAL dal
+var DAL dal1

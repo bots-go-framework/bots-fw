@@ -4,8 +4,7 @@ import (
 	"context"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/strongo/dalgo/dal"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
 	"net/http"
@@ -35,8 +34,9 @@ func (h GaeBotHost) GetHTTPClient(c context.Context) *http.Client {
 }
 
 // DB returns database instance
-func (h GaeBotHost) DB() db.Database {
-	return gaedb.NewDatabase()
+func (h GaeBotHost) DB() dal.Database {
+	panic("not implemented")
+	//return gaedb.NewDatabase()
 }
 
 // GetBotCoreStores returns bot DAL

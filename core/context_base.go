@@ -2,6 +2,7 @@ package bots
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/dal"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 	"context"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
@@ -48,6 +48,8 @@ type WebhookContextBase struct {
 	gaContext gaContext
 }
 
+//var _ WebhookContext = (*WebhookContextBase)(nil)
+
 func (whcb *WebhookContextBase) BotContext() BotContext {
 	return whcb.botContext
 }
@@ -62,19 +64,26 @@ func (whcb *WebhookContextBase) LogRequest() {
 	whcb.input.LogRequest()
 }
 
-// RunInTransaction starts a transaction. This needed to coordinate application & framework changes.
-func (whcb *WebhookContextBase) RunInTransaction(c context.Context, f func(c context.Context) error, options db.RunOptions) error {
-	return whcb.botContext.BotHost.DB().RunInTransaction(c, f, options)
+// RunReadwriteTransaction starts a transaction. This needed to coordinate application & framework changes.
+func (whcb *WebhookContextBase) RunReadwriteTransaction(c context.Context, f dal.RWTxWorker, options ...dal.TransactionOption) error {
+	return whcb.botContext.BotHost.DB().RunReadwriteTransaction(c, f, options...)
+}
+
+// RunReadonlyTransaction starts a readonly transaction.
+func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
+	return whcb.botContext.BotHost.DB().RunReadonlyTransaction(c, f, options...)
 }
 
 // IsInTransaction detects if request is within a transaction
 func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
-	return whcb.botContext.BotHost.DB().IsInTransaction(c)
+	panic("not implemented")
+	//return whcb.botContext.BotHost.DB().IsInTransaction(c)
 }
 
 // NonTransactionalContext creates a non transaction context for operations that needs to be executed outside of transaction.
 func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) context.Context {
-	return whcb.botContext.BotHost.DB().NonTransactionalContext(tc)
+	panic("not implemented")
+	//return whcb.botContext.BotHost.DB().NonTransactionalContext(tc)
 }
 
 // Request returns reference to current HTTP request

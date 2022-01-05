@@ -154,6 +154,8 @@ github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9 h1:o4Swr
 github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9/go.mod h1:gQNcbud+790z7GRlKXVUZ4uCjgcuc62mvZ3JhXk3qXI=
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6 h1:1hxYQtKBJfN/657s2d045nFgscqOiBWvHA/hFAl32LI=
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6/go.mod h1:YKiHqy8QXFztw2cND8+WiK2gGw+ZopwsNGFyWXqUegs=
+github.com/strongo/dalgo v0.0.4 h1:vGJ+eTOPM5V/BzNRwVt3kQcsSnYJfT4ja2UqK5JQa64=
+github.com/strongo/dalgo v0.0.4/go.mod h1:xqYkL/q8CrnLpabK6o1rywuS8UpX1Ic+HK9JSJ7LDFI=
 github.com/strongo/db v0.0.0-20180625225948-9cd86c7c1934 h1:f/CW22Nh+Af6VsfRr3bq92aNfZ0qnjjwd21S54yhcfM=
 github.com/strongo/db v0.0.0-20180625225948-9cd86c7c1934/go.mod h1:Y6eJR5DkXpH7cKjYRukCvQZJOG8YQPncPlAEz0sYPtg=
 github.com/strongo/db v0.0.0-20210905132210-4b27cc9b52b3 h1:G/eOaO7AM5gHvAW2VbOMcPkC71MYlZAyIeUYv7/bMLM=
@@ -166,6 +168,8 @@ github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20 h1:rzmka7ykAIt2QWNIyGV
 github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20/go.mod h1:wNiymP8KTecS4Jd5FF1evQ2ReBUlKwp1afYWFTHrlpo=
 github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788 h1:fgsn/H+icKLdvYfVOOqCj6NhHHtmC47nVkALc7jaiqc=
 github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788/go.mod h1:oCSd/oinNcNvuwCT0zn2dMjdWzDqT8E0bBIXaBJ4DTw=
+github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d h1:I8qa7ggQ5RT+hO5gTTaBtS8ZEvbsBIik//AdM4dZL4g=
+github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d/go.mod h1:b5FiRTvklOIQI/iX+4qfwtK7Jrs+9KTZFn1dP9iX26o=
 github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b h1:g0ZObTZGq063TrS2Pp0hV/eYZyN6adk4lQbuThWzXrA=
 github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b/go.mod h1:FTi/rUItuJV+7C/ABoBn8/hu/nXFsXVlQ27WU54iYAY=
 github.com/technoweenie/multipartstreamer v1.0.1 h1:XRztA5MXiR1TIRHxH2uNxXxaIkKQDeX7m2XsSOlQEnM=
@@ -210,6 +214,7 @@ golang.org/x/lint v0.0.0-20200130185559-910be7a94367/go.mod h1:3xt1FjdF8hUf6vQPI
 golang.org/x/lint v0.0.0-20200302205851-738671d3881b/go.mod h1:3xt1FjdF8hUf6vQPIChWIBhFzV8gjjsPE/fR3IyQdNY=
 golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 h1:2M3HP5CCK1Si9FQhwnzYhXdG6DXeebvUHFpre8QvbyI=
 golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5/go.mod h1:3xt1FjdF8hUf6vQPIChWIBhFzV8gjjsPE/fR3IyQdNY=
+golang.org/x/lint v0.0.0-20210508222113-6edffad5e616/go.mod h1:3xt1FjdF8hUf6vQPIChWIBhFzV8gjjsPE/fR3IyQdNY=
 golang.org/x/mobile v0.0.0-20190312151609-d3739f865fa6/go.mod h1:z+o9i4GpDbdi3rU15maQ/Ox0txvL9dWGYEHz965HBQE=
 golang.org/x/mobile v0.0.0-20190719004257-d2bd2a29d028/go.mod h1:E/iHnbuqvinMTCcRqshq8CkpyQDoeVncDDYHnLhea+o=
 golang.org/x/mod v0.0.0-20190513183733-4bf6d317e70e/go.mod h1:mXi4GBBbnImb6dmsKGUJ2LatrhH/nqhxcFungHvyanc=

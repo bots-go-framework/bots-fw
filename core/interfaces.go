@@ -1,11 +1,11 @@
 package bots
 
 import (
+	"github.com/strongo/dalgo/dal"
 	"net/http"
 	"time"
 
 	"context"
-	"github.com/strongo/db"
 )
 
 // BotPlatform describes current bot platform
@@ -19,7 +19,7 @@ type BotHost interface {
 	Context(r *http.Request) context.Context
 	GetHTTPClient(c context.Context) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
-	DB() db.Database
+	DB() dal.Database
 }
 
 // botContext describes current bot app host & settings

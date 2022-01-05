@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
+	"github.com/strongo/dalgo/dal"
+	"github.com/strongo/db"
+
 	//"github.com/strongo/log"
 	"context"
 	"github.com/pkg/errors"
-	"github.com/strongo/db"
 	"github.com/strongo/log"
 	"net/http"
 	"strconv"
@@ -66,11 +68,11 @@ func (twhc *tgWebhookContext) CreateOrUpdateTgChatInstance() (err error) {
 		if DAL.DB == nil {
 			panic("telegram.DAL.DB is nil")
 		}
-		if err = DAL.DB.RunInTransaction(c, func(c context.Context) (err error) {
+		if err = DAL.DB.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
 			log.Debugf(c, "CreateOrUpdateTgChatInstance() => checking tg chat instance within tx")
 			changed := false
 			if chatInstance, err = DAL.TgChatInstance.GetTelegramChatInstanceByID(c, chatInstanceID); err != nil {
-				if !db.IsNotFound(err) {
+				if !dal.IsNotFound(err) {
 					return
 				}
 				log.Debugf(c, "CreateOrUpdateTgChatInstance() => new tg chat instance")
@@ -93,7 +95,7 @@ func (twhc *tgWebhookContext) CreateOrUpdateTgChatInstance() (err error) {
 				}
 			}
 			return
-		}, db.CrossGroupTransaction); err != nil {
+		}, dal.TxWithCrossGroup()); err != nil {
 			err = errors.WithMessage(err, "failed to create or update Telegram chat instance")
 			return
 		}

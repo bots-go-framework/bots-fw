@@ -1,11 +1,11 @@
 package bots
 
 import (
+	"github.com/strongo/dalgo/dal"
 	"net/http"
 
 	"context"
 	"github.com/strongo/app"
-	"github.com/strongo/db"
 	"github.com/strongo/gamp"
 )
 
@@ -28,10 +28,9 @@ type GaContext interface {
 }
 
 // WebhookContext provides context for current request from user to bot
-type WebhookContext interface {
-	// TODO: Make interface smaller?
+type WebhookContext interface { // TODO: Make interface much smaller?
 	GA() GaContext
-	db.TransactionCoordinator
+	dal.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider
 	BotPlatform() BotPlatform
@@ -39,7 +38,11 @@ type WebhookContext interface {
 	Request() *http.Request
 
 	//Init(w http.ResponseWriter, r *http.Request) error
+
+	// Context return context
 	Context() context.Context
+
+	// SetContext sets context
 	SetContext(c context.Context)
 
 	ExecutionContext() strongo.ExecutionContext
