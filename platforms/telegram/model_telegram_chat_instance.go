@@ -1,6 +1,8 @@
 package telegram
 
-import "github.com/strongo/db"
+import (
+	"github.com/strongo/db"
+)
 
 // ChatInstanceKind is kind name of TgChatInstance entity
 const ChatInstanceKind = "TgChatInstance"
