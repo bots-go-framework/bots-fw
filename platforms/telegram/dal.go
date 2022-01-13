@@ -7,7 +7,7 @@ import (
 
 // TgChatInstanceDal is DAL for telegram chat instance entity
 type TgChatInstanceDal interface {
-	GetTelegramChatInstanceByID(c context.Context, id string) (tgChatInstance ChatInstance, err error)
+	GetTelegramChatInstanceByID(c context.Context, tx dal.ReadTransaction, id string) (tgChatInstance ChatInstance, err error)
 	NewTelegramChatInstance(chatInstanceID string, chatID int64, preferredLanguage string) (tgChatInstance ChatInstance)
 	SaveTelegramChatInstance(c context.Context, tgChatInstance ChatInstance) (err error)
 }

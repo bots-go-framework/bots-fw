@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/db"
 )
 
@@ -13,18 +14,20 @@ type ChatInstanceEntityBase struct {
 	PreferredLanguage string `datastore:",noindex"`
 }
 
+func NewTgChatInstanceKey(id string) *dal.Key {
+	return dal.NewKey(ChatInstanceKind, dal.WithStringID(id))
+}
+
 // ChatInstance is base struct
 type ChatInstance struct {
 	db.StringID
-	ChatInstanceEntity
+	record dal.Record
+	entity ChatInstanceEntity
 }
 
-var _ db.EntityHolder = (*ChatInstance)(nil)
+//var _ db.EntityHolder = (*ChatInstance)(nil)
 
-// Kind return ChatInstanceKind
-func (ChatInstance) Kind() string {
-	return ChatInstanceKind
-}
+//var _ dal.Record = (*ChatInstance)(nil)
 
 // NewEntity creates new entity
 func (ChatInstance) NewEntity() interface{} {
@@ -33,19 +36,20 @@ func (ChatInstance) NewEntity() interface{} {
 
 // Entity returns entity for saving
 func (record *ChatInstance) Entity() interface{} {
-	return record.ChatInstanceEntity
+	return record.entity
 }
 
-// NewChatInstanceEntity is pointer to func() ChatInstanceEntity
+//NewChatInstanceEntity is pointer to func() ChatInstanceEntity
 var NewChatInstanceEntity func() ChatInstanceEntity
 
 // SetEntity sets entity to record
 func (record *ChatInstance) SetEntity(entity interface{}) {
-	if entity == nil {
-		record.ChatInstanceEntity = nil
-	} else {
-		record.ChatInstanceEntity = entity.(ChatInstanceEntity)
-	}
+	record.entity = entity.(ChatInstanceEntity)
+	//if entity == nil {
+	//	record.Entity = nil
+	//} else {
+	//	record.Entity = entity.(ChatInstanceEntity)
+	//}
 }
 
 //func (record *ChatInstance) SetStrID(id string) {
