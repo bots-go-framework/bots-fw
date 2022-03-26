@@ -20,7 +20,7 @@ jobs:
           go-version: '^1.17.0' # The Go version to download (if necessary) and use.
 
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           # In order:
           # * Module download cache
