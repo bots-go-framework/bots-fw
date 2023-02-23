@@ -18,6 +18,7 @@ require (
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
 	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
 	google.golang.org/appengine v1.6.7
+	google.golang.org/appengine/v2 v2.0.2
 )
 
 require (
