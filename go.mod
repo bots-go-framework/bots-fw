@@ -12,7 +12,7 @@ require (
 	github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75
 	github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9
 	github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6
-	github.com/strongo/dalgo v0.0.6
+	github.com/strongo/dalgo v0.0.13
 	github.com/strongo/db v0.0.0-20210908182344-952d1cfe3eb0
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
