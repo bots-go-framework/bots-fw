@@ -12,6 +12,7 @@ require (
 	github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75
 	github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9
 	github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6
+	github.com/strongo/dalgo v0.0.6
 	github.com/strongo/db v0.0.0-20210908182344-952d1cfe3eb0
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
@@ -27,20 +28,17 @@ require (
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/matryer/is v1.4.0 // indirect
-	github.com/strongo/dalgo v0.0.6 // indirect
 	github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d // indirect
 	github.com/strongo/slices v0.0.0-20180713073818-553769fcb80b // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.4.1 // indirect
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
 	golang.org/x/oauth2 v0.0.0-20210218202405-ba52d332ba99 // indirect
-	golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073 // indirect
-	golang.org/x/text v0.3.4 // indirect
-	golang.org/x/tools v0.1.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/tools v0.1.12 // indirect
 	google.golang.org/api v0.40.0 // indirect
 	google.golang.org/genproto v0.0.0-20210226172003-ab064af71705 // indirect
 	google.golang.org/grpc v1.35.0 // indirect
