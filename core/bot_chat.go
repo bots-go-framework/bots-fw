@@ -18,8 +18,11 @@ type BotChat interface {
 
 	AddClientLanguage(languageCode string) (changed bool)
 
-	//GetBotUserIntID() int
-	//GetBotUserStringID() string
+	/*
+		GetBotUserIntID() int
+		GetBotUserStringID() string
+	*/
+
 	SetBotUserID(id interface{})
 	SetIsGroupChat(bool)
 

@@ -10,7 +10,6 @@ import (
 // BotAppUser holds information about bot app user
 type BotAppUser interface {
 	strongo.AppUser
-	//GetAppUserIntID() int64
 	SetBotUserID(platform, botID, botUserID string)
 	GetFullName() string
 }
