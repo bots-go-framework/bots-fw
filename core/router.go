@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/DebtsTracker/translations/emoji"
 	"github.com/pkg/errors"
 	"github.com/strongo/app"
+	"github.com/strongo/emoji/go/emoji"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
 )
@@ -562,7 +562,7 @@ func (router *WebhooksRouter) processCommandResponseError(whc WebhookContext, ma
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +
 				"\n\n" +
-				emoji.ERROR_ICON +
+				emoji.AngerSymbol +
 				fmt.Sprintf(" Server error - failed to process message: %v", err),
 		)
 

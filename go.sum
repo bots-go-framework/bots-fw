@@ -1,7 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/DebtsTracker/translations v0.0.0-20180513202258-09f6e865fc3f h1:5HkOXfgbtP1UxJtW3q0bRrL5iKk57OSV0og7/eZKKB4=
-github.com/DebtsTracker/translations v0.0.0-20180513202258-09f6e865fc3f/go.mod h1:ikuBWWh9oXQBL7WwMgHzrY3cemq51QWHJv74mBIYXT8=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -53,6 +51,8 @@ github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6 h1:1hxYQtKB
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6/go.mod h1:YKiHqy8QXFztw2cND8+WiK2gGw+ZopwsNGFyWXqUegs=
 github.com/strongo/dalgo v0.0.17 h1:GgvYUr7sbmfTFTNH3+nAY5h2J+LyJurObfpbiHry+dA=
 github.com/strongo/dalgo v0.0.17/go.mod h1:rciO9N0uM5o2OG9DtWnT/cafkP0CxdMEbq04BmtEWBQ=
+github.com/strongo/emoji v0.0.0-20180628223242-ca029fbd72ef h1:bMKmjTbRTgX1vXYQfatBM33Gnyr7NrMj/Byb1SR8bAI=
+github.com/strongo/emoji v0.0.0-20180628223242-ca029fbd72ef/go.mod h1:L7I5ikZykA4gVaokzZVDNKi3cOWoHxr3IUeY5P+tDbU=
 github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9 h1:E3vpL4KtVBkzjBOLy8TRURt2ouZJ6gpkP6x1To9T0zw=
 github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9/go.mod h1:/GeGwR8X/3HRIa2lxBQUu74JWPogwpeBbPGJLcp/iA4=
 github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20 h1:rzmka7ykAIt2QWNIyGVbqob3XtFSFwrw/qOyrHb29Qc=
