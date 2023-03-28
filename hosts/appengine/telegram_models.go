@@ -2,7 +2,6 @@ package gaehost
 
 import (
 	"github.com/strongo/bots-framework/platforms/telegram"
-	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -23,11 +22,11 @@ func (entity *TelegramChatInstanceEntityGae) Save() (properties []datastore.Prop
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return properties, err
 	}
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"PreferredLanguage": gaedb.IsEmptyString,
-	}); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"PreferredLanguage": gaedb.IsEmptyString,
+	//}); err != nil {
+	//	return
+	//}
 	return
 }
 

@@ -4,28 +4,28 @@ import (
 	"fmt"
 	"github.com/strongo/app/user"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db"
-	"github.com/strongo/db/gaedb"
+	"github.com/strongo/dalgo/record"
 	"google.golang.org/appengine/datastore"
 	"strconv"
 	"time"
 )
 
 const (
-	// ChatKind is kind name of Telegram chat entity
+	// ChatKind is kind name of Telegram chat Data
 	ChatKind = "TgChat"
 )
 
-// TgChatEntity is Telegram chat entity interface
+// TgChatEntity is Telegram chat Data interface
 type TgChatEntity interface {
 	SetTgChatInstanceID(v string)
 	GetTgChatInstanceID() string
 	GetPreferredLanguage() string
 }
 
-// TgChatBase holds base properties of Telegram chat entity
+// TgChatBase holds base properties of Telegram chat Data
 type TgChatBase struct {
-	db.StringID
+	record.WithID[string]
+	//db.StringID
 }
 
 // SetID sets ID
@@ -33,7 +33,7 @@ func (tgChat *TgChatBase) SetID(tgBotID string, tgChatID int64) {
 	tgChat.ID = tgBotID + ":" + strconv.FormatInt(tgChatID, 10) // TODO: Should we migrated to format "id@bot"?
 }
 
-// TgChatEntityBase holds base properties of Telegram chat entity
+// TgChatEntityBase holds base properties of Telegram chat Data
 type TgChatEntityBase struct {
 	bots.BotChatEntity
 	TelegramUserID        int64   `datastore:",noindex,omitempty"`
@@ -59,7 +59,7 @@ func (entity *TgChatEntityBase) GetPreferredLanguage() string {
 
 var _ bots.BotChat = (*TgChatEntityBase)(nil)
 
-// NewTelegramChatEntity create new telegram chat entity
+// NewTelegramChatEntity create new telegram chat Data
 func NewTelegramChatEntity() *TgChatEntityBase {
 	return &TgChatEntityBase{
 		BotChatEntity: bots.BotChatEntity{
@@ -94,12 +94,12 @@ func (entity *TgChatEntityBase) SetBotUserID(id interface{}) {
 	}
 }
 
-// Load loads entity from datastore
+// Load loads Data from datastore
 func (entity *TgChatEntityBase) Load(ps []datastore.Property) error {
 	return datastore.LoadStruct(entity, ps)
 }
 
-// Save saves entity to datastore
+// Save saves Data to datastore
 func (entity *TgChatEntityBase) Save() (properties []datastore.Property, err error) {
 	if properties, err = datastore.SaveStruct(entity); err != nil {
 		return
@@ -130,20 +130,20 @@ func (entity *TgChatEntityBase) CleanProperties(properties []datastore.Property)
 	}
 
 	var err error
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"AppUserIntID":          gaedb.IsZeroInt,
-		"AccessGranted":         gaedb.IsFalse,
-		"AwaitingReplyTo":       gaedb.IsEmptyString,
-		"DtForbidden":           gaedb.IsZeroTime,
-		"DtForbiddenLast":       gaedb.IsZeroTime,
-		"GaClientID":            gaedb.IsEmptyByteArray,
-		"TelegramUserID":        gaedb.IsZeroInt,
-		"LastProcessedUpdateID": gaedb.IsZeroInt,
-		"PreferredLanguage":     gaedb.IsEmptyString,
-		"Title":                 gaedb.IsEmptyString, // TODO: Is it obsolete?
-		"Type":                  gaedb.IsEmptyString, // TODO: Is it obsolete?
-	}); err != nil {
-		return properties, err
-	}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"AppUserIntID":          gaedb.IsZeroInt,
+	//	"AccessGranted":         gaedb.IsFalse,
+	//	"AwaitingReplyTo":       gaedb.IsEmptyString,
+	//	"DtForbidden":           gaedb.IsZeroTime,
+	//	"DtForbiddenLast":       gaedb.IsZeroTime,
+	//	"GaClientID":            gaedb.IsEmptyByteArray,
+	//	"TelegramUserID":        gaedb.IsZeroInt,
+	//	"LastProcessedUpdateID": gaedb.IsZeroInt,
+	//	"PreferredLanguage":     gaedb.IsEmptyString,
+	//	"Title":                 gaedb.IsEmptyString, // TODO: Is it obsolete?
+	//	"Type":                  gaedb.IsEmptyString, // TODO: Is it obsolete?
+	//}); err != nil {
+	//	return properties, err
+	//}
 	return properties, err
 }

@@ -2,10 +2,10 @@ package telegram
 
 import (
 	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/record"
 )
 
-// ChatInstanceKind is kind name of TgChatInstance entity
+// ChatInstanceKind is kind name of TgChatInstance Data
 const ChatInstanceKind = "TgChatInstance"
 
 // ChatInstanceEntityBase is base struct
@@ -20,35 +20,35 @@ func NewTgChatInstanceKey(id string) *dal.Key {
 
 // ChatInstance is base struct
 type ChatInstance struct {
-	db.StringID
-	record dal.Record
-	entity ChatInstanceEntity
+	record.WithID[string]
+	dal.Record
+	Data ChatInstanceEntity
 }
 
 //var _ db.EntityHolder = (*ChatInstance)(nil)
 
 //var _ dal.Record = (*ChatInstance)(nil)
 
-// NewEntity creates new entity
-func (ChatInstance) NewEntity() interface{} {
-	panic("not supported")
-}
+//// NewEntity creates new Data
+//func (ChatInstance) NewEntity() interface{} {
+//	panic("not supported")
+//}
+//
+//// Entity returns Data for saving
+//func (record *ChatInstance) Entity() interface{} {
+//	return record.Data
+//}
 
-// Entity returns entity for saving
-func (record *ChatInstance) Entity() interface{} {
-	return record.entity
-}
-
-//NewChatInstanceEntity is pointer to func() ChatInstanceEntity
+// NewChatInstanceEntity is pointer to func() ChatInstanceEntity
 var NewChatInstanceEntity func() ChatInstanceEntity
 
-// SetEntity sets entity to record
+// SetEntity sets Data to record
 func (record *ChatInstance) SetEntity(entity interface{}) {
-	record.entity = entity.(ChatInstanceEntity)
-	//if entity == nil {
+	record.Data = entity.(ChatInstanceEntity)
+	//if Data == nil {
 	//	record.Entity = nil
 	//} else {
-	//	record.Entity = entity.(ChatInstanceEntity)
+	//	record.Entity = Data.(ChatInstanceEntity)
 	//}
 }
 
@@ -56,7 +56,7 @@ func (record *ChatInstance) SetEntity(entity interface{}) {
 //	record.ID = id
 //}
 
-// ChatInstanceEntity describes chat instance entity interface
+// ChatInstanceEntity describes chat instance Data interface
 type ChatInstanceEntity interface {
 	GetTgChatID() int64
 	GetPreferredLanguage() string

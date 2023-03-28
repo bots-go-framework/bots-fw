@@ -3,16 +3,15 @@ package telegram
 import (
 	"github.com/strongo/app/user"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/db/gaedb"
 	"google.golang.org/appengine/datastore"
 )
 
 const (
-	// TgUserKind is kind name for Telegram user entity
+	// TgUserKind is kind name for Telegram user Data
 	TgUserKind = "TgUser"
 )
 
-// TgUserEntity is Telegram user DB entity (without ID)
+// TgUserEntity is Telegram user DB Data (without ID)
 type TgUserEntity struct {
 	bots.BotUserEntity
 	//TgChatID int64
@@ -74,14 +73,14 @@ func (entity *TgUserEntity) Save() (properties []datastore.Property, err error) 
 		return properties, err
 	}
 
-	if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
-		"AccessGranted": gaedb.IsFalse,
-		"FirstName":     gaedb.IsEmptyString,
-		"LastName":      gaedb.IsEmptyString,
-		"UserName":      gaedb.IsEmptyString,
-	}); err != nil {
-		return
-	}
+	//if properties, err = gaedb.CleanProperties(properties, map[string]gaedb.IsOkToRemove{
+	//	"AccessGranted": gaedb.IsFalse,
+	//	"FirstName":     gaedb.IsEmptyString,
+	//	"LastName":      gaedb.IsEmptyString,
+	//	"UserName":      gaedb.IsEmptyString,
+	//}); err != nil {
+	//	return
+	//}
 
 	return
 }

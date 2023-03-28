@@ -3,7 +3,7 @@ package telegram
 import (
 	"context"
 	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/db"
+	"github.com/strongo/dalgo/record"
 )
 
 type tgChatInstanceDalgo struct {
@@ -21,7 +21,7 @@ func (tgChatInstanceDal tgChatInstanceDalgo) GetTelegramChatInstanceByID(c conte
 	} else {
 		session = tx
 	}
-	if err = session.Get(c, tgChatInstance.record); dal.IsNotFound(err) {
+	if err = session.Get(c, tgChatInstance.Record); dal.IsNotFound(err) {
 		tgChatInstance.SetEntity(nil)
 		return
 	}
@@ -30,20 +30,22 @@ func (tgChatInstanceDal tgChatInstanceDalgo) GetTelegramChatInstanceByID(c conte
 
 func (tgChatInstanceDal tgChatInstanceDalgo) SaveTelegramChatInstance(c context.Context, tgChatInstance ChatInstance) (err error) {
 	err = tgChatInstanceDal.db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		return tx.Set(ctx, tgChatInstance.record)
+		return tx.Set(ctx, tgChatInstance.Record)
 	})
 	return
 }
 
 func (tgChatInstanceDalgo) NewTelegramChatInstance(chatInstanceID string, chatID int64, preferredLanguage string) (tgChatInstance ChatInstance) {
-	tgChatInstance = ChatInstance{
-		StringID: db.StringID{ID: chatInstanceID},
-	}
-	tgChatInstance.SetEntity(&ChatInstanceEntityBase{
+	key := dal.NewKeyWithID(ChatInstanceKind, chatInstanceID)
+	var chatInstance ChatInstanceEntity = &ChatInstanceEntityBase{
 		TgChatID:          chatID,
 		PreferredLanguage: preferredLanguage,
-	})
-	return tgChatInstance
+	}
+	return ChatInstance{
+		WithID: record.WithID[string]{ID: chatInstanceID},
+		Record: dal.NewRecordWithData(key, chatInstance),
+		Data:   chatInstance,
+	}
 }
 
 func init() {

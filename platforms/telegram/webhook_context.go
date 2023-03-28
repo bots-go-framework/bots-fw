@@ -6,8 +6,6 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/dalgo/dal"
-	"github.com/strongo/db"
-
 	//"github.com/strongo/log"
 	"context"
 	"github.com/pkg/errors"
@@ -80,10 +78,10 @@ func (twhc *tgWebhookContext) CreateOrUpdateTgChatInstance() (err error) {
 				changed = true
 			} else { // Update if needed
 				log.Debugf(c, "CreateOrUpdateTgChatInstance() => existing tg chat instance")
-				if tgChatInstanceId := chatInstance.entity.GetTgChatID(); tgChatInstanceId != chatID {
+				if tgChatInstanceId := chatInstance.Data.GetTgChatID(); tgChatInstanceId != chatID {
 					err = fmt.Errorf("chatInstance.GetTgChatID():%d != chatID:%d", tgChatInstanceId, chatID)
-				} else if prefLang := chatInstance.entity.GetPreferredLanguage(); prefLang != preferredLanguage {
-					chatInstance.entity.SetPreferredLanguage(preferredLanguage)
+				} else if prefLang := chatInstance.Data.GetPreferredLanguage(); prefLang != preferredLanguage {
+					chatInstance.Data.SetPreferredLanguage(preferredLanguage)
 					changed = true
 				}
 			}
@@ -152,12 +150,16 @@ func newTelegramWebhookContext(
 			c := botContext.BotHost.Context(r)
 			var isGroupChat bool
 			err := twhc.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, tx, callbackQuery.ChatInstance)
-				isGroupChat = chatInstance.entity.GetTgChatID() < 0
-				return err
+
+				if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, tx, callbackQuery.ChatInstance); err != nil {
+					return err
+				} else if chatInstance.Data != nil {
+					isGroupChat = chatInstance.Data.GetTgChatID() < 0
+				}
+				return nil
 			})
 			if err != nil {
-				if !db.IsNotFound(err) {
+				if !dal.IsNotFound(err) {
 					log.Errorf(c, "failed to get tg chat instance: %v", err)
 				}
 			}
@@ -250,8 +252,8 @@ func (twhc *tgWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
 	//inputMessage := tc.InputMessage()
 	//if inputMessage != nil {
 	//ctx := tc.Context()
-	//entity := inputMessage.Chat()
-	//chatID := entity.GetID()
+	//Data := inputMessage.Chat()
+	//chatID := Data.GetID()
 	//log.Infof(ctx, "NewTgMessage(): tc.update.Message.Chat.ID: %v", chatID)
 	botChatID, err := twhc.BotChatID()
 	if err != nil {
@@ -285,12 +287,12 @@ func (twhc *tgWebhookContext) getLocalAndChatIDByChatInstance(c context.Context)
 				log.Errorf(c, "getLocalAndChatIDByChatInstance() => should not be here")
 			} else {
 				if chatInstance, err := DAL.TgChatInstance.GetTelegramChatInstanceByID(c, nil, cbq.ChatInstance); err != nil {
-					if !db.IsNotFound(err) {
+					if !dal.IsNotFound(err) {
 						return "", "", err
 					}
-				} else if tgChatID := chatInstance.entity.GetTgChatID(); tgChatID != 0 {
+				} else if tgChatID := chatInstance.Data.GetTgChatID(); tgChatID != 0 {
 					twhc.chatID = strconv.FormatInt(tgChatID, 10)
-					twhc.locale = chatInstance.entity.GetPreferredLanguage()
+					twhc.locale = chatInstance.Data.GetPreferredLanguage()
 					twhc.isInGroup = tgChatID < 0
 				}
 			}
