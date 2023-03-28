@@ -14,7 +14,8 @@ func TestGaeBotHost_GetHTTPClient_nilRequest(t *testing.T) {
 		}
 	}()
 
-	GaeBotHost{}.GetHTTPClient(context.Background())
+	var ctx context.Context = nil
+	GaeBotHost{}.GetHTTPClient(ctx)
 }
 
 func TestGaeBotHost_GetBotCoreStores_nil(t *testing.T) {
