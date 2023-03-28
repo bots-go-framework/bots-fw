@@ -15,7 +15,7 @@ require (
 	github.com/strongo/dalgo v0.0.17
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
-	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
+	github.com/strongo/nds 8f6af34f5e72
 	google.golang.org/appengine v1.6.7
 )
 
