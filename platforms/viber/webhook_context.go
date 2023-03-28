@@ -12,8 +12,8 @@ import (
 type viberWebhookContext struct {
 	*bots.WebhookContextBase
 	//update         viberbotapi.Update // TODO: Consider removing?
-	responseWriter http.ResponseWriter
-	responder      bots.WebhookResponder
+	//responseWriter http.ResponseWriter
+	responder bots.WebhookResponder
 }
 
 var _ bots.WebhookContext = (*viberWebhookContext)(nil)
@@ -48,19 +48,19 @@ func (whc *viberWebhookContext) Responder() bots.WebhookResponder {
 	return whc.responder
 }
 
-type viberBotAPIUser struct {
-	//user viberbotapi.User
-}
-
-func (tc viberBotAPIUser) FirstName() string {
-	return ""
-	//return tc.user.FirstName
-}
-
-func (tc viberBotAPIUser) LastName() string {
-	return ""
-	//return tc.user.LastName
-}
+//type viberBotAPIUser struct {
+//	//user viberbotapi.User
+//}
+//
+//func (tc viberBotAPIUser) FirstName() string {
+//	return ""
+//	//return tc.user.FirstName
+//}
+//
+//func (tc viberBotAPIUser) LastName() string {
+//	return ""
+//	//return tc.user.LastName
+//}
 
 //func (tc viberBotAPIUser) IdAsString() string {
 //	return ""

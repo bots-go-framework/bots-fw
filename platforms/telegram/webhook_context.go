@@ -18,8 +18,8 @@ type tgWebhookContext struct {
 	*bots.WebhookContextBase
 	tgInput TgWebhookInput
 	//update         tgbotapi.Update // TODO: Consider removing?
-	responseWriter http.ResponseWriter
-	responder      bots.WebhookResponder
+	//responseWriter http.ResponseWriter
+	responder bots.WebhookResponder
 	//whi          tgWebhookInput
 
 	// This 3 props are cache for getLocalAndChatIDByChatInstance()
@@ -137,7 +137,7 @@ func newTelegramWebhookContext(
 	gaMeasurement bots.GaQueuer,
 ) *tgWebhookContext {
 	twhc := &tgWebhookContext{
-		tgInput: input.(TgWebhookInput),
+		tgInput: input,
 	}
 	chat := twhc.tgInput.TgUpdate().Chat()
 
@@ -184,25 +184,25 @@ func newTelegramWebhookContext(
 	return twhc
 }
 
-func (twhc tgWebhookContext) Close(c context.Context) error {
+func (twhc *tgWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (twhc tgWebhookContext) Responder() bots.WebhookResponder {
+func (twhc *tgWebhookContext) Responder() bots.WebhookResponder {
 	return twhc.responder
 }
 
-type tgBotAPIUser struct {
-	user tgbotapi.User
-}
-
-func (tc tgBotAPIUser) FirstName() string {
-	return tc.user.FirstName
-}
-
-func (tc tgBotAPIUser) LastName() string {
-	return tc.user.LastName
-}
+//type tgBotAPIUser struct {
+//	user tgbotapi.User
+//}
+//
+//func (tc tgBotAPIUser) FirstName() string {
+//	return tc.user.FirstName
+//}
+//
+//func (tc tgBotAPIUser) LastName() string {
+//	return tc.user.LastName
+//}
 
 //func (tc tgBotAPIUser) IdAsString() string {
 //	return ""
@@ -240,13 +240,13 @@ func (twhc *tgWebhookContext) NewChatEntity() bots.BotChat {
 	return new(TgChatEntityBase)
 }
 
-func (twhc *tgWebhookContext) getTelegramSenderID() int {
-	senderID := twhc.Input().GetSender().GetID()
-	if tgUserID, ok := senderID.(int); ok {
-		return tgUserID
-	}
-	panic("int expected")
-}
+//func (twhc *tgWebhookContext) getTelegramSenderID() int {
+//	senderID := twhc.Input().GetSender().GetID()
+//	if tgUserID, ok := senderID.(int); ok {
+//		return tgUserID
+//	}
+//	panic("int expected")
+//}
 
 func (twhc *tgWebhookContext) NewTgMessage(text string) tgbotapi.MessageConfig {
 	//inputMessage := tc.InputMessage()
@@ -306,10 +306,10 @@ func (twhc *tgWebhookContext) ChatEntity() bots.BotChat {
 		log.Errorf(twhc.Context(), errors.WithMessage(err, "whc.BotChatID()").Error())
 		return nil
 	}
-	tgUpdate := twhc.tgInput.TgUpdate()
-	if tgUpdate.CallbackQuery != nil {
-
-	}
+	//tgUpdate := twhc.tgInput.TgUpdate()
+	//if tgUpdate.CallbackQuery != nil {
+	//
+	//}
 
 	return twhc.WebhookContextBase.ChatEntity()
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"google.golang.org/appengine"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -65,21 +65,28 @@ func (handler webhookHandler) Whitelist(w http.ResponseWriter, r *http.Request, 
 		requestBody, err := ffjson.MarshalFast(message)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			if _, err2 := w.Write([]byte(err.Error())); err2 != nil {
+				log.Errorf(c, "Failed to write error to response: %v", err2)
+			}
 			return
 		}
 		log.Debugf(appengine.NewContext(r), "Posting to FB: %v", string(requestBody))
 		res, err := httpClient.Post(fmt.Sprintf("https://graph.facebook.com/v2.6/me/thread_settings?access_token=%v", botSettings.Token), "application/json", bytes.NewReader(requestBody))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf("Error: %v", err)))
+			if _, err2 := w.Write([]byte(err.Error())); err2 != nil {
+				log.Errorf(c, "Failed to write error to response: %v", err2)
+			}
+			return
 		}
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
-			w.Write([]byte(fmt.Sprintf("Error reading response body: %v", err)))
-		} else {
-			w.Write(body)
+			body = []byte(fmt.Sprintf("Error reading response body: %v", err))
 		}
+		if _, err = w.Write(body); err != nil {
+			log.Errorf(c, "Failed to write response: %v", err)
+		}
+
 	} else {
 		w.WriteHeader(http.StatusForbidden)
 	}
@@ -97,13 +104,16 @@ func (handler webhookHandler) Subscribe(w http.ResponseWriter, r *http.Request, 
 		res, err := httpClient.Post(fmt.Sprintf("https://graph.facebook.com/v2.6/me/subscribed_apps?access_token=%v", botSettings.Token), "", strings.NewReader(""))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Sprintf("Error: %v", err)))
+			if _, err = w.Write([]byte(fmt.Sprintf("Error: %v", err))); err != nil {
+				log.Errorf(c, "Failed to write error to response: %v", err)
+			}
 		}
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
-			w.Write([]byte(fmt.Sprintf("Error reading response body: %v", err)))
-		} else {
-			w.Write(body)
+			body = []byte(fmt.Sprintf("Error reading response body: %v", err))
+		}
+		if _, err = w.Write(body); err != nil {
+			log.Errorf(c, "Failed to write response: %v", err)
 		}
 	} else {
 		w.WriteHeader(http.StatusForbidden)
@@ -129,7 +139,9 @@ func (handler webhookHandler) HandleWebhookRequest(w http.ResponseWriter, r *htt
 				responseText = "Wrong verify_token"
 				log.Debugf(c, responseText+fmt.Sprintf(". Got: '%v', expected[bot=%v]: '%v'.", verifyToken, botCode, botSettings.VerifyToken))
 			}
-			w.Write([]byte(responseText))
+			if _, err := w.Write([]byte(responseText)); err != nil {
+				log.Errorf(c, "Failed to write response: %v", err)
+			}
 		} else {
 			log.Debugf(c, "Unknown bot '%v'", botCode)
 			w.WriteHeader(http.StatusForbidden)
@@ -148,8 +160,8 @@ func (handler webhookHandler) GetBotContextAndInputs(c context.Context, r *http.
 		bodyBytes       []byte
 	)
 	defer r.Body.Close()
-	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
-		errors.Wrap(err, "Failed to read request body")
+	if bodyBytes, err = io.ReadAll(r.Body); err != nil {
+		err = errors.Wrap(err, "Failed to read request body")
 		return
 	}
 	log.Infof(c, "Request.Body: %v", string(bodyBytes))

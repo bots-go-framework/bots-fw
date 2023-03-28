@@ -10,8 +10,8 @@ import (
 type fbmWebhookContext struct {
 	*bots.WebhookContextBase
 	//update         fbm_api.Update // TODO: Consider removing?
-	responseWriter http.ResponseWriter
-	responder      bots.WebhookResponder
+	//responseWriter http.ResponseWriter
+	responder bots.WebhookResponder
 }
 
 var _ bots.WebhookContext = (*fbmWebhookContext)(nil)
@@ -56,17 +56,17 @@ func (whc fbmWebhookContext) Responder() bots.WebhookResponder {
 	return whc.responder
 }
 
-type fbmBotAPIUser struct {
-	user fbmbotapi.Sender
-}
+//type fbmBotAPIUser struct {
+//	user fbmbotapi.Sender
+//}
 
-func (tc fbmBotAPIUser) FirstName() string {
-	return tc.user.ID //tc.user.FirstName
-}
-
-func (tc fbmBotAPIUser) LastName() string {
-	return tc.user.ID
-}
+//func (tc fbmBotAPIUser) FirstName() string {
+//	return tc.user.ID //tc.user.FirstName
+//}
+//
+//func (tc fbmBotAPIUser) LastName() string {
+//	return tc.user.ID
+//}
 
 //func (tc fbmBotAPIUser) IdAsString() string {
 //	return ""
@@ -127,13 +127,13 @@ func (whc *fbmWebhookContext) NewChatEntity() bots.BotChat {
 	return new(Chat)
 }
 
-func (whc *fbmWebhookContext) getFbmSenderID() string {
-	senderID := whc.GetSender().GetID()
-	if fbmUserID, ok := senderID.(string); ok {
-		return fbmUserID
-	}
-	panic("string expected")
-}
+//func (whc *fbmWebhookContext) getFbmSenderID() string {
+//	senderID := whc.GetSender().GetID()
+//	if fbmUserID, ok := senderID.(string); ok {
+//		return fbmUserID
+//	}
+//	panic("string expected")
+//}
 
 func (whc *fbmWebhookContext) NewFbmMessage(text string) fbmbotapi.SendMessage {
 	////inputMessage := whc.InputMessage()

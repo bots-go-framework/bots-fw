@@ -8,7 +8,7 @@ import (
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"io/ioutil"
+	"io"
 	"net/http"
 	//"github.com/kylelemons/go-gypsy/yaml"
 	//"bytes"
@@ -20,6 +20,7 @@ import (
 )
 
 // NewTelegramWebhookHandler creates new Telegram webhooks handler
+//
 //goland:noinspection GoUnusedExportedFunction
 func NewTelegramWebhookHandler(botsBy bots.SettingsProvider, translatorProvider bots.TranslatorProvider) bots.WebhookHandler {
 	if translatorProvider == nil {
@@ -149,7 +150,7 @@ func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Requ
 			}
 		}
 	}()
-	if bodyBytes, err = ioutil.ReadAll(r.Body); err != nil {
+	if bodyBytes, err = io.ReadAll(r.Body); err != nil {
 		err = errors.Wrap(err, "Failed to read request body")
 		return
 	}

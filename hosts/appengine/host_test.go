@@ -1,6 +1,7 @@
 package gaehost
 
 import (
+	"context"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func TestGaeBotHost_GetHTTPClient_nilRequest(t *testing.T) {
 		}
 	}()
 
-	GaeBotHost{}.GetHTTPClient(nil)
+	GaeBotHost{}.GetHTTPClient(context.Background())
 }
 
 func TestGaeBotHost_GetBotCoreStores_nil(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -78,8 +78,8 @@ func (h viberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		return
 	}
 
-	//viberinterface.CallbackBase{}.UnmarshalJSON()
-	body, _ := ioutil.ReadAll(r.Body)
+	//viber interface.CallbackBase{}.UnmarshalJSON()
+	body, _ := io.ReadAll(r.Body)
 	if len(body) < 1024*3 {
 		log.Debugf(c, "Request body: %v", (string)(body))
 	} else {

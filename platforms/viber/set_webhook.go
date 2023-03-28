@@ -35,8 +35,12 @@ func (h viberWebhookHandler) SetWebhook(w http.ResponseWriter, r *http.Request, 
 	if _, err := bot.SetWebhook(webhookURL, eventTypes); err != nil {
 		log.Errorf(c, "%v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		if _, err = w.Write([]byte(err.Error())); err != nil {
+			log.Errorf(c, "Failed to write error to response: %v", err)
+		}
 	} else {
-		w.Write([]byte("Webhook set"))
+		if _, err = w.Write([]byte("Webhook set")); err != nil {
+			log.Errorf(c, "Failed to write response: %v", err)
+		}
 	}
 }

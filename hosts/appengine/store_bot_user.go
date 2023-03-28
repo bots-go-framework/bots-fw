@@ -52,6 +52,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 			if err == datastore.ErrNoSuchEntity {
 				err = nil
 			}
+			return err
 		} else {
 			if existingBotUser.GetAppUserIntID() != userEntity.GetAppUserIntID() {
 				return fmt.Errorf(

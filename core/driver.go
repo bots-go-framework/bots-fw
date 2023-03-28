@@ -101,10 +101,10 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 		if d.Analytics.Enabled == nil {
 			sendStats = botContext.BotSettings.Env == strongo.EnvProduction
-		} else {
-			if sendStats = d.Analytics.Enabled(r); !sendStats {
-
-			}
+			//} else {
+			//if sendStats = d.Analytics.Enabled(r); !sendStats {
+			//
+			//}
 			//log.Debugf(c, "d.AnalyticsSettings.Enabled != nil, sendStats: %v", sendStats)
 		}
 		if sendStats {
@@ -128,9 +128,11 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			if d.Analytics.GaTrackingID == "" {
 				log.Warningf(c, "driver.Analytics.GaTrackingID is not set")
 			} else {
-				timing := gamp.NewTiming(time.Now().Sub(started))
+				timing := gamp.NewTiming(time.Since(started))
 				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
-				measurementSender.Queue(timing)
+				if err := measurementSender.Queue(timing); err != nil {
+					log.Errorf(c, "Failed to log timing to GA: %v", err)
+				}
 			}
 		}
 
@@ -280,12 +282,12 @@ func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.Buf
 }
 
 func (BotDriver) logInput(c context.Context, i int, input WebhookInput) {
-	switch input.(type) {
+	sender := input.GetSender()
+	switch input := input.(type) {
 	case WebhookTextMessage:
-		sender := input.GetSender()
-		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.Text())
 	case WebhookNewChatMembersMessage:
-		newMembers := input.(WebhookNewChatMembersMessage).NewChatMembers()
+		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
 		b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
 		for i, member := range newMembers {
@@ -293,22 +295,15 @@ func (BotDriver) logInput(c context.Context, i int, input WebhookInput) {
 		}
 		log.Debugf(c, b.String())
 	case WebhookContactMessage:
-		sender := input.GetSender()
-		contactMessage := input.(WebhookContactMessage)
-		log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), contactMessage.FirstName(), contactMessage.LastName(), contactMessage.PhoneNumber())
+		log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.FirstName(), input.LastName(), input.PhoneNumber())
 	case WebhookCallbackQuery:
-		callbackQuery := input.(WebhookCallbackQuery)
-		callbackData := callbackQuery.GetData()
-		sender := input.GetSender()
+		callbackData := input.GetData()
 		log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 	case WebhookInlineQuery:
-		sender := input.GetSender()
-		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookInlineQuery).GetQuery())
+		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetQuery())
 	case WebhookChosenInlineResult:
-		sender := input.GetSender()
-		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookChosenInlineResult).GetInlineMessageID())
+		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
 	case WebhookReferralMessage:
-		sender := input.GetSender()
 		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(WebhookTextMessage).Text())
 	default:
 		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)

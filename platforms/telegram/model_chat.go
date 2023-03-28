@@ -78,17 +78,17 @@ func (entity *TgChatEntityBase) SetAppUserIntID(id int64) {
 
 // SetBotUserID sets bot user int ID
 func (entity *TgChatEntityBase) SetBotUserID(id interface{}) {
-	switch id.(type) {
+	switch id := id.(type) {
 	case string:
 		var err error
-		entity.TelegramUserID, err = strconv.ParseInt(id.(string), 10, 64)
+		entity.TelegramUserID, err = strconv.ParseInt(id, 10, 64)
 		if err != nil {
 			panic(err.Error())
 		}
 	case int:
-		entity.TelegramUserID = int64(id.(int))
+		entity.TelegramUserID = int64(id)
 	case int64:
-		entity.TelegramUserID = id.(int64)
+		entity.TelegramUserID = id
 	default:
 		panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
 	}

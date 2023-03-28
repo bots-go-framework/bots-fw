@@ -45,6 +45,7 @@ type WebhooksRouter struct {
 }
 
 // NewWebhookRouter creates new router
+//
 //goland:noinspection GoUnusedExportedFunction
 func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
 	r := WebhooksRouter{
@@ -52,10 +53,8 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 		errorFooterText: errorFooterText,
 	}
 
-	if commandsByType != nil {
-		for commandsType, commands := range commandsByType {
-			r.AddCommands(commandsType, commands)
-		}
+	for commandsType, commands := range commandsByType {
+		r.AddCommands(commandsType, commands)
 	}
 
 	return r
@@ -204,7 +203,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 					awaitingReplyCommandFound = true
 					continue
 				}
-			} else {
+				//} else {
 				// log.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 			}
 		}
@@ -335,10 +334,10 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 	)
 	input := whc.Input()
 	var isCommandText bool
-	switch input.(type) {
+	switch input := input.(type) {
 	case WebhookCallbackQuery:
 		var callbackURL *url.URL
-		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input.(WebhookCallbackQuery), typeCommands)
+		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input, typeCommands)
 		if err == nil && matchedCommand != nil {
 			if matchedCommand.Code == "" {
 				err = fmt.Errorf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand)
@@ -355,7 +354,6 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 			}
 		}
 	case WebhookMessage:
-		inputType := input.InputType()
 		if inputType == WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
 		}
@@ -365,7 +363,7 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 				messageText = textMessage.Text()
 				isCommandText = strings.HasPrefix(messageText, "/")
 			}
-			matchedCommand = router.matchMessageCommands(whc, input.(WebhookMessage), isCommandText, messageText, "", typeCommands.all)
+			matchedCommand = router.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 			if matchedCommand != nil {
 				log.Debugf(c, "router.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
 			}
@@ -472,8 +470,6 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	if err != nil {
 		log.Errorf(c, "Failed to send message: %v", err)
 	}
-
-	return
 }
 
 func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {

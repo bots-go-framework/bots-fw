@@ -29,9 +29,9 @@ type Chat struct {
 
 // SetBotUserID sets bot user ID
 func (chat *Chat) SetBotUserID(id interface{}) {
-	switch id.(type) {
+	switch id := id.(type) {
 	case string:
-		chat.FbmUserID = id.(string)
+		chat.FbmUserID = id
 	default:
 		panic(fmt.Sprintf("Expected string, got: %T=%v", id, id))
 	}

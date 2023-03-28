@@ -130,10 +130,9 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 			return
 		}
 	}
-	switch input.(type) {
+	switch input := input.(type) {
 	case WebhookCallbackQuery:
-		callbackQuery := input.(WebhookCallbackQuery)
-		data := callbackQuery.GetData()
+		data := input.GetData()
 		if strings.Contains(data, "chat=") {
 			values, err := url.ParseQuery(data)
 			if err != nil {
@@ -237,7 +236,9 @@ func NewWebhookContextBase(
 				whcb.chatID = chatID
 			}
 			if locale != "" {
-				whcb.SetLocale(locale)
+				if err := whcb.SetLocale(locale); err != nil {
+					log.Errorf(c, "Failed to set locale: %v", err)
+				}
 			}
 		}
 	}
@@ -303,9 +304,9 @@ func (gac gaContext) Queue(message gamp.Message) error {
 	return gac.gaMeasurement.Queue(message)
 }
 
-// func (gac gaContext) Flush() error {
-// 	return gac.gaMeasurement.
-// }
+//	func (gac gaContext) Flush() error {
+//		return gac.gaMeasurement.
+//	}
 //
 // GaCommon creates context for Google Analytics
 func (gac gaContext) GaCommon() gamp.Common {
@@ -423,12 +424,18 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 		log.Infof(c, "Bot user entity created")
 
 		ga := whcb.gaContext
-		ga.Queue(ga.GaEvent("users", "user-created")) //TODO: Should be outside
+		if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
+			log.Errorf(c, "Failed to queue GA event: %v", err)
+		}
 
-		ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())) // TODO: Should be outside
+		if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
+			log.Errorf(c, "Failed to queue GA event: %v", err)
+		}
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID()))
+			if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
+				log.Errorf(c, "Failed to queue GA event: %v", err)
+			}
 		}
 	} else {
 		log.Infof(c, "Found existing bot user entity")
@@ -469,7 +476,9 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
-			ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-chat-created", whcb.botPlatform.ID()))
+			if err := ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-chat-created", whcb.botPlatform.ID())); err != nil {
+				log.Errorf(c, "Failed to queue GA event: %v", err)
+			}
 		}
 	default:
 		return err
@@ -526,7 +535,7 @@ func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
 }
 
 // Locale indicates current language
-func (whcb WebhookContextBase) Locale() strongo.Locale {
+func (whcb *WebhookContextBase) Locale() strongo.Locale {
 	if whcb.locale.Code5 == "" {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
 			if locale := chatEntity.GetPreferredLanguage(); locale != "" {

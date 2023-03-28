@@ -1,6 +1,7 @@
 package bots
 
 import (
+	"github.com/strongo/log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -9,7 +10,9 @@ import (
 // PingHandler returns 'Pong' back to user
 func PingHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Write([]byte("Pong"))
+	if _, err := w.Write([]byte("Pong")); err != nil {
+		log.Errorf(r.Context(), "Failed to write to response: %v", err)
+	}
 }
 
 // NotFoundHandler returns HTTP status code 404
