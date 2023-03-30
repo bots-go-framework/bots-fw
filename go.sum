@@ -63,6 +63,8 @@ github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9 h1:E3vpL4KtVBkzjBOLy8
 github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9/go.mod h1:/GeGwR8X/3HRIa2lxBQUu74JWPogwpeBbPGJLcp/iA4=
 github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20 h1:rzmka7ykAIt2QWNIyGVbqob3XtFSFwrw/qOyrHb29Qc=
 github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20/go.mod h1:wNiymP8KTecS4Jd5FF1evQ2ReBUlKwp1afYWFTHrlpo=
+github.com/strongo/log v0.0.1 h1:fdncna1E2M0kA6cCQI6knts+GFLsf1V7gmusch2KvFc=
+github.com/strongo/log v0.0.1/go.mod h1:C0OyprbH7WjyhcZXdveDiu5n0vxB8qZ1rQXxtUqx8y4=
 github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788 h1:fgsn/H+icKLdvYfVOOqCj6NhHHtmC47nVkALc7jaiqc=
 github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788/go.mod h1:oCSd/oinNcNvuwCT0zn2dMjdWzDqT8E0bBIXaBJ4DTw=
 github.com/strongo/random v0.0.0-20201120164511-f20cfe28165d h1:I8qa7ggQ5RT+hO5gTTaBtS8ZEvbsBIik//AdM4dZL4g=
