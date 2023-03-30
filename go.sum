@@ -51,6 +51,8 @@ github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6 h1:1hxYQtKB
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6/go.mod h1:YKiHqy8QXFztw2cND8+WiK2gGw+ZopwsNGFyWXqUegs=
 github.com/strongo/dalgo v0.0.17 h1:GgvYUr7sbmfTFTNH3+nAY5h2J+LyJurObfpbiHry+dA=
 github.com/strongo/dalgo v0.0.17/go.mod h1:rciO9N0uM5o2OG9DtWnT/cafkP0CxdMEbq04BmtEWBQ=
+github.com/strongo/dalgo v0.0.19 h1:pj/rnMv5oryTI9cxvuERYhN3Nm0LquU23K2W6vDZYjM=
+github.com/strongo/dalgo v0.0.19/go.mod h1:czR+WjWl0RUVNaXeNmQJa0CK+97ImgVvuXpqBN8dUyk=
 github.com/strongo/emoji v0.0.0-20180628223242-ca029fbd72ef h1:bMKmjTbRTgX1vXYQfatBM33Gnyr7NrMj/Byb1SR8bAI=
 github.com/strongo/emoji v0.0.0-20180628223242-ca029fbd72ef/go.mod h1:L7I5ikZykA4gVaokzZVDNKi3cOWoHxr3IUeY5P+tDbU=
 github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9 h1:E3vpL4KtVBkzjBOLy8TRURt2ouZJ6gpkP6x1To9T0zw=
