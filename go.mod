@@ -12,7 +12,7 @@ require (
 	github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9
 	github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6
 	github.com/strongo/dalgo v0.0.19
-	github.com/strongo/emoji v0.0.0-20180628223242-ca029fbd72ef
+	github.com/strongo/emoji v0.0.1
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9
 	github.com/strongo/log v0.0.0-20180427205522-8c4c66a45d20
 	github.com/strongo/nds v0.0.0-20180424162513-fa96c62eb788
