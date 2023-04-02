@@ -2,7 +2,7 @@ package gaehost
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
@@ -44,13 +44,13 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 		if s.entityKind == "TgChat" { // TODO: Remove workaround to fix old entities
 			var tgChatID int64
 			if tgChatID, err = strconv.ParseInt(botChatID, 10, 64); err != nil {
-				err = errors.Wrap(err, "Failed to parse botChatID to int")
+				err = fmt.Errorf("failed to parse botChatID to int: %w", err)
 				return
 			}
 			intKey := datastore.NewKey(c, s.entityKind, "", tgChatID, nil)
 			if err = nds.Get(c, intKey, botChatEntity); err != nil {
 				if err == datastore.ErrNoSuchEntity {
-					log.Infof(c, errors.Wrapf(err, "There is no bot chat entity with intID=%v", intKey.IntID()).Error())
+					log.Infof(c, fmt.Errorf("there is no bot chat entity with intID=%d: %w", intKey.IntID(), err).Error())
 					err = bots.ErrEntityNotFound
 				}
 				return
@@ -68,7 +68,7 @@ func (s *GaeBotChatStore) GetBotChatEntityByID(c context.Context, botID, botChat
 				}
 				return
 			}, &datastore.TransactionOptions{XG: true}); err != nil {
-				log.Errorf(c, errors.Wrap(err, "Failed to migrate Telegram chat entity").Error())
+				log.Errorf(c, fmt.Errorf("failed to migrate Telegram chat entity: %w", err).Error())
 				return
 
 			}

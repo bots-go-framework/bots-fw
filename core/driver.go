@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"context"
+	"errors"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
@@ -148,7 +148,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
 						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), BotAPISendMessageOverResponse); err != nil {
-							log.Errorf(c, errors.WithMessage(err, "failed to report error to user").Error())
+							log.Errorf(c, fmt.Errorf("failed to report error to user: %w", err).Error())
 						}
 					}
 				}
@@ -212,12 +212,12 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 		if _, ok := err.(ErrAuthFailed); ok {
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		} else if errors.Cause(err) == ErrNotImplemented {
+		} else if errors.Is(err, ErrNotImplemented) {
 			log.Debugf(c, err.Error())
 			w.WriteHeader(http.StatusNoContent)
 			//http.Error(w, "", http.StatusOK) // TODO: Decide how to handle it properly, return http.StatusNotImplemented?
 		} else if _, ok := err.(*json.SyntaxError); ok {
-			log.Debugf(c, errors.Wrap(err, "Request body is not valid JSON").Error())
+			log.Debugf(c, fmt.Errorf("request body is not valid JSON: %w", err).Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		} else {
 			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)

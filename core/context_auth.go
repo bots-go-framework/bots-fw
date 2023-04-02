@@ -2,7 +2,7 @@ package bots
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/strongo/dalgo/dal"
 	"github.com/strongo/log"
 )
@@ -26,7 +26,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 				}
 				if changed := chatEntity.SetAccessGranted(value); changed {
 					if err = whc.SaveBotChat(c, whc.GetBotCode(), chatID, chatEntity); err != nil {
-						err = errors.Wrap(err, "Failed to save bot chat entity to db")
+						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
 					}
 				}
 				return
@@ -39,18 +39,18 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserID := whc.GetSender().GetID()
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	if botUser, err := whc.GetBotUserByID(c, botUserID); err != nil {
-		return errors.Wrapf(err, "Failed to get bot user by id=%v", botUserID)
+		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
 	} else if botUser.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 	} else {
 		err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 			botUser.SetAccessGranted(value)
 			if botUser, err = whc.GetBotUserByID(c, botUserID); err != nil {
-				return errors.Wrapf(err, "Failed to get transactionally bot user by id=%v", botUserID)
+				return fmt.Errorf("failed to get transactionally bot user by id=%v: %w", botUserID, err)
 			}
 			if changed := botUser.SetAccessGranted(value); changed {
 				if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
-					err = errors.Wrapf(err, "Failed to call whc.SaveBotUser(botUserID=%v)", botUserID)
+					err = fmt.Errorf("failed to call whc.SaveBotUser(botUserID=%v): %w", botUserID, err)
 				}
 			}
 			return err

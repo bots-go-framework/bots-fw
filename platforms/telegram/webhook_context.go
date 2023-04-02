@@ -8,7 +8,6 @@ import (
 	"github.com/strongo/dalgo/dal"
 	//"github.com/strongo/log"
 	"context"
-	"github.com/pkg/errors"
 	"github.com/strongo/log"
 	"net/http"
 	"strconv"
@@ -93,7 +92,7 @@ func (twhc *tgWebhookContext) CreateOrUpdateTgChatInstance() (err error) {
 			}
 			return
 		}, dal.TxWithCrossGroup()); err != nil {
-			err = errors.WithMessage(err, "failed to create or update Telegram chat instance")
+			err = fmt.Errorf("failed to create or update Telegram chat instance: %w", err)
 			return
 		}
 	}
@@ -303,7 +302,7 @@ func (twhc *tgWebhookContext) getLocalAndChatIDByChatInstance(c context.Context)
 
 func (twhc *tgWebhookContext) ChatEntity() bots.BotChat {
 	if _, err := twhc.BotChatID(); err != nil {
-		log.Errorf(twhc.Context(), errors.WithMessage(err, "whc.BotChatID()").Error())
+		log.Errorf(twhc.Context(), fmt.Errorf("whc.BotChatID(): %w", err).Error())
 		return nil
 	}
 	//tgUpdate := twhc.tgInput.TgUpdate()

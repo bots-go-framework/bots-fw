@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
@@ -96,12 +96,12 @@ func NewTelegramWebhookInput(update *tgbotapi.Update, logRequest func()) (bots.W
 
 		case update.ChannelPost != nil:
 			channelPost, _ := ffjson.MarshalFast(update.ChannelPost)
-			return nil, errors.WithMessage(bots.ErrNotImplemented, "ChannelPost is not supported at the moment: "+string(channelPost))
+			return nil, fmt.Errorf("the ChannelPost is not supported at the moment: [%s]: %w", channelPost, bots.ErrNotImplemented)
 			//return message2input(TgMessageTypeChannelPost, update.ChannelPost), nil
 
 		case update.EditedChannelPost != nil:
 			editedChannelPost, _ := ffjson.MarshalFast(update.EditedChannelPost)
-			return nil, errors.WithMessage(bots.ErrNotImplemented, "EditedChannelPost is not supported at the moment: "+string(editedChannelPost))
+			return nil, fmt.Errorf("the EditedChannelPost is not supported at the moment: [%s]: %w", string(editedChannelPost), bots.ErrNotImplemented)
 			//	return message2input(TgMessageTypeEditedChannelPost, update.EditedChannelPost), nil
 
 		default:

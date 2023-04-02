@@ -100,7 +100,7 @@ const (
 	KeyboardTypeForceReply
 )
 
-//Keyboard defines keyboard
+// Keyboard defines keyboard
 type Keyboard interface {
 	// KeyboardType defines keyboard type
 	KeyboardType() KeyboardType
@@ -179,6 +179,7 @@ func (m TextMessageFromBot) BotMessageType() BotMessageType {
 var _ BotMessage = (*TextMessageFromBot)(nil)
 
 // MessageFromBot keeps all the details of answer from bot to user
+//
 //goland:noinspection GoDeprecation
 type MessageFromBot struct {
 	ToChat             ChatUID                      `json:",omitempty"`

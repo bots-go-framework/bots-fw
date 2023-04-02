@@ -48,6 +48,7 @@ func NewInlineQueryCommand(code string, action CommandAction) Command {
 }
 
 // NewCallbackCommand create a definition of a callback command
+//
 //goland:noinspection GoUnusedExportedFunction
 func NewCallbackCommand(code string, action CallbackAction) Command {
 	return Command{

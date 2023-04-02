@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-telegram"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -151,7 +150,7 @@ func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Requ
 		}
 	}()
 	if bodyBytes, err = io.ReadAll(r.Body); err != nil {
-		err = errors.Wrap(err, "Failed to read request body")
+		err = fmt.Errorf("failed to read request body: %w", err)
 		return
 	}
 
@@ -196,7 +195,7 @@ func (h tgWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.Requ
 
 	if input == nil {
 		logRequestBody()
-		err = errors.WithMessage(bots.ErrNotImplemented, "Telegram input is <nil>")
+		err = fmt.Errorf("telegram input is <nil>: %w", bots.ErrNotImplemented)
 		return
 	}
 	log.Debugf(c, "Telegram input type: %T", input)

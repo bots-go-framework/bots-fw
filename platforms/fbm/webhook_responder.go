@@ -2,7 +2,8 @@ package fbm
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -42,7 +43,7 @@ func (r webhookResponder) SendMessage(c context.Context, m bots.MessageFromBot, 
 	}
 
 	if request.Recipient.ID, err = r.whc.BotChatID(); err != nil {
-		err = errors.WithMessage(err, "failed to call r.whc.BotChatID()")
+		err = fmt.Errorf("failed to call r.whc.BotChatID(): %w", err)
 		return
 	} else if request.Recipient.ID == "" {
 		err = errors.New("Unknown recipient as r.whc.BotChatID() returned an empty string")

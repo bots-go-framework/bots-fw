@@ -3,7 +3,6 @@ package gaehost
 import (
 	"context"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
 	"github.com/strongo/nds"
@@ -64,7 +63,7 @@ func (s GaeBotUserStore) SaveBotUser(c context.Context, botUserID interface{}, u
 		}
 		_, err = nds.Put(c, key, userEntity)
 		if err != nil {
-			err = errors.Wrap(err, "SaveBotUser(): Failed to put user entity to datastore")
+			err = fmt.Errorf("failed to put user entity to datastore in SaveBotUser(): %w", err)
 		}
 		return err
 	}, nil)
@@ -122,7 +121,7 @@ func (s GaeBotUserStore) CreateBotUser(c context.Context, botID string, apiUser 
 	}, &datastore.TransactionOptions{XG: true})
 
 	if err != nil {
-		return nil, errors.WithMessage(err, "failed to create bot user")
+		return nil, fmt.Errorf("failed to create bot user: %w", err)
 	}
 
 	log.Debugf(c, "GaeBotUserStore.CreateBotUser() => appUserID: %v, isNewAppUser: %v", appUserID, isNewAppUser)

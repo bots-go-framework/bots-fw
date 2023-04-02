@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/strongo/bots-api-fbm"
 	"github.com/strongo/bots-framework/core"
@@ -161,13 +160,13 @@ func (handler webhookHandler) GetBotContextAndInputs(c context.Context, r *http.
 	)
 	defer r.Body.Close()
 	if bodyBytes, err = io.ReadAll(r.Body); err != nil {
-		err = errors.Wrap(err, "Failed to read request body")
+		err = fmt.Errorf("failed to read request body: %w", err)
 		return
 	}
 	log.Infof(c, "Request.Body: %v", string(bodyBytes))
 	err = ffjson.UnmarshalFast(bodyBytes, &receivedMessage)
 	if err != nil {
-		err = errors.Wrap(err, "Failed to deserialize FB json message")
+		err = fmt.Errorf("failed to deserialize FB json message: %w", err)
 		return
 	}
 	log.Infof(c, "Unmarshaled JSON to a struct with %v entries: %v", len(receivedMessage.Entries), receivedMessage)

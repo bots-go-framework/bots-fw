@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"context"
-	"github.com/pkg/errors"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
@@ -136,7 +135,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		if strings.Contains(data, "chat=") {
 			values, err := url.ParseQuery(data)
 			if err != nil {
-				return "", errors.WithMessage(err, "Failed to GetData() from webhookInput.InputCallbackQuery()")
+				return "", fmt.Errorf("failed to GetData() from webhookInput.InputCallbackQuery(): %w", err)
 			}
 			whcb.chatID = values.Get("chat")
 		}
@@ -167,7 +166,7 @@ func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 	if appUserIntID == 0 {
 
 		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
-			panic(errors.WithMessage(err, "failed to get bot user entity"))
+			panic(fmt.Errorf("failed to get bot user entity: %w", err))
 		} else {
 			appUserIntID = botUser.GetAppUserIntID()
 		}
@@ -298,7 +297,7 @@ func (gac gaContext) Queue(message gamp.Message) error {
 	if message.GetTrackingID() == "" {
 		message.SetTrackingID(gac.whcb.GetBotSettings().GAToken)
 		if message.GetTrackingID() == "" {
-			return errors.WithMessage(gamp.ErrNoTrackingID, fmt.Sprintf("gaContext.Queue(%v)", message))
+			return fmt.Errorf("gaContext.Queue(%v): %w", message, gamp.ErrNoTrackingID)
 		}
 	}
 	return gac.gaMeasurement.Queue(message)
@@ -393,14 +392,14 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 	//log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
 	chatID, err := whcb.BotChatID()
 	if err != nil {
-		panic(errors.WithMessage(err, "failed to call whcb.BotChatID()"))
+		panic(fmt.Errorf("failed to call whcb.BotChatID(): %w", err))
 	}
 	if chatID == "" {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
 	if err := whcb.loadChatEntityBase(); err != nil {
-		panic(errors.WithMessage(err, "failed to call whcb.getChatEntityBase()"))
+		panic(fmt.Errorf("failed to call whcb.getChatEntityBase(): %w", err))
 	}
 	return whcb.chatEntity
 }
@@ -452,7 +451,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 	botChatID, err := whcb.BotChatID()
 	if err != nil {
-		return errors.WithMessage(err, "Failed to call whcb.BotChatID()")
+		return fmt.Errorf("failed to call whcb.BotChatID(): %w", err)
 	}
 
 	log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)

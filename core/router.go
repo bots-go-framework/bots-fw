@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/emoji/go/emoji"
 	"github.com/strongo/gamp"
@@ -143,7 +143,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 			}
 		}
 		//if matchedCommand == nil {
-		log.Errorf(whc.Context(), errors.WithMessage(ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
+		log.Errorf(whc.Context(), fmt.Errorf("%w: %s", ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
 		whc.LogRequest()
 		//}
 	} else {
@@ -492,16 +492,16 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 			if inputType == WebhookInputCallbackQuery {
 				logText += "(can be duplicate callback)"
 			}
-			log.Warningf(c, errors.WithMessage(err, logText).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
+			log.Warningf(c, fmt.Errorf("%s: %w", logText, err).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
 			err = nil
 		case strings.Contains(errText, "message to edit not found"):
-			log.Warningf(c, errors.WithMessage(err, "probably an attempt to edit old or deleted message").Error())
+			log.Warningf(c, fmt.Errorf("probably an attempt to edit old or deleted message: %w", err).Error())
 			err = nil
 		}
 		// }
 		// }
 		if err != nil {
-			log.Errorf(c, errors.WithMessage(err, failedToSendMessageToMessenger).Error()) // TODO: Decide how do we handle this
+			log.Errorf(c, fmt.Errorf("%s: %w", failedToSendMessageToMessenger, err).Error()) // TODO: Decide how do we handle this
 		}
 	}
 	if matchedCommand != nil {

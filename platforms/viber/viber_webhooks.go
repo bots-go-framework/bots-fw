@@ -5,9 +5,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
 	"github.com/strongo/log"
@@ -74,7 +74,7 @@ func (h viberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 	sig := r.URL.Query().Get("sig")
 	var sigMAC []byte
 	if sigMAC, err = hex.DecodeString(sig); err != nil {
-		err = errors.Wrapf(err, "Failed to decode sig parameter using 'base64.RawURLEncoding'")
+		err = fmt.Errorf("failed to decode sig parameter using 'base64.RawURLEncoding': %w", err)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h viberWebhookHandler) GetBotContextAndInputs(c context.Context, r *http.R
 		UnmarshalJSON(input []byte) error
 	}) (err error) {
 		if err = m.UnmarshalJSON(body); err != nil {
-			err = errors.Wrapf(err, "Failed to unmarshal request body to %T", m)
+			err = fmt.Errorf("failed to unmarshal request body to %T: %w", m, err)
 		}
 		log.Debugf(c, "%T: %v", m, m)
 		return

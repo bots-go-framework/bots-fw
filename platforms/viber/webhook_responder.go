@@ -2,7 +2,7 @@ package viber
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"fmt"
 	"github.com/strongo/bots-api-viber"
 	"github.com/strongo/bots-api-viber/viberinterface"
 	"github.com/strongo/bots-framework/core"
@@ -37,7 +37,7 @@ func (r viberWebhookResponder) SendMessage(c context.Context, m bots.MessageFrom
 	textMessage := viberinterface.NewTextMessage(r.whc.getViberSenderID(), "track-data", m.Text, viberKeyboard)
 	requestBody, response, err := viberBotAPI.SendMessage(textMessage)
 	if err != nil {
-		err = errors.Wrap(err, "Failed to send message to Viber")
+		err = fmt.Errorf("failed to send message to Viber: %w", err)
 		log.Errorf(c, err.Error())
 	}
 
