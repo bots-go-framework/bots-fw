@@ -437,7 +437,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	case WebhookInputText:
 		textMessage := input.(WebhookTextMessage)
 		logMessage += fmt.Sprintf("message text: [%v]", textMessage.Text())
-		if textMessage.IsEdited() { // TODO: Should be in app logic, move out of core
+		if textMessage.IsEdited() { // TODO: Should be in app logic, move out of botsfw
 			m := whc.NewMessage("🙇 Sorry, editing messages is not supported. Please send a new message.")
 			log.Warningf(c, "TODO: Edited messages are not supported by framework yet. Move check to app.")
 			_, err := whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
