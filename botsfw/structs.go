@@ -7,7 +7,7 @@ import (
 
 	"context"
 	"github.com/strongo/app"
-	"github.com/strongo/bots-api-fbm"
+	//"github.com/strongo/bots-api-fbm"
 )
 
 // EntryInputs provides information on parsed inputs from bot API request
@@ -182,8 +182,8 @@ var _ BotMessage = (*TextMessageFromBot)(nil)
 //
 //goland:noinspection GoDeprecation
 type MessageFromBot struct {
-	ToChat             ChatUID                      `json:",omitempty"`
-	TextMessageFromBot                              // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
-	BotMessage         BotMessage                   `json:",omitempty"`
-	FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
+	ToChat             ChatUID    `json:",omitempty"`
+	TextMessageFromBot            // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	BotMessage         BotMessage `json:",omitempty"`
+	//FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }

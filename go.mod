@@ -7,7 +7,6 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/satori/go.uuid v1.2.0
 	github.com/strongo/app v0.0.1
-	github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75
 	github.com/strongo/dalgo v0.0.26
 	github.com/strongo/emoji v0.0.1
 	github.com/strongo/gamp v0.0.0-20180514004759-fdf2ce90b6b9

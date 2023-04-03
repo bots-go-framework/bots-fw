@@ -16,8 +16,6 @@ github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdh
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/strongo/app v0.0.1 h1:fwYFKd9g0aygHT6X17yGXSZ+ETY++87a2P4lCuW5V4I=
 github.com/strongo/app v0.0.1/go.mod h1:H9omqnFecxlU6LPVBqq9C0/Wt0OfD7x8axWGr7E2v7Q=
-github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75 h1:Z/TbA6Dr2zmiSU7ffBdQJSImlcOH9ti2y5ZnrNl77uk=
-github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75/go.mod h1:c2HGWoCIWq71E/l/SFi5YIC2LPm0KM3vPqR4BBuficE=
 github.com/strongo/dalgo v0.0.26 h1:2/OiXLKoZnuW5zZ0YqyqhewDngskScLQZu4awEksomU=
 github.com/strongo/dalgo v0.0.26/go.mod h1:TJ+6LPbGFy8oS3yWmPvG2AMY2wNK4qYBCXf45vSVYCw=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
