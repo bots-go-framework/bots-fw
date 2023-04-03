@@ -3,7 +3,6 @@ package gaehost
 import (
 	"context"
 	"github.com/strongo/bots-framework/core"
-	"github.com/strongo/bots-framework/platforms/telegram"
 	"github.com/strongo/dalgo/dal"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/urlfetch"
@@ -46,12 +45,13 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 
 	switch platform { // TODO: Should not be hardcoded
 	case "telegram": // pass
-		if tgChatStore := appContext.GetBotChatEntityFactory(platform); tgChatStore != nil {
-			stores.BotChatStore = NewGaeTelegramChatStore(tgChatStore)
-		} else {
-			stores.BotChatStore = NewGaeTelegramChatStore(func() bots.BotChat { return telegram.NewTelegramChatEntity() })
-		}
-		stores.BotUserStore = newGaeTelegramUserStore(appUserStore)
+		panic("not implemented")
+		//if tgChatStore := appContext.GetBotChatEntityFactory(platform); tgChatStore != nil {
+		//	stores.BotChatStore = NewGaeTelegramChatStore(tgChatStore)
+		//} else {
+		//	stores.BotChatStore = NewGaeTelegramChatStore(func() bots.BotChat { return telegram.NewTelegramChatEntity() })
+		//}
+		//stores.BotUserStore = newGaeTelegramUserStore(appUserStore)
 	case "fbm": // pass
 		stores.BotChatStore = NewGaeFbmChatStore()
 		stores.BotUserStore = newGaeFacebookUserStore(appUserStore)
