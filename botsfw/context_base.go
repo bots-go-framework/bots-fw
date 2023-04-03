@@ -13,8 +13,6 @@ import (
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
 )
 
 // WebhookContextBase provides base implementation of WebhookContext interface
@@ -37,7 +35,7 @@ type WebhookContextBase struct {
 	chatID     string
 	chatEntity BotChat
 
-	BotUserKey *datastore.Key
+	BotUserKey *dal.Key
 	appUser    BotAppUser
 	strongo.Translator
 	//Locales    strongo.LocalesProvider
@@ -311,13 +309,12 @@ func (gac gaContext) Queue(message gamp.Message) error {
 func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
 	if whcb.chatEntity != nil {
-		c := whcb.Context()
 		return gamp.Common{
 			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
 			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
 			ClientID:      whcb.chatEntity.GetGaClientID().String(),
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
-			UserAgent:     fmt.Sprintf("%v bot (%v:%v) %v", whcb.botPlatform.ID(), appengine.AppID(c), appengine.VersionID(c), whcb.r.Host),
+			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
 			DataSource:    "bot",
 		}
 	}

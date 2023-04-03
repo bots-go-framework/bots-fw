@@ -2,12 +2,12 @@ package botsfw
 
 import (
 	"fmt"
+	"github.com/strongo/dalgo/dal"
 	"net/http"
 	"time"
 
 	"context"
 	"github.com/strongo/app"
-	"google.golang.org/appengine/datastore"
 )
 
 type TestWebhookContext struct {
@@ -110,9 +110,9 @@ func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 }
 func (whc TestWebhookContext) Context() context.Context { panic("Not implemented") }
 
-func (whc TestWebhookContext) ChatKey() *datastore.Key                     { panic("Not implemented") }
-func (whc TestWebhookContext) NewChatKey(c context.Context) *datastore.Key { panic("Not implemented") }
-func (whc TestWebhookContext) ChatEntity() BotChat                         { panic("Not implemented") }
+func (whc TestWebhookContext) ChatKey() *dal.Key                     { panic("Not implemented") }
+func (whc TestWebhookContext) NewChatKey(c context.Context) *dal.Key { panic("Not implemented") }
+func (whc TestWebhookContext) ChatEntity() BotChat                   { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
@@ -137,7 +137,7 @@ func (whc TestWebhookContext) IsNewerThen(chatEntity BotChat) bool          { pa
 func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { panic("Not implemented") }
 
 func (whc TestWebhookContext) UserID() int64                   { panic("Not implemented") }
-func (whc TestWebhookContext) CurrentUserKey() *datastore.Key  { panic("Not implemented") }
+func (whc TestWebhookContext) CurrentUserKey() *dal.Key        { panic("Not implemented") }
 func (whc TestWebhookContext) GetAppUser() (BotAppUser, error) { panic("Not implemented") }
 
 var _ WebhookContext = TestWebhookContext{}
