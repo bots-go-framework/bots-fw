@@ -53,12 +53,14 @@ func (h GaeBotHost) GetBotCoreStores(platform string, appContext bots.BotAppCont
 		//}
 		//stores.BotUserStore = newGaeTelegramUserStore(appUserStore)
 	case "fbm": // pass
-		stores.BotChatStore = NewGaeFbmChatStore()
-		stores.BotUserStore = newGaeFacebookUserStore(appUserStore)
+		panic("not implemented")
+		//stores.BotChatStore = NewGaeFbmChatStore()
+		//stores.BotUserStore = newGaeFacebookUserStore(appUserStore)
 	case "viber": // pass
-		userChatStore := newGaeViberUserChatStore(appUserStore)
-		stores.BotChatStore = userChatStore
-		stores.BotUserStore = userChatStore
+		panic("not implemented")
+		//userChatStore := newGaeViberUserChatStore(appUserStore)
+		//stores.BotChatStore = userChatStore
+		//stores.BotUserStore = userChatStore
 	default:
 		panic("Unknown platform: " + platform)
 	}
