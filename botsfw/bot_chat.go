@@ -11,7 +11,13 @@ type BotChat interface {
 	GetBotID() string
 	SetBotID(botID string)
 
+	// GetAppUserIntID returns app user int ID
+	// Deprecated: use GetAppUserStrID instead
 	GetAppUserIntID() int64
+
+	// GetAppUserStrID returns app user string ID
+	GetAppUserStrID() string
+
 	SetAppUserIntID(id int64)
 
 	AddClientLanguage(languageCode string) (changed bool)
@@ -46,5 +52,11 @@ type BotChat interface {
 
 // NewChatID create a new bot chat ID, returns string
 func NewChatID(botID, botChatID string) string {
+	if botID == "" {
+		panic("botID is empty")
+	}
+	if botChatID == "" {
+		panic("botChatID is empty")
+	}
 	return botID + ":" + botChatID
 }

@@ -72,13 +72,13 @@ func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.
 }
 
 // IsInTransaction detects if request is within a transaction
-func (whcb *WebhookContextBase) IsInTransaction(c context.Context) bool {
+func (whcb *WebhookContextBase) IsInTransaction(context.Context) bool {
 	panic("not implemented")
 	//return whcb.botContext.BotHost.DB().IsInTransaction(c)
 }
 
 // NonTransactionalContext creates a non transaction context for operations that needs to be executed outside of transaction.
-func (whcb *WebhookContextBase) NonTransactionalContext(tc context.Context) context.Context {
+func (whcb *WebhookContextBase) NonTransactionalContext(context.Context) context.Context {
 	panic("not implemented")
 	//return whcb.botContext.BotHost.DB().NonTransactionalContext(tc)
 }
@@ -149,12 +149,25 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	return whcb.chatID, nil
 }
 
-// AppUserStrID return current app user ID as a string
-func (whcb *WebhookContextBase) AppUserStrID() string {
-	return strconv.FormatInt(whcb.AppUserIntID(), 10)
+// AppUserStrID return current app user ID as a string. AppUserIntID() is deprecated.
+func (whcb *WebhookContextBase) AppUserStrID() (appUserID string) {
+	if !whcb.isInGroup() {
+		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
+			appUserID = chatEntity.GetAppUserStrID()
+		}
+	}
+	if appUserID == "" {
+		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
+			panic(fmt.Errorf("failed to get bot user entity: %w", err))
+		} else {
+			appUserID = botUser.GetAppUserStrID()
+		}
+	}
+	return
 }
 
 // AppUserIntID return current app user ID as integer
+// Deprecated: migrated AppUserStrID() instead
 func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 	if !whcb.isInGroup() {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
@@ -162,7 +175,6 @@ func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 		}
 	}
 	if appUserIntID == 0 {
-
 		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
 			panic(fmt.Errorf("failed to get bot user entity: %w", err))
 		} else {
@@ -207,6 +219,9 @@ func NewWebhookContextBase(
 	isInGroup func() bool,
 	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
 ) *WebhookContextBase {
+	if r == nil {
+		panic("r == nil")
+	}
 	c := botContext.BotHost.Context(r)
 	whcb := WebhookContextBase{
 		r: r,
