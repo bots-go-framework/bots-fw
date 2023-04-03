@@ -57,11 +57,15 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	ChatEntity() BotChat
 
+	// IsInGroup indicates if message was received in a group chat
 	IsInGroup() bool
 
+	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
 
 	//Locale() strongo.ByLocale
+
+	// SetLocale sets locale for current session
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot
@@ -78,8 +82,8 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
-	BotChatStore // TODO: Migrate to strongo/db
-	BotUserStore // TODO: Migrate to strongo/db
+	BotChatStore
+	BotUserStore
 	WebhookInput // TODO: Should be removed!!!
 	strongo.SingleLocaleTranslator
 
@@ -93,13 +97,19 @@ type BotState interface {
 
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 type BotInputProvider interface {
+	// Input returns a webhook input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 	Input() WebhookInput
 }
 
 // BotAPIUser provides info about current bot user
 type BotAPIUser interface {
+	// FirstName returns user's first name
+	FirstName() string
+
+	// LastName returns user's last name
+	LastName() string
+
 	//IdAsString() string
 	//IdAsInt64() int64
-	FirstName() string
-	LastName() string
+
 }

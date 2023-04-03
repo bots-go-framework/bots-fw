@@ -3,7 +3,6 @@ package botsfw
 import (
 	"time"
 
-	"context"
 	"github.com/satori/go.uuid"
 	"github.com/strongo/app/user"
 )
@@ -44,14 +43,6 @@ type BotChat interface {
 	PopStepsFromAwaitingReplyUpToSpecificParent(code string)
 	PushStepToAwaitingReplyTo(code string)
 	GetGaClientID() uuid.UUID
-}
-
-// BotChatStore is interface for DAL to store bot chat data
-type BotChatStore interface {
-	GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error)
-	SaveBotChat(c context.Context, botID, botChatID string, chatEntity BotChat) error
-	NewBotChatEntity(c context.Context, botID string, botChat WebhookChat, appUserID int64, botUserID string, isAccessGranted bool) BotChat
-	Close(c context.Context) error // TODO: Was io.Closer, should it?
 }
 
 // NewChatID create a new bot chat ID, returns string

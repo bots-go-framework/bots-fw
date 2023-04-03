@@ -471,7 +471,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		if err != nil {
 			return err
 		}
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserIntID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserStrID(), botChatID, botUser.IsAccessGranted())
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
