@@ -47,6 +47,8 @@ github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75 h1:Z/TbA6Dr2z
 github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75/go.mod h1:c2HGWoCIWq71E/l/SFi5YIC2LPm0KM3vPqR4BBuficE=
 github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9 h1:o4Swr1dtiMNiiSuYfqcTuyHGcbhw08w10izLVbekqqM=
 github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9/go.mod h1:gQNcbud+790z7GRlKXVUZ4uCjgcuc62mvZ3JhXk3qXI=
+github.com/strongo/bots-api-telegram v0.0.1 h1:OG8HkqPH4lVrzDN/daFAxlFD6QraC243IS8x4txW+HM=
+github.com/strongo/bots-api-telegram v0.0.1/go.mod h1:JLueeIUak+ePzar5DpjBbHtSotwh5t4OFy+09UCl2qg=
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6 h1:1hxYQtKBJfN/657s2d045nFgscqOiBWvHA/hFAl32LI=
 github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6/go.mod h1:YKiHqy8QXFztw2cND8+WiK2gGw+ZopwsNGFyWXqUegs=
 github.com/strongo/dalgo v0.0.26 h1:2/OiXLKoZnuW5zZ0YqyqhewDngskScLQZu4awEksomU=

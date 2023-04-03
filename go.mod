@@ -8,7 +8,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/strongo/app v0.0.1
 	github.com/strongo/bots-api-fbm v0.0.0-20180428075108-f61e04d86e75
-	github.com/strongo/bots-api-telegram v0.0.0-20180620012337-6797496b39c9
+	github.com/strongo/bots-api-telegram v0.0.1
 	github.com/strongo/bots-api-viber v0.0.0-20180427211447-a8ab3ee34ae6
 	github.com/strongo/dalgo v0.0.26
 	github.com/strongo/emoji v0.0.1
