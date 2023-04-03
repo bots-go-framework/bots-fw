@@ -24,6 +24,25 @@ type GaeBotChatStore struct {
 	newBotChatEntity          func() bots.BotChat
 }
 
+func NewGaeBotChatStore(
+	entityKind string,
+	newBotChatKey func(c context.Context, botID, botChatId string) *datastore.Key,
+	validateBotChatEntityType func(entity bots.BotChat),
+	newBotChatEntity func() bots.BotChat,
+) *GaeBotChatStore {
+	if newBotChatKey == nil {
+		newBotChatKey = func(c context.Context, botID, botChatId string) *datastore.Key {
+			return datastore.NewKey(c, entityKind, bots.NewChatID(botID, botChatId), 0, nil)
+		}
+	}
+	return &GaeBotChatStore{
+		GaeBaseStore:              NewGaeBaseStore(entityKind),
+		NewBotChatKey:             newBotChatKey,
+		newBotChatEntity:          newBotChatEntity,
+		validateBotChatEntityType: validateBotChatEntityType,
+	}
+}
+
 var _ bots.BotChatStore = (*GaeBotChatStore)(nil) // Check for interface implementation at compile time
 
 // ************************** Implementations of  bots.ChatStore **************************
