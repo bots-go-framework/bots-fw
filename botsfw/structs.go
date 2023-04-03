@@ -1,4 +1,4 @@
-package bots
+package botsfw
 
 //go:generate ffjson $GOFILE
 

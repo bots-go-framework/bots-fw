@@ -3,7 +3,7 @@
 // source: structs.go
 // DO NOT EDIT!
 
-package bots
+package botsfw
 
 import (
 	"bytes"
