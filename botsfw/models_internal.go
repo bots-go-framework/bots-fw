@@ -115,7 +115,7 @@ func (e *BotChatEntity) SetDtLastInteraction(v time.Time) {
 }
 
 // GetGaClientID returns Google Analytics client UUID
-func (e *BotChatEntity) GetGaClientID() uuid.UUID {
+func (e *BotChatEntity) GetGaClientID() string {
 	var v uuid.UUID
 	var err error
 	if len(e.GaClientID) == 0 {
@@ -124,7 +124,7 @@ func (e *BotChatEntity) GetGaClientID() uuid.UUID {
 	} else if v, err = uuid.FromBytes(e.GaClientID); err != nil {
 		panic(fmt.Sprintf("Failed to create UUID from bytes: len(%v)=%v", e.GaClientID, len(e.GaClientID)))
 	}
-	return v
+	return v.String()
 }
 
 // SetDtUpdateToNow mark entity updated with now

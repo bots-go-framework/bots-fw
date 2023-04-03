@@ -3,7 +3,6 @@ package botsfw
 import (
 	"time"
 
-	"github.com/satori/go.uuid"
 	"github.com/strongo/app/user"
 )
 
@@ -42,7 +41,7 @@ type BotChat interface {
 	GetWizardParam(key string) string
 	PopStepsFromAwaitingReplyUpToSpecificParent(code string)
 	PushStepToAwaitingReplyTo(code string)
-	GetGaClientID() uuid.UUID
+	GetGaClientID() string
 }
 
 // NewChatID create a new bot chat ID, returns string

@@ -312,7 +312,7 @@ func (gac gaContext) GaCommon() gamp.Common {
 		return gamp.Common{
 			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
 			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
-			ClientID:      whcb.chatEntity.GetGaClientID().String(),
+			ClientID:      whcb.chatEntity.GetGaClientID(),
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
 			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
 			DataSource:    "bot",
