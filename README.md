@@ -1,6 +1,9 @@
 # 🏋️ Strongo Bots Framework
 A [Go language](https://golang.org/) framework to develop bots for messengers.
 
+Developed & shared by [Sneat-co](https://github.com/sneat-co) & [Strongo](https://github.com/strongo) teams 
+with usage of [dalgo](https://github.com/dal-go) library. 
+
 **Reasons to use**:
  
  * Same code can work across different  messenger (_Telegram, Facebook Messenger, Viber, Skype, Line, Kik, WeChat, etc._)
