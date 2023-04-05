@@ -1,4 +1,4 @@
-# 🏋️ Strongo Bots Framework
+# 🏋️ Strongo [Bots Go Framework](https://github.com/bots-go-framework)
 A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 Developed & shared by [Sneat-co](https://github.com/sneat-co) & [Strongo](https://github.com/strongo) teams 
