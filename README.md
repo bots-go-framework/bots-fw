@@ -11,7 +11,7 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 
 ## ♺ Continuous Integration
-![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go_ci.yml/badge.svg)
+![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/strongo/bots-framework?cache=1)](https://goreportcard.com/report/github.com/strongo/bots-framework)
 [![GoDoc](https://godoc.org/github.com/strongo/bots-framework?status.svg)](https://godoc.org/github.com/strongo/bots-framework)
 
