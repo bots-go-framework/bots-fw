@@ -1,0 +1,5 @@
+{
+  "extends": [
+    "github>dal-go/dalgo-renovate-config"
+  ]
+}
