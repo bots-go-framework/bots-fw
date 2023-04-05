@@ -1,7 +1,7 @@
 package botsfw
 
 import (
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 
 	"context"

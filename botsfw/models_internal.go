@@ -2,7 +2,7 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/strongo/app/user"
 	"net/url"
 	"strings"
@@ -124,7 +124,11 @@ func (e *BotChatEntity) GetGaClientID() string {
 	var v uuid.UUID
 	var err error
 	if len(e.GaClientID) == 0 {
-		v = uuid.Must(uuid.NewV4(), nil)
+		var err error
+		v, err = uuid.NewRandom()
+		if err != nil {
+			panic(fmt.Sprintf("Failed to create UUID: %v", err))
+		}
 		e.GaClientID = v[:]
 	} else if v, err = uuid.FromBytes(e.GaClientID); err != nil {
 		panic(fmt.Sprintf("Failed to create UUID from bytes: len(%v)=%v", e.GaClientID, len(e.GaClientID)))

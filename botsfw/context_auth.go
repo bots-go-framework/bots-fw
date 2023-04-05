@@ -3,7 +3,7 @@ package botsfw
 import (
 	"context"
 	"fmt"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/log"
 )
 

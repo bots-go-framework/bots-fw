@@ -59,7 +59,7 @@ You can use any Bot API library by implementing couple of simple interface but t
   * [strongo/bots-api-viber](https://github.com/strongo/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
   
 ## Other Go libraries used by the bot framework
-  * [strongo/dalgo](https://github.com/strongo/dalgo) - Database abstraction layer (DAL) in Go language
+  * [strongo/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
   * [strongo/gamp](https://github.com/strongo/gamp) - Golang buffered client for Google Analytics (GA) Measurement Protocol
   * [julienschmidt/httprouter](https://github.com/julienschmidt/httprouter) - A high performance HTTP request router that scales well
   * [pkg/errors](https://github.com/pkg/errors) - Simple error handling primitives

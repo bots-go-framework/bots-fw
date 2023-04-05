@@ -2,7 +2,7 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/strongo/dalgo/dal"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 	"time"
 
