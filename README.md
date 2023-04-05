@@ -57,12 +57,12 @@ We would be happy to place a link to your example / bot that is implemented usin
 
 ## 📦 Go API libraries used by the framework to talk to messengers
 You can use any Bot API library by implementing couple of simple interface but the framework comes with few buildins:
-  * [strongo/bots-api-telegram](https://github.com/strongo/bots-api-telegram) - Go library for [**Telegram** Bot API](https://core.telegram.org/bots/api)
-  * [strongo/bots-api-fbm](https://github.com/strongo/bots-api-fbm) - Go library for [**Facebook Messenger** Bot API](https://developers.facebook.com/docs/messenger-platform)
-  * [strongo/bots-api-viber](https://github.com/strongo/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
+  * [bots-go-framework/bots-api-telegram](https://github.com/bots-go-framework/bots-api-telegram) - Go library for [**Telegram** Bot API](https://core.telegram.org/bots/api)
+  * [bots-go-framework/bots-api-fbm](https://github.com/bots-go-framework/bots-api-fbm) - Go library for [**Facebook Messenger** Bot API](https://developers.facebook.com/docs/messenger-platform)
+  * [bots-go-framework/bots-api-viber](https://github.com/bots-go-framework/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
   
 ## 📦 Other Go libraries used by the bot framework
-  * [strongo/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
+  * [dal-go/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
   * [strongo/gamp](https://github.com/strongo/gamp) - Golang buffered client for Google Analytics (GA) Measurement Protocol
   * [julienschmidt/httprouter](https://github.com/julienschmidt/httprouter) - A high performance HTTP request router that scales well
   * [pkg/errors](https://github.com/pkg/errors) - Simple error handling primitives
