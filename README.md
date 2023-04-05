@@ -1,4 +1,4 @@
-# Strongo Bots Framework
+# 🏋️ Strongo Bots Framework
 A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 **Reasons to use**:
@@ -10,12 +10,12 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
  * It's fast   
 
 
-## Conitious Integration
-![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/test.yml/badge.svg)
+## ♺ Continuous Integration
+![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go_ci.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/strongo/bots-framework?cache=1)](https://goreportcard.com/report/github.com/strongo/bots-framework)
 [![GoDoc](https://godoc.org/github.com/strongo/bots-framework?status.svg)](https://godoc.org/github.com/strongo/bots-framework)
 
-## Usage
+## 🍿 Usage
 
 	func InitBot(httpRouter *httprouter.Router, botHost bots.BotHost, appContext common.DebtsTrackerAppContext) {
 	
@@ -42,23 +42,23 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 		)
 	}
 
-## Sample bots built with Strongo Bots Framework
+## 🤖 Sample bots built with Strongo Bots Framework
 The best way to learn is to see examples of usage. Here is few:
-  * [**Reversi** game](https://github.com/prizarena/reversi) - open source game. (*Telegram: [@ReversiGameBot](https://t.me/ReversiGameBot)*)
-  * [**Bidding Tic-Tac-Toe**](https://github.com/prizarena/bidding-tictactoe) - open source game. (*Telegram: [@BiddingTicTacToeBot](https://t.me/BiddingTicTacToeBot)*)
-  * [**Rock-Paper-Scissors**](https://github.com/prizarena/rock-paper-scissors) - open source game. (*Telegram: [@playRockPaperScissorsBot](https://t.me/playRockPaperScissorsBot)*)
-  * [**Debtus.app**](http://debtus.app/) —  a bot & a reminder service that helps to track your debts & credits.
+  * ⚫⚪ [**Reversi** game](https://github.com/prizarena/reversi) - open source game. (*Telegram: [@ReversiGameBot](https://t.me/ReversiGameBot)*)
+  * ✖️⭕ [**Bidding Tic-Tac-Toe**](https://github.com/prizarena/bidding-tictactoe) - open source game. (*Telegram: [@BiddingTicTacToeBot](https://t.me/BiddingTicTacToeBot)*)
+  * 📃✂️ [**Rock-Paper-Scissors**](https://github.com/prizarena/rock-paper-scissors) - open source game. (*Telegram: [@playRockPaperScissorsBot](https://t.me/playRockPaperScissorsBot)*)
+  * 💸📝 [**Debtus.app**](http://debtus.app/) —  a bot & a reminder service that helps to track your debts & credits.
   Sends automated reminders to you & your debtors (_in messenger, email, SMS_).
 
 We would be happy to place a link to your example / bot that is implemented using this framework.
 
-## Go API libraries used by the framework to talk to messengers
+## 📦 Go API libraries used by the framework to talk to messengers
 You can use any Bot API library by implementing couple of simple interface but the framework comes with few buildins:
   * [strongo/bots-api-telegram](https://github.com/strongo/bots-api-telegram) - Go library for [**Telegram** Bot API](https://core.telegram.org/bots/api)
   * [strongo/bots-api-fbm](https://github.com/strongo/bots-api-fbm) - Go library for [**Facebook Messenger** Bot API](https://developers.facebook.com/docs/messenger-platform)
   * [strongo/bots-api-viber](https://github.com/strongo/bots-api-viber) - Go library for [**Viber** Bot API](https://developers.viber.com/)
   
-## Other Go libraries used by the bot framework
+## 📦 Other Go libraries used by the bot framework
   * [strongo/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
   * [strongo/gamp](https://github.com/strongo/gamp) - Golang buffered client for Google Analytics (GA) Measurement Protocol
   * [julienschmidt/httprouter](https://github.com/julienschmidt/httprouter) - A high performance HTTP request router that scales well
@@ -67,7 +67,7 @@ You can use any Bot API library by implementing couple of simple interface but t
 ## [Can I use &mdash; features cross-table for bot messenger APIs](can-i-use-bots-api.md)
 We are building a [cross-table of features](can-i-use-bots-api.md) supported by different bot APIs.
   
-## Contributors
+## 🫂 Contributors
   * [Alexander Trakhimenok](https://ie.linkedin.com/in/alexandertrakhimenok)
 
 ## Press
