@@ -11,7 +11,7 @@ A [Go language](https://golang.org/) framework to develop bots for messengers.
 
 
 ## ♺ Continuous Integration
-![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go.yml/badge.svg)
+[![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go.yml/badge.svg)](https://github.com/bots-go-framework/bots-fw/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/strongo/bots-framework?cache=1)](https://goreportcard.com/report/github.com/strongo/bots-framework)
 [![GoDoc](https://godoc.org/github.com/strongo/bots-framework?status.svg)](https://godoc.org/github.com/strongo/bots-framework)
 
@@ -70,8 +70,8 @@ We are building a [cross-table of features](can-i-use-bots-api.md) supported by 
 ## 🫂 Contributors
   * [Alexander Trakhimenok](https://ie.linkedin.com/in/alexandertrakhimenok)
 
-## Press
+## 📰 Press
 There are no articles about the Strongo Bots Framework just yet. Send us a link if you find such.
   
-## [License](https://github.com/strongo/bots-framework/blob/master/LICENSE)
+## 📜 [License](https://github.com/strongo/bots-framework/blob/master/LICENSE)
 Licensed under Apache 2.0 license
