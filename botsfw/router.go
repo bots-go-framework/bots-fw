@@ -509,7 +509,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 
 			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 			pathPrefix := "bot/"
-			var pageview gamp.Pageview
+			var pageview *gamp.Pageview
 			var chatEntity BotChat
 			if inputType != WebhookInputCallbackQuery {
 				chatEntity = whc.ChatEntity()
@@ -527,7 +527,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 			}
 
 			pageview.Common = ga.GaCommon()
-			if err := ga.Queue(&pageview); err != nil {
+			if err := ga.Queue(pageview); err != nil {
 				if strings.Contains(err.Error(), "no tracking ID") {
 					log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
 				} else {
