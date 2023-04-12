@@ -3,7 +3,7 @@ module github.com/bots-go-framework/bots-fw
 go 1.20
 
 require (
-	github.com/dal-go/dalgo v0.2.4
+	github.com/dal-go/dalgo v0.2.5
 	github.com/google/uuid v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
