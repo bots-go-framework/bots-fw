@@ -9,8 +9,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 h1:xoIK0ctDddBMnc74udxJYBqlo9Ylnsp1waqjLsnef20=
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
-github.com/strongo/app v0.0.2 h1:BBM+U9v4pfIeLmHiC3hAeJewjbBOqBqiOmbT9K3dQas=
-github.com/strongo/app v0.0.2/go.mod h1:CVpVW5I9Hat8LNcN42Bvlzv8+mZRsNQ2ZQHLH1mz8Qw=
+github.com/strongo/app v0.0.5 h1:C1PHq40KN5rgS3MaHptBn2A1I5gDQ3GEf165aRQrTno=
+github.com/strongo/app v0.0.5/go.mod h1:m0dy7TduD9JuWndwUMQUaOcfBjI63TAqrpQnSVGo/fA=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
 github.com/strongo/emoji v0.0.1/go.mod h1:aawHc+8HqsTyoNQj2DknYL/jVp2WQ1GCJgPrJz6MD8w=
 github.com/strongo/gamp v0.0.1 h1:b6vzHUzNvbPOhzPtIja1NqKf8GQqrJWjs2gninQPZac=
