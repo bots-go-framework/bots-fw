@@ -63,12 +63,20 @@ func (whcb *WebhookContextBase) LogRequest() {
 
 // RunReadwriteTransaction starts a transaction. This needed to coordinate application & framework changes.
 func (whcb *WebhookContextBase) RunReadwriteTransaction(c context.Context, f dal.RWTxWorker, options ...dal.TransactionOption) error {
-	return whcb.botContext.BotHost.DB().RunReadwriteTransaction(c, f, options...)
+	db, err := whcb.botContext.BotHost.DB(c)
+	if err != nil {
+		return err
+	}
+	return db.RunReadwriteTransaction(c, f, options...)
 }
 
 // RunReadonlyTransaction starts a readonly transaction.
 func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
-	return whcb.botContext.BotHost.DB().RunReadonlyTransaction(c, f, options...)
+	db, err := whcb.botContext.BotHost.DB(c)
+	if err != nil {
+		return err
+	}
+	return db.RunReadonlyTransaction(c, f, options...)
 }
 
 // IsInTransaction detects if request is within a transaction

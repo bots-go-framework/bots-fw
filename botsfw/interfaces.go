@@ -19,7 +19,7 @@ type BotHost interface {
 	Context(r *http.Request) context.Context
 	GetHTTPClient(c context.Context) *http.Client
 	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
-	DB() dal.Database
+	DB(c context.Context) (db dal.Database, err error)
 }
 
 // botContext describes current bot app host & settings

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// BotEntity holds properties common to al bot entitites
+// BotEntity holds properties common to al bot entities
 type BotEntity struct {
 	AccessGranted bool
 	user.OwnedByUserWithIntID
@@ -29,8 +29,8 @@ func (e *BotEntity) SetAccessGranted(value bool) bool {
 	return false
 }
 
-// BotUserEntity hold common properties for bot user entities
-type BotUserEntity struct {
+// BotUserData hold common properties for bot user entities
+type BotUserData struct {
 	BotEntity
 	user.LastLogin
 
@@ -39,8 +39,8 @@ type BotUserEntity struct {
 	UserName  string // optional
 }
 
-// BotChatEntity hold common properties for bot chat entities
-type BotChatEntity struct {
+// BotChatData hold common properties for bot chat entities not specific to any platform
+type BotChatData struct {
 	BotEntity
 	AppUserIntIDs []int64
 	BotID         string `datastore:",noindex"`
@@ -59,35 +59,35 @@ type BotChatEntity struct {
 	LanguageCodes     []string  `datastore:",noindex"` // UI languages
 }
 
-var _ BotChat = (*BotChatEntity)(nil)
+var _ BotChat = (*BotChatData)(nil)
 
 // GetAppUserStrID returns app user ID as string
-func (e *BotChatEntity) GetAppUserStrID() string {
+func (e *BotChatData) GetAppUserStrID() string {
 	return fmt.Sprintf("%d", e.GetAppUserIntID())
 }
 
 // GetBotID returns bot ID
-func (e *BotChatEntity) GetBotID() string {
+func (e *BotChatData) GetBotID() string {
 	return e.BotID
 }
 
 // IsGroupChat indicates if it is a group chat
-func (e *BotChatEntity) IsGroupChat() bool {
+func (e *BotChatData) IsGroupChat() bool {
 	return e.IsGroup
 }
 
 // SetIsGroupChat marks chat as a group one
-func (e *BotChatEntity) SetIsGroupChat(v bool) {
+func (e *BotChatData) SetIsGroupChat(v bool) {
 	e.IsGroup = v
 }
 
 // SetBotID sets bot ID
-func (e *BotChatEntity) SetBotID(botID string) {
+func (e *BotChatData) SetBotID(botID string) {
 	e.BotID = botID
 }
 
 // AddClientLanguage adds client UI language
-func (e *BotChatEntity) AddClientLanguage(languageCode string) (changed bool) {
+func (e *BotChatData) AddClientLanguage(languageCode string) (changed bool) {
 	if languageCode == "" || languageCode == "root" {
 		return false
 	}
@@ -100,27 +100,27 @@ func (e *BotChatEntity) AddClientLanguage(languageCode string) (changed bool) {
 	return false
 }
 
-// func (e *BotChatEntity) GetBotUserIntID() int {
+// func (e *BotChatData) GetBotUserIntID() int {
 // 	panic("Should be overwritten in subclass")
 // }
 //
-// func (e *BotChatEntity) GetBotUserStringID() string {
+// func (e *BotChatData) GetBotUserStringID() string {
 // 	panic("Should be overwritten in subclass")
 // }
 
 // SetBotUserID sets bot user ID
-func (e *BotChatEntity) SetBotUserID(id interface{}) {
+func (e *BotChatData) SetBotUserID(id interface{}) {
 	panic(fmt.Sprintf("Should be overwritten in subclass, got: %T=%v", id, id))
 }
 
 // SetDtLastInteraction sets date time of last interaction
-func (e *BotChatEntity) SetDtLastInteraction(v time.Time) {
+func (e *BotChatData) SetDtLastInteraction(v time.Time) {
 	e.DtLastInteraction = v
 	e.InteractionsCount++
 }
 
 // GetGaClientID returns Google Analytics client UUID
-func (e *BotChatEntity) GetGaClientID() string {
+func (e *BotChatData) GetGaClientID() string {
 	var v uuid.UUID
 	var err error
 	if len(e.GaClientID) == 0 {
@@ -137,37 +137,37 @@ func (e *BotChatEntity) GetGaClientID() string {
 }
 
 // SetDtUpdateToNow mark entity updated with now
-func (e *BotChatEntity) SetDtUpdateToNow() {
+func (e *BotChatData) SetDtUpdateToNow() {
 	e.DtUpdated = time.Now()
 }
 
 // GetAwaitingReplyTo returns current state
-func (e *BotChatEntity) GetAwaitingReplyTo() string {
+func (e *BotChatData) GetAwaitingReplyTo() string {
 	return e.AwaitingReplyTo
 }
 
 // SetAwaitingReplyTo sets current state
-func (e *BotChatEntity) SetAwaitingReplyTo(value string) {
+func (e *BotChatData) SetAwaitingReplyTo(value string) {
 	e.AwaitingReplyTo = strings.TrimLeft(value, "/")
 }
 
 // GetPreferredLanguage returns preferred language
-func (e *BotChatEntity) GetPreferredLanguage() string {
+func (e *BotChatData) GetPreferredLanguage() string {
 	return e.PreferredLanguage
 }
 
 // SetPreferredLanguage sets preferred language
-func (e *BotChatEntity) SetPreferredLanguage(value string) {
+func (e *BotChatData) SetPreferredLanguage(value string) {
 	e.PreferredLanguage = value
 }
 
 // IsAwaitingReplyTo returns true if bot us awaiting reply to a specific command
-func (e *BotChatEntity) IsAwaitingReplyTo(code string) bool {
+func (e *BotChatData) IsAwaitingReplyTo(code string) bool {
 	awaitingReplyToPath := e.getAwaitingReplyToPath()
 	return awaitingReplyToPath == code || strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator+code)
 }
 
-func (e *BotChatEntity) getAwaitingReplyToPath() string {
+func (e *BotChatData) getAwaitingReplyToPath() string {
 	pathAndQuery := strings.SplitN(e.AwaitingReplyTo, AwaitingReplyToPath2QuerySeparator, 2)
 	if len(pathAndQuery) > 1 {
 		return pathAndQuery[0]
@@ -176,7 +176,7 @@ func (e *BotChatEntity) getAwaitingReplyToPath() string {
 }
 
 // PopStepsFromAwaitingReplyUpToSpecificParent go back in state
-func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string) {
+func (e *BotChatData) PopStepsFromAwaitingReplyUpToSpecificParent(step string) {
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AwaitingReplyToPath2QuerySeparator, 2)
 	path := pathAndQuery[0]
@@ -201,7 +201,7 @@ func (e *BotChatEntity) PopStepsFromAwaitingReplyUpToSpecificParent(step string)
 }
 
 // PushStepToAwaitingReplyTo go down in state
-func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string) {
+func (e *BotChatData) PushStepToAwaitingReplyTo(step string) {
 	awaitingReplyTo := e.AwaitingReplyTo
 	pathAndQuery := strings.SplitN(awaitingReplyTo, AwaitingReplyToPath2QuerySeparator, 2)
 	if len(pathAndQuery) > 1 { // Has query part - something after "?" character
@@ -220,7 +220,7 @@ func (e *BotChatEntity) PushStepToAwaitingReplyTo(step string) {
 }
 
 // AddWizardParam adds context param to state
-func (e *BotChatEntity) AddWizardParam(key, value string) {
+func (e *BotChatData) AddWizardParam(key, value string) {
 	awaitingReplyTo := e.GetAwaitingReplyTo()
 	awaitingURL, err := url.Parse(awaitingReplyTo)
 	if err != nil {
@@ -233,7 +233,7 @@ func (e *BotChatEntity) AddWizardParam(key, value string) {
 }
 
 // GetWizardParam returns state param value
-func (e *BotChatEntity) GetWizardParam(key string) string {
+func (e *BotChatData) GetWizardParam(key string) string {
 	u, err := url.Parse(e.GetAwaitingReplyTo())
 	if err != nil {
 		return ""

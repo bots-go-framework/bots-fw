@@ -1,7 +1,5 @@
-github.com/dal-go/dalgo v0.2.4 h1:qlktKGErF24OeNptMWpQxz+jz7wL005KvPXPl6JptV8=
-github.com/dal-go/dalgo v0.2.4/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
-github.com/dal-go/dalgo v0.2.5 h1:eeGvDez2Va+gUC5odEwVyI1tME+BPYwC/pR/Nsyow0I=
-github.com/dal-go/dalgo v0.2.5/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
+github.com/dal-go/dalgo v0.2.6 h1:Eg1pb327PApKQi8XoNmqba3D6OdaD6cTym6vWLnCmDE=
+github.com/dal-go/dalgo v0.2.6/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -11,8 +9,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 h1:xoIK0ctDddBMnc74udxJYBqlo9Ylnsp1waqjLsnef20=
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
-github.com/strongo/app v0.0.2 h1:BBM+U9v4pfIeLmHiC3hAeJewjbBOqBqiOmbT9K3dQas=
-github.com/strongo/app v0.0.2/go.mod h1:CVpVW5I9Hat8LNcN42Bvlzv8+mZRsNQ2ZQHLH1mz8Qw=
 github.com/strongo/app v0.0.5 h1:C1PHq40KN5rgS3MaHptBn2A1I5gDQ3GEf165aRQrTno=
 github.com/strongo/app v0.0.5/go.mod h1:m0dy7TduD9JuWndwUMQUaOcfBjI63TAqrpQnSVGo/fA=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
