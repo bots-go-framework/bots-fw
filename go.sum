@@ -1,7 +1,5 @@
-github.com/dal-go/dalgo v0.2.6 h1:Eg1pb327PApKQi8XoNmqba3D6OdaD6cTym6vWLnCmDE=
-github.com/dal-go/dalgo v0.2.6/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
-github.com/dal-go/dalgo v0.2.9 h1:a2rA+sdc8yfIrZlzvD/cw2GwxFkkf5m8pLUm6NJeHsI=
-github.com/dal-go/dalgo v0.2.9/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
+github.com/dal-go/dalgo v0.2.15 h1:haGOoglQ3fP4wIsRS64q87ghFzZxoQZemFdE4m0j7VU=
+github.com/dal-go/dalgo v0.2.15/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5tPTwIc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -11,8 +9,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 h1:xoIK0ctDddBMnc74udxJYBqlo9Ylnsp1waqjLsnef20=
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
-github.com/strongo/app v0.0.5 h1:C1PHq40KN5rgS3MaHptBn2A1I5gDQ3GEf165aRQrTno=
-github.com/strongo/app v0.0.5/go.mod h1:m0dy7TduD9JuWndwUMQUaOcfBjI63TAqrpQnSVGo/fA=
 github.com/strongo/app v0.0.6 h1:tURqN3cHfFl8wOQuB6tiZD1Awld1lVL5NiNZhhmYNj4=
 github.com/strongo/app v0.0.6/go.mod h1:LfNILeNAQfEHgAcX0lO057BZh4UgCCaJVyUq3p7ZN4Q=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
@@ -23,8 +19,6 @@ github.com/strongo/log v0.0.1 h1:fdncna1E2M0kA6cCQI6knts+GFLsf1V7gmusch2KvFc=
 github.com/strongo/log v0.0.1/go.mod h1:C0OyprbH7WjyhcZXdveDiu5n0vxB8qZ1rQXxtUqx8y4=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
 github.com/strongo/random v0.0.1/go.mod h1:/pSI+SjBNLBkjljNtVdYr6ERddA+LqSa87o0/s+9iuU=
-github.com/strongo/slice v0.1.0 h1:jfYWEKJUZTuzDm271LD+NecACoLqJgZEwtNXQX5qOdQ=
-github.com/strongo/slice v0.1.0/go.mod h1:BU7lwUgp3k4EXTc0zLW2SsPiWeGkDoF3ybu6nlVjFLY=
 github.com/strongo/slice v0.1.2 h1:EWgXEZiEfiKUacVUNE19gxJNfWLsaCvAgaTn4m7SfFg=
 github.com/strongo/slice v0.1.2/go.mod h1:BU7lwUgp3k4EXTc0zLW2SsPiWeGkDoF3ybu6nlVjFLY=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
