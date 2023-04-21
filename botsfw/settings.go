@@ -1,14 +1,16 @@
 package botsfw
 
 import (
-	"fmt"
-
 	"context"
+	"fmt"
 	"github.com/strongo/app"
+	"os"
+	"strings"
 )
 
 // BotSettings keeps parameters of a bot
 type BotSettings struct {
+	Platform         Platform
 	Env              strongo.Environment
 	ID               string
 	Profile          string
@@ -23,7 +25,10 @@ type BotSettings struct {
 }
 
 // NewBotSettings configures bot application
-func NewBotSettings(mode strongo.Environment, profile, code, id, token, gaToken string, locale strongo.Locale) BotSettings {
+func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, id, token, gaToken string, locale strongo.Locale) BotSettings {
+	if platform == "" {
+		panic("NewBotSettings: missing required parameter: platform")
+	}
 	if profile == "" {
 		panic("NewBotSettings: missing required parameter: profile")
 	}
@@ -31,19 +36,28 @@ func NewBotSettings(mode strongo.Environment, profile, code, id, token, gaToken 
 		panic("NewBotSettings: missing required parameter: code")
 	}
 	if token == "" {
-		panic("NewBotSettings: missing required parameter: token")
+		envVarKey := fmt.Sprintf("%s_BOT_TOKEN_%s", strings.ToUpper(string(platform)), strings.ToUpper(code))
+		token = os.Getenv(envVarKey)
+		if token == "" {
+			panic("NewBotSettings: missing required parameter 'token' and no environment variable " + envVarKey)
+		}
+	}
+	if gaToken == "" {
+		envVarKey := fmt.Sprintf("%s_GA_TOKEN_%s", strings.ToUpper(string(platform)), strings.ToUpper(code))
+		gaToken = os.Getenv(envVarKey)
 	}
 	if locale.Code5 == "" {
 		panic("NewBotSettings: missing required parameter: locale.Code5")
 	}
 	return BotSettings{
-		Profile: profile,
-		Code:    code,
-		ID:      id,
-		Env:     mode,
-		Token:   token,
-		Locale:  locale,
-		GAToken: gaToken,
+		Platform: platform,
+		Profile:  profile,
+		Code:     code,
+		ID:       id,
+		Env:      mode,
+		Token:    token,
+		Locale:   locale,
+		GAToken:  gaToken,
 	}
 }
 
