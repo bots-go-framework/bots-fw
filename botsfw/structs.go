@@ -3,6 +3,7 @@ package botsfw
 //go:generate ffjson $GOFILE
 
 import (
+	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"strconv"
 
 	"context"
@@ -79,33 +80,6 @@ type MessageUID interface {
 	UID() string
 }
 
-// KeyboardType defines keyboard type
-type KeyboardType int
-
-//goland:noinspection GoUnusedConst
-const (
-	// KeyboardTypeNone for no keyboard
-	KeyboardTypeNone KeyboardType = iota
-
-	// KeyboardTypeHide commands to hide keyboard
-	KeyboardTypeHide
-
-	// KeyboardTypeInline for inline keyboard
-	KeyboardTypeInline
-
-	// KeyboardTypeBottom for bottom keyboard
-	KeyboardTypeBottom
-
-	// KeyboardTypeForceReply to force reply from a user
-	KeyboardTypeForceReply
-)
-
-// Keyboard defines keyboard
-type Keyboard interface {
-	// KeyboardType defines keyboard type
-	KeyboardType() KeyboardType
-}
-
 // AttachmentType to a bot message
 type AttachmentType int
 
@@ -159,13 +133,13 @@ type BotMessage interface {
 
 // TextMessageFromBot is a text output message from bot to user
 type TextMessageFromBot struct {
-	Text                  string        `json:",omitempty"`
-	Format                MessageFormat `json:",omitempty"`
-	DisableWebPagePreview bool          `json:",omitempty"`
-	DisableNotification   bool          `json:",omitempty"`
-	Keyboard              Keyboard      `json:",omitempty"`
-	IsEdit                bool          `json:",omitempty"`
-	EditMessageUID        MessageUID    `json:",omitempty"`
+	Text                  string              `json:",omitempty"`
+	Format                MessageFormat       `json:",omitempty"`
+	DisableWebPagePreview bool                `json:",omitempty"`
+	DisableNotification   bool                `json:",omitempty"`
+	Keyboard              botsgocore.Keyboard `json:",omitempty"`
+	IsEdit                bool                `json:",omitempty"`
+	EditMessageUID        MessageUID          `json:",omitempty"`
 }
 
 // BotMessageType returns if we want to send a new message or edit existing one
