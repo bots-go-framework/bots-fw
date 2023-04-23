@@ -164,9 +164,8 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 
 	var awaitingReplyTo string
 
-	chatEntity := whc.ChatEntity()
-
 	if !isCommandText {
+		chatEntity := whc.ChatEntity()
 		awaitingReplyTo = chatEntity.GetAwaitingReplyTo()
 	}
 
