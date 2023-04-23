@@ -141,7 +141,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
 
 			if sendStats { // Zero if GA is disabled
-				d.reportErrorToGA(whc, measurementSender, messageText)
+				d.reportErrorToGA(c, whc, measurementSender, messageText)
 			}
 
 			if whc != nil {
@@ -258,7 +258,11 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 	return false
 }
 
-func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
+func (BotDriver) reportErrorToGA(c context.Context, whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
+	log.Warningf(c, "reportErrorToGA() is temporary disabled")
+	if c != nil { // TODO: Remove once fixed
+		return
+	}
 	ga := whc.GA()
 	gaMessage := gamp.NewException(messageText, true)
 
@@ -269,7 +273,6 @@ func (BotDriver) reportErrorToGA(whc WebhookContext, measurementSender *gamp.Buf
 		gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().ID()
 	}
 
-	c := whc.Context()
 	if err := ga.Queue(gaMessage); err != nil {
 		log.Errorf(c, "Failed to queue exception message for GA: %v", err)
 	} else {
