@@ -7,7 +7,7 @@ with usage of [dalgo](https://github.com/dal-go) library.
 **Reasons to use**:
  
  * Same code can work across different  messenger (_Telegram, Facebook Messenger, Viber, Skype, Line, Kik, WeChat, etc._)
- * You can tune your code to a specific messenger's APIs.
+ * You can tune your code to a specific messenger's UX.
  * i18n & l10n support (_multilingual_)   
  * Can be hosted in cloud or just as a standard Go HTTP server. Supports [AppEngine](https://cloud.google.com/appengine/) standard environment.
  * It's fast   
