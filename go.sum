@@ -22,6 +22,8 @@ github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/strongo/app v0.1.0 h1:5IMFqbA38JPwIOkvKKMdtHEvArFACTN82D7SCxbBvnk=
 github.com/strongo/app v0.1.0/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
+github.com/strongo/app v0.2.4 h1:i82iTuFMGZVJP+TBh+ppTa2FFkMyG9F00AyrHLsJIeE=
+github.com/strongo/app v0.2.4/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
 github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
 github.com/strongo/emoji v0.0.1/go.mod h1:aawHc+8HqsTyoNQj2DknYL/jVp2WQ1GCJgPrJz6MD8w=
 github.com/strongo/gamp v0.0.1 h1:b6vzHUzNvbPOhzPtIja1NqKf8GQqrJWjs2gninQPZac=
