@@ -2,7 +2,6 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/strongo/app/user"
 	"net/url"
 	"strings"
@@ -121,19 +120,10 @@ func (e *BotChatData) SetDtLastInteraction(v time.Time) {
 
 // GetGaClientID returns Google Analytics client UUID
 func (e *BotChatData) GetGaClientID() string {
-	var v uuid.UUID
-	var err error
 	if len(e.GaClientID) == 0 {
-		var err error
-		v, err = uuid.NewRandom()
-		if err != nil {
-			panic(fmt.Sprintf("Failed to create UUID: %v", err))
-		}
-		e.GaClientID = v[:]
-	} else if v, err = uuid.FromBytes(e.GaClientID); err != nil {
-		panic(fmt.Sprintf("Failed to create UUID from bytes: len(%v)=%v", e.GaClientID, len(e.GaClientID)))
+		e.GaClientID = []byte(randomString(32))
 	}
-	return v.String()
+	return string(e.GaClientID)
 }
 
 // SetDtUpdateToNow mark entity updated with now

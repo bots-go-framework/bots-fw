@@ -1,7 +1,6 @@
 package botsfw
 
 import (
-	"github.com/strongo/log"
 	"net/http"
 )
 

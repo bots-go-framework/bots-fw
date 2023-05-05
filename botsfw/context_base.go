@@ -12,7 +12,6 @@ import (
 	"context"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
-	"github.com/strongo/log"
 )
 
 // WebhookContextBase provides base implementation of WebhookContext interface

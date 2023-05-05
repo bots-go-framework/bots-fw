@@ -13,7 +13,6 @@ import (
 	"errors"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
-	"github.com/strongo/log"
 )
 
 // ErrorIcon is used to report errors to user

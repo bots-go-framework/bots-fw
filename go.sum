@@ -5,8 +5,6 @@ github.com/dal-go/dalgo v0.2.26/go.mod h1:b0U+y2xjE5xY+HJ+vAt1DDcJe32N98tbRWDp5t
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
-github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 h1:xoIK0ctDddBMnc74udxJYBqlo9Ylnsp1waqjLsnef20=
@@ -18,12 +16,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/strongo/app v0.1.0 h1:5IMFqbA38JPwIOkvKKMdtHEvArFACTN82D7SCxbBvnk=
-github.com/strongo/app v0.1.0/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
 github.com/strongo/app v0.2.4 h1:i82iTuFMGZVJP+TBh+ppTa2FFkMyG9F00AyrHLsJIeE=
 github.com/strongo/app v0.2.4/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
-github.com/strongo/emoji v0.0.1 h1:0Zev257CEmTVSyMiAovjqtgP+JKclp2e1c2V/jfVqwc=
-github.com/strongo/emoji v0.0.1/go.mod h1:aawHc+8HqsTyoNQj2DknYL/jVp2WQ1GCJgPrJz6MD8w=
 github.com/strongo/gamp v0.0.1 h1:b6vzHUzNvbPOhzPtIja1NqKf8GQqrJWjs2gninQPZac=
 github.com/strongo/gamp v0.0.1/go.mod h1:ZcVVIzSQFygVehdtGh6KYmcp1eOacuEKb9th81WcUOw=
 github.com/strongo/log v0.0.2 h1:8ZCCfGbq0SX8AyUklcqHxajMXj1/OaPS1a/G6LMzUB8=

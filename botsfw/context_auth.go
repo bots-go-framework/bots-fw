@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/log"
 )
 
 // SetAccessGranted marks current context as authenticated

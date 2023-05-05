@@ -1,16 +1,12 @@
 package botsfw
 
 import (
+	"errors"
 	"fmt"
-	// "net/http"
+	"github.com/strongo/app"
+	"github.com/strongo/gamp"
 	"net/url"
 	"strings"
-
-	"errors"
-	"github.com/strongo/app"
-	"github.com/strongo/emoji/go/emoji"
-	"github.com/strongo/gamp"
-	"github.com/strongo/log"
 )
 
 // TypeCommands container for commands
@@ -561,7 +557,7 @@ func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, match
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +
 				"\n\n" +
-				emoji.AngerSymbol +
+				"💢" +
 				fmt.Sprintf(" Server error - failed to process message: %v", err),
 		)
 

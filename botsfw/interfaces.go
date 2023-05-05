@@ -1,11 +1,11 @@
 package botsfw
 
 import (
-	"github.com/dal-go/dalgo/dal"
+	"context"
 	"net/http"
 	"time"
 
-	"context"
+	"github.com/dal-go/dalgo/dal"
 )
 
 // BotPlatform describes current bot platform
@@ -22,7 +22,7 @@ type BotHost interface {
 	DB(c context.Context) (db dal.Database, err error)
 }
 
-// botContext describes current bot app host & settings
+// BotContext describes current bot app host & settings
 type BotContext struct {
 	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
 	BotHost     BotHost
