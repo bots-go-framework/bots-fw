@@ -16,7 +16,8 @@ type BotUserStore interface {
 	SaveBotUser(c context.Context, botUserID string, botUserData BotUser) error
 
 	// CreateBotUser creates new bot user in DB
-	// Deprecated: should be moved to bots-fw-* package
+	// TODO: should be moved to bots-fw-* package or documented why we need a dedicated method for this
 	CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (BotUser, error)
+
 	//io.Closer
 }
