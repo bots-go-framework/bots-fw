@@ -16,12 +16,12 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/strongo/app v0.2.4 h1:i82iTuFMGZVJP+TBh+ppTa2FFkMyG9F00AyrHLsJIeE=
-github.com/strongo/app v0.2.4/go.mod h1:GxRrxCm3DYVZmKWOQWLBFpGD7KgmUozQfogIPGOHKUk=
+github.com/strongo/app v0.3.0 h1:OzgADc/HPa/cleD9EIJSgoMT12w8hEmLtjxyNI1qau4=
+github.com/strongo/app v0.3.0/go.mod h1:xPE1dmccArgH6xcyyS6c+r2uaB1GCBmUlvXgt45PRsM=
 github.com/strongo/gamp v0.0.1 h1:b6vzHUzNvbPOhzPtIja1NqKf8GQqrJWjs2gninQPZac=
 github.com/strongo/gamp v0.0.1/go.mod h1:ZcVVIzSQFygVehdtGh6KYmcp1eOacuEKb9th81WcUOw=
-github.com/strongo/log v0.2.3 h1:Qc3YoNUYvZjCxwHdfl0Ne/XUCQfpxAyYJDucsy5PmCI=
-github.com/strongo/log v0.2.3/go.mod h1:C0OyprbH7WjyhcZXdveDiu5n0vxB8qZ1rQXxtUqx8y4=
+github.com/strongo/i18n v0.0.2 h1:UNEUj9NHlEZIeV/tluFSE2cQcKmnIOkCbdO4Zmbq4pE=
+github.com/strongo/i18n v0.0.2/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
 github.com/strongo/random v0.0.1/go.mod h1:/pSI+SjBNLBkjljNtVdYr6ERddA+LqSa87o0/s+9iuU=
 github.com/strongo/slice v0.1.2 h1:EWgXEZiEfiKUacVUNE19gxJNfWLsaCvAgaTn4m7SfFg=

@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/i18n"
 	"net/http"
 
 	"context"
@@ -85,7 +86,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	BotChatStore
 	BotUserStore
 	WebhookInput // TODO: Should be removed!!!
-	strongo.SingleLocaleTranslator
+	i18n.SingleLocaleTranslator
 
 	Responder() WebhookResponder
 }

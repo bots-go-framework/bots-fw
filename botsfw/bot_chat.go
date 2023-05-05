@@ -2,8 +2,6 @@ package botsfw
 
 import (
 	"time"
-
-	"github.com/strongo/app/user"
 )
 
 // BotChat provides data about bot chat
@@ -37,7 +35,8 @@ type BotChat interface {
 	GetPreferredLanguage() string
 	SetPreferredLanguage(value string)
 
-	user.UpdatedTimeSetter
+	SetUpdatedTime(time.Time) // github.com/strongo/user.UpdatedTimeSetter
+
 	SetDtLastInteraction(time time.Time)
 
 	GetAwaitingReplyTo() string

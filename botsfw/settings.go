@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"os"
 	"strings"
 )
@@ -19,13 +20,13 @@ type BotSettings struct {
 	PaymentToken     string
 	PaymentTestToken string
 	VerifyToken      string // Used by Facebook
-	Locale           strongo.Locale
+	Locale           i18n.Locale
 	Router           WebhooksRouter
 	GAToken          string // TODO: Refactor tu support multiple or move out
 }
 
 // NewBotSettings configures bot application
-func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, id, token, gaToken string, locale strongo.Locale) BotSettings {
+func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, id, token, gaToken string, locale i18n.Locale) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
 	}

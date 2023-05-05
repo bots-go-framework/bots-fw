@@ -3,11 +3,11 @@ package botsfw
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/i18n"
 	"net/http"
 	"time"
 
 	"context"
-	"github.com/strongo/app"
 )
 
 type TestWebhookContext struct {
@@ -117,7 +117,7 @@ func (whc TestWebhookContext) ChatEntity() BotChat                   { panic("No
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
 
-func (whc TestWebhookContext) Locale() strongo.Locale       { panic("Not implemented") }
+func (whc TestWebhookContext) Locale() i18n.Locale          { panic("Not implemented") }
 func (whc TestWebhookContext) SetLocale(code5 string) error { panic("Not implemented") }
 
 func (whc TestWebhookContext) NewMessage(text string) MessageFromBot { panic("Not implemented") }

@@ -3,6 +3,7 @@ package botsfw
 import (
 	"fmt"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -28,7 +29,7 @@ type WebhookContextBase struct {
 
 	getLocaleAndChatID func() (locale, chatID string, err error) // TODO: Document why we need to pass context. Is it to support transactions?
 
-	locale strongo.Locale
+	locale i18n.Locale
 
 	//update      tgbotapi.Update
 	chatID     string
@@ -36,7 +37,7 @@ type WebhookContextBase struct {
 
 	BotUserKey *dal.Key
 	appUser    BotAppUser
-	strongo.Translator
+	i18n.Translator
 	//Locales    strongo.LocalesProvider
 
 	BotCoreStores
@@ -553,7 +554,7 @@ func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
 }
 
 // Locale indicates current language
-func (whcb *WebhookContextBase) Locale() strongo.Locale {
+func (whcb *WebhookContextBase) Locale() i18n.Locale {
 	if whcb.locale.Code5 == "" {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
 			if locale := chatEntity.GetPreferredLanguage(); locale != "" {

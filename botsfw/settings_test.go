@@ -3,6 +3,7 @@ package botsfw
 import (
 	"github.com/stretchr/testify/assert"
 	strongo "github.com/strongo/app"
+	"github.com/strongo/i18n"
 	"os"
 	"strings"
 	"testing"
@@ -24,7 +25,7 @@ func TestNewBotSettings(t *testing.T) {
 		assert.Equal(t, gaToken, bs.GAToken)
 	}
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", token, gaToken, strongo.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", token, gaToken, i18n.Locale{Code5: localeCode5})
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -34,7 +35,7 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", "", "", strongo.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", "", "", i18n.Locale{Code5: localeCode5})
 		assertBotSettings(bs)
 	})
 }

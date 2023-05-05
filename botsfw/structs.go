@@ -4,10 +4,10 @@ package botsfw
 
 import (
 	botsgocore "github.com/bots-go-framework/bots-go-core"
+	"github.com/strongo/i18n"
 	"strconv"
 
 	"context"
-	"github.com/strongo/app"
 	//"github.com/strongo/bots-api-fbm"
 )
 
@@ -24,7 +24,7 @@ type EntryInput struct {
 }
 
 // TranslatorProvider translates texts
-type TranslatorProvider func(c context.Context) strongo.Translator
+type TranslatorProvider func(c context.Context) i18n.Translator
 
 // BaseHandler provides base implemnetation of a bot handler
 type BaseHandler struct {
