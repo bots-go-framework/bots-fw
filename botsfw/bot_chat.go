@@ -9,12 +9,8 @@ type BotChat interface {
 	GetBotID() string
 	SetBotID(botID string)
 
-	// GetAppUserIntID returns app user int ID
-	// Deprecated: use GetAppUserStrID instead
-	GetAppUserIntID() int64
-
-	// GetAppUserStrID returns app user string ID
-	GetAppUserStrID() string
+	// GetAppUserID returns app user ID
+	GetAppUserID() string
 
 	SetAppUserIntID(id int64)
 

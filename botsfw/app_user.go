@@ -16,7 +16,7 @@ type BotAppUser interface {
 
 // BotAppUserStore interface for storing user information to persistent store
 type BotAppUserStore interface {
-	GetAppUserByID(c context.Context, appUserID int64, appUser BotAppUser) error
-	CreateAppUser(c context.Context, botID string, actor WebhookActor) (appUserID int64, appUserEntity BotAppUser, err error)
+	GetAppUserByID(c context.Context, appUserID string, appUser BotAppUser) error
+	CreateAppUser(c context.Context, botID string, actor WebhookActor) (appUserID string, appUserEntity BotAppUser, err error)
 	//SaveAppUser(c context.Context, appUserId int64, appUserEntity BotAppUser) error
 }

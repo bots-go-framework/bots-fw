@@ -1,17 +1,24 @@
 package botsfw
 
 import (
-	"github.com/strongo/app/user"
+	"time"
 )
 
 // BotUser interface provides information about bot user
+// This should be implemented by bot user record struct.
 type BotUser interface {
-	// GetAppUserIntID returns app user ID
-	// Deprecated: use GetAppUserStrID instead
-	GetAppUserIntID() int64 // TODO: decommission?
-	GetAppUserStrID() string
+	// GetAppUserID returns app user ID if available
+	GetAppUserID() string
+
+	// IsAccessGranted returns true if access is granted
 	IsAccessGranted() bool
+
+	// SetAccessGranted sets access granted flag
 	SetAccessGranted(value bool) bool
-	SetAppUserIntID(appUserID int64)
-	user.UpdatedTimeSetter // SetUpdatedTime(time.Time) // to satisfy github.com/strongo/app/user.UpdatedTimeSetter
+
+	// SetAppUserID sets app user ID to associate bot user record with app user
+	SetAppUserID(appUserID string)
+
+	// SetUpdatedTime sets last updated time // TODO: document intended usage
+	SetUpdatedTime(time.Time) //to satisfy github.com/strongo/app/user.UpdatedTimeSetter
 }

@@ -60,8 +60,8 @@ type BotChatData struct {
 
 var _ BotChat = (*BotChatData)(nil)
 
-// GetAppUserStrID returns app user ID as string
-func (e *BotChatData) GetAppUserStrID() string {
+// GetAppUserID returns app user ID as string
+func (e *BotChatData) GetAppUserID() string {
 	return fmt.Sprintf("%d", e.GetAppUserIntID())
 }
 

@@ -44,7 +44,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserByID(c context.Context, botUserID interface{}) (BotUser, error) {
+func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (BotUser, error) {
 	panic("Not implemented")
 }
 

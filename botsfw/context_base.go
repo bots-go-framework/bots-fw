@@ -6,7 +6,6 @@ import (
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -157,36 +156,18 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	return whcb.chatID, nil
 }
 
-// AppUserStrID return current app user ID as a string. AppUserIntID() is deprecated.
-func (whcb *WebhookContextBase) AppUserStrID() (appUserID string) {
+// AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
+func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 	if !whcb.isInGroup() {
 		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
-			appUserID = chatEntity.GetAppUserStrID()
+			appUserID = chatEntity.GetAppUserID()
 		}
 	}
 	if appUserID == "" {
 		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
 			panic(fmt.Errorf("failed to get bot user entity: %w", err))
 		} else {
-			appUserID = botUser.GetAppUserStrID()
-		}
-	}
-	return
-}
-
-// AppUserIntID return current app user ID as integer
-// Deprecated: migrated AppUserStrID() instead
-func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
-	if !whcb.isInGroup() {
-		if chatEntity := whcb.ChatEntity(); chatEntity != nil {
-			appUserIntID = chatEntity.GetAppUserIntID()
-		}
-	}
-	if appUserIntID == 0 {
-		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
-			panic(fmt.Errorf("failed to get bot user entity: %w", err))
-		} else {
-			appUserIntID = botUser.GetAppUserIntID()
+			appUserID = botUser.GetAppUserID()
 		}
 	}
 	return
@@ -194,7 +175,7 @@ func (whcb *WebhookContextBase) AppUserIntID() (appUserIntID int64) {
 
 // GetAppUser loads information about current app user from persistent storage
 func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
-	appUserID := whcb.AppUserIntID()
+	appUserID := whcb.AppUserID()
 	appUser := whcb.BotAppContext().NewBotAppUserEntity()
 	err := whcb.BotAppUserStore.GetAppUserByID(whcb.Context(), appUserID, appUser)
 	return appUser, err
@@ -333,7 +314,7 @@ func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
 	if whcb.chatEntity != nil {
 		return gamp.Common{
-			UserID:        strconv.FormatInt(whcb.chatEntity.GetAppUserIntID(), 10),
+			UserID:        whcb.chatEntity.GetAppUserID(),
 			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
 			ClientID:      whcb.chatEntity.GetGaClientID(),
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
@@ -430,7 +411,7 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) 
 	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()
 	botUserID := sender.GetID()
-	botUser, err := whcb.GetBotUserByID(c, botUserID)
+	botUser, err := whcb.GetBotUserByID(c, fmt.Sprintf("%v", botUserID))
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +472,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		if err != nil {
 			return err
 		}
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserStrID(), botChatID, botUser.IsAccessGranted())
+		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext

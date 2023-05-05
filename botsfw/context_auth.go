@@ -36,19 +36,20 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	}
 
 	botUserID := whc.GetSender().GetID()
+	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	if botUser, err := whc.GetBotUserByID(c, botUserID); err != nil {
+	if botUser, err := whc.GetBotUserByID(c, botUserStrID); err != nil {
 		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
 	} else if botUser.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
 	} else {
 		err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
 			botUser.SetAccessGranted(value)
-			if botUser, err = whc.GetBotUserByID(c, botUserID); err != nil {
+			if botUser, err = whc.GetBotUserByID(c, botUserStrID); err != nil {
 				return fmt.Errorf("failed to get transactionally bot user by id=%v: %w", botUserID, err)
 			}
 			if changed := botUser.SetAccessGranted(value); changed {
-				if err = whc.SaveBotUser(c, botUserID, botUser); err != nil {
+				if err = whc.SaveBotUser(c, botUserStrID, botUser); err != nil {
 					err = fmt.Errorf("failed to call whc.SaveBotUser(botUserID=%v): %w", botUserID, err)
 				}
 			}

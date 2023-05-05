@@ -76,8 +76,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	UpdateLastProcessed(chatEntity BotChat) error
 
-	AppUserIntID() int64
-	AppUserStrID() string
+	AppUserID() string
 
 	GetAppUser() (BotAppUser, error)
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
