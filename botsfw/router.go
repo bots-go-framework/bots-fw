@@ -60,20 +60,20 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 	return r
 }
 
-func (router WebhooksRouter) CommandsCount() int {
+func (whr *WebhooksRouter) CommandsCount() int {
 	var count int
-	for _, v := range router.commandsByType {
+	for _, v := range whr.commandsByType {
 		count += len(v.all)
 	}
 	return count
 }
 
 // AddCommands add commands to a router
-func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
-	typeCommands, ok := router.commandsByType[commandsType]
+func (whr *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
+	typeCommands, ok := whr.commandsByType[commandsType]
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
-		router.commandsByType[commandsType] = typeCommands
+		whr.commandsByType[commandsType] = typeCommands
 	} else if commandsType == WebhookInputInlineQuery {
 		panic("Duplicate add of WebhookInputInlineQuery")
 	}
@@ -89,12 +89,12 @@ func (router *WebhooksRouter) AddCommands(commandsType WebhookInputType, command
 }
 
 // RegisterCommands is registering commands with router
-func (router *WebhooksRouter) RegisterCommands(commands []Command) {
+func (whr *WebhooksRouter) RegisterCommands(commands []Command) {
 	addCommand := func(t WebhookInputType, command Command) {
-		typeCommands, ok := router.commandsByType[t]
+		typeCommands, ok := whr.commandsByType[t]
 		if !ok {
 			typeCommands = newTypeCommands(0)
-			router.commandsByType[t] = typeCommands
+			whr.commandsByType[t] = typeCommands
 		}
 		typeCommands.addCommand(command, t)
 	}
@@ -152,7 +152,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 	return nil, callbackURL, err
 }
 
-func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
+func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
 	c := whc.Context()
 
 	var awaitingReplyCommand Command
@@ -196,7 +196,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				// log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
-				if matchedCommand = router.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matchedCommand = whr.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					log.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
@@ -253,7 +253,7 @@ func (router *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Web
 }
 
 // DispatchInlineQuery dispatches inlines query
-func (router *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
+func (whr *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 	panic(fmt.Errorf("not implemented, responder: %+v", responder))
 }
 
@@ -307,7 +307,7 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 }
 
 // Dispatch query to commands
-func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
+func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
@@ -317,7 +317,7 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 
 	inputType := whc.InputType()
 
-	typeCommands, found := router.commandsByType[inputType]
+	typeCommands, found := whr.commandsByType[inputType]
 	if !found {
 		log.Debugf(c, "No commands found to match by inputType: %v", WebhookInputTypeNames[inputType])
 		whc.LogRequest()
@@ -362,9 +362,9 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 				messageText = textMessage.Text()
 				isCommandText = strings.HasPrefix(messageText, "/")
 			}
-			matchedCommand = router.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
+			matchedCommand = whr.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 			if matchedCommand != nil {
-				log.Debugf(c, "router.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
+				log.Debugf(c, "whr.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
 			}
 		}
 		if matchedCommand != nil {
@@ -378,20 +378,20 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 		commandAction = matchedCommand.Action
 	}
 	if err != nil {
-		router.processCommandResponseError(whc, matchedCommand, responder, err)
+		whr.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
 	if matchedCommand == nil {
 		whc.LogRequest()
-		log.Debugf(c, "router.matchMessageCommands() => matchedCommand == nil")
+		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
 		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
-			router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			return
 		}
 		if chat := whc.Chat(); chat != nil && chat.IsGroupChat() {
 			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
-			// router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			// whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
 			chatEntity := whc.ChatEntity()
@@ -401,7 +401,7 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 				}
 			}
 			log.Debugf(c, "No command found for the message: %v", input)
-			router.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
 	} else {
 		if matchedCommand.Code == "" {
@@ -420,7 +420,7 @@ func (router *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder 
 			// 	chatEntity.SetAwaitingReplyTo("")
 			// }
 		}
-		router.processCommandResponse(matchedCommand, responder, whc, m, err)
+		whr.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}
 }
 
@@ -471,9 +471,9 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	}
 }
 
-func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	if err != nil {
-		router.processCommandResponseError(whc, matchedCommand, responder, err)
+		whr.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
@@ -538,7 +538,7 @@ func (router *WebhooksRouter) processCommandResponse(matchedCommand *Command, re
 	}
 }
 
-func (router *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
+func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
 	c := whc.Context()
 	log.Errorf(c, err.Error())
 	env := whc.GetBotSettings().Env
@@ -565,8 +565,8 @@ func (router *WebhooksRouter) processCommandResponseError(whc WebhookContext, ma
 				fmt.Sprintf(" Server error - failed to process message: %v", err),
 		)
 
-		if router.errorFooterText != nil {
-			if footer := router.errorFooterText(); footer != "" {
+		if whr.errorFooterText != nil {
+			if footer := whr.errorFooterText(); footer != "" {
 				m.Text += "\n\n" + footer
 			}
 		}

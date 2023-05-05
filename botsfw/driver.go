@@ -11,7 +11,6 @@ import (
 
 	"context"
 	"errors"
-	"github.com/julienschmidt/httprouter"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/log"
@@ -23,7 +22,7 @@ var ErrorIcon = "🚨"
 // WebhookDriver is doing initial request & final response processing.
 // That includes logging, creating input messages in a general format, sending response.
 type WebhookDriver interface {
-	RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler)
+	RegisterWebhookHandlers(httpRouter HttpRouter, pathPrefix string, webhookHandlers ...WebhookHandler)
 	HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler WebhookHandler)
 }
 
@@ -62,7 +61,7 @@ func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host B
 }
 
 // RegisterWebhookHandlers adds handlers to a bot driver
-func (d BotDriver) RegisterWebhookHandlers(httpRouter *httprouter.Router, pathPrefix string, webhookHandlers ...WebhookHandler) {
+func (d BotDriver) RegisterWebhookHandlers(httpRouter HttpRouter, pathPrefix string, webhookHandlers ...WebhookHandler) {
 	for _, webhookHandler := range webhookHandlers {
 		webhookHandler.RegisterHttpHandlers(d, d.botHost, httpRouter, pathPrefix)
 	}

@@ -20,7 +20,7 @@ with usage of [dalgo](https://github.com/dal-go) library.
 
 ## 🍿 Usage
 
-	func InitBot(httpRouter *httprouter.Router, botHost bots.BotHost, appContext common.DebtsTrackerAppContext) {
+	func InitBot(httpRouter HttpRouter, botHost bots.BotHost, appContext common.DebtsTrackerAppContext) {
 	
 		driver := bots.NewBotDriver( // Orchestrate requests to appropriate handlers
 			bots.AnalyticsSettings{GaTrackingID: common.GA_TRACKING_ID}, // TODO: Refactor to list of analytics providers
@@ -64,7 +64,6 @@ You can use any Bot API library by implementing couple of simple interface but t
 ## 📦 Other Go libraries used by the bot framework
   * [dal-go/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
   * [strongo/gamp](https://github.com/strongo/gamp) - Golang buffered client for Google Analytics (GA) Measurement Protocol
-  * [julienschmidt/httprouter](https://github.com/julienschmidt/httprouter) - A high performance HTTP request router that scales well
 
 ## [Can I use &mdash; features cross-table for bot messenger APIs](can-i-use-bots-api.md)
 We are building a [cross-table of features](can-i-use-bots-api.md) supported by different bot APIs.
