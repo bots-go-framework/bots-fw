@@ -2,41 +2,10 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/strongo/app/user"
 	"net/url"
 	"strings"
 	"time"
 )
-
-// BotEntity holds properties common to al bot entities
-type BotEntity struct {
-	AccessGranted bool
-	user.OwnedByUserWithIntID
-}
-
-// IsAccessGranted indicates if access to the bot has been granted
-func (e *BotEntity) IsAccessGranted() bool {
-	return e.AccessGranted
-}
-
-// SetAccessGranted mark that access has been granted
-func (e *BotEntity) SetAccessGranted(value bool) bool {
-	if e.AccessGranted != value {
-		e.AccessGranted = value
-		return true
-	}
-	return false
-}
-
-// BotUserData hold common properties for bot user entities
-type BotUserData struct {
-	BotEntity
-	user.LastLogin
-
-	FirstName string // required
-	LastName  string // optional
-	UserName  string // optional
-}
 
 // BotChatData hold common properties for bot chat entities not specific to any platform
 type BotChatData struct {
@@ -59,11 +28,6 @@ type BotChatData struct {
 }
 
 var _ BotChat = (*BotChatData)(nil)
-
-// GetAppUserID returns app user ID as string
-func (e *BotChatData) GetAppUserID() string {
-	return fmt.Sprintf("%d", e.GetAppUserIntID())
-}
 
 // GetBotID returns bot ID
 func (e *BotChatData) GetBotID() string {

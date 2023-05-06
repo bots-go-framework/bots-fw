@@ -44,8 +44,8 @@ type AnalyticsSettings struct {
 
 // NewBotDriver registers new bot driver (TODO: describe why we need it)
 func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, panicTextFooter string) WebhookDriver {
-	if appContext.AppUserEntityKind() == "" {
-		panic("appContext.AppUserEntityKind() is empty")
+	if appContext.AppUserCollectionName() == "" {
+		panic("appContext.AppUserCollectionName() is empty")
 	}
 	if host == nil {
 		panic("BotHost == nil")

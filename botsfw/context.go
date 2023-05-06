@@ -1,13 +1,12 @@
 package botsfw
 
 import (
-	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/i18n"
-	"net/http"
-
 	"context"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
+	"github.com/strongo/i18n"
+	"net/http"
 )
 
 // WebhookInlineQueryContext provides context for inline query (TODO: check & document)
