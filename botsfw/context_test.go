@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
@@ -28,11 +29,11 @@ func (whc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (BotUser, error) {
+func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.BotUser, error) {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotChatEntityByID(c context.Context, botID, botChatID string) (BotChat, error) {
+func (whc TestWebhookContext) GetBotChatEntityByID(c context.Context, botID, botChatID string) (botsfwmodels.BotChat, error) {
 	panic("Not implemented")
 }
 
@@ -44,7 +45,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (BotUser, error) {
+func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (botsfwmodels.BotUser, error) {
 	panic("Not implemented")
 }
 
@@ -103,7 +104,7 @@ func (whc TestWebhookContext) TranslateNoWarning(key string, args ...interface{}
 	return key
 }
 
-func (whc TestWebhookContext) NewChatEntity() BotChat { panic("Not implemented") }
+func (whc TestWebhookContext) NewChatEntity() botsfwmodels.BotChat { panic("Not implemented") }
 
 func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
 	panic("Not implemented")
@@ -112,7 +113,7 @@ func (whc TestWebhookContext) Context() context.Context { panic("Not implemented
 
 func (whc TestWebhookContext) ChatKey() *dal.Key                     { panic("Not implemented") }
 func (whc TestWebhookContext) NewChatKey(c context.Context) *dal.Key { panic("Not implemented") }
-func (whc TestWebhookContext) ChatEntity() BotChat                   { panic("Not implemented") }
+func (whc TestWebhookContext) ChatEntity() botsfwmodels.BotChat      { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
@@ -133,8 +134,12 @@ func (whc TestWebhookContext) Responder() WebhookResponder {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) IsNewerThen(chatEntity BotChat) bool          { panic("Not implemented") }
-func (whc TestWebhookContext) UpdateLastProcessed(chatEntity BotChat) error { panic("Not implemented") }
+func (whc TestWebhookContext) IsNewerThen(chatEntity botsfwmodels.BotChat) bool {
+	panic("Not implemented")
+}
+func (whc TestWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.BotChat) error {
+	panic("Not implemented")
+}
 
 func (whc TestWebhookContext) UserID() int64                   { panic("Not implemented") }
 func (whc TestWebhookContext) CurrentUserKey() *dal.Key        { panic("Not implemented") }

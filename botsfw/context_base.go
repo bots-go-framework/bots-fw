@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
@@ -32,7 +33,7 @@ type WebhookContextBase struct {
 
 	//update      tgbotapi.Update
 	chatID     string
-	chatEntity BotChat
+	chatEntity botsfwmodels.BotChat
 
 	BotUserKey *dal.Key
 	appUser    BotAppUser
@@ -314,9 +315,9 @@ func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
 	if whcb.chatEntity != nil {
 		return gamp.Common{
-			UserID:        whcb.chatEntity.GetAppUserID(),
-			UserLanguage:  strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
-			ClientID:      whcb.chatEntity.GetGaClientID(),
+			UserID:       whcb.chatEntity.GetAppUserID(),
+			UserLanguage: strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
+			//ClientID:      whcb.chatEntity.GetGaClientID(), // TODO: Restore feature
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
 			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
 			DataSource:    "bot",
@@ -324,7 +325,7 @@ func (gac gaContext) GaCommon() gamp.Common {
 	}
 	return gamp.Common{
 		DataSource: "bot",
-		ClientID:   "c7ea15eb-3333-4d47-a002-9d1a14996371",
+		ClientID:   "", // TODO: DO NOT USE hardcoded value here!
 	}
 }
 
@@ -380,12 +381,12 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 //}
 
 // SetChatEntity sets app entity for the context (loaded from DB)
-func (whcb *WebhookContextBase) SetChatEntity(chatEntity BotChat) {
+func (whcb *WebhookContextBase) SetChatEntity(chatEntity botsfwmodels.BotChat) {
 	whcb.chatEntity = chatEntity
 }
 
 // ChatEntity returns app entity for the context (loaded from DB)
-func (whcb *WebhookContextBase) ChatEntity() BotChat {
+func (whcb *WebhookContextBase) ChatEntity() botsfwmodels.BotChat {
 	if whcb.chatEntity != nil {
 		return whcb.chatEntity
 	}
@@ -406,7 +407,7 @@ func (whcb *WebhookContextBase) ChatEntity() BotChat {
 }
 
 // GetOrCreateBotUserEntityBase to be documented
-func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (BotUser, error) {
+func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (botsfwmodels.BotUser, error) {
 	c := whcb.Context()
 	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()

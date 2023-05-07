@@ -3,6 +3,7 @@ package botsfw
 import (
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"net/url"
@@ -187,7 +188,7 @@ func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Webhoo
 
 	for _, command := range commands {
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
-			awaitingReplyPrefix := strings.TrimLeft(parentPath+AwaitingReplyToPathSeparator+command.Code, AwaitingReplyToPathSeparator)
+			awaitingReplyPrefix := strings.TrimLeft(parentPath+botsfwmodels.AwaitingReplyToPathSeparator+command.Code, botsfwmodels.AwaitingReplyToPathSeparator)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
@@ -223,13 +224,13 @@ func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Webhoo
 		}
 
 		if !awaitingReplyCommandFound {
-			awaitingReplyToPath := AwaitingReplyToPath(awaitingReplyTo)
-			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator+command.Code) {
+			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
+			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+command.Code) {
 				awaitingReplyCommand = command
 				switch {
 				case awaitingReplyToPath == command.Code:
 					log.Debugf(c, "%v matched by: awaitingReplyToPath == command.ByCode", command.Code)
-				case strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator+command.Code):
+				case strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+command.Code):
 					log.Debugf(c, "%v matched by: strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator + command.ByCode)", command.Code)
 				}
 				awaitingReplyCommandFound = true
@@ -505,7 +506,7 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 			pathPrefix := "bot/"
 			var pageview *gamp.Pageview
-			var chatEntity BotChat
+			var chatEntity botsfwmodels.BotChat
 			if inputType != WebhookInputCallbackQuery {
 				chatEntity = whc.ChatEntity()
 			}

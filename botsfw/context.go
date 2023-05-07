@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"context"
+	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
@@ -55,7 +56,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotToken() string
 	GetBotSettings() BotSettings
 
-	ChatEntity() BotChat
+	ChatEntity() botsfwmodels.BotChat
 
 	// IsInGroup indicates if message was received in a group chat
 	IsInGroup() bool
@@ -73,7 +74,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
-	UpdateLastProcessed(chatEntity BotChat) error
+	UpdateLastProcessed(chatEntity botsfwmodels.BotChat) error
 
 	AppUserID() string
 
@@ -91,7 +92,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 // BotState provides state of the bot (TODO: document how is used)
 type BotState interface {
-	IsNewerThen(chatEntity BotChat) bool
+	IsNewerThen(chatEntity botsfwmodels.BotChat) bool
 }
 
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
