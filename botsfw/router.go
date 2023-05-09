@@ -3,7 +3,7 @@ package botsfw
 import (
 	"errors"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"net/url"

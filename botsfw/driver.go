@@ -181,8 +181,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
 			//	chatEntity.SetPreferredLanguage(whc.Locale().Code5)
 			//}
-			if botCoreStores.BotChatStore != nil {
-				if err := botCoreStores.BotChatStore.Close(c); err != nil {
+			if botCoreStores != nil {
+				if err := botCoreStores.Close(c); err != nil {
 					log.Errorf(c, "Failed to close BotChatStore: %v", err)
 					var m MessageFromBot
 					m.Text = ErrorIcon + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"

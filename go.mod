@@ -6,12 +6,11 @@ go 1.20
 //
 //replace github.com/strongo/i18n => ../../strongo/i18n
 
-//replace github.com/bots-go-framework/bots-fw-models => ../bots-fw-models
+//replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-models v0.0.2
+	github.com/bots-go-framework/bots-fw-store v0.0.4
 	github.com/bots-go-framework/bots-go-core v0.0.1
-	github.com/dal-go/dalgo v0.2.26
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.8.2
 	github.com/strongo/app v0.4.0
@@ -22,6 +21,5 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/strongo/random v0.0.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

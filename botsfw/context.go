@@ -2,8 +2,8 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
-	"github.com/dal-go/dalgo/dal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
@@ -31,7 +31,7 @@ type GaContext interface {
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface { // TODO: Make interface much smaller?
 	GA() GaContext
-	dal.TransactionCoordinator
+	//dal.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider
 	BotPlatform() BotPlatform
@@ -78,12 +78,16 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	AppUserID() string
 
-	GetAppUser() (BotAppUser, error)
+	GetAppUser() (botsfwmodels.BotAppUser, error)
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
-	BotChatStore
-	BotUserStore
+
+	Store() botsfwdal.DataAccess
+	RecordsMaker() botsfwmodels.BotRecordsMaker
+
+	//BotChatStore
+	//BotUserStore
 	WebhookInput // TODO: Should be removed!!!
 	i18n.SingleLocaleTranslator
 

@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 	"time"
-
-	"github.com/dal-go/dalgo/dal"
 )
 
 // BotPlatform describes current bot platform
@@ -18,8 +16,8 @@ type BotPlatform interface {
 type BotHost interface {
 	Context(r *http.Request) context.Context
 	GetHTTPClient(c context.Context) *http.Client
-	GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) BotCoreStores
-	DB(c context.Context) (db dal.Database, err error)
+	//GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
+	//DB(c context.Context) (db dal.Database, err error)
 }
 
 // BotContext describes current bot app host & settings
@@ -306,13 +304,6 @@ type WebhookResponder interface {
 // InputMessage represents single input message
 type InputMessage interface {
 	Text() string
-}
-
-// BotCoreStores provides DI DAL for updating app persistent store
-type BotCoreStores struct {
-	BotChatStore
-	BotUserStore
-	BotAppUserStore
 }
 
 // BotAPISendMessageChannel specifies messenger channel

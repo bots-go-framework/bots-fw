@@ -3,33 +3,34 @@ package botsfw
 import (
 	"context"
 	"fmt"
-	"github.com/dal-go/dalgo/dal"
 )
 
 // SetAccessGranted marks current context as authenticated
 func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	c := whc.Context()
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
+	botID := whc.GetBotCode()
 	chatEntity := whc.ChatEntity()
+	store := whc.Store()
 	if chatEntity != nil {
 		if chatEntity.IsAccessGranted() == value {
 			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
 		} else {
-			if err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if err = store.RunInTransaction(c, botID, func(c context.Context) error {
 				var chatID string
 				if chatID, err = whc.BotChatID(); err != nil {
-					return
+					return err
 				}
-				if chatEntity, err = whc.GetBotChatEntityByID(c, whc.GetBotCode(), chatID); err != nil {
-					return
+				if chatEntity, err = store.GetBotChatEntityByID(c, botID, chatID); err != nil {
+					return err
 				}
 				if changed := chatEntity.SetAccessGranted(value); changed {
-					if err = whc.SaveBotChat(c, whc.GetBotCode(), chatID, chatEntity); err != nil {
+					if err = store.SaveBotChat(c, whc.GetBotCode(), chatID, chatEntity); err != nil {
 						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
 					}
 				}
-				return
-			}, nil); err != nil {
+				return nil
+			}); err != nil {
 				return
 			}
 		}
@@ -38,25 +39,25 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserID := whc.GetSender().GetID()
 	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	if botUser, err := whc.GetBotUserByID(c, botUserStrID); err != nil {
+	if botUser, err := whc.Store().GetBotUserByID(c, botID, botUserStrID); err != nil {
 		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
 	} else if botUser.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
-	} else {
-		err = whc.RunReadwriteTransaction(c, func(c context.Context, tx dal.ReadwriteTransaction) error {
-			botUser.SetAccessGranted(value)
-			if botUser, err = whc.GetBotUserByID(c, botUserStrID); err != nil {
-				return fmt.Errorf("failed to get transactionally bot user by id=%v: %w", botUserID, err)
+	} else if err = store.RunInTransaction(c, botID, func(c context.Context) error {
+		botUser.SetAccessGranted(value)
+		if botUser, err = whc.Store().GetBotUserByID(c, botID, botUserStrID); err != nil {
+			return fmt.Errorf("failed to get transactionally bot user by id=%v: %w", botUserID, err)
+		}
+		if changed := botUser.SetAccessGranted(value); changed {
+			if err = store.SaveBotUser(c, botID, botUserStrID, botUser); err != nil {
+				err = fmt.Errorf("failed to call whc.SaveBotUser(botUserID=%v): %w", botUserID, err)
 			}
-			if changed := botUser.SetAccessGranted(value); changed {
-				if err = whc.SaveBotUser(c, botUserStrID, botUser); err != nil {
-					err = fmt.Errorf("failed to call whc.SaveBotUser(botUserID=%v): %w", botUserID, err)
-				}
-			}
-			return err
-		}, nil)
+		}
+		return err
+	}); err != nil {
+		return err
 	}
-	return err
+	return nil
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
 }
 

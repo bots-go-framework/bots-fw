@@ -12,7 +12,7 @@ import (
 )
 
 // MarshalJSON marshal bytes to json - template
-func (j *BaseHandler) MarshalJSON() ([]byte, error) {
+func (j *WebhookHandlerBase) MarshalJSON() ([]byte, error) {
 	var buf fflib.Buffer
 	if j == nil {
 		buf.WriteString("null")
@@ -26,7 +26,7 @@ func (j *BaseHandler) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalJSONBuf marshal buff to json - template
-func (j *BaseHandler) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+func (j *WebhookHandlerBase) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	if j == nil {
 		buf.WriteString("null")
 		return nil
@@ -85,13 +85,13 @@ var ffjKeyBaseHandlerBotPlatform = []byte("BotPlatform")
 var ffjKeyBaseHandlerTranslatorProvider = []byte("TranslatorProvider")
 
 // UnmarshalJSON umarshall json - template of ffjson
-func (j *BaseHandler) UnmarshalJSON(input []byte) error {
+func (j *WebhookHandlerBase) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
 	return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
 // UnmarshalJSONFFLexer fast json unmarshall - template ffjson
-func (j *BaseHandler) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+func (j *WebhookHandlerBase) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error
 	currentKey := ffjtBaseHandlerbase
 	_ = currentKey

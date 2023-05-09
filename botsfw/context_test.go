@@ -2,8 +2,8 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
-	"github.com/dal-go/dalgo/dal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	//"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
 	"time"
@@ -104,16 +104,14 @@ func (whc TestWebhookContext) TranslateNoWarning(key string, args ...interface{}
 	return key
 }
 
-func (whc TestWebhookContext) NewChatEntity() botsfwmodels.BotChat { panic("Not implemented") }
-
 func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error {
 	panic("Not implemented")
 }
 func (whc TestWebhookContext) Context() context.Context { panic("Not implemented") }
 
-func (whc TestWebhookContext) ChatKey() *dal.Key                     { panic("Not implemented") }
-func (whc TestWebhookContext) NewChatKey(c context.Context) *dal.Key { panic("Not implemented") }
-func (whc TestWebhookContext) ChatEntity() botsfwmodels.BotChat      { panic("Not implemented") }
+// func (whc TestWebhookContext) ChatKey() *dal.Key                     { panic("Not implemented") }
+// func (whc TestWebhookContext) NewChatKey(c context.Context) *dal.Key { panic("Not implemented") }
+func (whc TestWebhookContext) ChatEntity() botsfwmodels.BotChat { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
@@ -141,8 +139,9 @@ func (whc TestWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.BotCha
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) UserID() int64                   { panic("Not implemented") }
-func (whc TestWebhookContext) CurrentUserKey() *dal.Key        { panic("Not implemented") }
-func (whc TestWebhookContext) GetAppUser() (BotAppUser, error) { panic("Not implemented") }
+func (whc TestWebhookContext) UserID() int64 { panic("Not implemented") }
+
+// func (whc TestWebhookContext) CurrentUserKey() *dal.Key                     { panic("Not implemented") }
+func (whc TestWebhookContext) GetAppUser() (botsfwmodels.BotAppUser, error) { panic("Not implemented") }
 
 var _ WebhookContext = TestWebhookContext{}

@@ -1,7 +1,7 @@
 package botsfw
 
 import (
-	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/strongo/app"
 	"github.com/strongo/i18n"
 )
@@ -11,6 +11,6 @@ type BotAppContext interface {
 	strongo.AppUserSettings // TODO: Do we really need it here?
 	i18n.TranslationContext
 
-	NewBotAppUserEntity() BotAppUser
+	NewBotAppUserEntity() botsfwmodels.BotAppUser
 	GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChat
 }

@@ -66,8 +66,8 @@ func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, 
 type SettingsProvider func(c context.Context) SettingsBy
 
 // SettingsBy keeps settings per different keys (ID, code, API token, locale)
+// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 type SettingsBy struct {
-	// TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 	ByCode     map[string]BotSettings
 	ByAPIToken map[string]BotSettings
 	ByLocale   map[string][]BotSettings
@@ -76,10 +76,10 @@ type SettingsBy struct {
 }
 
 // NewBotSettingsBy create settings per different keys (ID, code, API token, locale)
-func NewBotSettingsBy(router func(profile string) WebhooksRouter, bots ...BotSettings) SettingsBy {
+func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...BotSettings) SettingsBy {
 	count := len(bots)
 	settingsBy := SettingsBy{
-		HasRouter:  router != nil,
+		HasRouter:  getRouter != nil,
 		ByCode:     make(map[string]BotSettings, count),
 		ByAPIToken: make(map[string]BotSettings, count),
 		ByLocale:   make(map[string][]BotSettings, count),
@@ -87,7 +87,7 @@ func NewBotSettingsBy(router func(profile string) WebhooksRouter, bots ...BotSet
 	}
 	for _, bot := range bots {
 		if settingsBy.HasRouter {
-			bot.Router = router(bot.Profile)
+			bot.Router = getRouter(bot.Profile)
 		}
 		if _, ok := settingsBy.ByCode[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))

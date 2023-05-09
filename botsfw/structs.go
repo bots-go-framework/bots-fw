@@ -3,6 +3,8 @@ package botsfw
 //go:generate ffjson $GOFILE
 
 import (
+	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/strongo/i18n"
 	"strconv"
@@ -26,16 +28,18 @@ type EntryInput struct {
 // TranslatorProvider translates texts
 type TranslatorProvider func(c context.Context) i18n.Translator
 
-// BaseHandler provides base implemnetation of a bot handler
-type BaseHandler struct {
+// WebhookHandlerBase provides base implementation for a bot handler
+type WebhookHandlerBase struct {
 	WebhookDriver
 	BotHost
 	BotPlatform
+	RecordsMaker       botsfwmodels.BotRecordsMaker
 	TranslatorProvider TranslatorProvider
+	DataAccess         botsfwdal.DataAccess
 }
 
 // Register driver
-func (bh *BaseHandler) Register(d WebhookDriver, h BotHost) {
+func (bh *WebhookHandlerBase) Register(d WebhookDriver, h BotHost) {
 	if d == nil {
 		panic("WebhookDriver == nil")
 	}

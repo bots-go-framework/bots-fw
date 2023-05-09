@@ -2,8 +2,9 @@ package botsfw
 
 import (
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-models/botsfwmodels"
-	"github.com/dal-go/dalgo/dal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	//"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
@@ -15,15 +16,20 @@ import (
 	"github.com/strongo/gamp"
 )
 
+//var _ WebhookContext = (*WebhookContextBase)(nil)
+
 // WebhookContextBase provides base implementation of WebhookContext interface
+// TODO: Document purpose of a dedicated base struct (e.g. example of usage by developers)
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
-	r             *http.Request
-	c             context.Context
-	botAppContext BotAppContext
-	botContext    BotContext // TODO: rename to something strongo
-	botPlatform   BotPlatform
-	input         WebhookInput
+	r                   *http.Request
+	c                   context.Context
+	botAppContext       BotAppContext
+	botContext          BotContext // TODO: rename to something strongo
+	botPlatform         BotPlatform
+	input               WebhookInput
+	recordsMaker        botsfwmodels.BotRecordsMaker
+	recordsFieldsSetter BotRecordsFieldsSetter
 
 	isInGroup func() bool
 
@@ -35,17 +41,23 @@ type WebhookContextBase struct {
 	chatID     string
 	chatEntity botsfwmodels.BotChat
 
-	BotUserKey *dal.Key
-	appUser    BotAppUser
+	BotUserID string
+	appUser   botsfwmodels.BotAppUser
 	i18n.Translator
 	//Locales    strongo.LocalesProvider
 
-	BotCoreStores
+	dal botsfwdal.DataAccess
 
 	gaContext gaContext
 }
 
-//var _ WebhookContext = (*WebhookContextBase)(nil)
+func (whcb *WebhookContextBase) RecordsMaker() botsfwmodels.BotRecordsMaker {
+	return whcb.recordsMaker
+}
+
+func (whcb *WebhookContextBase) Store() botsfwdal.DataAccess {
+	return whcb.dal
+}
 
 func (whcb *WebhookContextBase) BotContext() BotContext {
 	return whcb.botContext
@@ -61,23 +73,24 @@ func (whcb *WebhookContextBase) LogRequest() {
 	whcb.input.LogRequest()
 }
 
-// RunReadwriteTransaction starts a transaction. This needed to coordinate application & framework changes.
-func (whcb *WebhookContextBase) RunReadwriteTransaction(c context.Context, f dal.RWTxWorker, options ...dal.TransactionOption) error {
-	db, err := whcb.botContext.BotHost.DB(c)
-	if err != nil {
-		return err
-	}
-	return db.RunReadwriteTransaction(c, f, options...)
-}
+// // RunReadwriteTransaction starts a transaction. This needed to coordinate application & framework changes.
+//func (whcb *WebhookContextBase) RunReadwriteTransaction(c context.Context, f func(ctx context.Context)) error {
+//	db, err := whcb.botContext.BotHost.DB(c)
+//	if err != nil {
+//		return err
+//	}
+//	return db.RunReadwriteTransaction(c, f, options...)
+//}
 
-// RunReadonlyTransaction starts a readonly transaction.
-func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
-	db, err := whcb.botContext.BotHost.DB(c)
-	if err != nil {
-		return err
-	}
-	return db.RunReadonlyTransaction(c, f, options...)
-}
+//
+//// RunReadonlyTransaction starts a readonly transaction.
+//func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
+//	db, err := whcb.botContext.BotHost.DB(c)
+//	if err != nil {
+//		return err
+//	}
+//	return db.RunReadonlyTransaction(c, f, options...)
+//}
 
 // IsInTransaction detects if request is within a transaction
 func (whcb *WebhookContextBase) IsInTransaction(context.Context) bool {
@@ -175,10 +188,11 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 }
 
 // GetAppUser loads information about current app user from persistent storage
-func (whcb *WebhookContextBase) GetAppUser() (BotAppUser, error) { // TODO: Can/should this be cached?
+func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.BotAppUser, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserID()
+	botID := whcb.GetBotCode()
 	appUser := whcb.BotAppContext().NewBotAppUserEntity()
-	err := whcb.BotAppUserStore.GetAppUserByID(whcb.Context(), appUserID, appUser)
+	err := whcb.dal.GetAppUserByID(whcb.Context(), botID, appUserID, appUser)
 	return appUser, err
 }
 
@@ -204,7 +218,7 @@ func NewWebhookContextBase(
 	botPlatform BotPlatform,
 	botContext BotContext,
 	webhookInput WebhookInput,
-	botCoreStores BotCoreStores,
+	botCoreStores botsfwdal.DataAccess,
 	gaMeasurement GaQueuer,
 	isInGroup func() bool,
 	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
@@ -224,7 +238,7 @@ func NewWebhookContextBase(
 		botContext:    botContext,
 		input:         webhookInput,
 		isInGroup:     isInGroup,
-		BotCoreStores: botCoreStores,
+		dal:           botCoreStores,
 	}
 	whcb.gaContext = gaContext{
 		whcb:          &whcb,
@@ -411,14 +425,26 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (botsfwmodels.Bot
 	c := whcb.Context()
 	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
 	sender := whcb.input.GetSender()
-	botUserID := sender.GetID()
-	botUser, err := whcb.GetBotUserByID(c, fmt.Sprintf("%v", botUserID))
+	botID := whcb.GetBotCode()
+	botUserID := fmt.Sprintf("%v", sender.GetID())
+	botUser, err := whcb.dal.GetBotUserByID(c, botID, fmt.Sprintf("%v", botUserID))
 	if err != nil {
 		return nil, err
 	}
 	if botUser == nil {
 		log.Infof(c, "Bot user entity not found, creating a new one...")
-		if botUser, err = whcb.CreateBotUser(c, whcb.GetBotCode(), sender); err != nil {
+		var botUserDto botsfwmodels.BotUser
+		botUserDto, err = whcb.recordsMaker.MakeBotUserDto(whcb.GetBotCode())
+		if err != nil {
+			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
+			return nil, err
+		}
+		appUserID := whcb.AppUserID()
+		if err = whcb.recordsFieldsSetter.SetBotUserFields(botUser, botID, appUserID, botUserID, sender); err != nil {
+			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
+			return nil, err
+		}
+		if err = whcb.dal.SaveBotUser(c, botID, botUserID, botUserDto); err != nil {
 			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to create bot user: %v", err)
 			return nil, err
 		}
@@ -458,7 +484,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 
 	log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
 	botID := whcb.GetBotCode()
-	botChatStore := whcb.BotChatStore
+	botChatStore := whcb.dal
 	if botChatStore == nil {
 		panic("botChatStore == nil")
 	}
@@ -466,14 +492,20 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 	switch err {
 	case nil: // Nothing to do
 		//log.Debugf(c, "GetBotChatEntityByID() returned => %v", litter.Sdump(botChatEntity))
-	case ErrEntityNotFound: //TODO: Should be this moved to DAL?
+	case ErrEntityNotFound: //TODO: Should be this moved to Store?
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")
 		botUser, err := whcb.GetOrCreateBotUserEntityBase()
 		if err != nil {
 			return err
 		}
-		botChatEntity = whcb.BotChatStore.NewBotChatEntity(c, whcb.GetBotCode(), whcb.input.Chat(), botUser.GetAppUserID(), botChatID, botUser.IsAccessGranted())
+
+		botUserID := fmt.Sprintf("%v", whcb.input.GetSender().GetID())
+
+		isAccessGranted := botUser.IsAccessGranted()
+		whChat := whcb.input.Chat()
+		appUserID := botUser.GetAppUserID()
+		err = whcb.recordsFieldsSetter.SetBotChatFields(botChatEntity, botID, botUserID, appUserID, whChat, isAccessGranted)
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
@@ -501,7 +533,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 }
 
 // AppUserEntity current app user entity from data storage
-func (whcb *WebhookContextBase) AppUserEntity() BotAppUser {
+func (whcb *WebhookContextBase) AppUserEntity() botsfwmodels.BotAppUser {
 	return whcb.appUser
 }
 
