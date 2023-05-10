@@ -414,7 +414,7 @@ func (whcb *WebhookContextBase) ChatEntity() botsfwmodels.BotChat {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
-	if err := whcb.loadChatEntityBase(); err != nil {
+	if err := whcb.loadChatEntityBase(); err != nil && !botsfwdal.IsNotFoundErr(err) {
 		panic(fmt.Errorf("failed to call whcb.getChatEntityBase(): %w", err))
 	}
 	return whcb.chatEntity
@@ -489,10 +489,10 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		panic("botChatStore == nil")
 	}
 	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
-	switch err {
-	case nil: // Nothing to do
-		//log.Debugf(c, "GetBotChatEntityByID() returned => %v", litter.Sdump(botChatEntity))
-	case ErrEntityNotFound: //TODO: Should be this moved to Store?
+	if err != nil {
+		if !botsfwdal.IsNotFoundErr(err) {
+			return err
+		}
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")
 		botUser, err := whcb.GetOrCreateBotUserEntityBase()
@@ -513,8 +513,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 				log.Errorf(c, "Failed to queue GA event: %v", err)
 			}
 		}
-	default:
-		return err
+
 	}
 
 	if sender := whcb.input.GetSender(); sender != nil {

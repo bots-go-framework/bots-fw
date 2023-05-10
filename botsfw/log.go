@@ -11,3 +11,7 @@ type Logger interface {
 }
 
 var log Logger
+
+func SetLogger(l Logger) {
+	log = l
+}

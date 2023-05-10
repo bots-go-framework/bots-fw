@@ -2,17 +2,16 @@ package botsfw
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/strongo/app"
+	"github.com/strongo/gamp"
 	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"context"
-	"errors"
-	"github.com/strongo/app"
-	"github.com/strongo/gamp"
 )
 
 // ErrorIcon is used to report errors to user
@@ -43,7 +42,7 @@ type AnalyticsSettings struct {
 }
 
 // NewBotDriver registers new bot driver (TODO: describe why we need it)
-func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, panicTextFooter string) WebhookDriver {
+func NewBotDriver(gaSettings AnalyticsSettings, appContext BotAppContext, host BotHost, panicTextFooter string) BotDriver {
 	if appContext.AppUserCollectionName() == "" {
 		panic("appContext.AppUserCollectionName() is empty")
 	}
@@ -224,7 +223,8 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return true
-	} else if botContext == nil {
+	}
+	if botContext == nil {
 		if entriesWithInputs == nil {
 			log.Warningf(c, "botContext == nil, entriesWithInputs == nil")
 		} else if len(entriesWithInputs) == 0 {
@@ -240,13 +240,13 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 
 	switch botContext.BotSettings.Env {
 	case strongo.EnvLocal:
-		if r.Host != "localhost" && !strings.HasSuffix(r.Host, ".ngrok.io") {
+		if !isRunningLocally(r.Host) {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)
 			return true
 		}
 	case strongo.EnvProduction:
-		if r.Host == "localhost" || strings.HasSuffix(r.Host, ".ngrok.io") {
+		if isRunningLocally(r.Host) {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)
 			return true
@@ -254,6 +254,10 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 	}
 
 	return false
+}
+
+func isRunningLocally(host string) bool {
+	return host == "localhost" || strings.HasSuffix(host, ".ngrok.io") || strings.HasSuffix(host, ".ngrok-free.app")
 }
 
 func (BotDriver) reportErrorToGA(c context.Context, whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
