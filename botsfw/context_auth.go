@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 )
 
 // SetAccessGranted marks current context as authenticated
@@ -10,22 +11,21 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	c := whc.Context()
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
 	botID := whc.GetBotCode()
-	chatEntity := whc.ChatEntity()
+	chatData := whc.ChatData()
 	store := whc.Store()
-	if chatEntity != nil {
-		if chatEntity.IsAccessGranted() == value {
-			log.Infof(c, "No need to change chatEntity.AccessGranted, as already is: %v", value)
+	if chatData != nil {
+		if chatData.IsAccessGranted() == value {
+			log.Infof(c, "No need to change chatData.AccessGranted, as already is: %v", value)
 		} else {
+			chatKey := botsfwmodels.ChatKey{
+				BotID: botID,
+			}
+			if chatKey.ChatID, err = whc.BotChatID(); err != nil {
+				return err
+			}
 			if err = store.RunInTransaction(c, botID, func(c context.Context) error {
-				var chatID string
-				if chatID, err = whc.BotChatID(); err != nil {
-					return err
-				}
-				if chatEntity, err = store.GetBotChatEntityByID(c, botID, chatID); err != nil {
-					return err
-				}
-				if changed := chatEntity.SetAccessGranted(value); changed {
-					if err = store.SaveBotChat(c, whc.GetBotCode(), chatID, chatEntity); err != nil {
+				if changed := chatData.SetAccessGranted(value); changed {
+					if err = store.SaveBotChatData(c, chatKey, chatData); err != nil {
 						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
 					}
 				}

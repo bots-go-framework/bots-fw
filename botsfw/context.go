@@ -56,7 +56,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotToken() string
 	GetBotSettings() BotSettings
 
-	ChatEntity() botsfwmodels.BotChat
+	ChatData() botsfwmodels.ChatData // Formerly ChatEntity()
 
 	// IsInGroup indicates if message was received in a group chat
 	IsInGroup() bool
@@ -74,20 +74,22 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
-	UpdateLastProcessed(chatEntity botsfwmodels.BotChat) error
+	UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error
 
 	AppUserID() string
 
-	GetAppUser() (botsfwmodels.BotAppUser, error)
+	AppUserData() (botsfwmodels.AppUserData, error)
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 
 	BotState
 
 	Store() botsfwdal.DataAccess
-	RecordsMaker() botsfwmodels.BotRecordsMaker
 
-	//BotChatStore
-	//BotUserStore
+	//RecordsMaker() botsfwmodels.BotRecordsMaker
+
+	// RecordsFieldsSetter returns a helper that sets fields of bot related records
+	RecordsFieldsSetter() BotRecordsFieldsSetter
+
 	WebhookInput // TODO: Should be removed!!!
 	i18n.SingleLocaleTranslator
 
@@ -96,7 +98,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 // BotState provides state of the bot (TODO: document how is used)
 type BotState interface {
-	IsNewerThen(chatEntity botsfwmodels.BotChat) bool
+	IsNewerThen(chatEntity botsfwmodels.ChatData) bool
 }
 
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)

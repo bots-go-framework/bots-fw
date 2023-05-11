@@ -176,9 +176,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	defer func() {
 		if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
 			//log.Debugf(c, "Closing BotChatStore...")
-			//chatEntity := whc.ChatEntity()
-			//if chatEntity != nil && chatEntity.GetPreferredLanguage() == "" {
-			//	chatEntity.SetPreferredLanguage(whc.Locale().Code5)
+			//chatData := whc.ChatData()
+			//if chatData != nil && chatData.GetPreferredLanguage() == "" {
+			//	chatData.SetPreferredLanguage(whc.Locale().Code5)
 			//}
 			if botCoreStores != nil {
 				if err := botCoreStores.Close(c); err != nil {

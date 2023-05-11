@@ -3,13 +3,12 @@ package botsfw
 //go:generate ffjson $GOFILE
 
 import (
+	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/strongo/i18n"
 	"strconv"
-
-	"context"
 	//"github.com/strongo/bots-api-fbm"
 )
 
@@ -33,9 +32,10 @@ type WebhookHandlerBase struct {
 	WebhookDriver
 	BotHost
 	BotPlatform
-	RecordsMaker       botsfwmodels.BotRecordsMaker
-	TranslatorProvider TranslatorProvider
-	DataAccess         botsfwdal.DataAccess
+	RecordsMaker        botsfwmodels.BotRecordsMaker
+	RecordsFieldsSetter BotRecordsFieldsSetter
+	TranslatorProvider  TranslatorProvider
+	DataAccess          botsfwdal.DataAccess
 }
 
 // Register driver

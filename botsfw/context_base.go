@@ -22,13 +22,13 @@ import (
 // TODO: Document purpose of a dedicated base struct (e.g. example of usage by developers)
 type WebhookContextBase struct {
 	//w          http.ResponseWriter
-	r                   *http.Request
-	c                   context.Context
-	botAppContext       BotAppContext
-	botContext          BotContext // TODO: rename to something strongo
-	botPlatform         BotPlatform
-	input               WebhookInput
-	recordsMaker        botsfwmodels.BotRecordsMaker
+	r             *http.Request
+	c             context.Context
+	botAppContext BotAppContext
+	botContext    BotContext // TODO: rename to something strongo
+	botPlatform   BotPlatform
+	input         WebhookInput
+	//recordsMaker        botsfwmodels.BotRecordsMaker
 	recordsFieldsSetter BotRecordsFieldsSetter
 
 	isInGroup func() bool
@@ -37,12 +37,16 @@ type WebhookContextBase struct {
 
 	locale i18n.Locale
 
-	//update      tgbotapi.Update
-	chatID     string
-	chatEntity botsfwmodels.BotChat
+	chatID   string
+	chatData botsfwmodels.ChatData
 
+	// BotUserID is a user ID in bot's platform.
+	// Telegram has it is an integer, but we keep it as a string for consistency & simplicity.
 	BotUserID string
-	appUser   botsfwmodels.BotAppUser
+
+	//
+	appUserData botsfwmodels.AppUserData
+
 	i18n.Translator
 	//Locales    strongo.LocalesProvider
 
@@ -51,8 +55,8 @@ type WebhookContextBase struct {
 	gaContext gaContext
 }
 
-func (whcb *WebhookContextBase) RecordsMaker() botsfwmodels.BotRecordsMaker {
-	return whcb.recordsMaker
+func (whcb *WebhookContextBase) RecordsFieldsSetter() BotRecordsFieldsSetter {
+	return whcb.recordsFieldsSetter
 }
 
 func (whcb *WebhookContextBase) Store() botsfwdal.DataAccess {
@@ -188,7 +192,7 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 }
 
 // GetAppUser loads information about current app user from persistent storage
-func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.BotAppUser, error) { // TODO: Can/should this be cached?
+func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserID()
 	botID := whcb.GetBotCode()
 	appUser := whcb.BotAppContext().NewBotAppUserEntity()
@@ -327,11 +331,11 @@ func (gac gaContext) Queue(message gamp.Message) error {
 // GaCommon creates context for Google Analytics
 func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
-	if whcb.chatEntity != nil {
+	if whcb.chatData != nil {
 		return gamp.Common{
-			UserID:       whcb.chatEntity.GetAppUserID(),
-			UserLanguage: strings.ToLower(whcb.chatEntity.GetPreferredLanguage()),
-			//ClientID:      whcb.chatEntity.GetGaClientID(), // TODO: Restore feature
+			UserID:       whcb.chatData.GetAppUserID(),
+			UserLanguage: strings.ToLower(whcb.chatData.GetPreferredLanguage()),
+			//ClientID:      whcb.chatData.GetGaClientID(), // TODO: Restore feature
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
 			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
 			DataSource:    "bot",
@@ -387,7 +391,7 @@ func (whcb *WebhookContextBase) TranslateNoWarning(key string, args ...interface
 
 // HasChatEntity return true if messages is within chat
 func (whcb *WebhookContextBase) HasChatEntity() bool {
-	return whcb.chatEntity != nil
+	return whcb.chatData != nil
 }
 
 //func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
@@ -395,17 +399,17 @@ func (whcb *WebhookContextBase) HasChatEntity() bool {
 //}
 
 // SetChatEntity sets app entity for the context (loaded from DB)
-func (whcb *WebhookContextBase) SetChatEntity(chatEntity botsfwmodels.BotChat) {
-	whcb.chatEntity = chatEntity
+func (whcb *WebhookContextBase) SetChatEntity(chatEntity botsfwmodels.ChatData) {
+	whcb.chatData = chatEntity
 }
 
 // ChatEntity returns app entity for the context (loaded from DB)
-func (whcb *WebhookContextBase) ChatEntity() botsfwmodels.BotChat {
-	if whcb.chatEntity != nil {
-		return whcb.chatEntity
+func (whcb *WebhookContextBase) ChatEntity() botsfwmodels.ChatData {
+	if whcb.chatData != nil {
+		return whcb.chatData
 	}
-	//panic("*WebhookContextBase.ChatEntity()")
-	//log.Debugf(whcb.c, "*WebhookContextBase.ChatEntity()")
+	//panic("*WebhookContextBase.ChatData()")
+	//log.Debugf(whcb.c, "*WebhookContextBase.ChatData()")
 	chatID, err := whcb.BotChatID()
 	if err != nil {
 		panic(fmt.Errorf("failed to call whcb.BotChatID(): %w", err))
@@ -414,10 +418,25 @@ func (whcb *WebhookContextBase) ChatEntity() botsfwmodels.BotChat {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
-	if err := whcb.loadChatEntityBase(); err != nil && !botsfwdal.IsNotFoundErr(err) {
-		panic(fmt.Errorf("failed to call whcb.getChatEntityBase(): %w", err))
+	if err := whcb.loadChatEntityBase(); err != nil {
+		if botsfwdal.IsNotFoundErr(err) {
+			botID := whcb.GetBotCode()
+			if whcb.recordsFieldsSetter == nil {
+				panic("whcb.recordsFieldsSetter == nil")
+			}
+			sender := whcb.input.GetSender()
+			botUserID := fmt.Sprintf("%v", sender.GetID())
+			appUserID := whcb.AppUserID()
+			webhookChat := whcb.Chat()
+			isAccessGranted := true // TODO: Implement!!!
+			if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, botID, botUserID, appUserID, webhookChat, isAccessGranted); err != nil {
+				panic(fmt.Errorf("failed to call whcb.recordsMaker.MakeBotChatDto(): %w", err))
+			}
+		} else {
+			panic(fmt.Errorf("failed to call whcb.getChatEntityBase(): %w", err))
+		}
 	}
-	return whcb.chatEntity
+	return whcb.chatData
 }
 
 // GetOrCreateBotUserEntityBase to be documented
@@ -427,68 +446,65 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (botsfwmodels.Bot
 	sender := whcb.input.GetSender()
 	botID := whcb.GetBotCode()
 	botUserID := fmt.Sprintf("%v", sender.GetID())
-	botUser, err := whcb.dal.GetBotUserByID(c, botID, fmt.Sprintf("%v", botUserID))
+	botUser, err := whcb.dal.GetBotUserByID(c, botID, botUserID)
+
 	if err != nil {
-		return nil, err
-	}
-	if botUser == nil {
-		log.Infof(c, "Bot user entity not found, creating a new one...")
-		var botUserDto botsfwmodels.BotUser
-		botUserDto, err = whcb.recordsMaker.MakeBotUserDto(whcb.GetBotCode())
-		if err != nil {
-			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
-			return nil, err
-		}
-		appUserID := whcb.AppUserID()
-		if err = whcb.recordsFieldsSetter.SetBotUserFields(botUser, botID, appUserID, botUserID, sender); err != nil {
-			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
-			return nil, err
-		}
-		if err = whcb.dal.SaveBotUser(c, botID, botUserID, botUserDto); err != nil {
-			log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to create bot user: %v", err)
-			return nil, err
-		}
-		log.Infof(c, "Bot user entity created")
+		if !botsfwdal.IsNotFoundErr(err) {
+			log.Infof(c, "Bot user entity not found, creating a new one...")
+			appUserID := whcb.AppUserID()
+			var botUserDto botsfwmodels.BotUser
+			if err = whcb.recordsFieldsSetter.SetBotUserFields(botUser, botID, appUserID, botUserID, sender); err != nil {
+				log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
+				return nil, err
+			}
+			if err = whcb.dal.SaveBotUser(c, botID, botUserID, botUserDto); err != nil {
+				log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to create bot user: %v", err)
+				return nil, err
+			}
+			log.Infof(c, "Bot user entity created")
 
-		ga := whcb.gaContext
-		if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
-			log.Errorf(c, "Failed to queue GA event: %v", err)
-		}
-
-		if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
-			log.Errorf(c, "Failed to queue GA event: %v", err)
-		}
-
-		if whcb.GetBotSettings().Env == strongo.EnvProduction {
-			if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
+			ga := whcb.gaContext
+			if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
 				log.Errorf(c, "Failed to queue GA event: %v", err)
 			}
+
+			if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
+				log.Errorf(c, "Failed to queue GA event: %v", err)
+			}
+
+			if whcb.GetBotSettings().Env == strongo.EnvProduction {
+				if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
+					log.Errorf(c, "Failed to queue GA event: %v", err)
+				}
+			}
 		}
+		return nil, err
 	} else {
 		log.Infof(c, "Found existing bot user entity")
 	}
 	return botUser, err
 }
 
-func (whcb *WebhookContextBase) loadChatEntityBase() error {
+func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	c := whcb.Context()
 	if whcb.HasChatEntity() {
 		log.Warningf(c, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return nil
 	}
 
-	botChatID, err := whcb.BotChatID()
-	if err != nil {
+	var chatKey = botsfwmodels.ChatKey{
+		BotID: whcb.GetBotCode(),
+	}
+	if chatKey.ChatID, err = whcb.BotChatID(); err != nil {
 		return fmt.Errorf("failed to call whcb.BotChatID(): %w", err)
 	}
 
-	log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
-	botID := whcb.GetBotCode()
+	//log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
 	botChatStore := whcb.dal
 	if botChatStore == nil {
 		panic("botChatStore == nil")
 	}
-	botChatEntity, err := botChatStore.GetBotChatEntityByID(c, botID, botChatID)
+	botChatEntity, err := botChatStore.GetBotChatData(c, chatKey)
 	if err != nil {
 		if !botsfwdal.IsNotFoundErr(err) {
 			return err
@@ -505,7 +521,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 		isAccessGranted := botUser.IsAccessGranted()
 		whChat := whcb.input.Chat()
 		appUserID := botUser.GetAppUserID()
-		err = whcb.recordsFieldsSetter.SetBotChatFields(botChatEntity, botID, botUserID, appUserID, whChat, isAccessGranted)
+		err = whcb.recordsFieldsSetter.SetBotChatFields(botChatEntity, chatKey.BotID, botUserID, appUserID, whChat, isAccessGranted)
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
@@ -527,13 +543,13 @@ func (whcb *WebhookContextBase) loadChatEntityBase() error {
 			log.Errorf(c, "failed to set locate: %v", err)
 		}
 	}
-	whcb.chatEntity = botChatEntity
+	whcb.chatData = botChatEntity
 	return err
 }
 
 // AppUserEntity current app user entity from data storage
-func (whcb *WebhookContextBase) AppUserEntity() botsfwmodels.BotAppUser {
-	return whcb.appUser
+func (whcb *WebhookContextBase) AppUserEntity() botsfwmodels.AppUserData {
+	return whcb.appUserData
 }
 
 // Context for current request

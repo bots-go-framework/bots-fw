@@ -20,7 +20,7 @@ type BotHost interface {
 	//DB(c context.Context) (db dal.Database, err error)
 }
 
-// BotContext describes current bot app host & settings
+// BotContext describes a bot on a specific platform
 type BotContext struct {
 	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
 	BotHost     BotHost

@@ -162,7 +162,7 @@ func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Webhoo
 	var awaitingReplyTo string
 
 	if !isCommandText {
-		chatEntity := whc.ChatEntity()
+		chatEntity := whc.ChatData()
 		awaitingReplyTo = chatEntity.GetAwaitingReplyTo()
 	}
 
@@ -278,7 +278,7 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 		//}
 	}
 	if lang != "" {
-		chatEntity := whc.ChatEntity() // We need it to be loaded before changing current locale
+		chatEntity := whc.ChatData() // We need it to be loaded before changing current locale
 		currentLang := q.Get("cl")
 		currentLocaleCode5 := whc.Locale().Code5
 		log.Debugf(whc.Context(), "query: %v, lang: %v, currentLang: %v, currentLocaleCode5: %v", q, lang, currentLang, currentLocaleCode5)
@@ -391,7 +391,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			// whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
 			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
-			chatEntity := whc.ChatEntity()
+			chatEntity := whc.ChatData()
 			if chatEntity != nil {
 				if awaitingReplyTo := chatEntity.GetAwaitingReplyTo(); awaitingReplyTo != "" {
 					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", awaitingReplyTo)
@@ -411,10 +411,10 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			err = errors.New("No action for matched command")
 		} else {
 			m, err = commandAction(whc)
-			// awaitingReplyToAfter := chatEntity.GetAwaitingReplyTo()
+			// awaitingReplyToAfter := chatData.GetAwaitingReplyTo()
 			// if isCommandText && awaitingReplyToAfter == awaitingReplyToBefore { // TODO: Looks dangerous? Should be commands be responsible?
 			// 	log.Debugf(c, "Auto-resetting AwaitingReplyTo when not changed after processing and isCommandText=true")
-			// 	chatEntity.SetAwaitingReplyTo("")
+			// 	chatData.SetAwaitingReplyTo("")
 			// }
 		}
 		whr.processCommandResponse(matchedCommand, responder, whc, m, err)
@@ -506,12 +506,12 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 			pathPrefix := "bot/"
 			var pageview *gamp.Pageview
-			var chatEntity botsfwmodels.BotChat
+			var chatData botsfwmodels.ChatData
 			if inputType != WebhookInputCallbackQuery {
-				chatEntity = whc.ChatEntity()
+				chatData = whc.ChatData()
 			}
-			if inputType != WebhookInputCallbackQuery && chatEntity != nil {
-				path := chatEntity.GetAwaitingReplyTo()
+			if inputType != WebhookInputCallbackQuery && chatData != nil {
+				path := chatData.GetAwaitingReplyTo()
 				if path == "" {
 					path = matchedCommand.Code
 				} else if pathURL, err := url.Parse(path); err == nil {

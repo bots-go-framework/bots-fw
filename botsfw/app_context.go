@@ -11,6 +11,6 @@ type BotAppContext interface {
 	strongo.AppUserSettings // TODO: Do we really need it here?
 	i18n.TranslationContext
 
-	NewBotAppUserEntity() botsfwmodels.BotAppUser
-	GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChat
+	NewBotAppUserEntity() botsfwmodels.AppUserData
+	GetBotChatEntityFactory(platform string) func() botsfwmodels.ChatData
 }
