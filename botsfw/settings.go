@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// BotSettings keeps parameters of a bot
+// BotSettings keeps parameters of a bot that are static and are not changed in runtime
 type BotSettings struct {
 	Platform         Platform
 	Env              strongo.Environment

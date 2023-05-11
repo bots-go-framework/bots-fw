@@ -8,23 +8,30 @@ import (
 
 // BotPlatform describes current bot platform
 type BotPlatform interface {
+
+	// ID returns bot platform ID like 'telegram', 'fbmessenger', 'viber', etc.
 	ID() string
+
+	// Version returns a version of a bot platform adapter. It is used for debugging purposes.
 	Version() string
 }
 
 // BotHost describes current bot app host environment
 type BotHost interface {
+
+	// Context returns a context.Context for a request. We need this as some platforms (as Google App Engine Standard)
+	// require usage of a context with a specific wrapper
 	Context(r *http.Request) context.Context
+
+	// GetHTTPClient returns HTTP client for current host
+	// We need this as some platforms (as Google App Engine Standard) require setting http client in a specific way.
 	GetHTTPClient(c context.Context) *http.Client
-	//GetBotCoreStores(platform string, appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
-	//DB(c context.Context) (db dal.Database, err error)
 }
 
 // BotContext describes a bot on a specific platform
 type BotContext struct {
-	// TODO: Rename to BotWebhookContext or just WebhookContext (replace old one)
-	BotHost     BotHost
-	BotSettings BotSettings
+	BotHost     BotHost     // describes current bot app host environment
+	BotSettings BotSettings // keeps parameters of a bot that are static and are not changed in runtime
 }
 
 // NewBotContext creates current bot host & settings
@@ -111,8 +118,8 @@ var WebhookInputTypeNames = map[WebhookInputType]string{
 }
 
 // WebhookInput represent a single message
+// '/entry/messaging' for Facebook Messenger
 type WebhookInput interface {
-	// '/entry/messaging' for Facebook
 	GetSender() WebhookSender
 	GetRecipient() WebhookRecipient
 	GetTime() time.Time
@@ -124,7 +131,7 @@ type WebhookInput interface {
 
 // WebhookActor represents sender
 type WebhookActor interface {
-	Platform() string
+	Platform() string // TODO: Consider removing this?
 	GetID() interface{}
 	IsBotUser() bool
 	GetFirstName() string
@@ -141,9 +148,10 @@ type WebhookSender interface {
 
 // WebhookUser represents sender with country
 type WebhookUser interface {
-	// Extension to support language & country (Viber)
-	GetCountry() string
 	WebhookSender
+
+	// GetCountry is an extension to support language & country (Viber)
+	GetCountry() string
 }
 
 // WebhookRecipient represents receiver
@@ -181,18 +189,18 @@ type WebhookVoiceMessage interface {
 // WebhookPhotoMessage represents single photo message
 type WebhookPhotoMessage interface {
 	WebhookMessage
-	// TODO: Define voice message interface
+	// TODO: Define photo message interface
 }
 
 // WebhookAudioMessage represents single audio message
 type WebhookAudioMessage interface {
 	WebhookMessage
-	// TODO: Define voice message interface
+	// TODO: Define audio message interface
 }
 
 // WebhookReferralMessage represents single referral message
+// https://developers.facebook.com/docs/messenger-platform/webhook-reference/referral
 type WebhookReferralMessage interface {
-	// https://developers.facebook.com/docs/messenger-platform/webhook-reference/referral
 	Type() string
 	Source() string
 	RefData() string

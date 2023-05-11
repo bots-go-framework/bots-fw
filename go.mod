@@ -6,7 +6,7 @@ go 1.20
 //
 //replace github.com/strongo/i18n => ../../strongo/i18n
 
-//replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
+replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
 	github.com/bots-go-framework/bots-fw-store v0.0.4
