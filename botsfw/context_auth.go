@@ -29,7 +29,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 					now := time.Now()
 					chatDataBase := chatData.Base()
 					chatDataBase.DtUpdated = now
-					chatDataBase.DtLastInteraction = now
+					chatDataBase.SetDtLastInteraction(now) // Must set DtLastInteraction through wrapper
 					if err = store.SaveBotChatData(c, chatKey, chatData); err != nil {
 						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
 					}
