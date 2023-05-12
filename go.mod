@@ -6,10 +6,10 @@ go 1.20
 //
 //replace github.com/strongo/i18n => ../../strongo/i18n
 
-replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
+//replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-store v0.0.4
+	github.com/bots-go-framework/bots-fw-store v0.0.5
 	github.com/bots-go-framework/bots-go-core v0.0.1
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.8.2

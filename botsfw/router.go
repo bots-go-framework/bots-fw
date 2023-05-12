@@ -8,6 +8,7 @@ import (
 	"github.com/strongo/gamp"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // TypeCommands container for commands
@@ -418,7 +419,12 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			// }
 		}
 		if err == nil {
-			if chatData := whc.ChatData(); chatData != nil && chatData.IsChanged() {
+			if chatData := whc.ChatData(); chatData != nil {
+				now := time.Now()
+				chatData.SetDtLastInteraction(now)
+				if chatData.IsChanged() {
+					chatData.SetUpdatedTime(now)
+				}
 				if err = whc.Store().SaveBotChatData(c, chatData.Key(), chatData); err != nil {
 					log.Errorf(c, "Failed to save chat data: %v", err)
 					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save chat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
