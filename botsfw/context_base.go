@@ -37,12 +37,15 @@ type WebhookContextBase struct {
 
 	locale i18n.Locale
 
-	chatID   string
-	chatData botsfwmodels.ChatData
+	chatID            string
+	chatData          botsfwmodels.ChatData
+	isLoadingChatData bool // TODO: This smells bad. Needs refactoring?
 
 	// BotUserID is a user ID in bot's platform.
 	// Telegram has it is an integer, but we keep it as a string for consistency & simplicity.
-	BotUserID string
+	BotUserID         string
+	botUserData       botsfwmodels.BotUserData
+	isLoadingUserData bool // TODO: This smells bad. Needs refactoring?
 
 	//
 	appUserData botsfwmodels.AppUserData
@@ -176,14 +179,16 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 
 // AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
 func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
-	if !whcb.isInGroup() {
+	if !whcb.isLoadingChatData && !whcb.isLoadingUserData && !whcb.isInGroup() {
 		if chatData := whcb.ChatData(); chatData != nil {
 			appUserID = chatData.GetAppUserID()
 		}
 	}
-	if appUserID == "" {
-		if botUser, err := whcb.GetOrCreateBotUserEntityBase(); err != nil {
-			panic(fmt.Errorf("failed to get bot user entity: %w", err))
+	if appUserID == "" && !whcb.isLoadingUserData {
+		if botUser, err := whcb.getOrCreateBotUserData(); err != nil {
+			if !botsfwdal.IsNotFoundErr(err) {
+				panic(fmt.Errorf("failed to get bot user entity: %w", err))
+			}
 		} else {
 			appUserID = botUser.GetAppUserID()
 		}
@@ -223,6 +228,7 @@ func NewWebhookContextBase(
 	botContext BotContext,
 	webhookInput WebhookInput,
 	botCoreStores botsfwdal.DataAccess,
+	recordsFieldsSetter BotRecordsFieldsSetter, // TODO: Should it be a member of BotContext?
 	gaMeasurement GaQueuer,
 	isInGroup func() bool,
 	getLocaleAndChatID func(c context.Context) (locale, chatID string, err error),
@@ -237,12 +243,13 @@ func NewWebhookContextBase(
 		getLocaleAndChatID: func() (locale, chatID string, err error) {
 			return getLocaleAndChatID(c)
 		},
-		botAppContext: botAppContext,
-		botPlatform:   botPlatform,
-		botContext:    botContext,
-		input:         webhookInput,
-		isInGroup:     isInGroup,
-		dal:           botCoreStores,
+		botAppContext:       botAppContext,
+		botPlatform:         botPlatform,
+		botContext:          botContext,
+		input:               webhookInput,
+		isInGroup:           isInGroup,
+		dal:                 botCoreStores,
+		recordsFieldsSetter: recordsFieldsSetter,
 	}
 	whcb.gaContext = gaContext{
 		whcb:          &whcb,
@@ -375,6 +382,10 @@ func (whcb *WebhookContextBase) GetBotCode() string {
 	return whcb.botContext.BotSettings.Code
 }
 
+func (whcb *WebhookContextBase) GetBotUserID() string {
+	return fmt.Sprintf("%v", whcb.input.GetSender().GetID())
+}
+
 // GetBotToken returns current bot API token
 func (whcb *WebhookContextBase) GetBotToken() string {
 	return whcb.botContext.BotSettings.Token
@@ -403,6 +414,10 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.ChatData {
 	if whcb.chatData != nil {
 		return whcb.chatData
 	}
+	whcb.isLoadingChatData = true
+	defer func() {
+		whcb.isLoadingChatData = false
+	}()
 	//panic("*WebhookContextBase.ChatData()")
 	//log.Debugf(whcb.c, "*WebhookContextBase.ChatData()")
 	chatID, err := whcb.BotChatID()
@@ -434,27 +449,32 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.ChatData {
 	return whcb.chatData
 }
 
-// GetOrCreateBotUserEntityBase to be documented
-func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (botsfwmodels.BotUser, error) {
+// getOrCreateBotUserData to be documented
+func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserData, error) {
+	if whcb.botUserData != nil {
+		return whcb.botUserData, nil
+	}
 	c := whcb.Context()
-	log.Debugf(c, "GetOrCreateBotUserEntityBase()")
+	log.Debugf(c, "getOrCreateBotUserData()")
+	whcb.isLoadingUserData = true
+	defer func() {
+		whcb.isLoadingUserData = false
+	}()
 	sender := whcb.input.GetSender()
 	botID := whcb.GetBotCode()
 	botUserID := fmt.Sprintf("%v", sender.GetID())
-	botUser, err := whcb.dal.GetBotUserByID(c, botID, botUserID)
-
-	if err != nil {
+	var err error
+	if whcb.botUserData, err = whcb.dal.GetBotUserByID(c, botID, botUserID); err != nil {
 		if !botsfwdal.IsNotFoundErr(err) {
 			log.Infof(c, "Bot user entity not found, creating a new one...")
 			appUserID := whcb.AppUserID()
-			var botUserDto botsfwmodels.BotUser
-			if err = whcb.recordsFieldsSetter.SetBotUserFields(botUser, sender, botID, appUserID, botUserID); err != nil {
-				log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to make bot user DTO: %v", err)
-				return nil, err
+			if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.botUserData, sender, botID, appUserID, botUserID); err != nil {
+				log.Errorf(c, "WebhookContextBase.getOrCreateBotUserData(): failed to make bot user DTO: %v", err)
+				return whcb.botUserData, err
 			}
-			if err = whcb.dal.SaveBotUser(c, botID, botUserID, botUserDto); err != nil {
-				log.Errorf(c, "WebhookContextBase.GetOrCreateBotUserEntityBase(): failed to create bot user: %v", err)
-				return nil, err
+			if err = whcb.dal.SaveBotUser(c, botID, botUserID, whcb.botUserData); err != nil {
+				log.Errorf(c, "WebhookContextBase.getOrCreateBotUserData(): failed to create bot user: %v", err)
+				return whcb.botUserData, err
 			}
 			log.Infof(c, "Bot user entity created")
 
@@ -473,11 +493,11 @@ func (whcb *WebhookContextBase) GetOrCreateBotUserEntityBase() (botsfwmodels.Bot
 				}
 			}
 		}
-		return nil, err
+		return whcb.botUserData, err
 	} else {
 		log.Infof(c, "Found existing bot user entity")
 	}
-	return botUser, err
+	return whcb.botUserData, err
 }
 
 func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
@@ -499,14 +519,31 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	if botChatStore == nil {
 		panic("botChatStore == nil")
 	}
-	botChatEntity, err := botChatStore.GetBotChatData(c, chatKey)
+	whcb.chatData, err = botChatStore.GetBotChatData(c, chatKey)
+	if whcb.chatData != nil {
+		if whcb.chatData.Key() != chatKey {
+			whcb.chatData.Base().ChatKey = chatKey
+		}
+		if botUserID := whcb.GetBotUserID(); botUserID != "" {
+			chatDataBase := whcb.chatData.Base()
+			switch chatDataBase.BotUserID {
+			case "":
+				chatDataBase.BotUserID = botUserID
+			case botUserID:
+				break // This is expected for existing personal chats
+			default:
+				// Different bot user ID - should never happen?
+				log.Warningf(c, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserID, botUserID)
+			}
+		}
+	}
 	if err != nil {
 		if !botsfwdal.IsNotFoundErr(err) {
 			return err
 		}
 		err = nil
 		log.Infof(c, "BotChat not found, first check for bot user entity...")
-		botUser, err := whcb.GetOrCreateBotUserEntityBase()
+		botUser, err := whcb.getOrCreateBotUserData()
 		if err != nil {
 			return err
 		}
@@ -516,7 +553,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		isAccessGranted := botUser.IsAccessGranted()
 		whChat := whcb.input.Chat()
 		appUserID := botUser.GetAppUserID()
-		err = whcb.recordsFieldsSetter.SetBotChatFields(botChatEntity, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted)
+		err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted)
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
@@ -529,16 +566,15 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 
 	if sender := whcb.input.GetSender(); sender != nil {
 		if languageCode := sender.GetLanguage(); languageCode != "" {
-			botChatEntity.AddClientLanguage(languageCode)
+			whcb.chatData.AddClientLanguage(languageCode)
 		}
 	}
 
-	if chatLocale := botChatEntity.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
+	if chatLocale := whcb.chatData.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
 		if err = whcb.SetLocale(chatLocale); err != nil {
 			log.Errorf(c, "failed to set locate: %v", err)
 		}
 	}
-	whcb.chatData = botChatEntity
 	return err
 }
 

@@ -57,6 +57,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotSettings() BotSettings
 
 	ChatData() botsfwmodels.ChatData // Formerly ChatEntity()
+	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in ChatData but might consider to have it here as well
 
 	// IsInGroup indicates if message was received in a group chat
 	IsInGroup() bool

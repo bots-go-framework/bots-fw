@@ -400,7 +400,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			log.Debugf(c, "No command found for the message: %v", input)
 			whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
-	} else {
+	} else { // matchedCommand != nil
 		if matchedCommand.Code == "" {
 			log.Debugf(c, "Matched to: %+v", matchedCommand)
 		} else {
@@ -416,6 +416,17 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			// 	log.Debugf(c, "Auto-resetting AwaitingReplyTo when not changed after processing and isCommandText=true")
 			// 	chatData.SetAwaitingReplyTo("")
 			// }
+		}
+		if err == nil {
+			if chatData := whc.ChatData(); chatData != nil && chatData.IsChanged() {
+				if err = whc.Store().SaveBotChatData(c, chatData.Key(), chatData); err != nil {
+					log.Errorf(c, "Failed to save chat data: %v", err)
+					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save chat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
+						log.Errorf(c, "Failed to send error message to user: %v", sendErr)
+					}
+				}
+			}
+
 		}
 		whr.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}

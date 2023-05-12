@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"time"
 )
 
 // SetAccessGranted marks current context as authenticated
@@ -25,6 +26,10 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 			}
 			if err = store.RunInTransaction(c, botID, func(c context.Context) error {
 				if changed := chatData.SetAccessGranted(value); changed {
+					now := time.Now()
+					chatDataBase := chatData.Base()
+					chatDataBase.DtUpdated = now
+					chatDataBase.DtLastInteraction = now
 					if err = store.SaveBotChatData(c, chatKey, chatData); err != nil {
 						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
 					}

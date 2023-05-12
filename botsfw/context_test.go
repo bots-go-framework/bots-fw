@@ -29,7 +29,7 @@ func (whc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.BotUser, error) {
+func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.BotUserData, error) {
 	panic("Not implemented")
 }
 
@@ -45,7 +45,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (botsfwmodels.BotUser, error) {
+func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (botsfwmodels.BotUserData, error) {
 	panic("Not implemented")
 }
 
@@ -109,8 +109,6 @@ func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 }
 func (whc TestWebhookContext) Context() context.Context { panic("Not implemented") }
 
-// func (whc TestWebhookContext) ChatKey() *dal.Key                     { panic("Not implemented") }
-// func (whc TestWebhookContext) NewChatKey(c context.Context) *dal.Key { panic("Not implemented") }
 func (whc TestWebhookContext) ChatData() botsfwmodels.ChatData { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
