@@ -14,6 +14,8 @@ github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gt
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/strongo/app v0.4.0 h1:I3o7zWG1TBHe6Y/4iEwxtBLQnqH0B7xhMu7TPdbqJpI=
 github.com/strongo/app v0.4.0/go.mod h1:rh+WVQYPuxwCkC/s+2OBUYZuJHIoRbJM9uhCQ5juDLw=
+github.com/strongo/app v0.4.1 h1:3Yggb9+byljzAzWspeoQNVIcsP/ufydC1BfDIMOogLg=
+github.com/strongo/app v0.4.1/go.mod h1:r1GYjymMLncZ+hcIx/Yar41KmBobnjE/YOi3ngm6l08=
 github.com/strongo/gamp v0.0.1 h1:b6vzHUzNvbPOhzPtIja1NqKf8GQqrJWjs2gninQPZac=
 github.com/strongo/gamp v0.0.1/go.mod h1:ZcVVIzSQFygVehdtGh6KYmcp1eOacuEKb9th81WcUOw=
 github.com/strongo/i18n v0.0.4 h1:48DQrrlqTlZBi7uFbyruOVsSfr+X24RmO59FaOXLWGQ=
