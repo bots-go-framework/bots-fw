@@ -14,7 +14,8 @@ jobs:
 
   go_ci:
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      content: write
 
     steps:
       - name: Checkout code
