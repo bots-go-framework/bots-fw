@@ -14,8 +14,6 @@ jobs:
 
   go_ci:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout code
@@ -27,5 +25,7 @@ jobs:
           go-version: '^1.20'
 
       - uses: strongo/go-ci-action@v1.0.5
+        permissions:
+          contents: write
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
