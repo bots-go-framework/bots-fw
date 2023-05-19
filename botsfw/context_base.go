@@ -553,7 +553,9 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		isAccessGranted := botUser.IsAccessGranted()
 		whChat := whcb.input.Chat()
 		appUserID := botUser.GetAppUserID()
-		err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted)
+		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted); err != nil {
+			return err
+		}
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
