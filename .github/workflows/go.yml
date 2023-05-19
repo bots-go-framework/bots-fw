@@ -2,13 +2,13 @@ name: Go CI
 
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - renovate/**
     tags:
-      - 'v[0-9]+\.[0-9]+\.[0-9]+'
+      - 'v[0-9]+\.[0-9]+\.[0-9]+' # Push events to matching v*, i.e. v20.15.10
   pull_request:
     branches:
-      - main
+      - '**'
 
 jobs:
 
