@@ -13,6 +13,8 @@ on:
 jobs:
 
   strongo_workflow:
+    permissions:
+      contents: write
     uses: strongo/go-ci-action/.github/workflows/workflow.yml@main
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
