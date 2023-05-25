@@ -79,6 +79,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	AppUserID() string
 
+	// Deprecated: use AppUserID() instead
+	AppUserInt64ID() int64
+
 	AppUserData() (botsfwmodels.AppUserData, error)
 	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
 

@@ -10,6 +10,7 @@ import (
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -173,6 +174,17 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	}
 
 	return whcb.chatID, nil
+}
+
+// Deprecated: use AppUserID() instead
+func (whcb *WebhookContextBase) AppUserInt64ID() (appUserID int64) {
+	if s := whcb.AppUserID(); s != "" {
+		var err error
+		if appUserID, err = strconv.ParseInt(s, 10, 64); err != nil {
+			panic(fmt.Errorf("failed to parse app user ID %v: %w", s, err))
+		}
+	}
+	return appUserID
 }
 
 // AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
