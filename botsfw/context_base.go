@@ -176,7 +176,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	return whcb.chatID, nil
 }
 
-// Deprecated: use AppUserID() instead
+// AppUserInt64ID: TODO: Deprecate: use AppUserID() instead
 func (whcb *WebhookContextBase) AppUserInt64ID() (appUserID int64) {
 	if s := whcb.AppUserID(); s != "" {
 		var err error
