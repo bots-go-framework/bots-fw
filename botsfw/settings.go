@@ -68,49 +68,46 @@ type SettingsProvider func(c context.Context) SettingsBy
 // SettingsBy keeps settings per different keys (ID, code, API token, locale)
 // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 type SettingsBy struct {
-	ByCode     map[string]BotSettings
-	ByAPIToken map[string]BotSettings
-	ByLocale   map[string][]BotSettings
-	ByID       map[string]BotSettings
-	HasRouter  bool
+
+	// ByCode keeps settings by bot code - it is a human-readable ID of a bot
+	ByCode map[string]*BotSettings
+
+	// ByID keeps settings by bot ID - it is a machine-readable ID of a bot.
+	ByID map[string]*BotSettings
 }
 
 // NewBotSettingsBy create settings per different keys (ID, code, API token, locale)
-func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...BotSettings) SettingsBy {
+func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...BotSettings) (settingsBy SettingsBy) {
 	count := len(bots)
-	settingsBy := SettingsBy{
-		HasRouter:  getRouter != nil,
-		ByCode:     make(map[string]BotSettings, count),
-		ByAPIToken: make(map[string]BotSettings, count),
-		ByLocale:   make(map[string][]BotSettings, count),
-		ByID:       make(map[string]BotSettings, count),
+	if count == 0 {
+		panic("NewBotSettingsBy: missing required parameter: bots")
 	}
-	for _, bot := range bots {
-		if settingsBy.HasRouter {
+	settingsBy = SettingsBy{
+		ByCode: make(map[string]*BotSettings, count),
+		ByID:   make(map[string]*BotSettings, count),
+	}
+	processBotSettings := func(i int, bot BotSettings) {
+		if bot.Router.commandsByType == nil && getRouter != nil {
 			bot.Router = getRouter(bot.Profile)
+		}
+		if bot.Code != "" {
+			panic(fmt.Sprintf("Bot with empty code at index %v", i))
 		}
 		if _, ok := settingsBy.ByCode[bot.Code]; ok {
 			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))
 		} else {
-			settingsBy.ByCode[bot.Code] = bot
-		}
-		if _, ok := settingsBy.ByAPIToken[bot.Token]; ok {
-			panic(fmt.Sprintf("Bot with duplicate token: %v", bot.Token))
-		} else {
-			settingsBy.ByAPIToken[bot.Token] = bot
+			settingsBy.ByCode[bot.Code] = &bot
 		}
 		if bot.ID != "" {
 			if _, ok := settingsBy.ByID[bot.ID]; ok {
 				panic(fmt.Sprintf("Bot with duplicate ID: %v", bot.ID))
 			} else {
-				settingsBy.ByID[bot.ID] = bot
+				settingsBy.ByID[bot.ID] = &bot
 			}
 		}
-
-		byLocale := settingsBy.ByLocale[bot.Locale.Code5]
-		byLocale = append(byLocale, bot)
-		settingsBy.ByLocale[bot.Locale.Code5] = byLocale
-
+	}
+	for i, bot := range bots {
+		processBotSettings(i, bot)
 	}
 	return settingsBy
 }

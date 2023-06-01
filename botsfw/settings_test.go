@@ -39,3 +39,54 @@ func TestNewBotSettings(t *testing.T) {
 		assertBotSettings(bs)
 	})
 }
+
+func TestNewBotSettingsBy(t *testing.T) {
+	type args struct {
+		getRouter func(profile string) WebhooksRouter
+		bots      []BotSettings
+	}
+	tests := []struct {
+		name         string
+		args         args
+		expectsPanic bool
+	}{
+		{
+			name: "no_bots",
+			args: args{
+				getRouter: func(profile string) WebhooksRouter {
+					return WebhooksRouter{}
+				},
+			},
+			expectsPanic: true,
+		},
+		{
+			name: "single_bot",
+			args: args{
+				getRouter: func(profile string) WebhooksRouter {
+					return WebhooksRouter{}
+				},
+				bots: []BotSettings{
+					{
+						Profile: "test",
+						Code:    "TestBot",
+						ID:      "test123",
+					},
+				},
+			},
+			expectsPanic: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.expectsPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Errorf("NewBotSettingsBy() did not panic")
+					}
+				}()
+			}
+			actual := NewBotSettingsBy(tt.args.getRouter, tt.args.bots...)
+			assert.Equal(t, len(tt.args.bots), len(actual.ByCode))
+		})
+	}
+}
