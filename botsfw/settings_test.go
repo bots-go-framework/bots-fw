@@ -73,7 +73,7 @@ func TestNewBotSettingsBy(t *testing.T) {
 					},
 				},
 			},
-			expectsPanic: true,
+			expectsPanic: false,
 		},
 	}
 	for _, tt := range tests {
