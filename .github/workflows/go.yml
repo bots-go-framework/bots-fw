@@ -17,6 +17,6 @@ jobs:
   strongo_workflow:
     permissions:
       contents: write
-    uses: strongo/go-ci-action/.github/workflows/workflow.yml@d9a5e68
+    uses: strongo/go-ci-action/.github/workflows/workflow.yml@golangci-lint-v1.52
     secrets:
       gh_token: ${{ secrets.GITHUB_TOKEN }}
