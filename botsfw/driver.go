@@ -257,7 +257,7 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 }
 
 func isRunningLocally(host string) bool {
-	return host == "localhost" || strings.HasSuffix(host, ".ngrok.io") || strings.HasSuffix(host, ".ngrok-free.app")
+	return host == "localhost" || strings.HasSuffix(host, ".ngrok.io") || strings.HasSuffix(host, ".ngrok.dev") || strings.HasSuffix(host, ".ngrok-free.app")
 }
 
 func (BotDriver) reportErrorToGA(c context.Context, whc WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {

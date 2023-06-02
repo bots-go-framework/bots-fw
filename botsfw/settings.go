@@ -90,7 +90,7 @@ func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...Bot
 		if bot.Router.commandsByType == nil && getRouter != nil {
 			bot.Router = getRouter(bot.Profile)
 		}
-		if bot.Code != "" {
+		if bot.Code == "" {
 			panic(fmt.Sprintf("Bot with empty code at index %v", i))
 		}
 		if _, ok := settingsBy.ByCode[bot.Code]; ok {
