@@ -453,7 +453,7 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.ChatData {
 				panic(fmt.Errorf("failed to call whcb.recordsMaker.MakeBotChatDto(): %w", err))
 			}
 		} else {
-			panic(fmt.Errorf("failed to call whcb.getChatEntityBase(): %w", err))
+			panic(fmt.Errorf("failed to call whcb.loadChatEntityBase(): %w", err))
 		}
 	}
 	return whcb.chatData
