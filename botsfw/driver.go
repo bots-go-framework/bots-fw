@@ -250,7 +250,7 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 	return false
 }
 
-func isRunningLocally(host string) bool {
+func isRunningLocally(host string) bool { // TODO(help-wanted): allow customization
 	result := host == "localhost" ||
 		strings.HasSuffix(host, ".ngrok.io") ||
 		strings.HasSuffix(host, ".ngrok.dev") ||
