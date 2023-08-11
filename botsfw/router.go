@@ -279,17 +279,17 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 		//}
 	}
 	if lang != "" {
-		chatEntity := whc.ChatData() // We need it to be loaded before changing current locale
+		chatEntity := whc.ChatData() // We need it to be loaded before changing current Locale
 		currentLang := q.Get("cl")
 		currentLocaleCode5 := whc.Locale().Code5
 		log.Debugf(whc.Context(), "query: %v, lang: %v, currentLang: %v, currentLocaleCode5: %v", q, lang, currentLang, currentLocaleCode5)
 		if lang != currentLocaleCode5 {
 			if err = whc.SetLocale(lang); err != nil {
-				log.Errorf(c, "Failed to set current locale to %v: %v", lang, err)
+				log.Errorf(c, "Failed to set current Locale to %v: %v", lang, err)
 				err = nil
 			} else {
 				if currentLocaleCode5 = whc.Locale().Code5; currentLocaleCode5 != lang {
-					log.Errorf(c, "Locale not set, expected %v, got: %v", lang, currentLocaleCode5)
+					log.Errorf(c, "DefaultLocale not set, expected %v, got: %v", lang, currentLocaleCode5)
 				}
 				chatEntity.SetPreferredLanguage(lang)
 			}

@@ -3,7 +3,6 @@ package botsfw
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/strongo/app"
@@ -181,7 +180,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//log.Debugf(c, "Closing BotChatStore...")
 			//chatData := whc.ChatData()
 			//if chatData != nil && chatData.GetPreferredLanguage() == "" {
-			//	chatData.SetPreferredLanguage(whc.Locale().Code5)
+			//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
 			//}
 			if botCoreStores != nil {
 				if err := botCoreStores.Close(c); err != nil {
@@ -204,26 +203,17 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			d.logInput(c, i, input)
 			whc = webhookHandler.CreateWebhookContext(d.appContext, r, *botContext, input, botCoreStores, measurementSender)
 			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-			botContext.BotSettings.Router.Dispatch(webhookHandler, responder, whc)
+			botContext.BotSettings.Profile.Router().Dispatch(webhookHandler, responder, whc)
 		}
 	}
 }
 
 func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *BotContext, entriesWithInputs []EntryInputs, err error) bool {
 	if err != nil {
-		if _, ok := err.(ErrAuthFailed); ok {
+		var errAuthFailed ErrAuthFailed
+		if errors.As(err, &errAuthFailed) {
 			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-		} else if errors.Is(err, ErrNotImplemented) {
-			log.Debugf(c, err.Error())
-			w.WriteHeader(http.StatusNoContent)
-			//http.Error(w, "", http.StatusOK) // TODO: Decide how to handle it properly, return http.StatusNotImplemented?
-		} else if _, ok := err.(*json.SyntaxError); ok {
-			log.Debugf(c, fmt.Errorf("request body is not valid JSON: %w", err).Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		} else {
-			log.Errorf(c, "Failed to call webhookHandler.GetBotContextAndInputs(router): %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return true
 	}

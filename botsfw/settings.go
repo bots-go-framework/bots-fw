@@ -13,24 +13,25 @@ import (
 type BotSettings struct {
 	Platform         Platform
 	Env              strongo.Environment
-	ID               string
-	Profile          string
+	Profile          BotProfile
 	Code             string
+	ID               string // TODO: Document how it is different from Code
 	Token            string
 	PaymentToken     string
 	PaymentTestToken string
 	VerifyToken      string // Used by Facebook
-	Locale           i18n.Locale
-	Router           WebhooksRouter
 	GAToken          string // TODO: Refactor tu support multiple or move out
+
+	// While a bot profile can support multiple locales a bot can be dedicated to a specific country/language
+	Locale i18n.Locale
 }
 
 // NewBotSettings configures bot application
-func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, id, token, gaToken string, locale i18n.Locale) BotSettings {
+func NewBotSettings(platform Platform, mode strongo.Environment, profile BotProfile, code, id, token, gaToken string, locale i18n.Locale) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
 	}
-	if profile == "" {
+	if profile == nil {
 		panic("NewBotSettings: missing required parameter: profile")
 	}
 	if code == "" {
@@ -48,7 +49,7 @@ func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, 
 		gaToken = os.Getenv(envVarKey)
 	}
 	if locale.Code5 == "" {
-		panic("NewBotSettings: missing required parameter: locale.Code5")
+		panic("NewBotSettings: missing required parameter: Locale.Code5")
 	}
 	return BotSettings{
 		Platform: platform,
@@ -57,15 +58,15 @@ func NewBotSettings(platform Platform, mode strongo.Environment, profile, code, 
 		ID:       id,
 		Env:      mode,
 		Token:    token,
-		Locale:   locale,
 		GAToken:  gaToken,
+		Locale:   locale,
 	}
 }
 
-// SettingsProvider returns settings per different keys (ID, code, API token, locale)
+// SettingsProvider returns settings per different keys (ID, code, API token, Locale)
 type SettingsProvider func(c context.Context) SettingsBy
 
-// SettingsBy keeps settings per different keys (ID, code, API token, locale)
+// SettingsBy keeps settings per different keys (ID, code, API token, Locale)
 // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 type SettingsBy struct {
 
@@ -76,8 +77,8 @@ type SettingsBy struct {
 	ByID map[string]*BotSettings
 }
 
-// NewBotSettingsBy create settings per different keys (ID, code, API token, locale)
-func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...BotSettings) (settingsBy SettingsBy) {
+// NewBotSettingsBy create settings per different keys (ID, code, API token, Locale)
+func NewBotSettingsBy(bots ...BotSettings) (settingsBy SettingsBy) {
 	count := len(bots)
 	if count == 0 {
 		panic("NewBotSettingsBy: missing required parameter: bots")
@@ -87,9 +88,6 @@ func NewBotSettingsBy(getRouter func(profile string) WebhooksRouter, bots ...Bot
 		ByID:   make(map[string]*BotSettings, count),
 	}
 	processBotSettings := func(i int, bot BotSettings) {
-		if bot.Router.commandsByType == nil && getRouter != nil {
-			bot.Router = getRouter(bot.Profile)
-		}
 		if bot.Code == "" {
 			panic(fmt.Sprintf("Bot with empty code at index %v", i))
 		}

@@ -1,6 +1,7 @@
 package botsfw
 
 import (
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/stretchr/testify/assert"
 	strongo "github.com/strongo/app"
 	"github.com/strongo/i18n"
@@ -8,6 +9,17 @@ import (
 	"strings"
 	"testing"
 )
+
+func dummyBotProfile() BotProfile {
+	router := &WebhooksRouter{}
+	newChatDate := func() botsfwmodels.ChatData {
+		return nil
+	}
+	newUserData := func() botsfwmodels.AppUserData {
+		return nil
+	}
+	return NewBotProfile("test", router, newChatDate, newUserData, i18n.LocaleEnUS, []i18n.Locale{})
+}
 
 func TestNewBotSettings(t *testing.T) {
 	const (
@@ -24,8 +36,11 @@ func TestNewBotSettings(t *testing.T) {
 		assert.Equal(t, localeCode5, bs.Locale.Code5)
 		assert.Equal(t, gaToken, bs.GAToken)
 	}
+
+	testBotProfile := dummyBotProfile()
+
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", token, gaToken, i18n.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5})
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -35,39 +50,34 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := NewBotSettings(platform, strongo.EnvLocal, "unit-test", code, "", "", "", i18n.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5})
 		assertBotSettings(bs)
 	})
 }
 
 func TestNewBotSettingsBy(t *testing.T) {
 	type args struct {
-		getRouter func(profile string) WebhooksRouter
-		bots      []BotSettings
+		bots []BotSettings
 	}
+
+	testBotProfile := dummyBotProfile()
+
 	tests := []struct {
 		name         string
 		args         args
 		expectsPanic bool
 	}{
 		{
-			name: "no_bots",
-			args: args{
-				getRouter: func(profile string) WebhooksRouter {
-					return WebhooksRouter{}
-				},
-			},
+			name:         "no_bots",
+			args:         args{},
 			expectsPanic: true,
 		},
 		{
 			name: "single_bot",
 			args: args{
-				getRouter: func(profile string) WebhooksRouter {
-					return WebhooksRouter{}
-				},
 				bots: []BotSettings{
 					{
-						Profile: "test",
+						Profile: testBotProfile,
 						Code:    "TestBot",
 						ID:      "test123",
 					},
@@ -85,7 +95,7 @@ func TestNewBotSettingsBy(t *testing.T) {
 					}
 				}()
 			}
-			actual := NewBotSettingsBy(tt.args.getRouter, tt.args.bots...)
+			actual := NewBotSettingsBy(tt.args.bots...)
 			assert.Equal(t, len(tt.args.bots), len(actual.ByCode))
 		})
 	}

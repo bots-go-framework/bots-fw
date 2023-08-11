@@ -65,9 +65,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
 
-	//Locale() strongo.ByLocale
+	//DefaultLocale() strongo.ByLocale
 
-	// SetLocale sets locale for current session
+	// SetLocale sets Locale for current session
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot

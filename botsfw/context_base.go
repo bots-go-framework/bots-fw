@@ -274,7 +274,7 @@ func NewWebhookContextBase(
 			}
 			if locale != "" {
 				if err := whcb.SetLocale(locale); err != nil {
-					log.Errorf(c, "Failed to set locale: %v", err)
+					log.Errorf(c, "Failed to set Locale: %v", err)
 				}
 			}
 		}

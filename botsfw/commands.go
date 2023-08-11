@@ -82,12 +82,12 @@ func CommandTextNoTrans(title, icon string) string {
 	return "<NO_TITLE_OR_ICON>"
 }
 
-// DefaultTitle returns a default title for a command in current locale
+// DefaultTitle returns a default title for a command in current Locale
 func (c Command) DefaultTitle(whc WebhookContext) string {
 	return c.TitleByKey(DefaultTitle, whc)
 }
 
-// TitleByKey returns a short/long title for a command in current locale
+// TitleByKey returns a short/long title for a command in current Locale
 func (c Command) TitleByKey(key string, whc WebhookContext) string {
 	var title string
 	if key == DefaultTitle && c.Title != "" {
