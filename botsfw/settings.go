@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"fmt"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/i18n"
 	"os"
@@ -11,23 +12,67 @@ import (
 
 // BotSettings keeps parameters of a bot that are static and are not changed in runtime
 type BotSettings struct {
-	Platform         Platform
-	Env              strongo.Environment
-	Profile          BotProfile
-	Code             string
-	ID               string // TODO: Document how it is different from Code
-	Token            string
-	PaymentToken     string
-	PaymentTestToken string
-	VerifyToken      string // Used by Facebook
-	GAToken          string // TODO: Refactor tu support multiple or move out
 
+	// Platform is a platform that bot is running on
+	// E.g.: Telegram, Viber, Facebook Messenger, WhatsApp, etc.
+	Platform Platform
+
+	// Env is an environment where bot is running
+	// E.g.: Production/Live, Local/Dev, Staging, etc.
+	Env strongo.Environment
+
+	// Profile is a bot profile that defines bot's behavior
+	// It includes commands router and some other settings
+	// More in BotProfile documentation.
+	Profile BotProfile
+
+	// Code is a human-readable ID of a bot.
+	// When displayed it is usually prefixed with @.
+	// For example:
+	//   - @listus_bot for https://t.me/listus_bot
+	Code string
+
+	// ID is a bot-platform ID of a bot. For example, it could be a GUID.
+	// Not all platforms use it. For example Telegram doesn't use it.
+	ID string
+
+	// Token is used to authenticate bot with a platform when it is not responding to a webhook
+	// but calling platform APIs directly.
+	Token string
+
+	// PaymentToken is used to process payments on bot platform
+	PaymentToken string
+
+	// PaymentTestToken is used to process test payments on bot platform
+	PaymentTestToken string
+
+	// VerifyToken is used by Facebook Messenger - TODO: Document how it is used and add a link to Facebook docs
+	VerifyToken string
+
+	// GAToken is Google Analytics token - TODO: Refactor tu support multiple or move out
+	GAToken string
+
+	// Locale is a default locale for a bot.
 	// While a bot profile can support multiple locales a bot can be dedicated to a specific country/language
 	Locale i18n.Locale
+
+	// GetDatabase returns connection to a database assigned to a bot.
+	// You can use same database for multiple bots
+	// but if you need you can use different databases for different bots.
+	// It's up to bots creator how to map bots to a database.
+	// In most cases a single DB is used for all bots.
+	GetDatabase func(ctx context.Context) dal.Database
 }
 
 // NewBotSettings configures bot application
-func NewBotSettings(platform Platform, mode strongo.Environment, profile BotProfile, code, id, token, gaToken string, locale i18n.Locale) BotSettings {
+func NewBotSettings(
+	platform Platform,
+	mode strongo.Environment,
+	profile BotProfile,
+	code, id, token, gaToken string,
+	locale i18n.Locale,
+	getDatabase func(ctx context.Context) dal.Database,
+) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
 	}
@@ -52,14 +97,15 @@ func NewBotSettings(platform Platform, mode strongo.Environment, profile BotProf
 		panic("NewBotSettings: missing required parameter: Locale.Code5")
 	}
 	return BotSettings{
-		Platform: platform,
-		Profile:  profile,
-		Code:     code,
-		ID:       id,
-		Env:      mode,
-		Token:    token,
-		GAToken:  gaToken,
-		Locale:   locale,
+		Platform:    platform,
+		Profile:     profile,
+		Code:        code,
+		ID:          id,
+		Env:         mode,
+		Token:       token,
+		GAToken:     gaToken,
+		Locale:      locale,
+		GetDatabase: getDatabase,
 	}
 }
 

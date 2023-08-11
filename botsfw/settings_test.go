@@ -1,7 +1,9 @@
 package botsfw
 
 import (
+	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/stretchr/testify/assert"
 	strongo "github.com/strongo/app"
 	"github.com/strongo/i18n"
@@ -39,8 +41,11 @@ func TestNewBotSettings(t *testing.T) {
 
 	testBotProfile := dummyBotProfile()
 
+	getDatabase := func(_ context.Context) dal.Database {
+		return nil
+	}
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase)
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -50,7 +55,7 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5})
+		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase)
 		assertBotSettings(bs)
 	})
 }

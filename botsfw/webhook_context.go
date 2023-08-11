@@ -19,18 +19,8 @@ type GaQueuer interface { // TODO: can be unexported?
 	Queue(message gamp.Message) error
 }
 
-// GaContext provides context to Google Analytics
-type GaContext interface {
-	GaQueuer
-	// Flush() error
-	GaCommon() gamp.Common
-	GaEvent(category, action string) *gamp.Event
-	GaEventWithLabel(category, action, label string) *gamp.Event
-}
-
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface { // TODO: Make interface much smaller?
-	GA() GaContext
 	//dal.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider
@@ -98,6 +88,8 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	i18n.SingleLocaleTranslator
 
 	Responder() WebhookResponder
+
+	GA() GaContext // TODO: We should have an abstraction for analytics
 }
 
 // BotState provides state of the bot (TODO: document how is used)
