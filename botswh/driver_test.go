@@ -1,4 +1,4 @@
-package botsfw
+package botswh
 
 import "testing"
 

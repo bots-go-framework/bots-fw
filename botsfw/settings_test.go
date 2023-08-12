@@ -17,7 +17,7 @@ func dummyBotProfile() BotProfile {
 	newChatDate := func() botsfwmodels.ChatData {
 		return nil
 	}
-	newUserData := func() botsfwmodels.AppUserData {
+	newUserData := func() botsfwmodels.BotUserData {
 		return nil
 	}
 	return NewBotProfile("test", router, newChatDate, newUserData, i18n.LocaleEnUS, []i18n.Locale{})

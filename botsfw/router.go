@@ -425,7 +425,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 				if chatData.IsChanged() {
 					chatData.SetUpdatedTime(now)
 				}
-				if err = whc.Store().SaveBotChatData(c, chatData.Key(), chatData); err != nil {
+				if err = whc.SaveBotChat(c); err != nil {
 					log.Errorf(c, "Failed to save chat data: %v", err)
 					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save chat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
 						log.Errorf(c, "Failed to send error message to user: %v", sendErr)

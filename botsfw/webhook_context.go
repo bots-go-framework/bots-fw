@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
@@ -46,6 +47,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotToken() string
 	GetBotSettings() BotSettings
 
+	DB() dal.Database
+	Tx() dal.ReadwriteTransaction
+
 	ChatData() botsfwmodels.ChatData // Formerly ChatEntity()
 	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in ChatData but might consider to have it here as well
 
@@ -78,6 +82,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	BotState
 
 	Store() botsfwdal.DataAccess
+
+	// SaveBotChat takes context as we might want to add timeout or cancellation or something else.
+	SaveBotChat(ctx context.Context) error
 
 	//RecordsMaker() botsfwmodels.BotRecordsMaker
 

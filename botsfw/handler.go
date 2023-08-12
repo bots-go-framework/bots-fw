@@ -30,7 +30,7 @@ type WebhookHandler interface {
 	CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
 
 	// CreateWebhookContext creates WebhookContext for current webhook request
-	CreateWebhookContext(args CreateWebhookContextArgs) WebhookContext
+	CreateWebhookContext(args CreateWebhookContextArgs) (WebhookContext, error)
 
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	HandleUnmatched(whc WebhookContext) (m MessageFromBot)

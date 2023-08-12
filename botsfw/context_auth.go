@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
 	"time"
 )
 
@@ -44,23 +45,18 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserID := whc.GetSender().GetID()
 	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	if botUser, err := whc.Store().GetBotUserByID(c, botID, botUserStrID); err != nil {
+	tx := whc.Tx()
+	platformID := whc.BotPlatform().ID()
+	botSettings := whc.BotContext().BotSettings
+
+	if botUser, err := botsdal.GetBotUser(c, tx, platformID, botSettings.Code, botUserStrID, botSettings.Profile.NewBotUserData); err != nil {
 		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
-	} else if botUser.IsAccessGranted() == value {
+	} else if botUser.Data.IsAccessGranted() == value {
 		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
-	} else if err = store.RunInTransaction(c, botID, func(c context.Context) error {
-		botUser.SetAccessGranted(value)
-		if botUser, err = whc.Store().GetBotUserByID(c, botID, botUserStrID); err != nil {
-			return fmt.Errorf("failed to get transactionally bot user by id=%v: %w", botUserID, err)
+	} else if changed := botUser.Data.SetAccessGranted(value); changed {
+		if err = tx.Set(c, botUser.Record); err != nil {
+			err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
 		}
-		if changed := botUser.SetAccessGranted(value); changed {
-			if err = store.SaveBotUser(c, botID, botUserStrID, botUser); err != nil {
-				err = fmt.Errorf("failed to call whc.SaveBotUser(botUserID=%v): %w", botUserID, err)
-			}
-		}
-		return err
-	}); err != nil {
-		return err
 	}
 	return nil
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer

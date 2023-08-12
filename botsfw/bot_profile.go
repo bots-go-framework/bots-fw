@@ -11,8 +11,9 @@ type BotProfile interface {
 	Router() *WebhooksRouter
 	DefaultLocale() i18n.Locale
 	SupportedLocales() []i18n.Locale
-	NewChatData() botsfwmodels.ChatData
-	NewUserData() botsfwmodels.AppUserData
+	NewBotChatData() botsfwmodels.ChatData
+	NewBotUserData() botsfwmodels.BotUserData
+	NewAppUserData() botsfwmodels.AppUserData
 }
 
 var _ BotProfile = (*botProfile)(nil)
@@ -21,8 +22,9 @@ type botProfile struct {
 	id               string
 	defaultLocale    i18n.Locale
 	supportedLocales []i18n.Locale
-	newChatData      func() botsfwmodels.ChatData
-	newUserData      func() botsfwmodels.AppUserData
+	newBotChatData   func() botsfwmodels.ChatData
+	newBotUserData   func() botsfwmodels.BotUserData
+	newAppUserData   func() botsfwmodels.AppUserData
 	router           *WebhooksRouter
 }
 
@@ -42,19 +44,24 @@ func (v *botProfile) SupportedLocales() []i18n.Locale {
 	return v.supportedLocales[:]
 }
 
-func (v *botProfile) NewChatData() botsfwmodels.ChatData {
-	return v.newChatData()
+func (v *botProfile) NewBotChatData() botsfwmodels.ChatData {
+	return v.newBotChatData()
 }
 
-func (v *botProfile) NewUserData() botsfwmodels.AppUserData {
-	return v.newUserData()
+func (v *botProfile) NewBotUserData() botsfwmodels.BotUserData {
+	return v.newBotUserData()
+}
+
+func (v *botProfile) NewAppUserData() botsfwmodels.AppUserData {
+	return v.newAppUserData()
 }
 
 func NewBotProfile(
 	id string,
 	router *WebhooksRouter,
 	newChatData func() botsfwmodels.ChatData,
-	newUserData func() botsfwmodels.AppUserData,
+	newUserData func() botsfwmodels.BotUserData,
+	newAppUserData func() botsfwmodels.AppUserData,
 	defaultLocale i18n.Locale,
 	supportedLocales []i18n.Locale,
 ) BotProfile {
@@ -62,10 +69,10 @@ func NewBotProfile(
 		panic("missing required parameter: id")
 	}
 	if newChatData == nil {
-		panic("missing required parameter: newChatData")
+		panic("missing required parameter: newBotChatData")
 	}
 	if newUserData == nil {
-		panic("missing required parameter: newUserData")
+		panic("missing required parameter: newBotUserData")
 	}
 	var defaultLocaleInSupportedLocales bool
 	for _, locale := range supportedLocales {
@@ -82,7 +89,8 @@ func NewBotProfile(
 		router:           router,
 		defaultLocale:    defaultLocale,
 		supportedLocales: supportedLocales,
-		newChatData:      newChatData,
-		newUserData:      newUserData,
+		newBotChatData:   newChatData,
+		newBotUserData:   newUserData,
+		newAppUserData:   newAppUserData,
 	}
 }

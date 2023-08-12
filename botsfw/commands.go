@@ -3,7 +3,6 @@ package botsfw
 import (
 	"fmt"
 	"net/url"
-	"strings"
 )
 
 // CommandAction defines an action bot can perform in response to a command
@@ -60,14 +59,6 @@ func NewCallbackCommand(code string, action CallbackAction) Command {
 
 func (c Command) String() string {
 	return fmt.Sprintf("Command{Code: '%v', InputTypes: %v, Icon: '%v', Title: '%v', ExactMatch: '%v', len(Command): %v, len(Replies): %v}", c.Code, c.InputTypes, c.Icon, c.Title, c.ExactMatch, len(c.Commands), len(c.Replies))
-}
-
-// CommandText returns a title for a command
-func (whcb *WebhookContextBase) CommandText(title, icon string) string {
-	if title != "" && !strings.HasPrefix(title, "/") {
-		title = whcb.Translate(title)
-	}
-	return CommandTextNoTrans(title, icon)
 }
 
 // CommandTextNoTrans returns a title for a command (pre-translated)

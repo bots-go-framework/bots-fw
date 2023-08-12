@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
+	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
@@ -15,7 +18,34 @@ import (
 	"time"
 )
 
-//var _ WebhookContext = (*WebhookContextBase)(nil)
+var _ WebhookContext = (*whContextDummy)(nil)
+
+// whContextDummy is a dummy implementation of WebhookContext interface
+// It exists only to check what is NOT implemented by WebhookContextBase
+type whContextDummy struct {
+	*WebhookContextBase
+}
+
+func (w whContextDummy) NewEditMessage(text string, format MessageFormat) (MessageFromBot, error) {
+	panic("must be implemented in platform specific code")
+}
+
+func (w whContextDummy) UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error {
+	panic("implement me in WebhookContextBase") //TODO
+}
+
+func (w whContextDummy) AppUserData() (botsfwmodels.AppUserData, error) {
+	panic("implement me in WebhookContextBase") //TODO
+}
+
+func (w whContextDummy) IsNewerThen(chatEntity botsfwmodels.ChatData) bool {
+	panic("implement me in WebhookContextBase") //TODO
+}
+
+func (w whContextDummy) Responder() WebhookResponder {
+	//TODO implement me
+	panic("implement me")
+}
 
 // WebhookContextBase provides base implementation of WebhookContext interface
 // TODO: Document purpose of a dedicated base struct (e.g. example of usage by developers)
@@ -36,8 +66,10 @@ type WebhookContextBase struct {
 
 	locale i18n.Locale
 
-	chatID            string
-	chatData          botsfwmodels.ChatData
+	// At the moment there is no reason to expose chat record publicly
+	// If there is some it should be documented with a use case
+	chat record.DataWithID[string, botsfwmodels.ChatData]
+
 	isLoadingChatData bool // TODO: This smells bad. Needs refactoring?
 
 	// BotUserID is a user ID in bot's platform.
@@ -53,8 +85,19 @@ type WebhookContextBase struct {
 	//Locales    strongo.LocalesProvider
 
 	dal botsfwdal.DataAccess
+	db  dal.Database
+	tx  dal.ReadwriteTransaction
 
 	gaContext gaContext
+}
+
+func (whcb *WebhookContextBase) DB() dal.Database {
+	return whcb.db
+}
+
+// Tx returns a transaction that is used to read/write chat & bot user data
+func (whcb *WebhookContextBase) Tx() dal.ReadwriteTransaction {
+	return whcb.tx
 }
 
 func (whcb *WebhookContextBase) RecordsFieldsSetter() BotRecordsFieldsSetter {
@@ -69,9 +112,10 @@ func (whcb *WebhookContextBase) BotContext() BotContext {
 	return whcb.botContext
 }
 
-// SetChatID sets chat ID
-func (whcb *WebhookContextBase) SetChatID(v string) {
-	whcb.chatID = v
+// SetChatID sets chat ID - TODO: Should it be private?
+func (whcb *WebhookContextBase) SetChatID(chatID string) {
+	whcb.chat.ID = chatID
+	//whcb.chat.Key = botsdal.newChatKey(whcb.botPlatform.ID(), whcb.botContext.BotSettings.Code, chatID)
 }
 
 // LogRequest logs request data to logging system
@@ -133,8 +177,8 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 
 // BotChatID returns bot chat ID
 func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
-	if whcb.chatID != "" {
-		return whcb.chatID, nil
+	if whcb.chat.ID != "" {
+		return whcb.chat.ID, nil
 	}
 	//log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
 
@@ -142,16 +186,16 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	if botChatID, err = input.BotChatID(); err != nil {
 		return
 	} else if botChatID != "" {
-		whcb.chatID = botChatID
-		return whcb.chatID, nil
+		whcb.SetChatID(botChatID)
+		return whcb.chat.ID, nil
 	}
 	if whcb.getLocaleAndChatID != nil {
 		if _, botChatID, err = whcb.getLocaleAndChatID(); err != nil {
 			return
 		}
 		if botChatID != "" {
-			whcb.chatID = botChatID
-			return
+			whcb.SetChatID(botChatID)
+			return whcb.chat.ID, nil
 		}
 	}
 	switch input := input.(type) {
@@ -162,7 +206,8 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 			if err != nil {
 				return "", fmt.Errorf("failed to GetData() from webhookInput.InputCallbackQuery(): %w", err)
 			}
-			whcb.chatID = values.Get("chat")
+			chatID := values.Get("chat")
+			whcb.SetChatID(chatID)
 		}
 	case WebhookInlineQuery:
 		// pass
@@ -173,7 +218,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		log.Debugf(whcb.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
-	return whcb.chatID, nil
+	return whcb.chat.ID, nil
 }
 
 // AppUserInt64ID: TODO: Deprecate: use AppUserID() instead
@@ -270,7 +315,7 @@ func NewWebhookContextBase(
 			panic(err)
 		} else {
 			if chatID != "" {
-				whcb.chatID = chatID
+				whcb.SetChatID(chatID)
 			}
 			if locale != "" {
 				if err := whcb.SetLocale(locale); err != nil {
@@ -353,10 +398,10 @@ func (gac gaContext) Queue(message gamp.Message) error {
 // GaCommon creates context for Google Analytics
 func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
-	if whcb.chatData != nil {
+	if whcb.chat.Data != nil {
 		return gamp.Common{
-			UserID:       whcb.chatData.GetAppUserID(),
-			UserLanguage: strings.ToLower(whcb.chatData.GetPreferredLanguage()),
+			UserID:       whcb.chat.Data.GetAppUserID(),
+			UserLanguage: strings.ToLower(whcb.chat.Data.GetPreferredLanguage()),
 			//ClientID:      whcb.chatData.GetGaClientID(), // TODO: Restore feature
 			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
 			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
@@ -407,7 +452,7 @@ func (whcb *WebhookContextBase) GetBotToken() string {
 
 // HasChatData return true if messages is within chat
 func (whcb *WebhookContextBase) HasChatData() bool {
-	return whcb.chatData != nil
+	return whcb.chat.Data != nil
 }
 
 //func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
@@ -421,8 +466,8 @@ func (whcb *WebhookContextBase) HasChatData() bool {
 
 // ChatData returns app entity for the context (loaded from DB)
 func (whcb *WebhookContextBase) ChatData() botsfwmodels.ChatData {
-	if whcb.chatData != nil {
-		return whcb.chatData
+	if whcb.chat.Data != nil {
+		return whcb.chat.Data
 	}
 	whcb.isLoadingChatData = true
 	defer func() {
@@ -449,14 +494,14 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.ChatData {
 			appUserID := whcb.AppUserID()
 			webhookChat := whcb.Chat()
 			isAccessGranted := true // TODO: Implement!!!
-			if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, webhookChat, botID, botUserID, appUserID, isAccessGranted); err != nil {
+			if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chat.Data, webhookChat, botID, botUserID, appUserID, isAccessGranted); err != nil {
 				panic(fmt.Errorf("failed to call whcb.recordsMaker.MakeBotChatDto(): %w", err))
 			}
 		} else {
 			panic(fmt.Errorf("failed to call whcb.loadChatEntityBase(): %w", err))
 		}
 	}
-	return whcb.chatData
+	return whcb.chat.Data
 }
 
 // getOrCreateBotUserData to be documented
@@ -471,10 +516,15 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 		whcb.isLoadingUserData = false
 	}()
 	sender := whcb.input.GetSender()
+	platformID := whcb.botPlatform.ID()
 	botID := whcb.GetBotCode()
 	botUserID := fmt.Sprintf("%v", sender.GetID())
 	var err error
-	if whcb.botUserData, err = whcb.dal.GetBotUserByID(c, botID, botUserID); err != nil {
+	var botUser record.DataWithID[string, botsfwmodels.BotUserData]
+	whcb.botUserData = botUser.Data
+	botUser, err = botsdal.GetBotUser(c, whcb.tx, platformID, botID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	whcb.botUserData = botUser.Data
+	if err != nil {
 		if !botsfwdal.IsNotFoundErr(err) {
 			log.Infof(c, "Bot user entity not found, creating a new one...")
 			appUserID := whcb.AppUserID()
@@ -511,9 +561,10 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 }
 
 func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
-	c := whcb.Context()
+	ctx, cancel := context.WithTimeout(whcb.Context(), time.Second)
+	defer cancel()
 	if whcb.HasChatData() {
-		log.Warningf(c, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
+		log.Warningf(ctx, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
 		return nil
 	}
 
@@ -524,18 +575,24 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		return fmt.Errorf("failed to call whcb.BotChatID(): %w", err)
 	}
 
-	//log.Debugf(c, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
+	//log.Debugf(ctx, "loadChatEntityBase(): getLocaleAndChatID: %v", botChatID)
 	botChatStore := whcb.dal
 	if botChatStore == nil {
 		panic("botChatStore == nil")
 	}
-	whcb.chatData, err = botChatStore.GetBotChatData(c, chatKey)
-	if whcb.chatData != nil {
-		if whcb.chatData.Key() != chatKey {
-			whcb.chatData.Base().ChatKey = chatKey
+	//whcb.chat.Data, err = botChatStore.GetBotChatData(ctx, chatKey)
+	platformID := whcb.botPlatform.ID()
+	whcb.chat, err = botsdal.GetBotChat(ctx, whcb.tx, platformID,
+		whcb.botContext.BotSettings.Code, whcb.chat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)
+	if err != nil {
+		return
+	}
+	if whcb.chat.Data != nil {
+		if whcb.chat.Data.Key() != chatKey {
+			whcb.chat.Data.Base().ChatKey = chatKey
 		}
 		if botUserID := whcb.GetBotUserID(); botUserID != "" {
-			chatDataBase := whcb.chatData.Base()
+			chatDataBase := whcb.chat.Data.Base()
 			switch chatDataBase.BotUserID {
 			case "":
 				chatDataBase.BotUserID = botUserID
@@ -543,7 +600,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 				break // This is expected for existing personal chats
 			default:
 				// Different bot user ID - should never happen?
-				log.Warningf(c, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserID, botUserID)
+				log.Warningf(ctx, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserID, botUserID)
 			}
 		}
 	}
@@ -552,7 +609,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 			return err
 		}
 		err = nil
-		log.Infof(c, "BotChat not found, first check for bot user entity...")
+		log.Infof(ctx, "BotChat not found, first check for bot user entity...")
 		botUser, err := whcb.getOrCreateBotUserData()
 		if err != nil {
 			return err
@@ -563,14 +620,14 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		isAccessGranted := botUser.IsAccessGranted()
 		whChat := whcb.input.Chat()
 		appUserID := botUser.GetAppUserID()
-		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chatData, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted); err != nil {
+		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.chat.Data, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted); err != nil {
 			return err
 		}
 
 		if whcb.GetBotSettings().Env == strongo.EnvProduction {
 			ga := whcb.gaContext
 			if err := ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-chat-created", whcb.botPlatform.ID())); err != nil {
-				log.Errorf(c, "Failed to queue GA event: %v", err)
+				log.Errorf(ctx, "Failed to queue GA event: %v", err)
 			}
 		}
 
@@ -578,13 +635,13 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 
 	if sender := whcb.input.GetSender(); sender != nil {
 		if languageCode := sender.GetLanguage(); languageCode != "" {
-			whcb.chatData.AddClientLanguage(languageCode)
+			whcb.chat.Data.AddClientLanguage(languageCode)
 		}
 	}
 
-	if chatLocale := whcb.chatData.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
+	if chatLocale := whcb.chat.Data.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
 		if err = whcb.SetLocale(chatLocale); err != nil {
-			log.Errorf(c, "failed to set locate: %v", err)
+			log.Errorf(ctx, "failed to set locate: %v", err)
 		}
 	}
 	return err
@@ -650,4 +707,16 @@ func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	whcb.locale = locale
 	log.Debugf(whcb.Context(), "*WebhookContextBase.SetLocale(%v) => Done", code5)
 	return nil
+}
+
+// CommandText returns a title for a command
+func (whcb *WebhookContextBase) CommandText(title, icon string) string {
+	if title != "" && !strings.HasPrefix(title, "/") {
+		title = whcb.Translate(title)
+	}
+	return CommandTextNoTrans(title, icon)
+}
+
+func (whcb *WebhookContextBase) SaveBotChat(ctx context.Context) error {
+	return whcb.tx.Set(ctx, whcb.chat.Record)
 }
