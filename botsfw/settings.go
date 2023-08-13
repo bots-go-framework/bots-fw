@@ -3,11 +3,25 @@ package botsfw
 import (
 	"context"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app"
 	"github.com/strongo/i18n"
 	"os"
 	"strings"
+)
+
+type DbGetter = func(ctx context.Context) (db dal.Database, err error)
+
+type AppUserGetter = func(
+	ctx context.Context,
+	tx dal.ReadSession,
+	botID string,
+	appUserID string,
+) (
+	appUser record.DataWithID[string, botsfwmodels.AppUserData],
+	err error,
 )
 
 // BotSettings keeps parameters of a bot that are static and are not changed in runtime
@@ -61,7 +75,12 @@ type BotSettings struct {
 	// but if you need you can use different databases for different bots.
 	// It's up to bots creator how to map bots to a database.
 	// In most cases a single DB is used for all bots.
-	GetDatabase func(ctx context.Context) dal.Database
+	GetDatabase DbGetter
+	getAppUser  AppUserGetter
+}
+
+func (v BotSettings) GetAppUserByID(ctx context.Context, tx dal.ReadSession, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
+	return v.getAppUser(ctx, tx, v.Code, appUserID)
 }
 
 // NewBotSettings configures bot application
@@ -71,7 +90,8 @@ func NewBotSettings(
 	profile BotProfile,
 	code, id, token, gaToken string,
 	locale i18n.Locale,
-	getDatabase func(ctx context.Context) dal.Database,
+	getDatabase DbGetter,
+	getAppUser AppUserGetter,
 ) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
@@ -106,6 +126,7 @@ func NewBotSettings(
 		GAToken:     gaToken,
 		Locale:      locale,
 		GetDatabase: getDatabase,
+		getAppUser:  getAppUser,
 	}
 }
 

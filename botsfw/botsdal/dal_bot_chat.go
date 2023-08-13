@@ -18,8 +18,8 @@ func GetBotChat(
 	ctx context.Context,
 	tx dal.ReadSession,
 	platformID, botID, chatID string,
-	newData func() botsfwmodels.ChatData,
-) (chat record.DataWithID[string, botsfwmodels.ChatData], err error) {
+	newData func() botsfwmodels.BotChatData,
+) (chat record.DataWithID[string, botsfwmodels.BotChatData], err error) {
 	key := NewBotChatKey(platformID, botID, chatID)
 	data := newData()
 	chat = record.NewDataWithID(chatID, key, data)

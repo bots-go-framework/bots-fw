@@ -1,4 +1,4 @@
-package botswh
+package botswebhook
 
 import (
 	"bytes"
@@ -169,7 +169,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 	}()
 
-	botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
+	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	defer func() {
 		if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
 			//log.Debugf(c, "Closing BotChatStore...")
@@ -177,16 +177,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			//if chatData != nil && chatData.GetPreferredLanguage() == "" {
 			//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
 			//}
-			if botCoreStores != nil {
-				if err := botCoreStores.Close(c); err != nil {
-					botsfw.Log().Errorf(c, "Failed to close BotChatStore: %v", err)
-					var m botsfw.MessageFromBot
-					m.Text = ErrorIcon + " ERROR: Service is temporary unavailable. Probably a global outage, status at https://status.cloud.google.com/"
-					if _, err := whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverHTTPS); err != nil {
-						botsfw.Log().Errorf(c, "Failed to report outage: %v", err)
-					}
-				}
-			}
 		}
 	}()
 
@@ -196,7 +186,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 			}
 			d.logInput(c, i, input)
-			whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, botCoreStores, measurementSender)
+			whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, measurementSender)
 			var err error
 			if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 				handleError(err, "Failed to create WebhookContext")

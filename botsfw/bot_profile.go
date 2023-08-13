@@ -11,9 +11,9 @@ type BotProfile interface {
 	Router() *WebhooksRouter
 	DefaultLocale() i18n.Locale
 	SupportedLocales() []i18n.Locale
-	NewBotChatData() botsfwmodels.ChatData
+	NewBotChatData() botsfwmodels.BotChatData
 	NewBotUserData() botsfwmodels.BotUserData
-	NewAppUserData() botsfwmodels.AppUserData
+	NewAppUserData() botsfwmodels.AppUserData // TODO: Can we get rit of it and instead use GetAppUserByID/CreateAppUser?
 }
 
 var _ BotProfile = (*botProfile)(nil)
@@ -22,9 +22,10 @@ type botProfile struct {
 	id               string
 	defaultLocale    i18n.Locale
 	supportedLocales []i18n.Locale
-	newBotChatData   func() botsfwmodels.ChatData
+	newBotChatData   func() botsfwmodels.BotChatData
 	newBotUserData   func() botsfwmodels.BotUserData
 	newAppUserData   func() botsfwmodels.AppUserData
+	getAppUserByID   AppUserGetter
 	router           *WebhooksRouter
 }
 
@@ -44,7 +45,7 @@ func (v *botProfile) SupportedLocales() []i18n.Locale {
 	return v.supportedLocales[:]
 }
 
-func (v *botProfile) NewBotChatData() botsfwmodels.ChatData {
+func (v *botProfile) NewBotChatData() botsfwmodels.BotChatData {
 	return v.newBotChatData()
 }
 
@@ -59,19 +60,20 @@ func (v *botProfile) NewAppUserData() botsfwmodels.AppUserData {
 func NewBotProfile(
 	id string,
 	router *WebhooksRouter,
-	newChatData func() botsfwmodels.ChatData,
-	newUserData func() botsfwmodels.BotUserData,
+	newBotChatData func() botsfwmodels.BotChatData,
+	newBotUserData func() botsfwmodels.BotUserData,
 	newAppUserData func() botsfwmodels.AppUserData,
+	getAppUserByID AppUserGetter,
 	defaultLocale i18n.Locale,
 	supportedLocales []i18n.Locale,
 ) BotProfile {
 	if strings.TrimSpace(id) == "" {
 		panic("missing required parameter: id")
 	}
-	if newChatData == nil {
+	if newBotChatData == nil {
 		panic("missing required parameter: newBotChatData")
 	}
-	if newUserData == nil {
+	if newBotUserData == nil {
 		panic("missing required parameter: newBotUserData")
 	}
 	var defaultLocaleInSupportedLocales bool
@@ -89,8 +91,9 @@ func NewBotProfile(
 		router:           router,
 		defaultLocale:    defaultLocale,
 		supportedLocales: supportedLocales,
-		newBotChatData:   newChatData,
-		newBotUserData:   newUserData,
+		newBotChatData:   newBotChatData,
+		newBotUserData:   newBotUserData,
 		newAppUserData:   newAppUserData,
+		getAppUserByID:   getAppUserByID,
 	}
 }

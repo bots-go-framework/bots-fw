@@ -2,7 +2,6 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
@@ -50,11 +49,11 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	DB() dal.Database
 	Tx() dal.ReadwriteTransaction
 
-	ChatData() botsfwmodels.ChatData // Formerly ChatEntity()
-	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in ChatData but might consider to have it here as well
+	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
+	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in BotChatData but might consider to have it here as well
 
-	// IsInGroup indicates if message was received in a group chat
-	IsInGroup() bool
+	// IsInGroup indicates if message was received in a group botChat
+	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.
 
 	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
@@ -69,7 +68,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
-	UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error
+	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
 
 	AppUserID() string
 
@@ -81,7 +80,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	BotState
 
-	Store() botsfwdal.DataAccess
+	//Store() botsfwdal.DataAccess
 
 	// SaveBotChat takes context as we might want to add timeout or cancellation or something else.
 	SaveBotChat(ctx context.Context) error
@@ -101,7 +100,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 // BotState provides state of the bot (TODO: document how is used)
 type BotState interface {
-	IsNewerThen(chatEntity botsfwmodels.ChatData) bool
+	IsNewerThen(chatEntity botsfwmodels.BotChatData) bool
 }
 
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
@@ -120,5 +119,4 @@ type BotAPIUser interface {
 
 	//IdAsString() string
 	//IdAsInt64() int64
-
 }

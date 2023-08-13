@@ -89,9 +89,9 @@ const (
 	WebhookInputUnsubscribed // Viber
 	// WebhookInputConversationStarted is converstation started input type
 	WebhookInputConversationStarted // Viber
-	// WebhookInputNewChatMembers is new chat memebers input type
+	// WebhookInputNewChatMembers is new botChat memebers input type
 	WebhookInputNewChatMembers // Telegram groups
-	// WebhookInputLeftChatMembers is left chat members input type
+	// WebhookInputLeftChatMembers is left botChat members input type
 	WebhookInputLeftChatMembers
 	// WebhookInputSticker is sticker input type
 	WebhookInputSticker // Telegram
@@ -214,19 +214,19 @@ type WebhookContactMessage interface {
 	UserID() interface{}
 }
 
-// WebhookNewChatMembersMessage represents single message about a new member of a chat
+// WebhookNewChatMembersMessage represents single message about a new member of a botChat
 type WebhookNewChatMembersMessage interface {
 	BotChatID() (string, error)
 	NewChatMembers() []WebhookActor
 }
 
-// WebhookLeftChatMembersMessage represents single message about a member leaving a chat
+// WebhookLeftChatMembersMessage represents single message about a member leaving a botChat
 type WebhookLeftChatMembersMessage interface {
 	BotChatID() (string, error)
 	LeftChatMembers() []WebhookActor
 }
 
-// WebhookChat represents chat of a messenger
+// WebhookChat represents botChat of a messenger
 type WebhookChat interface {
 	GetID() string
 	GetType() string

@@ -426,8 +426,8 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 					chatData.SetUpdatedTime(now)
 				}
 				if err = whc.SaveBotChat(c); err != nil {
-					log.Errorf(c, "Failed to save chat data: %v", err)
-					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save chat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
+					log.Errorf(c, "Failed to save botChat data: %v", err)
+					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
 						log.Errorf(c, "Failed to send error message to user: %v", sendErr)
 					}
 				}
@@ -523,7 +523,7 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 			pathPrefix := "bot/"
 			var pageview *gamp.Pageview
-			var chatData botsfwmodels.ChatData
+			var chatData botsfwmodels.BotChatData
 			if inputType != WebhookInputCallbackQuery {
 				chatData = whc.ChatData()
 			}
@@ -571,7 +571,7 @@ func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, match
 	}
 	inputType := whc.InputType()
 	if inputType == WebhookInputText || inputType == WebhookInputContact {
-		// TODO: Try to get chat ID from user?
+		// TODO: Try to get botChat ID from user?
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +
 				"\n\n" +

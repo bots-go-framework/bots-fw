@@ -2,7 +2,6 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"net/http"
 )
 
@@ -27,7 +26,7 @@ type WebhookHandler interface {
 	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
 
 	// CreateBotCoreStores TODO: should be deprecated after migration to dalgo
-	CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
+	//CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
 
 	// CreateWebhookContext creates WebhookContext for current webhook request
 	CreateWebhookContext(args CreateWebhookContextArgs) (WebhookContext, error)
@@ -38,11 +37,11 @@ type WebhookHandler interface {
 }
 
 type CreateWebhookContextArgs struct {
-	HttpRequest   *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
-	AppContext    BotAppContext
-	BotContext    BotContext
-	WebhookInput  WebhookInput
-	BotCoreStores botsfwdal.DataAccess
+	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
+	AppContext   BotAppContext
+	BotContext   BotContext
+	WebhookInput WebhookInput
+	//BotCoreStores botsfwdal.DataAccess
 	GaMeasurement GaQueuer
 }
 
@@ -51,15 +50,15 @@ func NewCreateWebhookContextArgs(
 	appContext BotAppContext,
 	botContext BotContext,
 	webhookInput WebhookInput,
-	botCoreStores botsfwdal.DataAccess,
+	//botCoreStores botsfwdal.DataAccess,
 	gaMeasurement GaQueuer,
 ) CreateWebhookContextArgs {
 	return CreateWebhookContextArgs{
-		HttpRequest:   httpRequest,
-		AppContext:    appContext,
-		BotContext:    botContext,
-		WebhookInput:  webhookInput,
-		BotCoreStores: botCoreStores,
+		HttpRequest:  httpRequest,
+		AppContext:   appContext,
+		BotContext:   botContext,
+		WebhookInput: webhookInput,
+		//BotCoreStores: botCoreStores,
 		GaMeasurement: gaMeasurement,
 	}
 }

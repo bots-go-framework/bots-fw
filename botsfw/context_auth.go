@@ -1,7 +1,6 @@
 package botsfw
 
 import (
-	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
@@ -14,7 +13,6 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
 	botID := whc.GetBotCode()
 	chatData := whc.ChatData()
-	store := whc.Store()
 	if chatData != nil {
 		if chatData.IsAccessGranted() == value {
 			log.Infof(c, "No need to change chatData.AccessGranted, as already is: %v", value)
@@ -25,19 +23,14 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 			if chatKey.ChatID, err = whc.BotChatID(); err != nil {
 				return err
 			}
-			if err = store.RunInTransaction(c, botID, func(c context.Context) error {
-				if changed := chatData.SetAccessGranted(value); changed {
-					now := time.Now()
-					chatDataBase := chatData.Base()
-					chatDataBase.DtUpdated = now
-					chatDataBase.SetDtLastInteraction(now) // Must set DtLastInteraction through wrapper
-					if err = store.SaveBotChatData(c, chatKey, chatData); err != nil {
-						err = fmt.Errorf("failed to save bot chat entity to db: %w", err)
-					}
+			if changed := chatData.SetAccessGranted(value); changed {
+				now := time.Now()
+				chatDataBase := chatData.Base()
+				chatDataBase.DtUpdated = now
+				chatDataBase.SetDtLastInteraction(now) // Must set DtLastInteraction through wrapper
+				if err = whc.SaveBotChat(c); err != nil {
+					err = fmt.Errorf("failed to save bot botChat entity to db: %w", err)
 				}
-				return nil
-			}); err != nil {
-				return
 			}
 		}
 	}
@@ -84,9 +77,9 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 //	//if err != nil {
 //	//	return err
 //	//}
-//	//for i, chat := range chats {
-//	//	if chat.AccessGranted != value {
-//	//		chatKey, err := SaveTelegramChatEntity(ctx, whc.botSettings.code, chatKeys[i].IntID(), &chat)
+//	//for i, botChat := range chats {
+//	//	if botChat.AccessGranted != value {
+//	//		chatKey, err := SaveTelegramChatEntity(ctx, whc.botSettings.code, chatKeys[i].IntID(), &botChat)
 //	//		if err != nil {
 //	//			log.Warningf(ctx, "Failed to save %v to db", chatKey)
 //	//		}
