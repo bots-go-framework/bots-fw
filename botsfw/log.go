@@ -15,3 +15,7 @@ var log Logger
 func SetLogger(l Logger) {
 	log = l
 }
+
+func Log() Logger {
+	return log
+}

@@ -2,8 +2,8 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
@@ -19,18 +19,8 @@ type GaQueuer interface { // TODO: can be unexported?
 	Queue(message gamp.Message) error
 }
 
-// GaContext provides context to Google Analytics
-type GaContext interface {
-	GaQueuer
-	// Flush() error
-	GaCommon() gamp.Common
-	GaEvent(category, action string) *gamp.Event
-	GaEventWithLabel(category, action, label string) *gamp.Event
-}
-
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface { // TODO: Make interface much smaller?
-	GA() GaContext
 	//dal.TransactionCoordinator
 	Environment() strongo.Environment
 	BotInputProvider
@@ -56,18 +46,21 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotToken() string
 	GetBotSettings() BotSettings
 
-	ChatData() botsfwmodels.ChatData // Formerly ChatEntity()
-	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in ChatData but might consider to have it here as well
+	DB() dal.Database
+	Tx() dal.ReadwriteTransaction
 
-	// IsInGroup indicates if message was received in a group chat
-	IsInGroup() bool
+	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
+	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in BotChatData but might consider to have it here as well
+
+	// IsInGroup indicates if message was received in a group botChat
+	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.
 
 	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
 
-	//Locale() strongo.ByLocale
+	//DefaultLocale() strongo.ByLocale
 
-	// SetLocale sets locale for current session
+	// SetLocale sets Locale for current session
 	SetLocale(code5 string) error
 
 	NewMessage(text string) MessageFromBot
@@ -75,7 +68,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
-	UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error
+	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
 
 	AppUserID() string
 
@@ -87,7 +80,10 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	BotState
 
-	Store() botsfwdal.DataAccess
+	//Store() botsfwdal.DataAccess
+
+	// SaveBotChat takes context as we might want to add timeout or cancellation or something else.
+	SaveBotChat(ctx context.Context) error
 
 	//RecordsMaker() botsfwmodels.BotRecordsMaker
 
@@ -98,11 +94,13 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	i18n.SingleLocaleTranslator
 
 	Responder() WebhookResponder
+
+	GA() GaContext // TODO: We should have an abstraction for analytics
 }
 
 // BotState provides state of the bot (TODO: document how is used)
 type BotState interface {
-	IsNewerThen(chatEntity botsfwmodels.ChatData) bool
+	IsNewerThen(chatEntity botsfwmodels.BotChatData) bool
 }
 
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
@@ -121,5 +119,4 @@ type BotAPIUser interface {
 
 	//IdAsString() string
 	//IdAsInt64() int64
-
 }

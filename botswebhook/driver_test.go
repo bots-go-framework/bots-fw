@@ -1,4 +1,4 @@
-package botsfw
+package botswebhook
 
 import "testing"
 

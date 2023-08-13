@@ -2,7 +2,6 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"net/http"
 )
 
@@ -11,14 +10,55 @@ type HttpRouter interface {
 }
 
 // WebhookHandler handles requests from a specific bot API
+// This is implemented by different botsfw packages, e.g. https://github.com/bots-go-framework/bots-fw-telegram
 // TODO: Simplify interface by decomposing it into smaller interfaces? Probably next method could/should be decoupled: CreateBotCoreStores()
 type WebhookHandler interface {
+
+	// RegisterHttpHandlers registers HTTP handlers for bot API
 	RegisterHttpHandlers(driver WebhookDriver, botHost BotHost, router HttpRouter, pathPrefix string)
+
+	// HandleWebhookRequest handles incoming webhook request
 	HandleWebhookRequest(w http.ResponseWriter, r *http.Request)
+
+	// GetBotContextAndInputs returns bot context and inputs for current request
+	// It returns multiple inputs as some platforms (like Facebook Messenger)
+	// may send multiple message in one request
 	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
-	CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
-	CreateWebhookContext(appContext BotAppContext, r *http.Request, botContext BotContext, webhookInput WebhookInput, botCoreStores botsfwdal.DataAccess, gaMeasurement GaQueuer) WebhookContext //TODO: Can we get rid of http.Request? Needed for botHost.GetHTTPClient()
+
+	// CreateBotCoreStores TODO: should be deprecated after migration to dalgo
+	//CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
+
+	// CreateWebhookContext creates WebhookContext for current webhook request
+	CreateWebhookContext(args CreateWebhookContextArgs) (WebhookContext, error)
+
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
 	HandleUnmatched(whc WebhookContext) (m MessageFromBot)
 	//ProcessInput(input webhookInput, entry *WebhookEntry)
+}
+
+type CreateWebhookContextArgs struct {
+	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
+	AppContext   BotAppContext
+	BotContext   BotContext
+	WebhookInput WebhookInput
+	//BotCoreStores botsfwdal.DataAccess
+	GaMeasurement GaQueuer
+}
+
+func NewCreateWebhookContextArgs(
+	httpRequest *http.Request,
+	appContext BotAppContext,
+	botContext BotContext,
+	webhookInput WebhookInput,
+	//botCoreStores botsfwdal.DataAccess,
+	gaMeasurement GaQueuer,
+) CreateWebhookContextArgs {
+	return CreateWebhookContextArgs{
+		HttpRequest:  httpRequest,
+		AppContext:   appContext,
+		BotContext:   botContext,
+		WebhookInput: webhookInput,
+		//BotCoreStores: botCoreStores,
+		GaMeasurement: gaMeasurement,
+	}
 }

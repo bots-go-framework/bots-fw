@@ -279,17 +279,17 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 		//}
 	}
 	if lang != "" {
-		chatEntity := whc.ChatData() // We need it to be loaded before changing current locale
+		chatEntity := whc.ChatData() // We need it to be loaded before changing current Locale
 		currentLang := q.Get("cl")
 		currentLocaleCode5 := whc.Locale().Code5
 		log.Debugf(whc.Context(), "query: %v, lang: %v, currentLang: %v, currentLocaleCode5: %v", q, lang, currentLang, currentLocaleCode5)
 		if lang != currentLocaleCode5 {
 			if err = whc.SetLocale(lang); err != nil {
-				log.Errorf(c, "Failed to set current locale to %v: %v", lang, err)
+				log.Errorf(c, "Failed to set current Locale to %v: %v", lang, err)
 				err = nil
 			} else {
 				if currentLocaleCode5 = whc.Locale().Code5; currentLocaleCode5 != lang {
-					log.Errorf(c, "Locale not set, expected %v, got: %v", lang, currentLocaleCode5)
+					log.Errorf(c, "DefaultLocale not set, expected %v, got: %v", lang, currentLocaleCode5)
 				}
 				chatEntity.SetPreferredLanguage(lang)
 			}
@@ -425,9 +425,9 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 				if chatData.IsChanged() {
 					chatData.SetUpdatedTime(now)
 				}
-				if err = whc.Store().SaveBotChatData(c, chatData.Key(), chatData); err != nil {
-					log.Errorf(c, "Failed to save chat data: %v", err)
-					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save chat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
+				if err = whc.SaveBotChat(c); err != nil {
+					log.Errorf(c, "Failed to save botChat data: %v", err)
+					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
 						log.Errorf(c, "Failed to send error message to user: %v", sendErr)
 					}
 				}
@@ -523,7 +523,7 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 			pathPrefix := "bot/"
 			var pageview *gamp.Pageview
-			var chatData botsfwmodels.ChatData
+			var chatData botsfwmodels.BotChatData
 			if inputType != WebhookInputCallbackQuery {
 				chatData = whc.ChatData()
 			}
@@ -571,7 +571,7 @@ func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, match
 	}
 	inputType := whc.InputType()
 	if inputType == WebhookInputText || inputType == WebhookInputContact {
-		// TODO: Try to get chat ID from user?
+		// TODO: Try to get botChat ID from user?
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +
 				"\n\n" +

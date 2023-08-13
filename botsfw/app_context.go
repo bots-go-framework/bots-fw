@@ -12,5 +12,5 @@ type BotAppContext interface {
 	i18n.TranslationContext
 
 	NewBotAppUserEntity() botsfwmodels.AppUserData
-	GetBotChatEntityFactory(platform string) func() botsfwmodels.ChatData
+	GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChatData
 }

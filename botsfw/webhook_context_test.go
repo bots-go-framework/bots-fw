@@ -33,7 +33,7 @@ func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, api
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotChatEntityByID(c context.Context, botID, botChatID string) (botsfwmodels.ChatData, error) {
+func (whc TestWebhookContext) GetBotChatEntityByID(c context.Context, botID, botChatID string) (botsfwmodels.BotChatData, error) {
 	panic("Not implemented")
 }
 
@@ -109,7 +109,7 @@ func (whc TestWebhookContext) Init(w http.ResponseWriter, r *http.Request) error
 }
 func (whc TestWebhookContext) Context() context.Context { panic("Not implemented") }
 
-func (whc TestWebhookContext) ChatData() botsfwmodels.ChatData { panic("Not implemented") }
+func (whc TestWebhookContext) ChatData() botsfwmodels.BotChatData { panic("Not implemented") }
 
 func (whc TestWebhookContext) CommandText(title, icon string) string        { panic("Not implemented") }
 func (whc TestWebhookContext) CommandTextNoTrans(title, icon string) string { panic("Not implemented") }
@@ -130,10 +130,10 @@ func (whc TestWebhookContext) Responder() WebhookResponder {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) IsNewerThen(chatEntity botsfwmodels.ChatData) bool {
+func (whc TestWebhookContext) IsNewerThen(chatEntity botsfwmodels.BotChatData) bool {
 	panic("Not implemented")
 }
-func (whc TestWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.ChatData) error {
+func (whc TestWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error {
 	panic("Not implemented")
 }
 

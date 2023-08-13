@@ -16,7 +16,7 @@ type BotRecordsFieldsSetter interface {
 	// SetBotUserFields sets fields of bot user record
 	SetBotUserFields(botUser botsfwmodels.BotUserData, sender WebhookSender, botID, botUserID, appUserID string) error
 
-	// SetBotChatFields sets fields of bot chat record
+	// SetBotChatFields sets fields of bot botChat record
 	// TODO: document isAccessGranted parameter
-	SetBotChatFields(botChat botsfwmodels.ChatData, chat WebhookChat, botID, botUserID, appUserID string, isAccessGranted bool) error
+	SetBotChatFields(botChat botsfwmodels.BotChatData, chat WebhookChat, botID, botUserID, appUserID string, isAccessGranted bool) error
 }

@@ -4,7 +4,6 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwdal"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/strongo/i18n"
@@ -35,7 +34,7 @@ type WebhookHandlerBase struct {
 	RecordsMaker        botsfwmodels.BotRecordsMaker
 	RecordsFieldsSetter BotRecordsFieldsSetter
 	TranslatorProvider  TranslatorProvider
-	DataAccess          botsfwdal.DataAccess
+	//DataAccess          botsfwdal.DataAccess
 }
 
 // Register driver
@@ -66,15 +65,15 @@ const (
 // NoMessageToSend returned explicitly if we don't want to reply to user intput
 const NoMessageToSend = "<NO_MESSAGE_TO_SEND>"
 
-// ChatUID returns chat ID as unique string
+// ChatUID returns botChat ID as unique string
 type ChatUID interface {
 	ChatUID() string
 }
 
-// ChatIntID returns chat ID as unique integer
+// ChatIntID returns botChat ID as unique integer
 type ChatIntID int64
 
-// ChatUID returns chat ID as unique string
+// ChatUID returns botChat ID as unique string
 func (chatUID ChatIntID) ChatUID() string {
 	return strconv.FormatInt(int64(chatUID), 10)
 }
@@ -124,7 +123,7 @@ const (
 	BotMessageTypeText
 	// BotMessageTypeEditMessage edit previously sent message
 	BotMessageTypeEditMessage
-	// BotMessageTypeLeaveChat commands messenger to kick off bot from a chat
+	// BotMessageTypeLeaveChat commands messenger to kick off bot from a botChat
 	BotMessageTypeLeaveChat
 	// BotMessageTypeExportChatInviteLink sends invite link
 	BotMessageTypeExportChatInviteLink

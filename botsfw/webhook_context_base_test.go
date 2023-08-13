@@ -9,6 +9,7 @@ func TestNewWebhookContextBase(t *testing.T) {
 				t.Errorf("NewWebhookContextBase() did not panic")
 			}
 		}()
-		NewWebhookContextBase(nil, nil, nil, BotContext{}, nil, nil, nil, nil, nil, nil)
+		args := CreateWebhookContextArgs{}
+		_, _ = NewWebhookContextBase(args, nil, nil, nil, nil)
 	})
 }
