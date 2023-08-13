@@ -30,6 +30,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 				chatDataBase.SetDtLastInteraction(now) // Must set DtLastInteraction through wrapper
 				if err = whc.SaveBotChat(c); err != nil {
 					err = fmt.Errorf("failed to save bot botChat entity to db: %w", err)
+					return err
 				}
 			}
 		}
@@ -49,6 +50,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	} else if changed := botUser.Data.SetAccessGranted(value); changed {
 		if err = tx.Set(c, botUser.Record); err != nil {
 			err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
+			return err
 		}
 	}
 	return nil

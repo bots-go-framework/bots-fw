@@ -10,6 +10,6 @@ func TestNewWebhookContextBase(t *testing.T) {
 			}
 		}()
 		args := CreateWebhookContextArgs{}
-		NewWebhookContextBase(args, nil, nil, nil, nil)
+		_, _ = NewWebhookContextBase(args, nil, nil, nil, nil)
 	})
 }

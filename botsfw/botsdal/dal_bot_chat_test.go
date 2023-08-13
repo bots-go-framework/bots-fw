@@ -7,7 +7,7 @@ import (
 func TestNewBotChatStore(t *testing.T) {
 	type args struct {
 		collection string
-		platform   string
+		//platform   string
 		//db         DbProvider
 	}
 	tests := []struct {

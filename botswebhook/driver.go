@@ -170,15 +170,15 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}()
 
 	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
-	defer func() {
-		if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-			//log.Debugf(c, "Closing BotChatStore...")
-			//chatData := whc.ChatData()
-			//if chatData != nil && chatData.GetPreferredLanguage() == "" {
-			//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
-			//}
-		}
-	}()
+	//defer func() {
+	//	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
+	//		//log.Debugf(c, "Closing BotChatStore...")
+	//		//chatData := whc.ChatData()
+	//		//if chatData != nil && chatData.GetPreferredLanguage() == "" {
+	//		//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
+	//		//}
+	//	}
+	//}()
 
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {

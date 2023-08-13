@@ -1,16 +1,15 @@
 package botsdal
 
 import (
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"testing"
 )
 
 func TestNewBotUserStore(t *testing.T) {
 	type args struct {
-		collection string
-		platform   string
+		//collection string
+		//platform string
 		//db             DbProvider
-		newBotUserData func(botID string) (botsfwmodels.BotUserData, error)
+		//newBotUserData func(botID string) (botsfwmodels.BotUserData, error)
 		//createNewUser  BotUserCreator
 	}
 	tests := []struct {
