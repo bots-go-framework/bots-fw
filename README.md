@@ -67,6 +67,9 @@ You can use any Bot API library by implementing couple of simple interface but t
 
 ## [Can I use &mdash; features cross-table for bot messenger APIs](can-i-use-bots-api.md)
 We are building a [cross-table of features](can-i-use-bots-api.md) supported by different bot APIs.
+
+## Database Abstraction Layer (DAL)
+Thanks to [dalgo](https://github.com/dal-go) library the framework can work with different databases.
   
 ## 🫂 Contributors
   * [Alexander Trakhimenok](https://ie.linkedin.com/in/alexandertrakhimenok)
