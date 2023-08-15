@@ -42,15 +42,27 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	MustBotChatID() string
 
+	// GetBotCode returns bot code. This is a shortcut to BotSettings().Code
 	GetBotCode() string
+
+	// GetBotToken returns bot token. This is a shortcut to BotSettings().Token
+	// TODO: Deprecate & remove - use BotSettings().Token instead
 	GetBotToken() string
+
+	// GetBotSettings returns bot settings
 	GetBotSettings() BotSettings
 
+	// DB is a reference to database used to store data of current bot
 	DB() dal.Database
+
+	// Tx is a reference to database transaction used to get/save data of current bot
 	Tx() dal.ReadwriteTransaction
 
+	// ChatData returns data of current bot chat without ID/Key
 	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
-	//ChatKey() botsfwmodels.ChatKey -- commented out as we have it in BotChatData but might consider to have it here as well
+
+	// BotUserData returns data of current bot user without ID/Key
+	BotUserData() (botUserData botsfwmodels.BotUserData, err error)
 
 	// IsInGroup indicates if message was received in a group botChat
 	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.

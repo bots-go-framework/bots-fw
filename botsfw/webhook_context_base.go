@@ -247,6 +247,17 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 	return
 }
 
+func (whcb *WebhookContextBase) BotUserData() (botUserData botsfwmodels.BotUserData, err error) {
+	if whcb.botUser.Data != nil {
+		return whcb.botUser.Data, nil
+	}
+	botID := whcb.botContext.BotSettings.ID
+	platformID := whcb.botContext.BotSettings.Profile.ID()
+	whcb.botUser.ID = whcb.GetBotUserID()
+	whcb.botUser, err = botsdal.GetBotUser(whcb.c, whcb.tx, platformID, botID, whcb.botUser.ID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	return whcb.botUser.Data, err
+}
+
 // GetAppUser loads information about current app user from persistent storage
 func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserID()
