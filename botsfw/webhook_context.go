@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
@@ -61,8 +62,8 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// ChatData returns data of current bot chat without ID/Key
 	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
 
-	// BotUserData returns data of current bot user without ID/Key
-	BotUserData() (botUserData botsfwmodels.BotUserData, err error)
+	// BotUser returns record of current bot user
+	BotUser() (botUser record.DataWithID[string, botsfwmodels.BotUserData], err error)
 
 	// IsInGroup indicates if message was received in a group botChat
 	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.
