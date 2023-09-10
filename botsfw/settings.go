@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-type DbGetter = func(ctx context.Context) (db dal.Database, err error)
+type DbGetter = func(ctx context.Context) (db dal.DB, err error)
 
 type AppUserGetter = func(
 	ctx context.Context,

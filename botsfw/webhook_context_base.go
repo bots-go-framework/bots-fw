@@ -80,13 +80,13 @@ type WebhookContextBase struct {
 	//Locales    strongo.LocalesProvider
 
 	//dal botsfwdal.DataAccess
-	db dal.Database
+	db dal.DB
 	tx dal.ReadwriteTransaction
 
 	gaContext gaContext
 }
 
-func (whcb *WebhookContextBase) DB() dal.Database {
+func (whcb *WebhookContextBase) DB() dal.DB {
 	return whcb.db
 }
 

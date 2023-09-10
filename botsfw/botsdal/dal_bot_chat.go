@@ -11,7 +11,7 @@ const botChatsCollection = "botChats"
 
 func NewBotChatKey(platformID, botID, chatID string) *dal.Key {
 	botKey := NewBotKey(platformID, botID)
-	return dal.NewKeyWithID(botChatsCollection, chatID, dal.WithParentKey(botKey))
+	return dal.NewKeyWithParentAndID(botKey, botChatsCollection, chatID)
 }
 
 func GetBotChat(

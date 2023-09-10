@@ -48,7 +48,7 @@ func TestNewBotSettings(t *testing.T) {
 
 	testBotProfile := dummyBotProfile()
 
-	getDatabase := func(_ context.Context) (db dal.Database, err error) {
+	getDatabase := func(_ context.Context) (db dal.DB, err error) {
 		return
 	}
 

@@ -54,7 +54,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotSettings() BotSettings
 
 	// DB is a reference to database used to store data of current bot
-	DB() dal.Database
+	DB() dal.DB
 
 	// Tx is a reference to database transaction used to get/save data of current bot
 	Tx() dal.ReadwriteTransaction

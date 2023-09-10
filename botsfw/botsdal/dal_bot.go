@@ -7,5 +7,5 @@ const botsCollection = "bots"
 // NewBotKey creates a dalgo key to specific bot record
 func NewBotKey(platformID, botID string) *dal.Key {
 	platformKey := NewPlatformKey(platformID)
-	return dal.NewKeyWithID(botsCollection, botID, dal.WithParentKey(platformKey))
+	return dal.NewKeyWithParentAndID(platformKey, botsCollection, botID)
 }

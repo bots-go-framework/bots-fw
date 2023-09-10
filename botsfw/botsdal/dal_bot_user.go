@@ -11,7 +11,7 @@ const botUsersCollection = "botUsers"
 
 func NewBotUserKey(platformID, botID, botUserID string) *dal.Key {
 	botKey := NewBotKey(platformID, botID)
-	return dal.NewKeyWithID(botUsersCollection, botUserID, dal.WithParentKey(botKey))
+	return dal.NewKeyWithParentAndID(botKey, botUsersCollection, botUserID)
 }
 
 func GetBotUser(
