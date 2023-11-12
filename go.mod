@@ -12,7 +12,7 @@ toolchain go1.21.4
 
 require (
 	github.com/bots-go-framework/bots-fw-store v0.1.2
-	github.com/bots-go-framework/bots-go-core v0.0.1
+	github.com/bots-go-framework/bots-go-core v0.0.2
 	github.com/dal-go/dalgo v0.12.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.8.4
