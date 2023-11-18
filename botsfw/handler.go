@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"context"
+	"github.com/dal-go/dalgo/dal"
 	"net/http"
 )
 
@@ -41,6 +42,7 @@ type CreateWebhookContextArgs struct {
 	AppContext   BotAppContext
 	BotContext   BotContext
 	WebhookInput WebhookInput
+	Tx           dal.ReadwriteTransaction
 	//BotCoreStores botsfwdal.DataAccess
 	GaMeasurement GaQueuer
 }
@@ -50,6 +52,7 @@ func NewCreateWebhookContextArgs(
 	appContext BotAppContext,
 	botContext BotContext,
 	webhookInput WebhookInput,
+	tx dal.ReadwriteTransaction,
 	//botCoreStores botsfwdal.DataAccess,
 	gaMeasurement GaQueuer,
 ) CreateWebhookContextArgs {
@@ -58,6 +61,7 @@ func NewCreateWebhookContextArgs(
 		AppContext:   appContext,
 		BotContext:   botContext,
 		WebhookInput: webhookInput,
+		Tx:           tx,
 		//BotCoreStores: botCoreStores,
 		GaMeasurement: gaMeasurement,
 	}

@@ -293,8 +293,9 @@ func NewWebhookContextBase(
 	}
 	c := args.BotContext.BotHost.Context(args.HttpRequest)
 	whcb := WebhookContextBase{
-		r: args.HttpRequest,
-		c: c,
+		r:  args.HttpRequest,
+		c:  c,
+		tx: args.Tx,
 		getLocaleAndChatID: func() (locale, chatID string, err error) {
 			return getLocaleAndChatID(c)
 		},

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"net/http"
@@ -138,7 +139,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 
 		reportError := func(recovered interface{}) {
 			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
-			botsfw.Log().Criticalf(c, "Panic recovered: %s\n%s", messageText, debug.Stack())
+			stack := string(debug.Stack())
+			botsfw.Log().Criticalf(c, "Panic recovered: %s\n%s", messageText, stack)
 
 			if sendStats { // Zero if GA is disabled
 				d.reportErrorToGA(c, whc, measurementSender, messageText)
@@ -186,14 +188,27 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 			}
 			d.logInput(c, i, input)
-			whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, measurementSender)
-			var err error
-			if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
-				handleError(err, "Failed to create WebhookContext")
+			var db dal.DB
+			if db, err = botContext.BotSettings.GetDatabase(c); err != nil {
+				err = fmt.Errorf("failed to get bot database: %w", err)
 				return
 			}
-			responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-			botContext.BotSettings.Profile.Router().Dispatch(webhookHandler, responder, whc)
+			err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
+				whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, tx, measurementSender)
+				var err error
+				if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
+					handleError(err, "Failed to create WebhookContext")
+					return err
+				}
+				responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
+				router := botContext.BotSettings.Profile.Router()
+				router.Dispatch(webhookHandler, responder, whc) // TODO: Should we return err and handle it here?
+				return nil
+			})
+			if err != nil {
+				err = fmt.Errorf("failed to handle entryWithInputs: %w", err)
+				return
+			}
 		}
 	}
 }
