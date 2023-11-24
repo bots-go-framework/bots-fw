@@ -16,9 +16,9 @@ require (
 	github.com/dal-go/dalgo v0.12.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.8.4
-	github.com/strongo/app v0.5.7
 	github.com/strongo/gamp v0.0.1
 	github.com/strongo/i18n v0.0.4
+	github.com/strongo/strongoapp v0.9.1
 )
 
 require (

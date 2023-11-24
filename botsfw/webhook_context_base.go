@@ -7,9 +7,9 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -77,7 +77,7 @@ type WebhookContextBase struct {
 	appUserData botsfwmodels.AppUserData
 
 	translator
-	//Locales    strongo.LocalesProvider
+	//Locales    strongoapp.LocalesProvider
 
 	//dal botsfwdal.DataAccess
 	db dal.DB
@@ -155,7 +155,7 @@ func (whcb *WebhookContextBase) Request() *http.Request {
 }
 
 // Environment defines current environment (PROD, DEV, LOCAL, etc)
-func (whcb *WebhookContextBase) Environment() strongo.Environment {
+func (whcb *WebhookContextBase) Environment() strongoapp.Environment {
 	return whcb.botContext.BotSettings.Env
 }
 
@@ -266,7 +266,7 @@ func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) {
 }
 
 // ExecutionContext returns an execution context for strongo app
-func (whcb *WebhookContextBase) ExecutionContext() strongo.ExecutionContext {
+func (whcb *WebhookContextBase) ExecutionContext() strongoapp.ExecutionContext {
 	return whcb
 }
 
@@ -545,7 +545,7 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 				log.Errorf(c, "Failed to queue GA event: %v", err)
 			}
 
-			if whcb.GetBotSettings().Env == strongo.EnvProduction {
+			if whcb.GetBotSettings().Env == strongoapp.EnvProduction {
 				if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
 					log.Errorf(c, "Failed to queue GA event: %v", err)
 				}
@@ -616,7 +616,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 			return err
 		}
 
-		if whcb.GetBotSettings().Env == strongo.EnvProduction {
+		if whcb.GetBotSettings().Env == strongoapp.EnvProduction {
 			ga := whcb.gaContext
 			if err := ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-botChat-created", whcb.botPlatform.ID())); err != nil {
 				log.Errorf(ctx, "Failed to queue GA event: %v", err)

@@ -5,9 +5,9 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"net/http"
 )
 
@@ -23,7 +23,7 @@ type GaQueuer interface { // TODO: can be unexported?
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface { // TODO: Make interface much smaller?
 	//dal.TransactionCoordinator
-	Environment() strongo.Environment
+	Environment() strongoapp.Environment
 	BotInputProvider
 	BotPlatform() BotPlatform
 
@@ -37,7 +37,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// SetContext sets context
 	SetContext(c context.Context)
 
-	ExecutionContext() strongo.ExecutionContext
+	ExecutionContext() strongoapp.ExecutionContext
 	BotAppContext() BotAppContext
 	BotContext() BotContext
 
@@ -71,7 +71,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
 
-	//DefaultLocale() strongo.ByLocale
+	//DefaultLocale() strongoapp.ByLocale
 
 	// SetLocale sets Locale for current session
 	SetLocale(code5 string) error

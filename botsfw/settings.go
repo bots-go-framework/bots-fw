@@ -6,8 +6,8 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/app"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"os"
 	"strings"
 )
@@ -33,7 +33,7 @@ type BotSettings struct {
 
 	// Env is an environment where bot is running
 	// E.g.: Production/Live, Local/Dev, Staging, etc.
-	Env strongo.Environment
+	Env strongoapp.Environment
 
 	// Profile is a bot profile that defines bot's behavior
 	// It includes commands router and some other settings
@@ -86,7 +86,7 @@ func (v BotSettings) GetAppUserByID(ctx context.Context, tx dal.ReadSession, app
 // NewBotSettings configures bot application
 func NewBotSettings(
 	platform Platform,
-	mode strongo.Environment,
+	mode strongoapp.Environment,
 	profile BotProfile,
 	code, id, token, gaToken string,
 	locale i18n.Locale,

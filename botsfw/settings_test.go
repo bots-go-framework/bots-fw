@@ -6,8 +6,8 @@ import (
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/stretchr/testify/assert"
-	strongo "github.com/strongo/app"
 	"github.com/strongo/i18n"
+	"github.com/strongo/strongoapp"
 	"os"
 	"strings"
 	"testing"
@@ -56,7 +56,7 @@ func TestNewBotSettings(t *testing.T) {
 		return
 	}
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := NewBotSettings(platform, strongoapp.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := NewBotSettings(platform, strongo.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := NewBotSettings(platform, strongoapp.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
 		assertBotSettings(bs)
 	})
 }
