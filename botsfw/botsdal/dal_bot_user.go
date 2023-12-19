@@ -9,21 +9,44 @@ import (
 
 const botUsersCollection = "botUsers"
 
+// NewBotUserKey creates a dalgo key to specific bot user record
 func NewBotUserKey(platformID, botID, botUserID string) *dal.Key {
 	botKey := NewBotKey(platformID, botID)
+	if botUserID == "" {
+		panic("botUserID is required parameter")
+	}
 	return dal.NewKeyWithParentAndID(botKey, botUsersCollection, botUserID)
 }
 
+// GetBotUser loads bot user data
 func GetBotUser(
 	ctx context.Context,
 	tx dal.ReadSession,
-	platformID, botID, userID string,
+	platformID, botID, botUserID string,
 	newData func() botsfwmodels.BotUserData,
 ) (botUser record.DataWithID[string, botsfwmodels.BotUserData], err error) {
-	key := NewBotUserKey(platformID, botID, userID)
+	botUserKey := NewBotUserKey(platformID, botID, botUserID)
 	data := newData()
-	botUser = record.NewDataWithID(userID, key, data)
+	botUser = record.NewDataWithID(botUserID, botUserKey, data)
 	return botUser, tx.Get(ctx, botUser.Record)
+}
+
+// CreateBotUserRecord creates bot user record in database
+func CreateBotUserRecord(
+	ctx context.Context,
+	tx dal.ReadwriteTransaction,
+	platformID, botID, botUserID string,
+	botUserData botsfwmodels.BotUserData,
+) (err error) {
+	if validatableData, ok := botUserData.(interface{ Validate() error }); ok {
+		if err = validatableData.Validate(); err != nil {
+			return err
+		}
+	}
+	botUserKey := NewBotUserKey(platformID, botID, botUserID)
+	botUser := record.NewDataWithID(botUserID, botUserKey, botUserData)
+	err = tx.Insert(ctx, botUser.Record)
+	return err
 }
 
 //import (
@@ -114,7 +137,7 @@ func GetBotUser(
 //	})
 //}
 //
-//func (store botUserStore) CreateBotUser(c context.Context, botID string, apiUser botsfw.WebhookActor) (botsfwmodels.BotUserData, error) {
+//func (store botUserStore) CreateBotUserRecord(c context.Context, botID string, apiUser botsfw.WebhookActor) (botsfwmodels.BotUserData, error) {
 //	return store.createBotUser(c, botID, apiUser)
 //}
 //

@@ -12,7 +12,6 @@ import (
 	"github.com/strongo/strongoapp"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -26,11 +25,11 @@ type whContextDummy struct {
 }
 
 func (w whContextDummy) NewEditMessage(text string, format MessageFormat) (MessageFromBot, error) {
-	panic("must be implemented in platform specific code")
+	panic(fmt.Sprintf("must be implemented in platform specific code: text=%s, format=%v", text, format))
 }
 
 func (w whContextDummy) UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error {
-	panic("implement me in WebhookContextBase") //TODO
+	panic(fmt.Sprintf("implement me in WebhookContextBase - UpdateLastProcessed(chatEntity=%v)", chatEntity))
 }
 
 func (w whContextDummy) AppUserData() (botsfwmodels.AppUserData, error) {
@@ -38,7 +37,7 @@ func (w whContextDummy) AppUserData() (botsfwmodels.AppUserData, error) {
 }
 
 func (w whContextDummy) IsNewerThen(chatEntity botsfwmodels.BotChatData) bool {
-	panic("implement me in WebhookContextBase") //TODO
+	panic(fmt.Sprintf("implement me in WebhookContextBase - IsNewerThen(chatEntity=%v)", chatEntity))
 }
 
 func (w whContextDummy) Responder() WebhookResponder {
@@ -49,7 +48,7 @@ func (w whContextDummy) Responder() WebhookResponder {
 // WebhookContextBase provides base implementation of WebhookContext interface
 // TODO: Document purpose of a dedicated base struct (e.g. example of usage by developers)
 type WebhookContextBase struct {
-	//w          http.ResponseWriter
+	//w http.ResponseWriter
 	r             *http.Request
 	c             context.Context
 	botAppContext BotAppContext
@@ -65,7 +64,7 @@ type WebhookContextBase struct {
 
 	locale i18n.Locale
 
-	// At the moment there is no reason to expose botChat record publicly
+	// At the moment, there is no reason to expose botChat record publicly
 	// If there is some it should be documented with a use case
 	botChat record.DataWithID[string, botsfwmodels.BotChatData]
 	botUser record.DataWithID[string, botsfwmodels.BotUserData] // Telegram user ID is an integer, but we keep it as a string for consistency & simplicity.
@@ -216,16 +215,16 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 	return whcb.botChat.ID, nil
 }
 
-// AppUserInt64ID: TODO: Deprecate: use AppUserID() instead
-func (whcb *WebhookContextBase) AppUserInt64ID() (appUserID int64) {
-	if s := whcb.AppUserID(); s != "" {
-		var err error
-		if appUserID, err = strconv.ParseInt(s, 10, 64); err != nil {
-			panic(fmt.Errorf("failed to parse app user ID %v: %w", s, err))
-		}
-	}
-	return appUserID
-}
+// AppUserInt64ID Deprecate: use AppUserID() instead
+//func (whcb *WebhookContextBase) AppUserInt64ID() (appUserID int64) {
+//	if s := whcb.AppUserID(); s != "" {
+//		var err error
+//		if appUserID, err = strconv.ParseInt(s, 10, 64); err != nil {
+//			panic(fmt.Errorf("failed to parse app user ID %v: %w", s, err))
+//		}
+//	}
+//	return appUserID
+//}
 
 // AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
 func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
@@ -494,8 +493,14 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
 			botUserID := fmt.Sprintf("%v", sender.GetID())
 			appUserID := whcb.AppUserID()
 			webhookChat := whcb.Chat()
-			isAccessGranted := true // TODO: Implement!!!
-			if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.botChat.Data, webhookChat, botID, botUserID, appUserID, isAccessGranted); err != nil {
+			if err = whcb.recordsFieldsSetter.SetBotChatFields(
+				whcb.botChat.Data,
+				webhookChat,
+				botID,
+				botUserID,
+				appUserID,
+				true, // isAccessGranted - TODO: Implement!!!
+			); err != nil {
 				panic(fmt.Errorf("failed to call whcb.recordsMaker.MakeBotChatDto(): %w", err))
 			}
 		} else {
