@@ -23,6 +23,7 @@ func TestGetBotUser(t *testing.T) {
 	}{
 		{name: "empty", shouldPanic: true},
 	}
+	ctx := context.Background()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.shouldPanic {
@@ -33,7 +34,7 @@ func TestGetBotUser(t *testing.T) {
 				}()
 			}
 			var tx dal.ReadwriteTransaction
-			botUser, err := GetBotUser(nil, tx, tt.args.platform, tt.args.botID, tt.args.botUserID, func() botsfwmodels.BotUserData {
+			botUser, err := GetBotUser(ctx, tx, tt.args.platform, tt.args.botID, tt.args.botUserID, func() botsfwmodels.BotUserData {
 				return nil
 			})
 			tt.checkResult(botUser, err)
