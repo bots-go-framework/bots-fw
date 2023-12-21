@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/strongo/gamp"
-	"github.com/strongo/strongoapp"
 	"net/url"
 	"strings"
 	"time"
@@ -557,7 +556,7 @@ func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, match
 	log.Errorf(c, err.Error())
 	env := whc.GetBotSettings().Env
 	ga := whc.GA()
-	if env == strongoapp.EnvProduction && ga != nil {
+	if env == EnvProduction && ga != nil {
 		exceptionMessage := gamp.NewException(err.Error(), false)
 		exceptionMessage.Common = ga.GaCommon()
 		err = ga.Queue(exceptionMessage)

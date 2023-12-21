@@ -8,7 +8,6 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/gamp"
-	"github.com/strongo/strongoapp"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -101,7 +100,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	{ // Initiate Google Analytics Measurement API client
 
 		if d.Analytics.Enabled == nil {
-			sendStats = botContext.BotSettings.Env == strongoapp.EnvProduction
+			sendStats = botContext.BotSettings.Env == botsfw.EnvProduction
 			//} else {
 			//if sendStats = d.Analytics.Enabled(r); !sendStats {
 			//
@@ -114,12 +113,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				botsfw.Log().Errorf(c, "Failed to log to GA: %v", err)
 			})
 		} else {
-			envName, ok := strongoapp.EnvironmentNames[botContext.BotSettings.Env]
-			if !ok {
-				envName = "UNKNOWN"
-			}
-			botsfw.Log().Debugf(c, "d.Analytics.Enabled=%v, botContext.BotSettings.Env=%v:%v, sendStats=%v",
-				d.Analytics.Enabled, botContext.BotSettings.Env, envName, sendStats)
+			botsfw.Log().Debugf(c, "botContext.BotSettings.Env=%s, sendStats=%t",
+				botContext.BotSettings.Env, sendStats)
 		}
 	}
 
@@ -237,13 +232,13 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 	}
 
 	switch botContext.BotSettings.Env {
-	case strongoapp.EnvLocal:
+	case botsfw.EnvLocal:
 		if !isRunningLocally(r.Host) {
 			botsfw.Log().Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)
 			return true
 		}
-	case strongoapp.EnvProduction:
+	case botsfw.EnvProduction:
 		if isRunningLocally(r.Host) {
 			botsfw.Log().Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)

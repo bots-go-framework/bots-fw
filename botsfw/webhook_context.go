@@ -7,7 +7,6 @@ import (
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
-	"github.com/strongo/strongoapp"
 	"net/http"
 )
 
@@ -20,10 +19,15 @@ type GaQueuer interface { // TODO: can be unexported?
 	Queue(message gamp.Message) error
 }
 
+// ExecutionContext TODO: either specify clear purpose and added value or remove
+type ExecutionContext interface {
+	Context() context.Context
+}
+
 // WebhookContext provides context for current request from user to bot
 type WebhookContext interface { // TODO: Make interface much smaller?
 	//dal.TransactionCoordinator
-	Environment() strongoapp.Environment
+	Environment() string
 	BotInputProvider
 	BotPlatform() BotPlatform
 
@@ -37,7 +41,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// SetContext sets context
 	SetContext(c context.Context)
 
-	ExecutionContext() strongoapp.ExecutionContext
+	ExecutionContext() ExecutionContext
 	BotAppContext() BotAppContext
 	BotContext() BotContext
 

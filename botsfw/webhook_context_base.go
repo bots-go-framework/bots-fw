@@ -9,7 +9,6 @@ import (
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
-	"github.com/strongo/strongoapp"
 	"net/http"
 	"net/url"
 	"strings"
@@ -154,7 +153,7 @@ func (whcb *WebhookContextBase) Request() *http.Request {
 }
 
 // Environment defines current environment (PROD, DEV, LOCAL, etc)
-func (whcb *WebhookContextBase) Environment() strongoapp.Environment {
+func (whcb *WebhookContextBase) Environment() string {
 	return whcb.botContext.BotSettings.Env
 }
 
@@ -265,7 +264,7 @@ func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) {
 }
 
 // ExecutionContext returns an execution context for strongo app
-func (whcb *WebhookContextBase) ExecutionContext() strongoapp.ExecutionContext {
+func (whcb *WebhookContextBase) ExecutionContext() ExecutionContext {
 	return whcb
 }
 
@@ -550,7 +549,7 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 				log.Errorf(c, "Failed to queue GA event: %v", err)
 			}
 
-			if whcb.GetBotSettings().Env == strongoapp.EnvProduction {
+			if whcb.GetBotSettings().Env == EnvProduction {
 				if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
 					log.Errorf(c, "Failed to queue GA event: %v", err)
 				}
@@ -562,6 +561,9 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 	}
 	return whcb.botUser.Data, err
 }
+
+var EnvLocal = "local"           // TODO: Consider adding this to init interface of setting config values
+var EnvProduction = "production" // TODO: Consider adding this to init interface of setting config values
 
 func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	ctx, cancel := context.WithTimeout(whcb.Context(), time.Second)
@@ -621,7 +623,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 			return err
 		}
 
-		if whcb.GetBotSettings().Env == strongoapp.EnvProduction {
+		if whcb.GetBotSettings().Env == EnvProduction {
 			ga := whcb.gaContext
 			if err := ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-botChat-created", whcb.botPlatform.ID())); err != nil {
 				log.Errorf(ctx, "Failed to queue GA event: %v", err)
