@@ -316,7 +316,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 
 	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
-		log.Debugf(c, "No commands found to match by inputType: %v", WebhookInputTypeNames[inputType])
+		log.Debugf(c, "No commands found to match by inputType: %v", GetWebhookInputTypeIdNameString(inputType))
 		whc.LogRequest()
 		logInputDetails(whc, false)
 		return
@@ -441,10 +441,8 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	c := whc.Context()
 	inputType := whc.InputType()
 	input := whc.Input()
-	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch() => inputType: %v=%v, %T", inputType, WebhookInputTypeNames[inputType], input)
-	if !isKnownType {
-		logMessage += fmt.Sprintf(" => no commands to match for input type=%v", WebhookInputTypeNames[inputType])
-	}
+	inputTypeIdName := GetWebhookInputTypeIdNameString(inputType)
+	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch() => WebhookIputType=%s, %T", inputTypeIdName, input)
 	switch inputType {
 	case WebhookInputText:
 		textMessage := input.(WebhookTextMessage)
@@ -471,7 +469,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 		referralMessage := input.(WebhookReferralMessage)
 		logMessage += fmt.Sprintf("referralMessage: Type=[%v], Source=[%v], Ref=[%v]", referralMessage.Type(), referralMessage.Source(), referralMessage.RefData())
 	default:
-		logMessage += fmt.Sprintf("Unhandled inputType=%d", inputType)
+		logMessage += "Unknown WebhookInputType=" + GetWebhookInputTypeIdNameString(inputType)
 	}
 	if isKnownType {
 		log.Debugf(c, logMessage)
@@ -479,7 +477,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 		log.Warningf(c, logMessage)
 	}
 
-	m := whc.NewMessage("Sorry, unknown input type") // TODO: Move out of framework to app.
+	m := whc.NewMessage(fmt.Sprintf("Unknown WebhookInputType=%d", inputType)) // TODO: Move out of framework to app?
 	_, err := whc.Responder().SendMessage(c, m, BotAPISendMessageOverResponse)
 	if err != nil {
 		log.Errorf(c, "Failed to send message: %v", err)
@@ -532,7 +530,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 				}
 				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 			} else {
-				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
+				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
 			}
 		}
 

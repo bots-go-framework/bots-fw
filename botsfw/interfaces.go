@@ -2,7 +2,9 @@ package botsfw
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -55,31 +57,31 @@ type WebhookEntry interface {
 type WebhookInputType int
 
 const (
-	// WebhookInputUnknown is unknown input type
+	// WebhookInputUnknown is an unknown input type
 	WebhookInputUnknown WebhookInputType = iota
 	// WebhookInputNotImplemented is not implemented input type
 	WebhookInputNotImplemented
-	// WebhookInputText is text input type
+	// WebhookInputText is a text input type
 	WebhookInputText // Facebook, Telegram, Viber
 	// WebhookInputVoice is voice input type
 	WebhookInputVoice
-	// WebhookInputPhoto is photo input type
+	// WebhookInputPhoto is a photo input type
 	WebhookInputPhoto
-	// WebhookInputAudio is audio input type
+	// WebhookInputAudio is an audio input type
 	WebhookInputAudio
-	// WebhookInputContact is contact input type
+	// WebhookInputContact is a contact input type
 	WebhookInputContact // Facebook, Telegram, Viber
 	// WebhookInputPostback is unknown input type
 	WebhookInputPostback
-	// WebhookInputDelivery is postback input type
+	// WebhookInputDelivery is a postback input type
 	WebhookInputDelivery
-	// WebhookInputAttachment is delivery report input type
+	// WebhookInputAttachment is a delivery report input type
 	WebhookInputAttachment
-	// WebhookInputInlineQuery is attachment input type
+	// WebhookInputInlineQuery is an attachment input type
 	WebhookInputInlineQuery // Telegram
 	// WebhookInputCallbackQuery is inline input type
 	WebhookInputCallbackQuery
-	// WebhookInputReferral is callback input type
+	// WebhookInputReferral is a callback input type
 	WebhookInputReferral // FBM
 	// WebhookInputChosenInlineResult is chosen inline result input type
 	WebhookInputChosenInlineResult // Telegram
@@ -87,23 +89,24 @@ const (
 	WebhookInputSubscribed // Viber
 	// WebhookInputUnsubscribed is unsubscribed input type
 	WebhookInputUnsubscribed // Viber
-	// WebhookInputConversationStarted is converstation started input type
+	// WebhookInputConversationStarted is conversation started input type
 	WebhookInputConversationStarted // Viber
-	// WebhookInputNewChatMembers is new botChat memebers input type
+	// WebhookInputNewChatMembers is new botChat members input type
 	WebhookInputNewChatMembers // Telegram groups
 	// WebhookInputLeftChatMembers is left botChat members input type
 	WebhookInputLeftChatMembers
-	// WebhookInputSticker is sticker input type
+	// WebhookInputSticker is a sticker input type
 	WebhookInputSticker // Telegram
 )
 
-// WebhookInputTypeNames names for input type
-var WebhookInputTypeNames = map[WebhookInputType]string{
-	//WebhookInputContact:				  "Contact",
+var webhookInputTypeNames = map[WebhookInputType]string{
 	WebhookInputUnknown:             "unknown",
-	WebhookInputNotImplemented:      "not implemented",
-	WebhookInputReferral:            "Referral",
+	WebhookInputNotImplemented:      "NotImplemented",
 	WebhookInputText:                "Text",
+	WebhookInputVoice:               "Voice",
+	WebhookInputPhoto:               "Photo",
+	WebhookInputAudio:               "Audio",
+	WebhookInputReferral:            "Referral",
 	WebhookInputContact:             "Contact",
 	WebhookInputPostback:            "Postback",
 	WebhookInputDelivery:            "Delivery",
@@ -115,6 +118,16 @@ var WebhookInputTypeNames = map[WebhookInputType]string{
 	WebhookInputUnsubscribed:        "Unsubscribed",        // Viber
 	WebhookInputConversationStarted: "ConversationStarted", // Telegram
 	WebhookInputNewChatMembers:      "NewChatMembers",      // Telegram
+	WebhookInputSticker:             "Sticker",             // Telegram
+	WebhookInputLeftChatMembers:     "LeftChatMembers",     // Telegram
+}
+
+func GetWebhookInputTypeIdNameString(whInputType WebhookInputType) string {
+	name, ok := webhookInputTypeNames[whInputType]
+	if ok {
+		return fmt.Sprintf("%d:%s", whInputType, name)
+	}
+	return strconv.Itoa(int(whInputType))
 }
 
 // WebhookInput represent a single message
