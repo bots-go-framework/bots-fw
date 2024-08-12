@@ -57,20 +57,20 @@ func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooter
 	return r
 }
 
-func (whr *WebhooksRouter) CommandsCount() int {
+func (whRouter *WebhooksRouter) CommandsCount() int {
 	var count int
-	for _, v := range whr.commandsByType {
+	for _, v := range whRouter.commandsByType {
 		count += len(v.all)
 	}
 	return count
 }
 
 // AddCommands add commands to a router
-func (whr *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
-	typeCommands, ok := whr.commandsByType[commandsType]
+func (whRouter *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
+	typeCommands, ok := whRouter.commandsByType[commandsType]
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
-		whr.commandsByType[commandsType] = typeCommands
+		whRouter.commandsByType[commandsType] = typeCommands
 	} else if commandsType == WebhookInputInlineQuery {
 		panic("Duplicate add of WebhookInputInlineQuery")
 	}
@@ -86,12 +86,12 @@ func (whr *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands [
 }
 
 // RegisterCommands is registering commands with router
-func (whr *WebhooksRouter) RegisterCommands(commands []Command) {
+func (whRouter *WebhooksRouter) RegisterCommands(commands []Command) {
 	addCommand := func(t WebhookInputType, command Command) {
-		typeCommands, ok := whr.commandsByType[t]
+		typeCommands, ok := whRouter.commandsByType[t]
 		if !ok {
 			typeCommands = newTypeCommands(0)
-			whr.commandsByType[t] = typeCommands
+			whRouter.commandsByType[t] = typeCommands
 		}
 		typeCommands.addCommand(command, t)
 	}
@@ -149,7 +149,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 	return nil, callbackURL, err
 }
 
-func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
+func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
 	c := whc.Context()
 
 	var awaitingReplyCommand Command
@@ -193,7 +193,7 @@ func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Webhoo
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
 				// log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
-				if matchedCommand = whr.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
 					log.Debugf(c, "%v matched by command.replies", command.Code)
 					awaitingReplyCommand = *matchedCommand
 					awaitingReplyCommandFound = true
@@ -250,7 +250,7 @@ func (whr *WebhooksRouter) matchMessageCommands(whc WebhookContext, input Webhoo
 }
 
 // DispatchInlineQuery dispatches inlines query
-func (whr *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
+func (whRouter *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 	panic(fmt.Errorf("not implemented, responder: %+v", responder))
 }
 
@@ -304,7 +304,7 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 }
 
 // Dispatch query to commands
-func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
+func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
 	c := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
@@ -314,7 +314,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 
 	inputType := whc.InputType()
 
-	typeCommands, found := whr.commandsByType[inputType]
+	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
 		log.Debugf(c, "No commands found to match by inputType: %v", WebhookInputTypeNames[inputType])
 		whc.LogRequest()
@@ -359,7 +359,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 				messageText = textMessage.Text()
 				isCommandText = strings.HasPrefix(messageText, "/")
 			}
-			matchedCommand = whr.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
+			matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 			if matchedCommand != nil {
 				log.Debugf(c, "whr.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
 			}
@@ -375,7 +375,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 		commandAction = matchedCommand.Action
 	}
 	if err != nil {
-		whr.processCommandResponseError(whc, matchedCommand, responder, err)
+		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
@@ -383,7 +383,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 		whc.LogRequest()
 		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
 		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
-			whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			return
 		}
 		if chat := whc.Chat(); chat != nil && chat.IsGroupChat() {
@@ -398,7 +398,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 				}
 			}
 			log.Debugf(c, "No command found for the message: %v", input)
-			whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
+			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
 	} else { // matchedCommand != nil
 		if matchedCommand.Code == "" {
@@ -433,7 +433,7 @@ func (whr *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder Web
 			}
 
 		}
-		whr.processCommandResponse(matchedCommand, responder, whc, m, err)
+		whRouter.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}
 }
 
@@ -470,6 +470,8 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	case WebhookInputReferral:
 		referralMessage := input.(WebhookReferralMessage)
 		logMessage += fmt.Sprintf("referralMessage: Type=[%v], Source=[%v], Ref=[%v]", referralMessage.Type(), referralMessage.Source(), referralMessage.RefData())
+	default:
+		logMessage += fmt.Sprintf("Unhandled inputType=%d", inputType)
 	}
 	if isKnownType {
 		log.Debugf(c, logMessage)
@@ -484,9 +486,9 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	}
 }
 
-func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	if err != nil {
-		whr.processCommandResponseError(whc, matchedCommand, responder, err)
+		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
@@ -494,14 +496,13 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 	ga := whc.GA()
 	// gam.GeographicalOverride()
 
-	inputType := whc.InputType()
-	if _, err = responder.SendMessage(c, m, BotAPISendMessageOverHTTPS); err != nil {
+	if _, err = responder.SendMessage(c, m, BotAPISendMessageOverResponse); err != nil {
 		const failedToSendMessageToMessenger = "failed to send a message to messenger"
 		errText := err.Error()
 		switch {
 		case strings.Contains(errText, "message is not modified"): // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
 			logText := failedToSendMessageToMessenger
-			if inputType == WebhookInputCallbackQuery {
+			if whc.InputType() == WebhookInputCallbackQuery {
 				logText += "(can be duplicate callback)"
 			}
 			log.Warningf(c, fmt.Errorf("%s: %w", logText, err).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
@@ -516,17 +517,13 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			log.Errorf(c, fmt.Errorf("%s: %w", failedToSendMessageToMessenger, err).Error()) // TODO: Decide how do we handle this
 		}
 	}
-	if matchedCommand != nil {
-		if ga != nil {
-
-			gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
-			pathPrefix := "bot/"
-			var pageview *gamp.Pageview
-			var chatData botsfwmodels.BotChatData
-			if inputType != WebhookInputCallbackQuery {
-				chatData = whc.ChatData()
-			}
-			if inputType != WebhookInputCallbackQuery && chatData != nil {
+	if matchedCommand != nil && ga != nil {
+		gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
+		pathPrefix := "bot/"
+		var pageview *gamp.Pageview
+		if inputType := whc.InputType(); inputType != WebhookInputCallbackQuery {
+			chatData := whc.ChatData()
+			if chatData != nil {
 				path := chatData.GetAwaitingReplyTo()
 				if path == "" {
 					path = matchedCommand.Code
@@ -537,21 +534,21 @@ func (whr *WebhooksRouter) processCommandResponse(matchedCommand *Command, respo
 			} else {
 				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+WebhookInputTypeNames[inputType], matchedCommand.Title)
 			}
+		}
 
-			pageview.Common = ga.GaCommon()
-			if err := ga.Queue(pageview); err != nil {
-				if strings.Contains(err.Error(), "no tracking ID") {
-					log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
-				} else {
-					log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
-				}
-
+		pageview.Common = ga.GaCommon()
+		if err := ga.Queue(pageview); err != nil {
+			if strings.Contains(err.Error(), "no tracking ID") {
+				log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
+			} else {
+				log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
 			}
+
 		}
 	}
 }
 
-func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
+func (whRouter *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
 	c := whc.Context()
 	log.Errorf(c, err.Error())
 	env := whc.GetBotSettings().Env
@@ -578,8 +575,8 @@ func (whr *WebhooksRouter) processCommandResponseError(whc WebhookContext, match
 				fmt.Sprintf(" Server error - failed to process message: %v", err),
 		)
 
-		if whr.errorFooterText != nil {
-			if footer := whr.errorFooterText(); footer != "" {
+		if whRouter.errorFooterText != nil {
+			if footer := whRouter.errorFooterText(); footer != "" {
 				m.Text += "\n\n" + footer
 			}
 		}

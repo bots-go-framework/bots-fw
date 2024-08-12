@@ -64,7 +64,8 @@ func (d BotDriver) RegisterWebhookHandlers(httpRouter botsfw.HttpRouter, pathPre
 // HandleWebhook takes and HTTP request and process it
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler) {
 
-	c := d.botHost.Context(r)
+	//c := d.botHost.Context(r)
+	c := context.Background()
 
 	handleError := func(err error, message string) {
 		log.Errorf(c, "%s: %v", message, err)
@@ -201,7 +202,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				return nil
 			})
 			if err != nil {
-				err = fmt.Errorf("failed to handle entryWithInputs: %w", err)
+				handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
 				return
 			}
 		}
@@ -260,18 +261,13 @@ func isRunningLocally(host string) bool { // TODO(help-wanted): allow customizat
 
 func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
 	log.Warningf(c, "reportErrorToGA() is temporary disabled")
-	if c != nil { // TODO: Remove once fixed
+
+	ga := whc.GA()
+	if ga == nil {
 		return
 	}
-	ga := whc.GA()
 	gaMessage := gamp.NewException(messageText, true)
-
-	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-		gaMessage.Common = ga.GaCommon()
-	} else {
-		gaMessage.Common.ClientID = "c7ea15eb-3333-4d47-a002-9d1a14996371" // TODO: move hardcoded value
-		gaMessage.Common.DataSource = "bot-" + whc.BotPlatform().ID()
-	}
+	gaMessage.Common = ga.GaCommon()
 
 	if err := ga.Queue(gaMessage); err != nil {
 		log.Errorf(c, "Failed to queue exception message for GA: %v", err)
