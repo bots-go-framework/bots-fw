@@ -260,6 +260,9 @@ func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, bot
 func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) { // TODO: Can/should this be cached?
 	appUserID := whcb.AppUserID()
 	appUser, err := whcb.BotContext().BotSettings.GetAppUserByID(whcb.c, whcb.tx, appUserID)
+	if err != nil {
+		return nil, err
+	}
 	return appUser.Data, err
 }
 
@@ -583,7 +586,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	platformID := whcb.botPlatform.ID()
 	whcb.botChat, err = botsdal.GetBotChat(ctx, whcb.tx, platformID,
 		whcb.botContext.BotSettings.Code, whcb.botChat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)
-	if err != nil {
+	if err != nil && !dal.IsNotFound(err) {
 		return
 	}
 	if whcb.botChat.Data != nil {
@@ -661,12 +664,7 @@ func (whcb *WebhookContextBase) SetContext(c context.Context) {
 	whcb.c = c
 }
 
-// NewMessageByCode creates new translated message by i18n code
-func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {
-	return whcb.NewMessage(fmt.Sprintf(whcb.Translate(messageCode), a...))
-}
-
-// MessageText returns text of received message
+// MessageText returns text of a received message
 func (whcb *WebhookContextBase) MessageText() string {
 	if tm, ok := whcb.Input().(WebhookTextMessage); ok {
 		return tm.Text()
@@ -674,10 +672,16 @@ func (whcb *WebhookContextBase) MessageText() string {
 	return ""
 }
 
-// NewMessage creates new message from bot
+// NewMessageByCode creates new translated message by i18n code
+func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {
+	text := whcb.Translate(messageCode)
+	text = fmt.Sprintf(text, a...)
+	return whcb.NewMessage(text)
+}
+
+// NewMessage creates a new text message from bot
 func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
 	m.Text = text
-	m.Format = MessageFormatHTML
 	return
 }
 
