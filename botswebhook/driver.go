@@ -67,7 +67,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	c := d.botHost.Context(r)
 
 	handleError := func(err error, message string) {
-		botsfw.Log().Errorf(c, "%s: %v", message, err)
+		log.Errorf(c, "%s: %v", message, err)
 		http.Error(w, fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err), http.StatusInternalServerError)
 	}
 
@@ -89,7 +89,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		return
 	}
 
-	botsfw.Log().Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
+	log.Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
 
 	var (
 		whc               botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
@@ -110,24 +110,24 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if sendStats {
 			botHost := botContext.BotHost
 			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(c), func(err error) {
-				botsfw.Log().Errorf(c, "Failed to log to GA: %v", err)
+				log.Errorf(c, "Failed to log to GA: %v", err)
 			})
 		} else {
-			botsfw.Log().Debugf(c, "botContext.BotSettings.Env=%s, sendStats=%t",
+			log.Debugf(c, "botContext.BotSettings.Env=%s, sendStats=%t",
 				botContext.BotSettings.Env, sendStats)
 		}
 	}
 
 	defer func() {
-		botsfw.Log().Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
+		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
 			if d.Analytics.GaTrackingID == "" {
-				botsfw.Log().Warningf(c, "driver.Analytics.GaTrackingID is not set")
+				log.Warningf(c, "driver.Analytics.GaTrackingID is not set")
 			} else {
 				timing := gamp.NewTiming(time.Since(started))
 				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
 				if err := measurementSender.Queue(timing); err != nil {
-					botsfw.Log().Errorf(c, "Failed to log timing to GA: %v", err)
+					log.Errorf(c, "Failed to log timing to GA: %v", err)
 				}
 			}
 		}
@@ -135,7 +135,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		reportError := func(recovered interface{}) {
 			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
 			stack := string(debug.Stack())
-			botsfw.Log().Criticalf(c, "Panic recovered: %s\n%s", messageText, stack)
+			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, stack)
 
 			if sendStats { // Zero if GA is disabled
 				d.reportErrorToGA(c, whc, measurementSender, messageText)
@@ -145,7 +145,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
 						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), botsfw.BotAPISendMessageOverResponse); err != nil {
-							botsfw.Log().Errorf(c, fmt.Errorf("failed to report error to user: %w", err).Error())
+							log.Errorf(c, fmt.Errorf("failed to report error to user: %w", err).Error())
 						}
 					}
 				}
@@ -155,14 +155,14 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if recovered := recover(); recovered != nil {
 			reportError(recovered)
 		} else if sendStats {
-			botsfw.Log().Debugf(c, "Flushing GA...")
+			log.Debugf(c, "Flushing GA...")
 			if err = measurementSender.Flush(); err != nil {
-				botsfw.Log().Warningf(c, "Failed to flush to GA: %v", err)
+				log.Warningf(c, "Failed to flush to GA: %v", err)
 			} else {
-				botsfw.Log().Debugf(c, "Sent to GA: %v items", measurementSender.QueueDepth())
+				log.Debugf(c, "Sent to GA: %v items", measurementSender.QueueDepth())
 			}
 		} else {
-			botsfw.Log().Debugf(c, "GA: sendStats=false")
+			log.Debugf(c, "GA: sendStats=false")
 		}
 	}()
 
@@ -212,35 +212,35 @@ func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter
 	if err != nil {
 		var errAuthFailed botsfw.ErrAuthFailed
 		if errors.As(err, &errAuthFailed) {
-			botsfw.Log().Warningf(c, "Auth failed: %v", err)
+			log.Warningf(c, "Auth failed: %v", err)
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		}
 		return true
 	}
 	if botContext == nil {
 		if entriesWithInputs == nil {
-			botsfw.Log().Warningf(c, "botContext == nil, entriesWithInputs == nil")
+			log.Warningf(c, "botContext == nil, entriesWithInputs == nil")
 		} else if len(entriesWithInputs) == 0 {
-			botsfw.Log().Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
+			log.Warningf(c, "botContext == nil, len(entriesWithInputs) == 0")
 		} else {
-			botsfw.Log().Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
+			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
 		}
 		return true
 	} else if entriesWithInputs == nil {
-		botsfw.Log().Errorf(c, "entriesWithInputs == nil")
+		log.Errorf(c, "entriesWithInputs == nil")
 		return true
 	}
 
 	switch botContext.BotSettings.Env {
 	case botsfw.EnvLocal:
 		if !isRunningLocally(r.Host) {
-			botsfw.Log().Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
+			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)
 			return true
 		}
 	case botsfw.EnvProduction:
 		if isRunningLocally(r.Host) {
-			botsfw.Log().Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
+			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
 			w.WriteHeader(http.StatusBadRequest)
 			return true
 		}
@@ -259,7 +259,7 @@ func isRunningLocally(host string) bool { // TODO(help-wanted): allow customizat
 }
 
 func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
-	botsfw.Log().Warningf(c, "reportErrorToGA() is temporary disabled")
+	log.Warningf(c, "reportErrorToGA() is temporary disabled")
 	if c != nil { // TODO: Remove once fixed
 		return
 	}
@@ -274,15 +274,15 @@ func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, m
 	}
 
 	if err := ga.Queue(gaMessage); err != nil {
-		botsfw.Log().Errorf(c, "Failed to queue exception message for GA: %v", err)
+		log.Errorf(c, "Failed to queue exception message for GA: %v", err)
 	} else {
-		botsfw.Log().Debugf(c, "Exception message queued for GA.")
+		log.Debugf(c, "Exception message queued for GA.")
 	}
 
 	if err := measurementSender.Flush(); err != nil {
-		botsfw.Log().Errorf(c, "Failed to flush GA buffer after exception: %v", err)
+		log.Errorf(c, "Failed to flush GA buffer after exception: %v", err)
 	} else {
-		botsfw.Log().Debugf(c, "GA buffer flushed after exception")
+		log.Debugf(c, "GA buffer flushed after exception")
 	}
 }
 
@@ -290,7 +290,7 @@ func (BotDriver) logInput(c context.Context, i int, input botsfw.WebhookInput) {
 	sender := input.GetSender()
 	switch input := input.(type) {
 	case botsfw.WebhookTextMessage:
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.Text())
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.Text())
 	case botsfw.WebhookNewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
@@ -298,19 +298,19 @@ func (BotDriver) logInput(c context.Context, i int, input botsfw.WebhookInput) {
 		for i, member := range newMembers {
 			b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
 		}
-		botsfw.Log().Debugf(c, b.String())
+		log.Debugf(c, b.String())
 	case botsfw.WebhookContactMessage:
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.FirstName(), input.LastName(), input.PhoneNumber())
+		log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.FirstName(), input.LastName(), input.PhoneNumber())
 	case botsfw.WebhookCallbackQuery:
 		callbackData := input.GetData()
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+		log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
 	case botsfw.WebhookInlineQuery:
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetQuery())
+		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetQuery())
 	case botsfw.WebhookChosenInlineResult:
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
+		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
 	case botsfw.WebhookReferralMessage:
-		botsfw.Log().Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botsfw.WebhookTextMessage).Text())
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botsfw.WebhookTextMessage).Text())
 	default:
-		botsfw.Log().Warningf(c, "Unhandled input[%v] type: %T", i, input)
+		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 	}
 }
