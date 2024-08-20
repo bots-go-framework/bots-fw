@@ -430,7 +430,7 @@ func (whcb *WebhookContextBase) BotPlatform() BotPlatform {
 }
 
 // GetBotSettings settings of the current bot
-func (whcb *WebhookContextBase) GetBotSettings() BotSettings {
+func (whcb *WebhookContextBase) GetBotSettings() *BotSettings {
 	return whcb.botContext.BotSettings
 }
 

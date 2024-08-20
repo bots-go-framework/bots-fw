@@ -9,7 +9,7 @@ import (
 )
 
 // BotPlatform describes current bot platform
-type BotPlatform interface {
+type BotPlatform interface { // TODO: Change to a struct
 
 	// ID returns bot platform ID like 'telegram', 'fbmessenger', 'viber', etc.
 	ID() string
@@ -32,18 +32,24 @@ type BotHost interface {
 
 // BotContext describes a bot on a specific platform
 type BotContext struct {
-	BotHost     BotHost     // describes current bot app host environment
-	BotSettings BotSettings // keeps parameters of a bot that are static and are not changed in runtime
+	BotHost     BotHost      // describes current bot app host environment
+	BotSettings *BotSettings // keeps parameters of a bot that are static and are not changed in runtime
 }
 
 // NewBotContext creates current bot host & settings
-func NewBotContext(host BotHost, settings BotSettings) *BotContext {
-	if settings.Code == "" {
-		panic("ReferredTo settings.Code is empty string")
+func NewBotContext(botHost BotHost, botSettings *BotSettings) *BotContext {
+	if botHost == nil {
+		panic("required argument botHost is nil")
+	}
+	if botSettings == nil {
+		panic("required argument botSettings is nil")
+	}
+	if botSettings.Code == "" {
+		panic("ReferredTo botSettings.Code is empty string")
 	}
 	return &BotContext{
-		BotHost:     host,
-		BotSettings: settings,
+		BotHost:     botHost,
+		BotSettings: botSettings,
 	}
 }
 

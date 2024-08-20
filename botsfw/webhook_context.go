@@ -51,11 +51,11 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	GetBotCode() string
 
 	// GetBotToken returns bot token. This is a shortcut to BotSettings().Token
-	// TODO: Deprecate & remove - use BotSettings().Token instead
-	GetBotToken() string
+	// Deprecated: use BotSettings().Token instead
+	//GetBotToken() string
 
 	// GetBotSettings returns bot settings
-	GetBotSettings() BotSettings
+	GetBotSettings() *BotSettings
 
 	// DB is a reference to database used to store data of current bot
 	DB() dal.DB
