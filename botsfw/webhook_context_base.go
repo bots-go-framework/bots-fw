@@ -592,14 +592,17 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	if whcb.botChat.Record.Exists() {
 		if botUserID := whcb.GetBotUserID(); botUserID != "" {
 			chatDataBase := whcb.botChat.Data.Base()
-			switch chatDataBase.BotUserID {
-			case "":
-				chatDataBase.BotUserID = botUserID
-			case botUserID:
+			switch len(chatDataBase.BotUserIDs) {
+			case 0:
+				chatDataBase.BotUserIDs = []string{botUserID}
+			case 1:
+				if chatDataBase.BotUserIDs[0] != botUserID {
+					// Different bot user ID - should never happen?
+					log.Warningf(ctx, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserIDs[0], botUserID)
+				}
 				break // This is expected for existing personal chats
 			default:
-				// Different bot user ID - should never happen?
-				log.Warningf(ctx, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserID, botUserID)
+				chatDataBase.SetBotUserID(botUserID)
 			}
 		}
 	}
