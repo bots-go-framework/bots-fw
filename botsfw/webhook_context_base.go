@@ -590,9 +590,6 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		return
 	}
 	if whcb.botChat.Record.Exists() {
-		if whcb.botChat.Data.Key() != chatKey {
-			whcb.botChat.Data.Base().ChatKey = chatKey
-		}
 		if botUserID := whcb.GetBotUserID(); botUserID != "" {
 			chatDataBase := whcb.botChat.Data.Base()
 			switch chatDataBase.BotUserID {
