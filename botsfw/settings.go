@@ -141,6 +141,8 @@ type SettingsBy struct {
 
 	// ByID keeps settings by bot ID - it is a machine-readable ID of a bot.
 	ByID map[string]*BotSettings
+
+	ByProfile map[string][]*BotSettings
 }
 
 // NewBotSettingsBy create settings per different keys (ID, code, API token, Locale)
@@ -150,8 +152,9 @@ func NewBotSettingsBy(bots ...BotSettings) (settingsBy SettingsBy) {
 		panic("NewBotSettingsBy: missing required parameter: bots")
 	}
 	settingsBy = SettingsBy{
-		ByCode: make(map[string]*BotSettings, count),
-		ByID:   make(map[string]*BotSettings, count),
+		ByCode:    make(map[string]*BotSettings, count),
+		ByID:      make(map[string]*BotSettings, count),
+		ByProfile: make(map[string][]*BotSettings),
 	}
 	processBotSettings := func(i int, bot BotSettings) {
 		if bot.Code == "" {
@@ -168,6 +171,12 @@ func NewBotSettingsBy(bots ...BotSettings) (settingsBy SettingsBy) {
 			} else {
 				settingsBy.ByID[bot.ID] = &bot
 			}
+		}
+		profileID := bot.Profile.ID()
+		if profileBots, ok := settingsBy.ByProfile[profileID]; ok {
+			settingsBy.ByProfile[profileID] = append(profileBots, &bot)
+		} else {
+			settingsBy.ByProfile[profileID] = []*BotSettings{&bot}
 		}
 	}
 	for i, bot := range bots {
