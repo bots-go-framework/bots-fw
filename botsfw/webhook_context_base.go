@@ -600,7 +600,6 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 					// Different bot user ID - should never happen?
 					log.Warningf(ctx, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserIDs[0], botUserID)
 				}
-				break // This is expected for existing personal chats
 			default:
 				chatDataBase.SetBotUserID(botUserID)
 			}
