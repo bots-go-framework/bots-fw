@@ -400,7 +400,7 @@ func (gac gaContext) Queue(message gamp.Message) error {
 // GaCommon creates context for Google Analytics
 func (gac gaContext) GaCommon() gamp.Common {
 	whcb := gac.whcb
-	if whcb.botChat.Data != nil {
+	if whcb.botChat.Record.Exists() {
 		return gamp.Common{
 			UserID:       whcb.botChat.Data.GetAppUserID(),
 			UserLanguage: strings.ToLower(whcb.botChat.Data.GetPreferredLanguage()),
@@ -589,7 +589,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	if err != nil && !dal.IsNotFound(err) {
 		return
 	}
-	if whcb.botChat.Data != nil {
+	if whcb.botChat.Record.Exists() {
 		if whcb.botChat.Data.Key() != chatKey {
 			whcb.botChat.Data.Base().ChatKey = chatKey
 		}
