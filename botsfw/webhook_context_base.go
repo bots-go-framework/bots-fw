@@ -486,7 +486,7 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
-	if err := whcb.loadChatEntityBase(); err != nil {
+	if err = whcb.loadChatEntityBase(); err != nil {
 		if dal.IsNotFound(err) {
 			botID := whcb.GetBotCode()
 			if whcb.recordsFieldsSetter == nil {
@@ -737,4 +737,19 @@ func (whcb *WebhookContextBase) SaveBotChat(ctx context.Context) error {
 
 func (whcb *WebhookContextBase) SaveBotUser(ctx context.Context) error {
 	return whcb.tx.Set(ctx, whcb.botChat.Record)
+}
+
+func (whcb *WebhookContextBase) AppUserData() (appUserData botsfwmodels.AppUserData, err error) {
+	appUserID := whcb.AppUserID()
+	if appUserID == "" {
+		return nil, fmt.Errorf("%w: AppUserID() is empty", dal.ErrRecordNotFound)
+	}
+	ctx := whcb.Context()
+	tx := whcb.Tx()
+	botContext := whcb.BotContext()
+	var appUser record.DataWithID[string, botsfwmodels.AppUserData]
+	if appUser, err = botContext.BotSettings.GetAppUserByID(ctx, tx, appUserID); err != nil {
+		return
+	}
+	return appUser.Data, err
 }
