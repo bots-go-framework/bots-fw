@@ -1,0 +1,15 @@
+#!/bin/sh
+# To setup git hooks run:
+#   > git config core.hooksPath .git-hooks || echo 'Not in a git repo'
+echo "Running .git-hooks/pre-commit..."
+if git diff --name-only --cached | grep -q ":\s*go\.mod"; then
+  gomodlint
+  exit_code=$?
+  if [ $exit_code -ne 0 ]; then
+    exit $exit_code
+  fi
+fi
+go fmt ./...
+go build ./...
+go test  ./...
+golangci-lint run
