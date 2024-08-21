@@ -234,8 +234,16 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 			whcb.appUserID = chatData.GetAppUserID()
 		}
 	}
-	if whcb.appUserID == "" {
-
+	if whcb.platformUser.Data == nil {
+		var err error
+		if whcb.platformUser, err = whcb.getPlatformUserRecord(); err != nil {
+			if !dal.IsNotFound(err) {
+				panic(fmt.Errorf("failed to get bot user entity: %w", err))
+			}
+		}
+	}
+	if whcb.platformUser.Data != nil {
+		whcb.appUserID = whcb.platformUser.Data.GetAppUserID()
 	}
 	return whcb.appUserID
 	//if appUserID == "" && !whcb.isLoadingPlatformUserData {
@@ -557,16 +565,19 @@ func (whcb *WebhookContextBase) createPlatformUserRecord() (botUser record.DataW
 		if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
 			log.Errorf(ctx, "Failed to queue GA event: %v", err)
 			err = nil
+			return
 		}
 		if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
 			log.Errorf(ctx, "Failed to queue GA event: %v", err)
 			err = nil
+			return
 		}
 
 		if whcb.GetBotSettings().Env == EnvProduction {
 			if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
 				log.Errorf(ctx, "Failed to queue GA event: %v", err)
 				err = nil
+				return
 			}
 		}
 	}
