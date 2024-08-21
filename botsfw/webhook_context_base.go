@@ -708,14 +708,14 @@ func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	if whcb.botAppContext == nil {
 		return fmt.Errorf("botAppContext is nil")
 	}
-	supportedLocates := whcb.botAppContext.SupportedLocales()
-	if supportedLocates == nil {
-		return fmt.Errorf("supportedLocates is nil")
+	supportedLocales := whcb.botAppContext.SupportedLocales()
+	if supportedLocales == nil {
+		return fmt.Errorf("supportedLocales is nil")
 	}
-	locale, err := supportedLocates.GetLocaleByCode5(code5)
+	locale, err := supportedLocales.GetLocaleByCode5(code5)
 	if err != nil {
 		return fmt.Errorf(
-			"whcb.SetLocate(%s) failed to call supportedLocates.GetLocaleByCode5(%s): %w",
+			"whcb.SetLocate(%s) failed to call supportedLocales.GetLocaleByCode5(%s): %w",
 			code5, code5, err)
 	}
 	whcb.locale = locale
