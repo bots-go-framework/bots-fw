@@ -712,7 +712,7 @@ func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	if supportedLocales == nil {
 		return fmt.Errorf("supportedLocales is nil")
 	}
-	locale, err := supportedLocales.GetLocaleByCode5(code5)
+	locale, err := whcb.botAppContext.GetLocaleByCode5(code5)
 	if err != nil {
 		return fmt.Errorf(
 			"whcb.SetLocate(%s) failed to call supportedLocales.GetLocaleByCode5(%s): %w",
