@@ -66,8 +66,8 @@ type WebhookContextBase struct {
 
 	// At the moment, there is no reason to expose botChat record publicly
 	// If there is some it should be documented with a use case
-	botChat record.DataWithID[string, botsfwmodels.BotChatData]
-	botUser record.DataWithID[string, botsfwmodels.BotUserData] // Telegram user ID is an integer, but we keep it as a string for consistency & simplicity.
+	botChat      record.DataWithID[string, botsfwmodels.BotChatData]
+	platformUser record.DataWithID[string, botsfwmodels.PlatformUserData] // Telegram user ID is an integer, but we keep it as a string for consistency & simplicity.
 
 	isLoadingChatData bool // TODO: This smells bad. Needs refactoring?
 	isLoadingUserData bool // TODO: This smells bad. Needs refactoring?
@@ -234,27 +234,26 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 			appUserID = chatData.GetAppUserID()
 		}
 	}
-	if appUserID == "" && !whcb.isLoadingUserData {
-		if botUser, err := whcb.getOrCreateBotUserData(); err != nil {
-			if !dal.IsNotFound(err) {
-				panic(fmt.Errorf("failed to get bot user entity: %w", err))
-			}
-		} else {
-			appUserID = botUser.GetAppUserID()
-		}
-	}
+	//if appUserID == "" && !whcb.isLoadingUserData {
+	//	if platformUser, err := whcb.getOrCreateBotUserRecord(); err != nil {
+	//		if !dal.IsNotFound(err) {
+	//			panic(fmt.Errorf("failed to get bot user entity: %w", err))
+	//		}
+	//	} else {
+	//		appUserID = platformUser.GetAppUserID()
+	//	}
+	//}
 	return
 }
 
-func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, botsfwmodels.BotUserData], err error) {
-	if whcb.botUser.Data != nil {
-		return whcb.botUser, nil
+func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
+	if whcb.platformUser.Data != nil {
+		return whcb.platformUser, nil
 	}
-	botID := whcb.botContext.BotSettings.ID
-	platformID := whcb.botContext.BotSettings.Profile.ID()
+	platformID := whcb.BotPlatform().ID()
 	botUserID := whcb.GetBotUserID()
-	whcb.botUser, err = botsdal.GetBotUser(whcb.c, whcb.tx, platformID, botID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
-	return whcb.botUser, err
+	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	return whcb.platformUser, err
 }
 
 // GetAppUser loads information about current app user from persistent storage
@@ -513,13 +512,13 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
 	return whcb.botChat.Data
 }
 
-// getOrCreateBotUserData to be documented
-func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserData, error) {
-	if whcb.botUser.Data != nil {
-		return whcb.botUser.Data, nil
+// getOrCreateBotUserRecord to be documented
+func (whcb *WebhookContextBase) getOrCreateBotUserRecord() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
+	if whcb.platformUser.Data != nil {
+		return whcb.platformUser, nil
 	}
-	c := whcb.Context()
-	log.Debugf(c, "getOrCreateBotUserData()")
+	ctx := whcb.Context()
+	log.Debugf(ctx, "getOrCreateBotUserRecord()")
 	whcb.isLoadingUserData = true
 	defer func() {
 		whcb.isLoadingUserData = false
@@ -528,42 +527,47 @@ func (whcb *WebhookContextBase) getOrCreateBotUserData() (botsfwmodels.BotUserDa
 	platformID := whcb.botPlatform.ID()
 	botID := whcb.GetBotCode()
 	botUserID := fmt.Sprintf("%v", sender.GetID())
-	var err error
-	whcb.botUser, err = botsdal.GetBotUser(c, whcb.tx, platformID, botID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
 	if err != nil {
 		if !dal.IsNotFound(err) {
-			log.Infof(c, "Bot user entity not found, creating a new one...")
-			appUserID := whcb.AppUserID()
-			if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.botUser.Data, sender, botID, appUserID, botUserID); err != nil {
-				log.Errorf(c, "WebhookContextBase.getOrCreateBotUserData(): failed to make bot user DTO: %v", err)
-				return whcb.botUser.Data, err
+			return whcb.platformUser, err
+		} else {
+			log.Infof(ctx, "Bot user entity not found, creating a new one...")
+
+			if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.platformUser.Data, sender, botID, botUserID, botUserID); err != nil {
+				log.Errorf(ctx, "WebhookContextBase.getOrCreateBotUserRecord(): failed to make bot user DTO: %v", err)
+				return whcb.platformUser, err
 			}
-			if err = whcb.SaveBotUser(c); err != nil {
-				log.Errorf(c, "WebhookContextBase.getOrCreateBotUserData(): failed to create bot user: %v", err)
-				return whcb.botUser.Data, err
+			if err = whcb.SaveBotUser(ctx); err != nil {
+				log.Errorf(ctx, "WebhookContextBase.getOrCreateBotUserRecord(): failed to create bot user: %v", err)
+				return whcb.platformUser, err
 			}
-			log.Infof(c, "Bot user entity created")
+			log.Infof(ctx, "Bot user entity created")
 
 			ga := whcb.gaContext
 			if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
-				log.Errorf(c, "Failed to queue GA event: %v", err)
+				log.Errorf(ctx, "Failed to queue GA event: %v", err)
+				err = nil
 			}
 
 			if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
-				log.Errorf(c, "Failed to queue GA event: %v", err)
+				log.Errorf(ctx, "Failed to queue GA event: %v", err)
+				err = nil
 			}
 
 			if whcb.GetBotSettings().Env == EnvProduction {
 				if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
-					log.Errorf(c, "Failed to queue GA event: %v", err)
+					log.Errorf(ctx, "Failed to queue GA event: %v", err)
+					err = nil
 				}
 			}
 		}
-		return whcb.botUser.Data, err
+
+		return whcb.platformUser, err
 	} else {
-		log.Infof(c, "Found existing bot user entity")
+		log.Infof(ctx, "Found existing bot user entity")
 	}
-	return whcb.botUser.Data, err
+	return whcb.platformUser, err
 }
 
 var EnvLocal = "local"           // TODO: Consider adding this to init interface of setting config values
@@ -588,7 +592,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	whcb.botChat, err = botsdal.GetBotChat(ctx, whcb.tx, platformID,
 		whcb.botContext.BotSettings.Code, whcb.botChat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)
 	if err != nil && !dal.IsNotFound(err) {
-		return
+		return fmt.Errorf("failed to get bot char record: %w", err)
 	}
 	if whcb.botChat.Record.Exists() {
 		if botUserID := whcb.GetBotUserID(); botUserID != "" {
@@ -606,33 +610,28 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 			}
 		}
 	}
-	if err != nil {
-		if !dal.IsNotFound(err) {
-			return err
-		}
-		err = nil
+	if dal.IsNotFound(err) {
 		log.Infof(ctx, "BotChat not found, first check for bot user entity...")
-		botUser, err := whcb.getOrCreateBotUserData()
-		if err != nil {
+		var botUser record.DataWithID[string, botsfwmodels.PlatformUserData]
+
+		if botUser, err = whcb.getOrCreateBotUserRecord(); err != nil {
 			return err
 		}
 
-		botUserID := fmt.Sprintf("%v", whcb.input.GetSender().GetID())
-
-		isAccessGranted := botUser.IsAccessGranted()
+		isAccessGranted := botUser.Data.IsAccessGranted()
 		whChat := whcb.input.Chat()
-		appUserID := botUser.GetAppUserID()
-		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.botChat.Data, whChat, chatKey.BotID, botUserID, appUserID, isAccessGranted); err != nil {
+		appUserID := botUser.Data.GetAppUserID()
+		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.botChat.Data, whChat, chatKey.BotID, botUser.ID, appUserID, isAccessGranted); err != nil {
 			return err
 		}
 
 		if whcb.GetBotSettings().Env == EnvProduction {
 			ga := whcb.gaContext
-			if err := ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-botChat-created", whcb.botPlatform.ID())); err != nil {
+			if err = ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-botChat-created", whcb.botPlatform.ID())); err != nil {
 				log.Errorf(ctx, "Failed to queue GA event: %v", err)
+				err = nil
 			}
 		}
-
 	}
 
 	if sender := whcb.input.GetSender(); sender != nil {
@@ -644,6 +643,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	if chatLocale := whcb.botChat.Data.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
 		if err = whcb.SetLocale(chatLocale); err != nil {
 			log.Errorf(ctx, "failed to set locate: %v", err)
+			err = nil
 		}
 	}
 	return err
@@ -736,7 +736,7 @@ func (whcb *WebhookContextBase) SaveBotChat(ctx context.Context) error {
 }
 
 func (whcb *WebhookContextBase) SaveBotUser(ctx context.Context) error {
-	return whcb.tx.Set(ctx, whcb.botChat.Record)
+	return whcb.tx.Set(ctx, whcb.platformUser.Record)
 }
 
 func (whcb *WebhookContextBase) AppUserData() (appUserData botsfwmodels.AppUserData, err error) {

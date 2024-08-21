@@ -12,7 +12,7 @@ type BotProfile interface {
 	DefaultLocale() i18n.Locale
 	SupportedLocales() []i18n.Locale
 	NewBotChatData() botsfwmodels.BotChatData
-	NewBotUserData() botsfwmodels.BotUserData
+	NewBotUserData() botsfwmodels.PlatformUserData
 	NewAppUserData() botsfwmodels.AppUserData // TODO: Can we get rit of it and instead use GetAppUserByID/CreateAppUser?
 }
 
@@ -23,7 +23,7 @@ type botProfile struct {
 	defaultLocale    i18n.Locale
 	supportedLocales []i18n.Locale
 	newBotChatData   func() botsfwmodels.BotChatData
-	newBotUserData   func() botsfwmodels.BotUserData
+	newBotUserData   func() botsfwmodels.PlatformUserData
 	newAppUserData   func() botsfwmodels.AppUserData
 	getAppUserByID   AppUserGetter
 	router           *WebhooksRouter
@@ -49,7 +49,7 @@ func (v *botProfile) NewBotChatData() botsfwmodels.BotChatData {
 	return v.newBotChatData()
 }
 
-func (v *botProfile) NewBotUserData() botsfwmodels.BotUserData {
+func (v *botProfile) NewBotUserData() botsfwmodels.PlatformUserData {
 	return v.newBotUserData()
 }
 
@@ -61,7 +61,7 @@ func NewBotProfile(
 	id string,
 	router *WebhooksRouter,
 	newBotChatData func() botsfwmodels.BotChatData,
-	newBotUserData func() botsfwmodels.BotUserData,
+	newBotUserData func() botsfwmodels.PlatformUserData,
 	newAppUserData func() botsfwmodels.AppUserData,
 	getAppUserByID AppUserGetter,
 	defaultLocale i18n.Locale,

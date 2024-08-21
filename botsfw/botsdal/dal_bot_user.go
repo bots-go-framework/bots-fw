@@ -9,43 +9,43 @@ import (
 
 const botUsersCollection = "botUsers"
 
-// NewBotUserKey creates a dalgo key to specific bot user record
-func NewBotUserKey(platformID, botID, botUserID string) *dal.Key {
-	botKey := NewBotKey(platformID, botID)
+// NewPlatformUserKey creates a dalgo key to specific bot user record
+func NewPlatformUserKey(platformID, botUserID string) *dal.Key {
+	platformKey := NewPlatformKey(platformID)
 	if botUserID == "" {
 		panic("botUserID is required parameter")
 	}
-	return dal.NewKeyWithParentAndID(botKey, botUsersCollection, botUserID)
+	return dal.NewKeyWithParentAndID(platformKey, botUsersCollection, botUserID)
 }
 
-// GetBotUser loads bot user data
-func GetBotUser(
+// GetPlatformUser loads bot user data
+func GetPlatformUser(
 	ctx context.Context,
 	tx dal.ReadSession,
-	platformID, botID, botUserID string,
-	newData func() botsfwmodels.BotUserData,
-) (botUser record.DataWithID[string, botsfwmodels.BotUserData], err error) {
-	botUserKey := NewBotUserKey(platformID, botID, botUserID)
+	platformID, botUserID string,
+	newData func() botsfwmodels.PlatformUserData,
+) (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
+	botUserKey := NewPlatformUserKey(platformID, botUserID)
 	data := newData()
 	botUser = record.NewDataWithID(botUserID, botUserKey, data)
 	return botUser, tx.Get(ctx, botUser.Record)
 }
 
-// CreateBotUserRecord creates bot user record in database
-func CreateBotUserRecord(
+// CreatePlatformUserRecord creates bot user record in database
+func CreatePlatformUserRecord(
 	ctx context.Context,
 	tx dal.ReadwriteTransaction,
-	platformID, botID, botUserID string,
-	botUserData botsfwmodels.BotUserData,
+	platformID, botUserID string,
+	platformUserData botsfwmodels.PlatformUserData,
 ) (err error) {
-	if validatableData, ok := botUserData.(interface{ Validate() error }); ok {
+	if validatableData, ok := platformUserData.(interface{ Validate() error }); ok {
 		if err = validatableData.Validate(); err != nil {
 			return err
 		}
 	}
-	botUserKey := NewBotUserKey(platformID, botID, botUserID)
-	botUser := record.NewDataWithID(botUserID, botUserKey, botUserData)
-	err = tx.Insert(ctx, botUser.Record)
+	key := NewPlatformUserKey(platformID, botUserID)
+	platformUser := record.NewDataWithID(botUserID, key, platformUserData)
+	err = tx.Insert(ctx, platformUser.Record)
 	return err
 }
 
@@ -64,12 +64,12 @@ func CreateBotUserRecord(
 //type botUserStore struct {
 //	dalgoStore
 //	platform       string
-//	newBotUserData func(botID string) (botsfwmodels.BotUserData, error)
+//	newBotUserData func(botID string) (botsfwmodels.PlatformUserData, error)
 //	createBotUser  BotUserCreator
 //}
 //
 //// newBotUserStore creates new bot user store
-//func newBotUserStore(collection, platform string, getDb DbProvider, newBotUserData func(botID string) (botsfwmodels.BotUserData, error), createBotUser BotUserCreator) botUserStore {
+//func newBotUserStore(collection, platform string, getDb DbProvider, newBotUserData func(botID string) (botsfwmodels.PlatformUserData, error), createBotUser BotUserCreator) botUserStore {
 //	if getDb == nil {
 //		panic("getDb is nil")
 //	}
@@ -92,11 +92,11 @@ func CreateBotUserRecord(
 //
 //type botUserWithStrID struct {
 //	record.WithID[string]
-//	Data botsfwmodels.BotUserData
+//	Data botsfwmodels.PlatformUserData
 //}
 //
 //// GetBotUserByID returns bot user data
-//func (store botUserStore) GetBotUserByID(c context.Context, botID, botUserID string) (botUserData botsfwmodels.BotUserData, err error) {
+//func (store botUserStore) GetBotUserByID(c context.Context, botID, botUserID string) (botUserData botsfwmodels.PlatformUserData, err error) {
 //	key := store.botUserRecordKey(botUserID)
 //	if botUserData, err = store.newBotUserData(botID); err != nil {
 //		return
@@ -129,7 +129,7 @@ func CreateBotUserRecord(
 //}
 //
 //// SaveBotUser saves bot user data
-//func (store botUserStore) SaveBotUser(c context.Context, botID, botUserID string, botUserData botsfwmodels.BotUserData) error {
+//func (store botUserStore) SaveBotUser(c context.Context, botID, botUserID string, botUserData botsfwmodels.PlatformUserData) error {
 //	key := store.botUserRecordKey(botUserID)
 //	botUserRecord := dal.NewRecordWithData(key, botUserData)
 //	return store.runReadwriteTransaction(c, botID, func(c context.Context, tx dal.ReadwriteTransaction) error {
@@ -137,7 +137,7 @@ func CreateBotUserRecord(
 //	})
 //}
 //
-//func (store botUserStore) CreateBotUserRecord(c context.Context, botID string, apiUser botsfw.WebhookActor) (botsfwmodels.BotUserData, error) {
+//func (store botUserStore) CreatePlatformUserRecord(c context.Context, botID string, apiUser botsfw.WebhookActor) (botsfwmodels.PlatformUserData, error) {
 //	return store.createBotUser(c, botID, apiUser)
 //}
 //

@@ -67,7 +67,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
 
 	// BotUser returns record of current bot user
-	BotUser() (botUser record.DataWithID[string, botsfwmodels.BotUserData], err error)
+	BotUser() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
 
 	// IsInGroup indicates if message was received in a group botChat
 	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.

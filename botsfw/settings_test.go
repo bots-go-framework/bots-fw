@@ -17,7 +17,7 @@ func dummyBotProfile() BotProfile {
 	newBotChatDate := func() botsfwmodels.BotChatData {
 		return nil
 	}
-	newBotUserData := func() botsfwmodels.BotUserData {
+	newBotUserData := func() botsfwmodels.PlatformUserData {
 		return nil
 	}
 	newAppUserData := func() botsfwmodels.AppUserData {

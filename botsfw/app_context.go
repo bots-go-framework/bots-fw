@@ -1,7 +1,9 @@
 package botsfw
 
 import (
+	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/i18n"
 )
 
@@ -15,4 +17,6 @@ type BotAppContext interface {
 
 	NewBotAppUserEntity() botsfwmodels.AppUserData
 	GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChatData
+
+	GetAppUserByBotUserID(ctx context.Context, platform, botID, botUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error)
 }

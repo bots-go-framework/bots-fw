@@ -12,14 +12,13 @@ func TestGetBotUser(t *testing.T) {
 	type args struct {
 		//collection string
 		platform  string
-		botID     string
 		botUserID string
 	}
 	tests := []struct {
 		name        string
 		args        args
 		shouldPanic bool
-		checkResult func(botUser record.DataWithID[string, botsfwmodels.BotUserData], err error)
+		checkResult func(botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
 	}{
 		{name: "empty", shouldPanic: true},
 	}
@@ -34,7 +33,7 @@ func TestGetBotUser(t *testing.T) {
 				}()
 			}
 			var tx dal.ReadwriteTransaction
-			botUser, err := GetBotUser(ctx, tx, tt.args.platform, tt.args.botID, tt.args.botUserID, func() botsfwmodels.BotUserData {
+			botUser, err := GetPlatformUser(ctx, tx, tt.args.platform, tt.args.botUserID, func() botsfwmodels.PlatformUserData {
 				return nil
 			})
 			tt.checkResult(botUser, err)
@@ -45,9 +44,8 @@ func TestGetBotUser(t *testing.T) {
 func TestCreateBotUserRecord(t *testing.T) {
 	type args struct {
 		platform    string
-		botID       string
 		botUserID   string
-		botUserData botsfwmodels.BotUserData
+		botUserData botsfwmodels.PlatformUserData
 	}
 	tests := []struct {
 		name        string
@@ -68,12 +66,12 @@ func TestCreateBotUserRecord(t *testing.T) {
 			if tt.shouldPanic {
 				defer func() {
 					if r := recover(); r == nil {
-						t.Errorf("CreateBotUserRecord() did not panic")
+						t.Errorf("CreatePlatformUserRecord() did not panic")
 					}
 				}()
 			}
 			var tx dal.ReadwriteTransaction
-			err := CreateBotUserRecord(ctx, tx, tt.args.platform, tt.args.botID, tt.args.botUserID, tt.args.botUserData)
+			err := CreatePlatformUserRecord(ctx, tx, tt.args.platform, tt.args.botUserID, tt.args.botUserData)
 			tt.checkResult(err)
 		})
 	}

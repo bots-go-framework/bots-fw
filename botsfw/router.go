@@ -535,13 +535,13 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 		}
 
 		pageview.Common = ga.GaCommon()
-		if err := ga.Queue(pageview); err != nil {
+		if err = ga.Queue(pageview); err != nil {
 			if strings.Contains(err.Error(), "no tracking ID") {
 				log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
 			} else {
 				log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
 			}
-
+			err = nil
 		}
 	}
 }
@@ -554,13 +554,13 @@ func (whRouter *WebhooksRouter) processCommandResponseError(whc WebhookContext, 
 	if env == EnvProduction && ga != nil {
 		exceptionMessage := gamp.NewException(err.Error(), false)
 		exceptionMessage.Common = ga.GaCommon()
-		err = ga.Queue(exceptionMessage)
-		if err != nil {
+		if err = ga.Queue(exceptionMessage); err != nil {
 			if strings.Contains(err.Error(), "no tracking ID") {
 				log.Debugf(c, "processCommandResponseError: failed to send page view to GA: %v", err)
 			} else {
 				log.Warningf(c, "processCommandResponseError: failed to send page view to GA: %v", err)
 			}
+			err = nil
 		}
 	}
 	inputType := whc.InputType()

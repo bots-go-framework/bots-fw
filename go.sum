@@ -6,6 +6,8 @@ github.com/bots-go-framework/bots-fw-store v0.6.0 h1:CFjbq3XfBp6GX6RAXIp0tXxDsY7
 github.com/bots-go-framework/bots-fw-store v0.6.0/go.mod h1:T2yX1QodQ9A1nep/aIAL/czt9adqMyIBVTGOAdNVPAI=
 github.com/bots-go-framework/bots-fw-store v0.6.1 h1:RSf0b3pwteviaoeWGaPMYiA468wDZnzr6Lm6eBG9k7A=
 github.com/bots-go-framework/bots-fw-store v0.6.1/go.mod h1:T2yX1QodQ9A1nep/aIAL/czt9adqMyIBVTGOAdNVPAI=
+github.com/bots-go-framework/bots-fw-store v0.7.0 h1:bJZ91Pi7zICttUcWHqBrEgPNr8YZzXe8iNmHu+yXDZk=
+github.com/bots-go-framework/bots-fw-store v0.7.0/go.mod h1:T2yX1QodQ9A1nep/aIAL/czt9adqMyIBVTGOAdNVPAI=
 github.com/bots-go-framework/bots-go-core v0.0.2 h1:3F/czNOLZCO5rco1Zr9rATLvJrze5PZpa2dMRv4ON+M=
 github.com/bots-go-framework/bots-go-core v0.0.2/go.mod h1:u4r0W8t+n/07ulLlPZT3rdCt+mb5WHXP72z4oeTJVN0=
 github.com/dal-go/dalgo v0.12.1 h1:3W95xOSC7CLgH3OQppNOWoIaMkon8GlQmgYxxO5qnvs=

@@ -9,7 +9,7 @@ go 1.23.0
 //replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-store v0.6.1
+	github.com/bots-go-framework/bots-fw-store v0.7.0
 	github.com/bots-go-framework/bots-go-core v0.0.2
 	github.com/dal-go/dalgo v0.12.2
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7

@@ -29,7 +29,7 @@ func (whc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.BotUserData, error) {
+func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.PlatformUserData, error) {
 	panic("Not implemented")
 }
 
@@ -45,7 +45,7 @@ func (whc TestWebhookContext) GetBotToken() string {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (botsfwmodels.BotUserData, error) {
+func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string) (botsfwmodels.PlatformUserData, error) {
 	panic("Not implemented")
 }
 

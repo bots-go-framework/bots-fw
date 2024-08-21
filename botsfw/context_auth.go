@@ -43,10 +43,10 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	platformID := whc.BotPlatform().ID()
 	botSettings := whc.BotContext().BotSettings
 
-	if botUser, err := botsdal.GetBotUser(c, tx, platformID, botSettings.Code, botUserStrID, botSettings.Profile.NewBotUserData); err != nil {
+	if botUser, err := botsdal.GetPlatformUser(c, tx, platformID, botUserStrID, botSettings.Profile.NewBotUserData); err != nil {
 		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
 	} else if botUser.Data.IsAccessGranted() == value {
-		log.Infof(c, "No need to change botUser.AccessGranted, as already is: %v", value)
+		log.Infof(c, "No need to change platformUser.AccessGranted, as already is: %v", value)
 	} else if changed := botUser.Data.SetAccessGranted(value); changed {
 		if err = tx.Set(c, botUser.Record); err != nil {
 			err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
