@@ -8,6 +8,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/gamp"
+	"github.com/strongo/logus"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -68,8 +69,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	c := context.Background()
 
 	handleError := func(err error, message string) {
-		log.Errorf(c, "%s: %v", message, err)
-		http.Error(w, fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err), http.StatusInternalServerError)
+		logus.Errorf(c, "%s: %v", message, err)
+		errText := fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err)
+		http.Error(w, errText, http.StatusInternalServerError)
 	}
 
 	started := time.Now()
@@ -191,7 +193,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 			}
 			err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
 				whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, tx, measurementSender)
-				var err error
 				if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 					handleError(err, "Failed to create WebhookContext")
 					return err
