@@ -12,7 +12,7 @@ type BotProfile interface {
 	DefaultLocale() i18n.Locale
 	SupportedLocales() []i18n.Locale
 	NewBotChatData() botsfwmodels.BotChatData
-	NewBotUserData() botsfwmodels.PlatformUserData
+	NewPlatformUserData() botsfwmodels.PlatformUserData
 	NewAppUserData() botsfwmodels.AppUserData // TODO: Can we get rit of it and instead use GetAppUserByID/CreateAppUser?
 }
 
@@ -49,7 +49,7 @@ func (v *botProfile) NewBotChatData() botsfwmodels.BotChatData {
 	return v.newBotChatData()
 }
 
-func (v *botProfile) NewBotUserData() botsfwmodels.PlatformUserData {
+func (v *botProfile) NewPlatformUserData() botsfwmodels.PlatformUserData {
 	return v.newBotUserData()
 }
 

@@ -236,7 +236,7 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 	}
 	if whcb.platformUser.Data == nil {
 		var err error
-		if whcb.platformUser, err = whcb.getPlatformUserRecord(); err != nil {
+		if err = whcb.getPlatformUserRecord(whcb.tx); err != nil {
 			if !dal.IsNotFound(err) {
 				panic(fmt.Errorf("failed to get bot user entity: %w", err))
 			}
@@ -263,7 +263,7 @@ func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, bot
 	}
 	platformID := whcb.BotPlatform().ID()
 	botUserID := whcb.GetBotUserID()
-	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData)
 	return whcb.platformUser, err
 }
 
@@ -528,21 +528,28 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
 	return whcb.botChat.Data
 }
 
-func (whcb *WebhookContextBase) getPlatformUserRecord() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
+func (whcb *WebhookContextBase) getPlatformUserRecord(tx dal.ReadwriteTransaction) (err error) {
 	if whcb.platformUser.Data != nil {
-		return whcb.platformUser, nil
+		return nil
 	}
 	platformID := whcb.botPlatform.ID()
 	sender := whcb.input.GetSender()
 	botUserID := fmt.Sprintf("%v", sender.GetID())
 	ctx := whcb.Context()
-	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewBotUserData)
+	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData)
+
+	if dal.IsNotFound(err) && whcb.platformUser.Data == nil {
+		whcb.platformUser.ID = botUserID
+		whcb.platformUser.Key = botsdal.NewPlatformUserKey(platformID, botUserID)
+		whcb.platformUser.Data = whcb.botContext.BotSettings.Profile.NewPlatformUserData()
+		whcb.platformUser.Record = dal.NewRecordWithData(whcb.platformUser.Key, whcb.platformUser.Data)
+	}
 	return
 }
 
-func (whcb *WebhookContextBase) createPlatformUserRecord() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
+func (whcb *WebhookContextBase) createPlatformUserRecord(tx dal.ReadwriteTransaction) (err error) {
 	if whcb.platformUser.Data != nil {
-		return whcb.platformUser, nil
+		return nil
 	}
 	//platformID := whcb.botPlatform.ID()
 	botID := whcb.GetBotCode()
@@ -552,11 +559,11 @@ func (whcb *WebhookContextBase) createPlatformUserRecord() (botUser record.DataW
 
 	if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.platformUser.Data, sender, botID, botUserID, botUserID); err != nil {
 		log.Errorf(ctx, "WebhookContextBase.getOrCreatePlatformUserRecord(): failed to make bot user DTO: %v", err)
-		return whcb.platformUser, err
+		return err
 	}
-	if err = whcb.SaveBotUser(ctx); err != nil {
+	if err = tx.Set(ctx, whcb.platformUser.Record); err != nil {
 		log.Errorf(ctx, "WebhookContextBase.getOrCreatePlatformUserRecord(): failed to create bot user: %v", err)
-		return whcb.platformUser, err
+		return err
 	}
 	log.Infof(ctx, "Bot user entity created")
 
@@ -597,12 +604,12 @@ func (whcb *WebhookContextBase) getOrCreatePlatformUserRecord() (botUser record.
 		whcb.isLoadingPlatformUserData = false
 	}()
 
-	if whcb.platformUser, err = whcb.getPlatformUserRecord(); err != nil {
+	if err = whcb.getPlatformUserRecord(whcb.tx); err != nil {
 		if !dal.IsNotFound(err) {
 			return whcb.platformUser, err
 		} else {
 			log.Debugf(ctx, "Bot user entity not found, creating a new one...")
-			if whcb.platformUser, err = whcb.createPlatformUserRecord(); err != nil {
+			if err = whcb.createPlatformUserRecord(whcb.tx); err != nil {
 				return whcb.platformUser, fmt.Errorf("failed to create platform user record: %w", err)
 			}
 		}
