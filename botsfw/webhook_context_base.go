@@ -323,25 +323,26 @@ func NewWebhookContextBase(
 		whcb:          whcb,
 		gaMeasurement: args.GaMeasurement,
 	}
-	var isInGroup bool
-	if isInGroup, err = getIsInGroup(); err != nil {
-		return
-	} else if isInGroup && whcb.getLocaleAndChatID != nil {
-		var locale, chatID string
-		if locale, chatID, err = whcb.getLocaleAndChatID(); err != nil {
-			err = fmt.Errorf("failed in whcb.getLocaleAndChatID(): %w", err)
-			return
-		} else {
-			if chatID != "" {
-				whcb.SetChatID(chatID)
-			}
-			if locale != "" {
-				if err := whcb.SetLocale(locale); err != nil {
-					log.Errorf(c, "Failed to set Locale: %v", err)
-				}
-			}
-		}
-	}
+	// TODO: make sure we do not fail here for non group chats
+	//var isInGroup bool
+	//if isInGroup, err = getIsInGroup(); err != nil {
+	//	return
+	//} else if isInGroup && whcb.getLocaleAndChatID != nil {
+	//	var locale, chatID string
+	//	if locale, chatID, err = whcb.getLocaleAndChatID(); err != nil {
+	//		err = fmt.Errorf("failed in whcb.getLocaleAndChatID(): %w", err)
+	//		return
+	//	} else {
+	//		if chatID != "" {
+	//			whcb.SetChatID(chatID)
+	//		}
+	//		if locale != "" {
+	//			if err := whcb.SetLocale(locale); err != nil {
+	//				log.Errorf(c, "Failed to set Locale: %v", err)
+	//			}
+	//		}
+	//	}
+	//}
 	whcb.translator = translator{
 		localeCode5: func() string {
 			return whcb.locale.Code5
