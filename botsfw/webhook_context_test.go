@@ -21,8 +21,8 @@ func (whc TestWebhookContext) BotChatIntID() int64 {
 	return 0
 }
 
-func (whc TestWebhookContext) IsInGroup() bool {
-	return false
+func (whc TestWebhookContext) IsInGroup() (bool, error) {
+	return false, nil
 }
 
 func (whc TestWebhookContext) Close(c context.Context) error {

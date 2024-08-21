@@ -70,7 +70,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	BotUser() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
 
 	// IsInGroup indicates if message was received in a group botChat
-	IsInGroup() bool // TODO: We might need to return an error as well (for Telegram chat instance). Document why need or does not need.
+	IsInGroup() (bool, error) // We  need to return an error as well (for Telegram chat instance).
 
 	// CommandText TODO: needs to be documented
 	CommandText(title, icon string) string
