@@ -415,17 +415,16 @@ func (gac gaContext) Queue(message gamp.Message) error {
 //	}
 //
 // GaCommon creates context for Google Analytics
-func (gac gaContext) GaCommon() gamp.Common {
+func (gac gaContext) GaCommon() (result gamp.Common) {
 	whcb := gac.whcb
-	if whcb.botChat.Record.Exists() {
-		return gamp.Common{
-			UserID:       whcb.botChat.Data.GetAppUserID(),
-			UserLanguage: strings.ToLower(whcb.botChat.Data.GetPreferredLanguage()),
-			//ClientID:      whcb.chatData.GetGaClientID(), // TODO: Restore feature
-			ApplicationID: fmt.Sprintf("bot.%v.%v", whcb.botPlatform.ID(), whcb.GetBotCode()),
-			UserAgent:     fmt.Sprintf("%v bot @ %v", whcb.botPlatform.ID(), whcb.r.Host),
-			DataSource:    "bot",
-		}
+	if whcb.botChat.Record != nil && whcb.botChat.Record.Exists() {
+		result.UserID = whcb.botChat.Data.GetAppUserID()
+		result.UserLanguage = strings.ToLower(whcb.botChat.Data.GetPreferredLanguage())
+		platformID := whcb.botPlatform.ID()
+		result.ApplicationID = fmt.Sprintf("bot.%v.%v", platformID, whcb.GetBotCode())
+		result.UserAgent = fmt.Sprintf("%v bot @ %v", platformID, whcb.r.Host)
+		result.DataSource = "bot"
+		return
 	}
 	return gamp.Common{
 		DataSource: "bot",

@@ -518,7 +518,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 	if matchedCommand != nil && ga != nil {
 		gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 		pathPrefix := "bot/"
-		var pageview *gamp.Pageview
+		var pageView *gamp.Pageview
 		if inputType := whc.InputType(); inputType != WebhookInputCallbackQuery {
 			chatData := whc.ChatData()
 			if chatData != nil {
@@ -528,20 +528,22 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 				} else if pathURL, err := url.Parse(path); err == nil {
 					path = pathURL.Path
 				}
-				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
+				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 			} else {
-				pageview = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
+				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
 			}
 		}
 
-		pageview.Common = ga.GaCommon()
-		if err = ga.Queue(pageview); err != nil {
-			if strings.Contains(err.Error(), "no tracking ID") {
-				log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
-			} else {
-				log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
+		if pageView != nil {
+			pageView.Common = ga.GaCommon()
+			if err = ga.Queue(pageView); err != nil {
+				if strings.Contains(err.Error(), "no tracking ID") {
+					log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
+				} else {
+					log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
+				}
+				err = nil
 			}
-			err = nil
 		}
 	}
 }
