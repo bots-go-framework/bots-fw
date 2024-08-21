@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
@@ -701,13 +702,24 @@ func (whcb *WebhookContextBase) Locale() i18n.Locale {
 
 // SetLocale sets current language
 func (whcb *WebhookContextBase) SetLocale(code5 string) error {
-	locale, err := whcb.botAppContext.SupportedLocales().GetLocaleByCode5(code5)
+	if code5 == "" {
+		return errors.New("whcb.SetLocate(code5) expects non-empty string")
+	}
+	if whcb.botAppContext == nil {
+		return fmt.Errorf("botAppContext is nil")
+	}
+	supportedLocates := whcb.botAppContext.SupportedLocales()
+	if supportedLocates == nil {
+		return fmt.Errorf("supportedLocates is nil")
+	}
+	locale, err := supportedLocates.GetLocaleByCode5(code5)
 	if err != nil {
-		log.Errorf(whcb.c, "*WebhookContextBase.SetLocate(%v) - %v", code5, err)
-		return err
+		return fmt.Errorf(
+			"whcb.SetLocate(%s) failed to call supportedLocates.GetLocaleByCode5(%s): %w",
+			code5, code5, err)
 	}
 	whcb.locale = locale
-	log.Debugf(whcb.Context(), "*WebhookContextBase.SetLocale(%v) => Done", code5)
+	//log.Debugf(whcb.Context(), "*WebhookContextBase.SetLocale(%v) => Done", code5)
 	return nil
 }
 
