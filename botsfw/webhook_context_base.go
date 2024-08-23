@@ -263,7 +263,7 @@ func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, bot
 	}
 	platformID := whcb.BotPlatform().ID()
 	botUserID := whcb.GetBotUserID()
-	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData)
+	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
 	return whcb.platformUser, err
 }
 
@@ -534,15 +534,12 @@ func (whcb *WebhookContextBase) getPlatformUserRecord(tx dal.ReadwriteTransactio
 	}
 	platformID := whcb.botPlatform.ID()
 	sender := whcb.input.GetSender()
-	botUserID := fmt.Sprintf("%v", sender.GetID())
 	ctx := whcb.Context()
-	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData)
 
-	if dal.IsNotFound(err) && whcb.platformUser.Data == nil {
-		whcb.platformUser.ID = botUserID
-		whcb.platformUser.Key = botsdal.NewPlatformUserKey(platformID, botUserID)
-		whcb.platformUser.Data = whcb.botContext.BotSettings.Profile.NewPlatformUserData()
-		whcb.platformUser.Record = dal.NewRecordWithData(whcb.platformUser.Key, whcb.platformUser.Data)
+	whcb.platformUser.ID = fmt.Sprintf("%v", sender.GetID())
+	whcb.platformUser.Data = whcb.botContext.BotSettings.Profile.NewPlatformUserData()
+	if whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, whcb.platformUser.ID, whcb.platformUser.Data); err != nil {
+		return
 	}
 	return
 }

@@ -33,9 +33,7 @@ func TestGetBotUser(t *testing.T) {
 				}()
 			}
 			var tx dal.ReadwriteTransaction
-			botUser, err := GetPlatformUser(ctx, tx, tt.args.platform, tt.args.botUserID, func() botsfwmodels.PlatformUserData {
-				return nil
-			})
+			botUser, err := GetPlatformUser(ctx, tx, tt.args.platform, tt.args.botUserID, nil)
 			tt.checkResult(botUser, err)
 		})
 	}

@@ -23,11 +23,10 @@ func GetPlatformUser(
 	ctx context.Context,
 	tx dal.ReadSession,
 	platformID, botUserID string,
-	newData func() botsfwmodels.PlatformUserData,
+	platformUserData botsfwmodels.PlatformUserData,
 ) (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error) {
 	botUserKey := NewPlatformUserKey(platformID, botUserID)
-	data := newData()
-	botUser = record.NewDataWithID(botUserID, botUserKey, data)
+	botUser = record.NewDataWithID(botUserID, botUserKey, platformUserData)
 	return botUser, tx.Get(ctx, botUser.Record)
 }
 
