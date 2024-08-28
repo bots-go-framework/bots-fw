@@ -159,8 +159,9 @@ var _ BotMessage = (*TextMessageFromBot)(nil)
 //
 //goland:noinspection GoDeprecation
 type MessageFromBot struct {
-	ToChat             ChatUID    `json:",omitempty"`
-	TextMessageFromBot            // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
-	BotMessage         BotMessage `json:",omitempty"`
+	ResponseChannel    BotAPISendMessageChannel `json:"-,omitempty"` // For debug purposes
+	ToChat             ChatUID                  `json:",omitempty"`
+	TextMessageFromBot                          // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	BotMessage         BotMessage               `json:",omitempty"`
 	//FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }

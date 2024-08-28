@@ -494,7 +494,11 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 	ga := whc.GA()
 	// gam.GeographicalOverride()
 
-	if _, err = responder.SendMessage(c, m, BotAPISendMessageOverResponse); err != nil {
+	responseChannel := m.ResponseChannel
+	if responseChannel == "" {
+		responseChannel = BotAPISendMessageOverResponse
+	}
+	if _, err = responder.SendMessage(c, m, responseChannel); err != nil {
 		const failedToSendMessageToMessenger = "failed to send a message to messenger"
 		errText := err.Error()
 		switch {
