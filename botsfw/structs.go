@@ -4,7 +4,6 @@ package botsfw
 
 import (
 	"context"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/strongo/i18n"
 	"strconv"
@@ -31,7 +30,7 @@ type WebhookHandlerBase struct {
 	WebhookDriver
 	BotHost
 	BotPlatform
-	RecordsMaker        botsfwmodels.BotRecordsMaker
+	//RecordsMaker        botsfwmodels.BotRecordsMaker
 	RecordsFieldsSetter BotRecordsFieldsSetter
 	TranslatorProvider  TranslatorProvider
 	//DataAccess          botsfwdal.DataAccess
