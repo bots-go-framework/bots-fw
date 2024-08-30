@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"context"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
 )
@@ -41,7 +42,7 @@ type CreateWebhookContextArgs struct {
 	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
 	AppContext   AppContext
 	BotContext   BotContext
-	WebhookInput WebhookInput
+	WebhookInput botinput.WebhookInput
 	Tx           dal.ReadwriteTransaction
 	//BotCoreStores botsfwdal.DataAccess
 	GaMeasurement GaQueuer
@@ -51,7 +52,7 @@ func NewCreateWebhookContextArgs(
 	httpRequest *http.Request,
 	appContext AppContext,
 	botContext BotContext,
-	webhookInput WebhookInput,
+	webhookInput botinput.WebhookInput,
 	tx dal.ReadwriteTransaction,
 	//botCoreStores botsfwdal.DataAccess,
 	gaMeasurement GaQueuer,

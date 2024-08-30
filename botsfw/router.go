@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/strongo/gamp"
 	"net/url"
 	"strings"
@@ -23,7 +24,7 @@ func newTypeCommands(commandsCount int) *TypeCommands {
 	}
 }
 
-func (v *TypeCommands) addCommand(command Command, commandType WebhookInputType) {
+func (v *TypeCommands) addCommand(command Command, commandType botinput.WebhookInputType) {
 	if command.Code == "" {
 		panic(fmt.Sprintf("Command %v is missing required property ByCode", command))
 	}
@@ -37,16 +38,16 @@ func (v *TypeCommands) addCommand(command Command, commandType WebhookInputType)
 
 // WebhooksRouter maps routes to commands
 type WebhooksRouter struct {
-	commandsByType  map[WebhookInputType]*TypeCommands
+	commandsByType  map[botinput.WebhookInputType]*TypeCommands
 	errorFooterText func() string
 }
 
 // NewWebhookRouter creates new router
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewWebhookRouter(commandsByType map[WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
+func NewWebhookRouter(commandsByType map[botinput.WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
 	r := WebhooksRouter{
-		commandsByType:  make(map[WebhookInputType]*TypeCommands, len(commandsByType)),
+		commandsByType:  make(map[botinput.WebhookInputType]*TypeCommands, len(commandsByType)),
 		errorFooterText: errorFooterText,
 	}
 
@@ -66,28 +67,28 @@ func (whRouter *WebhooksRouter) CommandsCount() int {
 }
 
 // AddCommands add commands to a router
-func (whRouter *WebhooksRouter) AddCommands(commandsType WebhookInputType, commands []Command) {
+func (whRouter *WebhooksRouter) AddCommands(commandsType botinput.WebhookInputType, commands []Command) {
 	typeCommands, ok := whRouter.commandsByType[commandsType]
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
 		whRouter.commandsByType[commandsType] = typeCommands
-	} else if commandsType == WebhookInputInlineQuery {
+	} else if commandsType == botinput.WebhookInputInlineQuery {
 		panic("Duplicate add of WebhookInputInlineQuery")
 	}
-	if commandsType == WebhookInputInlineQuery && len(commands) > 1 {
+	if commandsType == botinput.WebhookInputInlineQuery && len(commands) > 1 {
 		panic("commandsType == WebhookInputInlineQuery && len(commands) > 1")
 	}
 	for _, command := range commands {
 		typeCommands.addCommand(command, commandsType)
 	}
-	if commandsType == WebhookInputInlineQuery && len(typeCommands.all) > 1 {
+	if commandsType == botinput.WebhookInputInlineQuery && len(typeCommands.all) > 1 {
 		panic(fmt.Sprintf("commandsType == WebhookInputInlineQuery && len(typeCommands) > 1: %v", typeCommands.all[0]))
 	}
 }
 
 // RegisterCommands is registering commands with router
 func (whRouter *WebhooksRouter) RegisterCommands(commands []Command) {
-	addCommand := func(t WebhookInputType, command Command) {
+	addCommand := func(t botinput.WebhookInputType, command Command) {
 		typeCommands, ok := whRouter.commandsByType[t]
 		if !ok {
 			typeCommands = newTypeCommands(0)
@@ -98,21 +99,21 @@ func (whRouter *WebhooksRouter) RegisterCommands(commands []Command) {
 	for _, command := range commands {
 		if len(command.InputTypes) == 0 {
 			if command.Action != nil {
-				addCommand(WebhookInputText, command)
+				addCommand(botinput.WebhookInputText, command)
 			}
 			if command.CallbackAction != nil {
-				addCommand(WebhookInputCallbackQuery, command)
+				addCommand(botinput.WebhookInputCallbackQuery, command)
 			}
 		} else {
 			callbackAdded := false
 			for _, t := range command.InputTypes {
 				addCommand(t, command)
-				if t == WebhookInputCallbackQuery {
+				if t == botinput.WebhookInputCallbackQuery {
 					callbackAdded = true
 				}
 			}
 			if command.CallbackAction != nil && !callbackAdded {
-				addCommand(WebhookInputCallbackQuery, command)
+				addCommand(botinput.WebhookInputCallbackQuery, command)
 			}
 		}
 	}
@@ -120,7 +121,7 @@ func (whRouter *WebhooksRouter) RegisterCommands(commands []Command) {
 
 var ErrNoCommandsMatched = errors.New("no commands matched")
 
-func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeCommands *TypeCommands) (matchedCommand *Command, callbackURL *url.URL, err error) {
+func matchCallbackCommands(whc WebhookContext, input botinput.WebhookCallbackQuery, typeCommands *TypeCommands) (matchedCommand *Command, callbackURL *url.URL, err error) {
 	if len(typeCommands.all) > 0 {
 		callbackData := input.GetData()
 		callbackURL, err = url.Parse(callbackData)
@@ -141,7 +142,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 		}
 		//if matchedCommand == nil {
 		log.Errorf(whc.Context(), fmt.Errorf("%w: %s", ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
-		whc.LogRequest()
+		whc.Input().LogRequest() // TODO: LogRequest() should not be part of Input?
 		//}
 	} else {
 		panic("len(typeCommands.all) == 0")
@@ -149,7 +150,7 @@ func matchCallbackCommands(whc WebhookContext, input WebhookCallbackQuery, typeC
 	return nil, callbackURL, err
 }
 
-func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
+func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
 	c := whc.Context()
 
 	var awaitingReplyCommand Command
@@ -312,12 +313,12 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	// 	}
 	// }()
 
-	inputType := whc.InputType()
+	inputType := whc.Input().InputType()
 
 	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
-		log.Debugf(c, "No commands found to match by inputType: %v", GetWebhookInputTypeIdNameString(inputType))
-		whc.LogRequest()
+		log.Debugf(c, "No commands found to match by inputType: %v", botinput.GetWebhookInputTypeIdNameString(inputType))
+		whc.Input().LogRequest()
 		logInputDetails(whc, false)
 		return
 	}
@@ -331,7 +332,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	input := whc.Input()
 	var isCommandText bool
 	switch input := input.(type) {
-	case WebhookCallbackQuery:
+	case botinput.WebhookCallbackQuery:
 		var callbackURL *url.URL
 		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input, typeCommands)
 		if err == nil && matchedCommand != nil {
@@ -349,13 +350,13 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 				}
 			}
 		}
-	case WebhookMessage:
-		if inputType == WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
+	case botinput.WebhookMessage:
+		if inputType == botinput.WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
 		}
 		if matchedCommand == nil {
 			var messageText string
-			if textMessage, ok := input.(WebhookTextMessage); ok {
+			if textMessage, ok := input.(botinput.WebhookTextMessage); ok {
 				messageText = textMessage.Text()
 				isCommandText = strings.HasPrefix(messageText, "/")
 			}
@@ -368,7 +369,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			commandAction = matchedCommand.Action
 		}
 	default:
-		if inputType == WebhookInputUnknown {
+		if inputType == botinput.WebhookInputUnknown {
 			panic("Unknown input type")
 		}
 		matchedCommand = &typeCommands.all[0]
@@ -380,13 +381,13 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	}
 
 	if matchedCommand == nil {
-		whc.LogRequest()
+		whc.Input().LogRequest()
 		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
 		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
 			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			return
 		}
-		if chat := whc.Chat(); chat != nil && chat.IsGroupChat() {
+		if chat := whc.Input().Chat(); chat != nil && chat.IsGroupChat() {
 			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
 			// whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		} else {
@@ -394,7 +395,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			chatEntity := whc.ChatData()
 			if chatEntity != nil {
 				if awaitingReplyTo := chatEntity.GetAwaitingReplyTo(); awaitingReplyTo != "" {
-					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %v</i>", awaitingReplyTo)
+					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %s</i>", awaitingReplyTo)
 				}
 			}
 			log.Debugf(c, "No command found for the message: %v", input)
@@ -402,11 +403,10 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}
 	} else { // matchedCommand != nil
 		if matchedCommand.Code == "" {
-			log.Debugf(c, "Matched to: %+v", matchedCommand)
+			log.Debugf(c, "Matched to: command: %+v", matchedCommand)
 		} else {
-			log.Debugf(c, "Matched to: %v", matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+			log.Debugf(c, "Matched to: command.Code=%s", matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		}
-		var err error
 		if commandAction == nil {
 			err = errors.New("No action for matched command")
 		} else {
@@ -439,14 +439,14 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 
 func logInputDetails(whc WebhookContext, isKnownType bool) {
 	c := whc.Context()
-	inputType := whc.InputType()
+	inputType := whc.Input().InputType()
 	input := whc.Input()
-	inputTypeIdName := GetWebhookInputTypeIdNameString(inputType)
+	inputTypeIdName := botinput.GetWebhookInputTypeIdNameString(inputType)
 	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch() => WebhookIputType=%s, %T", inputTypeIdName, input)
 	switch inputType {
-	case WebhookInputText:
-		textMessage := input.(WebhookTextMessage)
-		logMessage += fmt.Sprintf("message text: [%v]", textMessage.Text())
+	case botinput.WebhookInputText:
+		textMessage := input.(botinput.WebhookTextMessage)
+		logMessage += fmt.Sprintf("message text: [%s]", textMessage.Text())
 		if textMessage.IsEdited() { // TODO: Should be in app logic, move out of botsfw
 			m := whc.NewMessage("🙇 Sorry, editing messages is not supported. Please send a new message.")
 			log.Warningf(c, "TODO: Edited messages are not supported by framework yet. Move check to app.")
@@ -456,20 +456,23 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 			}
 			return
 		}
-	case WebhookInputContact:
-		logMessage += fmt.Sprintf("contact number: [%v]", input.(WebhookContactMessage))
-	case WebhookInputInlineQuery:
-		logMessage += fmt.Sprintf("inline query: [%v]", input.(WebhookInlineQuery).GetQuery())
-	case WebhookInputCallbackQuery:
-		logMessage += fmt.Sprintf("callback data: [%v]", input.(WebhookCallbackQuery).GetData())
-	case WebhookInputChosenInlineResult:
-		chosenResult := input.(WebhookChosenInlineResult)
-		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%v], InlineMessageID=[%v], Query=[%v]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
-	case WebhookInputReferral:
-		referralMessage := input.(WebhookReferralMessage)
-		logMessage += fmt.Sprintf("referralMessage: Type=[%v], Source=[%v], Ref=[%v]", referralMessage.Type(), referralMessage.Source(), referralMessage.RefData())
+	case botinput.WebhookInputContact:
+		contact := input.(botinput.WebhookContactMessage)
+		contactFirstName := contact.GetFirstName()
+		contactBotUserID := contact.GetBotUserID()
+		logMessage += fmt.Sprintf("contact number: {UserID: %s, FirstName: %s}", contactBotUserID, contactFirstName)
+	case botinput.WebhookInputInlineQuery:
+		logMessage += fmt.Sprintf("inline query: [%s]", input.(botinput.WebhookInlineQuery).GetQuery())
+	case botinput.WebhookInputCallbackQuery:
+		logMessage += fmt.Sprintf("callback data: [%s]", input.(botinput.WebhookCallbackQuery).GetData())
+	case botinput.WebhookInputChosenInlineResult:
+		chosenResult := input.(botinput.WebhookChosenInlineResult)
+		logMessage += fmt.Sprintf("ChosenInlineResult: ResultID=[%s], InlineMessageID=[%s], Query=[%s]", chosenResult.GetResultID(), chosenResult.GetInlineMessageID(), chosenResult.GetQuery())
+	case botinput.WebhookInputReferral:
+		referralMessage := input.(botinput.WebhookReferralMessage)
+		logMessage += fmt.Sprintf("referralMessage: Type=[%s], Source=[%s], Ref=[%s]", referralMessage.Type(), referralMessage.Source(), referralMessage.RefData())
 	default:
-		logMessage += "Unknown WebhookInputType=" + GetWebhookInputTypeIdNameString(inputType)
+		logMessage += "Unknown WebhookInputType=" + botinput.GetWebhookInputTypeIdNameString(inputType)
 	}
 	if isKnownType {
 		log.Debugf(c, logMessage)
@@ -504,7 +507,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 		switch {
 		case strings.Contains(errText, "message is not modified"): // TODO: This checks are specific to Telegram and should be abstracted or moved to TG related package
 			logText := failedToSendMessageToMessenger
-			if whc.InputType() == WebhookInputCallbackQuery {
+			if whc.Input().InputType() == botinput.WebhookInputCallbackQuery {
 				logText += "(can be duplicate callback)"
 			}
 			log.Warningf(c, fmt.Errorf("%s: %w", logText, err).Error()) // TODO: Think how to get rid of warning on duplicate callbacks when users clicks multiple times
@@ -523,7 +526,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 		gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 		pathPrefix := "bot/"
 		var pageView *gamp.Pageview
-		if inputType := whc.InputType(); inputType != WebhookInputCallbackQuery {
+		if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
 			chatData := whc.ChatData()
 			if chatData != nil {
 				path := chatData.GetAwaitingReplyTo()
@@ -534,7 +537,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 				}
 				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
 			} else {
-				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
+				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+botinput.GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
 			}
 		}
 
@@ -569,8 +572,8 @@ func (whRouter *WebhooksRouter) processCommandResponseError(whc WebhookContext, 
 			err = nil
 		}
 	}
-	inputType := whc.InputType()
-	if inputType == WebhookInputText || inputType == WebhookInputContact {
+	inputType := whc.Input().InputType()
+	if inputType == botinput.WebhookInputText || inputType == botinput.WebhookInputContact {
 		// TODO: Try to get botChat ID from user?
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +

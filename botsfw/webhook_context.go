@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
@@ -70,6 +71,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	// BotUser returns record of current bot user
 	BotUser() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
+	GetBotUserID() string
 
 	// IsInGroup indicates if message was received in a group botChat
 	IsInGroup() (bool, error) // We  need to return an error as well (for Telegram chat instance).
@@ -109,7 +111,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// RecordsFieldsSetter returns a helper that sets fields of bot related records
 	RecordsFieldsSetter() BotRecordsFieldsSetter
 
-	WebhookInput // TODO: Should be removed!!!
+	//botinput.WebhookInput // TODO: Should be removed!!!
 	i18n.SingleLocaleTranslator
 
 	Responder() WebhookResponder
@@ -125,5 +127,5 @@ type BotState interface {
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 type BotInputProvider interface {
 	// Input returns a webhook input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
-	Input() WebhookInput
+	Input() botinput.WebhookInput
 }

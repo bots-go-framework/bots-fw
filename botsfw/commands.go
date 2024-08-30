@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	"net/url"
 )
 
@@ -24,7 +25,7 @@ const ShortTitle = "short_title"
 
 // Command defines command metadata and action
 type Command struct {
-	InputTypes     []WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
+	InputTypes     []botinput.WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
 	Icon           string
 	Replies        []Command
 	Code           string
@@ -41,7 +42,7 @@ type Command struct {
 func NewInlineQueryCommand(code string, action CommandAction) Command {
 	return Command{
 		Code:       code,
-		InputTypes: []WebhookInputType{WebhookInputInlineQuery},
+		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputInlineQuery},
 		Action:     action,
 	}
 }

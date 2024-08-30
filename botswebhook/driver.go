@@ -5,8 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
+	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/bots-go-framework/bots-fw/botsfw"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
+	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
 	"github.com/strongo/logus"
 	"net/http"
@@ -20,9 +25,8 @@ var ErrorIcon = "🚨"
 
 // BotDriver keeps information about bots and map requests to appropriate handlers
 type BotDriver struct {
-	Analytics AnalyticsSettings
-	botHost   botsfw.BotHost
-	//router          *WebhooksRouter
+	Analytics       AnalyticsSettings
+	botHost         botsfw.BotHost
 	panicTextFooter string
 }
 
@@ -56,16 +60,8 @@ func (d BotDriver) RegisterWebhookHandlers(httpRouter botsfw.HttpRouter, pathPre
 // HandleWebhook takes and HTTP request and process it
 func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler) {
 
-	//c := d.botHost.Context(r)
-	c := context.Background()
+	ctx := d.botHost.Context(r)
 
-	handleError := func(err error, message string) {
-		logus.Errorf(c, "%s: %v", message, err)
-		errText := fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err)
-		http.Error(w, errText, http.StatusInternalServerError)
-	}
-
-	started := time.Now()
 	//log.Debugf(c, "BotDriver.HandleWebhook()")
 	if w == nil {
 		panic("Parameter 'w http.ResponseWriter' is nil")
@@ -77,14 +73,51 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		panic("Parameter 'webhookHandler WebhookHandler' is nil")
 	}
 
-	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(c, r)
+	// A bot can receiver multiple messages in a single request
+	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(ctx, r)
 
-	if d.invalidContextOrInputs(c, w, r, botContext, entriesWithInputs, err) {
+	if d.invalidContextOrInputs(ctx, w, r, botContext, entriesWithInputs, err) {
 		return
 	}
 
-	log.Debugf(c, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
+	log.Debugf(ctx, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
 
+	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
+	//defer func() {
+	//	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
+	//		//log.Debugf(c, "Closing BotChatStore...")
+	//		//chatData := whc.ChatData()
+	//		//if chatData != nil && chatData.GetPreferredLanguage() == "" {
+	//		//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
+	//		//}
+	//	}
+	//}()
+
+	handleError := func(err error, message string) {
+		logus.Errorf(ctx, "%s: %v", message, err)
+		errText := fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err)
+		http.Error(w, errText, http.StatusInternalServerError)
+	}
+
+	for _, entryWithInputs := range entriesWithInputs {
+		for i, input := range entryWithInputs.Inputs {
+			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
+				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
+			}
+		}
+	}
+}
+
+func (d BotDriver) processWebhookInput(
+	ctx context.Context,
+	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
+	botContext *botsfw.BotContext,
+	i int,
+	input botinput.WebhookInput,
+	handleError func(err error, message string),
+) (
+	err error,
+) {
 	var (
 		whc               botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
 		measurementSender *gamp.BufferedClient
@@ -103,25 +136,27 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		}
 		if sendStats {
 			botHost := botContext.BotHost
-			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(c), func(err error) {
-				log.Errorf(c, "Failed to log to GA: %v", err)
+			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(ctx), func(err error) {
+				log.Errorf(ctx, "Failed to log to GA: %v", err)
 			})
 		} else {
-			log.Debugf(c, "botContext.BotSettings.Env=%s, sendStats=%t",
+			log.Debugf(ctx, "botContext.BotSettings.Env=%s, sendStats=%t",
 				botContext.BotSettings.Env, sendStats)
 		}
 	}
 
+	started := time.Now()
+
 	defer func() {
-		log.Debugf(c, "driver.deferred(recover) - checking for panic & flush GA")
+		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
 			if d.Analytics.GaTrackingID == "" {
-				log.Warningf(c, "driver.Analytics.GaTrackingID is not set")
+				log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
 			} else {
 				timing := gamp.NewTiming(time.Since(started))
 				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
 				if err := measurementSender.Queue(timing); err != nil {
-					log.Errorf(c, "Failed to log timing to GA: %v", err)
+					log.Errorf(ctx, "Failed to log timing to GA: %v", err)
 				}
 			}
 		}
@@ -129,17 +164,18 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		reportError := func(recovered interface{}) {
 			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
 			stack := string(debug.Stack())
-			log.Criticalf(c, "Panic recovered: %s\n%s", messageText, stack)
+			log.Criticalf(ctx, "Panic recovered: %s\n%s", messageText, stack)
 
 			if sendStats { // Zero if GA is disabled
-				d.reportErrorToGA(c, whc, measurementSender, messageText)
+				d.reportErrorToGA(ctx, whc, measurementSender, messageText)
 			}
 
 			if whc != nil {
-				if chatID, err := whc.BotChatID(); err == nil && chatID != "" {
+				var chatID string
+				if chatID, err = whc.Input().BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
-						if _, err := responder.SendMessage(c, whc.NewMessage(ErrorIcon+" "+messageText), botsfw.BotAPISendMessageOverResponse); err != nil {
-							log.Errorf(c, fmt.Errorf("failed to report error to user: %w", err).Error())
+						if _, err = responder.SendMessage(ctx, whc.NewMessage(ErrorIcon+" "+messageText), botsfw.BotAPISendMessageOverResponse); err != nil {
+							log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
 						}
 					}
 				}
@@ -149,56 +185,59 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		if recovered := recover(); recovered != nil {
 			reportError(recovered)
 		} else if sendStats {
-			log.Debugf(c, "Flushing GA...")
+			log.Debugf(ctx, "Flushing GA...")
 			if err = measurementSender.Flush(); err != nil {
-				log.Warningf(c, "Failed to flush to GA: %v", err)
+				log.Warningf(ctx, "Failed to flush to GA: %v", err)
 			} else {
-				log.Debugf(c, "Sent to GA: %v items", measurementSender.QueueDepth())
+				log.Debugf(ctx, "Sent to GA: %v items", measurementSender.QueueDepth())
 			}
 		} else {
-			log.Debugf(c, "GA: sendStats=false")
+			log.Debugf(ctx, "GA: sendStats=false")
 		}
 	}()
 
-	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
-	//defer func() {
-	//	if whc != nil { // TODO: How do deal with Facebook multiple entries per request?
-	//		//log.Debugf(c, "Closing BotChatStore...")
-	//		//chatData := whc.ChatData()
-	//		//if chatData != nil && chatData.GetPreferredLanguage() == "" {
-	//		//	chatData.SetPreferredLanguage(whc.DefaultLocale().Code5)
-	//		//}
-	//	}
-	//}()
-
-	for _, entryWithInputs := range entriesWithInputs {
-		for i, input := range entryWithInputs.Inputs {
-			if input == nil {
-				panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
-			}
-			d.logInput(c, i, input)
-			var db dal.DB
-			if db, err = botContext.BotSettings.GetDatabase(c); err != nil {
-				err = fmt.Errorf("failed to get bot database: %w", err)
-				return
-			}
-			err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, tx, measurementSender)
-				if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
-					handleError(err, "Failed to create WebhookContext")
-					return err
-				}
-				responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-				router := botContext.BotSettings.Profile.Router()
-				router.Dispatch(webhookHandler, responder, whc) // TODO: Should we return err and handle it here?
-				return nil
-			})
-			if err != nil {
-				handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
-				return
-			}
-		}
+	if input == nil {
+		panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 	}
+	d.logInput(ctx, i, input)
+	var db dal.DB
+	if db, err = botContext.BotSettings.GetDatabase(ctx); err != nil {
+		err = fmt.Errorf("failed to get bot database: %w", err)
+		return
+	}
+	err = db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
+		whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, tx, measurementSender)
+		if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
+			handleError(err, "Failed to create WebhookContext")
+			return
+		}
+		chatData := whc.ChatData()
+		if chatData.GetAppUserID() == "" {
+			platformID := whc.BotPlatform().ID()
+			botID := whc.GetBotCode()
+			appContext := whc.AppContext()
+			var appUser record.DataWithID[string, botsfwmodels.AppUserData]
+			bot := botsdal.Bot{
+				Platform: botsfwconst.Platform(platformID),
+				ID:       botID,
+				User:     whc.Input().GetSender(),
+			}
+			if appUser, err = appContext.CreateAppUserFromBotUser(ctx, tx, bot); err != nil {
+				return
+			}
+			chatData.SetAppUserID(appUser.ID)
+		}
+
+		responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
+		router := botContext.BotSettings.Profile.Router()
+		router.Dispatch(webhookHandler, responder, whc) // TODO: Should we return err and handle it here?
+		return
+	})
+	if err != nil {
+		handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
+		return
+	}
+	return
 }
 
 func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botsfw.EntryInputs, err error) bool {
@@ -274,12 +313,12 @@ func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, m
 	}
 }
 
-func (BotDriver) logInput(c context.Context, i int, input botsfw.WebhookInput) {
+func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
 	sender := input.GetSender()
 	switch input := input.(type) {
-	case botsfw.WebhookTextMessage:
+	case botinput.WebhookTextMessage:
 		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.Text())
-	case botsfw.WebhookNewChatMembersMessage:
+	case botinput.WebhookNewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
 		b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
@@ -287,17 +326,17 @@ func (BotDriver) logInput(c context.Context, i int, input botsfw.WebhookInput) {
 			b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
 		}
 		log.Debugf(c, b.String())
-	case botsfw.WebhookContactMessage:
-		log.Debugf(c, "BotUser#%v(%v %v) => Contact(name: %v|%v, phone number: %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.FirstName(), input.LastName(), input.PhoneNumber())
-	case botsfw.WebhookCallbackQuery:
+	case botinput.WebhookContactMessage:
+		log.Debugf(c, "BotUser#%v(%v %v) => Contact(botUserID=%s, firstName=%s)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetBotUserID(), input.GetFirstName())
+	case botinput.WebhookCallbackQuery:
 		callbackData := input.GetData()
 		log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
-	case botsfw.WebhookInlineQuery:
+	case botinput.WebhookInlineQuery:
 		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetQuery())
-	case botsfw.WebhookChosenInlineResult:
+	case botinput.WebhookChosenInlineResult:
 		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
-	case botsfw.WebhookReferralMessage:
-		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botsfw.WebhookTextMessage).Text())
+	case botinput.WebhookReferralMessage:
+		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botinput.WebhookTextMessage).Text())
 	default:
 		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 	}

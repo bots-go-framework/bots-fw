@@ -3,6 +3,8 @@ package botsfw
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
+
 	//"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
@@ -29,7 +31,7 @@ func (whc TestWebhookContext) Close(c context.Context) error {
 	return nil
 }
 
-func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser WebhookActor) (botsfwmodels.PlatformUserData, error) {
+func (whc TestWebhookContext) CreateBotUser(c context.Context, botID string, apiUser botinput.WebhookActor) (botsfwmodels.PlatformUserData, error) {
 	panic("Not implemented")
 }
 
@@ -49,11 +51,11 @@ func (whc TestWebhookContext) GetBotUserByID(_ context.Context, botUserID string
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetRecipient() WebhookRecipient {
+func (whc TestWebhookContext) GetRecipient() botinput.WebhookRecipient {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) GetSender() WebhookSender {
+func (whc TestWebhookContext) GetSender() botinput.WebhookSender {
 	panic("Not implemented")
 }
 
@@ -61,31 +63,31 @@ func (whc TestWebhookContext) GetTime() time.Time {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputChosenInlineResult() WebhookChosenInlineResult {
+func (whc TestWebhookContext) InputChosenInlineResult() botinput.WebhookChosenInlineResult {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputCallbackQuery() WebhookCallbackQuery {
+func (whc TestWebhookContext) InputCallbackQuery() botinput.WebhookCallbackQuery {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputDelivery() WebhookDelivery {
+func (whc TestWebhookContext) InputDelivery() botinput.WebhookDelivery {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputInlineQuery() WebhookInlineQuery {
+func (whc TestWebhookContext) InputInlineQuery() botinput.WebhookInlineQuery {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputMessage() WebhookMessage {
+func (whc TestWebhookContext) InputMessage() botinput.WebhookMessage {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputPostback() WebhookPostback {
+func (whc TestWebhookContext) InputPostback() botinput.WebhookPostback {
 	panic("Not implemented")
 }
 
-func (whc TestWebhookContext) InputType() WebhookInputType {
+func (whc TestWebhookContext) InputType() botinput.WebhookInputType {
 	panic("Not implemented")
 }
 

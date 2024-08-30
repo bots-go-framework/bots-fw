@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	botsdal2 "github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
@@ -54,7 +55,7 @@ type WebhookContextBase struct {
 	appContext  AppContext
 	botContext  BotContext // TODO: rename to something strongo
 	botPlatform BotPlatform
-	input       WebhookInput
+	input       botinput.WebhookInput
 	//recordsMaker        botsfwmodels.BotRecordsMaker
 	recordsFieldsSetter BotRecordsFieldsSetter
 
@@ -194,7 +195,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		}
 	}
 	switch input := input.(type) {
-	case WebhookCallbackQuery:
+	case botinput.WebhookCallbackQuery:
 		data := input.GetData()
 		if strings.Contains(data, "botChat=") {
 			values, err := url.ParseQuery(data)
@@ -204,9 +205,9 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 			chatID := values.Get("botChat")
 			whcb.SetChatID(chatID)
 		}
-	case WebhookInlineQuery:
+	case botinput.WebhookInlineQuery:
 		// pass
-	case WebhookChosenInlineResult:
+	case botinput.WebhookChosenInlineResult:
 		// pass
 	default:
 		whcb.LogRequest()
@@ -353,24 +354,24 @@ func NewWebhookContextBase(
 }
 
 // Input returns webhook input
-func (whcb *WebhookContextBase) Input() WebhookInput {
+func (whcb *WebhookContextBase) Input() botinput.WebhookInput {
 	return whcb.input
 }
 
 // Chat returns webhook botChat
-func (whcb *WebhookContextBase) Chat() WebhookChat { // TODO: remove
+func (whcb *WebhookContextBase) Chat() botinput.WebhookChat { // TODO: remove
 	return whcb.input.Chat()
 }
 
 // GetRecipient returns receiver of the message
-func (whcb *WebhookContextBase) GetRecipient() WebhookRecipient { // TODO: remove
+func (whcb *WebhookContextBase) GetRecipient() botinput.WebhookRecipient { // TODO: remove
 	return whcb.input.GetRecipient()
 }
 
 // GetSender returns sender of the message
-func (whcb *WebhookContextBase) GetSender() WebhookSender { // TODO: remove
-	return whcb.input.GetSender()
-}
+//func (whcb *WebhookContextBase) GetSender() botinput.WebhookUser { // TODO: remove
+//	return whcb.input.GetSender()
+//}
 
 // GetTime returns time of the message
 func (whcb *WebhookContextBase) GetTime() time.Time { // TODO: remove
@@ -378,7 +379,7 @@ func (whcb *WebhookContextBase) GetTime() time.Time { // TODO: remove
 }
 
 // InputType returns input type
-func (whcb *WebhookContextBase) InputType() WebhookInputType { // TODO: remove
+func (whcb *WebhookContextBase) InputType() botinput.WebhookInputType { // TODO: remove
 	return whcb.input.InputType()
 }
 
@@ -714,7 +715,7 @@ func (whcb *WebhookContextBase) SetContext(c context.Context) {
 
 // MessageText returns text of a received message
 func (whcb *WebhookContextBase) MessageText() string {
-	if tm, ok := whcb.Input().(WebhookTextMessage); ok {
+	if tm, ok := whcb.Input().(botinput.WebhookTextMessage); ok {
 		return tm.Text()
 	}
 	return ""

@@ -4,6 +4,7 @@ package botsfw
 
 import (
 	"context"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	botsgocore "github.com/bots-go-framework/bots-go-core"
 	"github.com/strongo/i18n"
 	"strconv"
@@ -12,14 +13,14 @@ import (
 
 // EntryInputs provides information on parsed inputs from bot API request
 type EntryInputs struct {
-	Entry  WebhookEntry
-	Inputs []WebhookInput
+	Entry  botinput.WebhookEntry
+	Inputs []botinput.WebhookInput
 }
 
 // EntryInput provides information on parsed input from bot API request
 type EntryInput struct {
-	Entry WebhookEntry
-	Input WebhookInput
+	Entry botinput.WebhookEntry
+	Input botinput.WebhookInput
 }
 
 // TranslatorProvider translates texts

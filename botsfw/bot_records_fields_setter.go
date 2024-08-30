@@ -1,6 +1,9 @@
 package botsfw
 
-import "github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+import (
+	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botinput"
+)
 
 type BotRecordsFieldsSetter interface {
 
@@ -11,12 +14,12 @@ type BotRecordsFieldsSetter interface {
 	Platform() string
 
 	// SetAppUserFields sets fields of app user record
-	SetAppUserFields(appUser botsfwmodels.AppUserData, sender WebhookSender) error
+	SetAppUserFields(appUser botsfwmodels.AppUserData, sender botinput.WebhookSender) error
 
 	// SetBotUserFields sets fields of bot user record
-	SetBotUserFields(botUser botsfwmodels.PlatformUserData, sender WebhookSender, botID, botUserID, appUserID string) error
+	SetBotUserFields(botUser botsfwmodels.PlatformUserData, sender botinput.WebhookSender, botID, botUserID, appUserID string) error
 
 	// SetBotChatFields sets fields of bot botChat record
 	// TODO: document isAccessGranted parameter
-	SetBotChatFields(botChat botsfwmodels.BotChatData, chat WebhookChat, botID, botUserID, appUserID string, isAccessGranted bool) error
+	SetBotChatFields(botChat botsfwmodels.BotChatData, chat botinput.WebhookChat, botID, botUserID, appUserID string, isAccessGranted bool) error
 }

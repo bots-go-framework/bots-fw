@@ -20,7 +20,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 			chatKey := botsfwmodels.ChatKey{
 				BotID: botID,
 			}
-			if chatKey.ChatID, err = whc.BotChatID(); err != nil {
+			if chatKey.ChatID, err = whc.Input().BotChatID(); err != nil {
 				return err
 			}
 			if changed := chatData.SetAccessGranted(value); changed {
@@ -36,7 +36,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 		}
 	}
 
-	botUserID := whc.GetSender().GetID()
+	botUserID := whc.Input().GetSender().GetID()
 	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	tx := whc.Tx()

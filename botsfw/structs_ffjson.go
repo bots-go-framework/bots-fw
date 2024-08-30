@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 )
 
@@ -808,13 +809,13 @@ handle_Inputs:
 			j.Inputs = nil
 		} else {
 
-			j.Inputs = []WebhookInput{}
+			j.Inputs = []botinput.WebhookInput{}
 
 			wantVal := true
 
 			for {
 
-				var tmpJInputs WebhookInput
+				var tmpJInputs botinput.WebhookInput
 
 				tok = fs.Scan()
 				if tok == fflib.FFTok_error {
