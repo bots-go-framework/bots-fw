@@ -305,7 +305,7 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 }
 
 // Dispatch query to commands
-func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) {
+func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) (err error) {
 	c := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
@@ -326,7 +326,6 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	var (
 		matchedCommand *Command
 		commandAction  CommandAction
-		err            error
 		m              MessageFromBot
 	)
 	input := whc.Input()
@@ -435,6 +434,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}
 		whRouter.processCommandResponse(matchedCommand, responder, whc, m, err)
 	}
+	return
 }
 
 func logInputDetails(whc WebhookContext, isKnownType bool) {

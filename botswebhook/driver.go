@@ -212,25 +212,44 @@ func (d BotDriver) processWebhookInput(
 			return
 		}
 		chatData := whc.ChatData()
+
+		recordsToInsert := make([]dal.Record, 0)
 		if chatData.GetAppUserID() == "" {
 			platformID := whc.BotPlatform().ID()
 			botID := whc.GetBotCode()
 			appContext := whc.AppContext()
 			var appUser record.DataWithID[string, botsfwmodels.AppUserData]
+			var botUser record.DataWithID[string, botsfwmodels.PlatformUserData]
 			bot := botsdal.Bot{
 				Platform: botsfwconst.Platform(platformID),
 				ID:       botID,
 				User:     whc.Input().GetSender(),
 			}
-			if appUser, err = appContext.CreateAppUserFromBotUser(ctx, tx, bot); err != nil {
+			if appUser, botUser, err = appContext.CreateAppUserFromBotUser(ctx, tx, bot); err != nil {
 				return
 			}
+			if appUser.Record != nil {
+				recordsToInsert = append(recordsToInsert, appUser.Record)
+			}
+			if botUser.Record != nil {
+				recordsToInsert = append(recordsToInsert, botUser.Record)
+			}
+
 			chatData.SetAppUserID(appUser.ID)
 		}
 
 		responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
 		router := botContext.BotSettings.Profile.Router()
-		router.Dispatch(webhookHandler, responder, whc) // TODO: Should we return err and handle it here?
+
+		if err = router.Dispatch(webhookHandler, responder, whc); err != nil {
+			handleError(err, "Failed to dispatch")
+			return
+		}
+		for _, recordToInsert := range recordsToInsert {
+			if err = tx.Insert(ctx, recordToInsert); err != nil {
+				return
+			}
+		}
 		return
 	})
 	if err != nil {

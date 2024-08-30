@@ -19,7 +19,9 @@ type AppUserDal interface {
 
 	// CreateAppUserFromBotUser creates app user record using bot user data
 	CreateAppUserFromBotUser(ctx context.Context, tx dal.ReadwriteTransaction, bot Bot) (
-		appUser record.DataWithID[string, botsfwmodels.AppUserData], err error,
+		appUser record.DataWithID[string, botsfwmodels.AppUserData],
+		botUser record.DataWithID[string, botsfwmodels.PlatformUserData],
+		err error,
 	)
 
 	//GetAppUserByBotUserID(ctx context.Context, tx dal.ReadwriteTransaction, platform, botID, botUserID string) (
