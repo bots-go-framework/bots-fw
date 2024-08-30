@@ -20,9 +20,8 @@ var ErrorIcon = "🚨"
 
 // BotDriver keeps information about bots and map requests to appropriate handlers
 type BotDriver struct {
-	Analytics  AnalyticsSettings
-	botHost    botsfw.BotHost
-	appContext botsfw.BotAppContext
+	Analytics AnalyticsSettings
+	botHost   botsfw.BotHost
 	//router          *WebhooksRouter
 	panicTextFooter string
 }
@@ -36,21 +35,13 @@ type AnalyticsSettings struct {
 }
 
 // NewBotDriver registers new bot driver (TODO: describe why we need it)
-func NewBotDriver(gaSettings AnalyticsSettings, appContext botsfw.BotAppContext, host botsfw.BotHost, panicTextFooter string) BotDriver {
-	if appContext == nil {
-		panic("appContext == nil")
-	}
-	if appContext.AppUserCollectionName() == "" {
-		panic("appContext.AppUserCollectionName() is empty")
-	}
-	if host == nil {
-		panic("BotHost == nil")
+func NewBotDriver(gaSettings AnalyticsSettings, botHost botsfw.BotHost, panicTextFooter string) BotDriver {
+	if botHost == nil {
+		panic("required argument botHost == nil")
 	}
 	return BotDriver{
-		Analytics:  gaSettings,
-		appContext: appContext,
-		botHost:    host,
-		//router: router,
+		Analytics:       gaSettings,
+		botHost:         botHost,
 		panicTextFooter: panicTextFooter,
 	}
 }
@@ -192,7 +183,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 				return
 			}
 			err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				whcArgs := botsfw.NewCreateWebhookContextArgs(r, d.appContext, *botContext, input, tx, measurementSender)
+				whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, tx, measurementSender)
 				if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 					handleError(err, "Failed to create WebhookContext")
 					return err

@@ -9,10 +9,10 @@ func TestNewBotDriver(t *testing.T) {
 				t.Error("The code did not panic")
 			} else if err, ok := r.(string); !ok {
 				t.Errorf("Expected string, got: %T=%v", r, r)
-			} else if err != "appContext == nil" {
+			} else if err != "required argument botHost == nil" {
 				t.Errorf("Unexpected error, got: %v", err)
 			}
 		}()
-		NewBotDriver(AnalyticsSettings{}, nil, nil, "")
+		NewBotDriver(AnalyticsSettings{}, nil, "")
 	})
 }

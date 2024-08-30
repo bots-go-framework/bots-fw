@@ -30,12 +30,6 @@ type BotHost interface {
 	GetHTTPClient(c context.Context) *http.Client
 }
 
-// BotContext describes a bot on a specific platform
-type BotContext struct {
-	BotHost     BotHost      // describes current bot app host environment
-	BotSettings *BotSettings // keeps parameters of a bot that are static and are not changed in runtime
-}
-
 // NewBotContext creates current bot host & settings
 func NewBotContext(botHost BotHost, botSettings *BotSettings) *BotContext {
 	if botHost == nil {

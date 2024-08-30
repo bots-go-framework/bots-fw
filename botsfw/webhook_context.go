@@ -42,7 +42,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	SetContext(c context.Context)
 
 	ExecutionContext() ExecutionContext
-	BotAppContext() BotAppContext
+
+	AppContext() AppContext
+
 	BotContext() BotContext
 
 	MustBotChatID() string
@@ -124,16 +126,4 @@ type BotState interface {
 type BotInputProvider interface {
 	// Input returns a webhook input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 	Input() WebhookInput
-}
-
-// BotAPIUser provides info about current bot user
-type BotAPIUser interface {
-	// FirstName returns user's first name
-	FirstName() string
-
-	// LastName returns user's last name
-	LastName() string
-
-	//IdAsString() string
-	//IdAsInt64() int64
 }

@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/stretchr/testify/assert"
@@ -31,7 +32,7 @@ func dummyBotProfile() BotProfile {
 
 func TestNewBotSettings(t *testing.T) {
 	const (
-		platform    = PlatformTelegram
+		platform    = botsfwconst.PlatformTelegram
 		code        = "TestBot1"
 		token       = "TestToken2"
 		localeCode5 = "Kode5"

@@ -1,4 +1,4 @@
-package botsfw
+package botsfwconst
 
 type Platform string
 

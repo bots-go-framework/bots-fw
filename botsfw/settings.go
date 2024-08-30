@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/i18n"
@@ -28,7 +29,7 @@ type BotSettings struct {
 
 	// Platform is a platform that bot is running on
 	// E.g.: Telegram, Viber, Facebook Messenger, WhatsApp, etc.
-	Platform Platform
+	Platform botsfwconst.Platform
 
 	// Env is an environment where bot is running
 	// E.g.: Production/Live, Local/Dev, Staging, etc.
@@ -84,7 +85,7 @@ func (v BotSettings) GetAppUserByID(ctx context.Context, tx dal.ReadSession, app
 
 // NewBotSettings configures bot application
 func NewBotSettings(
-	platform Platform,
+	platform botsfwconst.Platform,
 	environment string,
 	profile BotProfile,
 	code, id, token, gaToken string,
@@ -130,11 +131,11 @@ func NewBotSettings(
 }
 
 // SettingsProvider returns settings per different keys (ID, code, API token, Locale)
-type SettingsProvider func(c context.Context) SettingsBy
+type BotSettingsProvider func(ctx context.Context) BotSettingsBy
 
 // SettingsBy keeps settings per different keys (ID, code, API token, Locale)
 // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
-type SettingsBy struct {
+type BotSettingsBy struct {
 
 	// ByCode keeps settings by bot code - it is a human-readable ID of a bot
 	ByCode map[string]*BotSettings
@@ -146,12 +147,12 @@ type SettingsBy struct {
 }
 
 // NewBotSettingsBy create settings per different keys (ID, code, API token, Locale)
-func NewBotSettingsBy(bots ...BotSettings) (settingsBy SettingsBy) {
+func NewBotSettingsBy(bots ...BotSettings) (settingsBy BotSettingsBy) {
 	count := len(bots)
 	if count == 0 {
 		panic("NewBotSettingsBy: missing required parameter: bots")
 	}
-	settingsBy = SettingsBy{
+	settingsBy = BotSettingsBy{
 		ByCode:    make(map[string]*BotSettings, count),
 		ByID:      make(map[string]*BotSettings, count),
 		ByProfile: make(map[string][]*BotSettings),

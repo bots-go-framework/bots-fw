@@ -3,7 +3,7 @@ package botsfw
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
+	"github.com/bots-go-framework/bots-fw/botsdal"
 	"time"
 )
 

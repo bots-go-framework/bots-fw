@@ -14,6 +14,8 @@ func NewBotChatKey(platformID, botID, chatID string) *dal.Key {
 	return dal.NewKeyWithParentAndID(botKey, botChatsCollection, chatID)
 }
 
+// GetBotChat returns bot chat
+// Deprecated: use
 func GetBotChat(
 	ctx context.Context,
 	tx dal.ReadSession,

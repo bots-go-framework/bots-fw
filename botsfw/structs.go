@@ -145,7 +145,7 @@ type TextMessageFromBot struct {
 }
 
 // BotMessageType returns if we want to send a new message or edit existing one
-func (m TextMessageFromBot) BotMessageType() BotMessageType {
+func (m *TextMessageFromBot) BotMessageType() BotMessageType {
 	if m.IsEdit {
 		return BotMessageTypeEditMessage
 	}

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw/botsfw/botsdal"
+	botsdal2 "github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
@@ -49,12 +49,12 @@ func (w whContextDummy) Responder() WebhookResponder {
 // TODO: Document purpose of a dedicated base struct (e.g. example of usage by developers)
 type WebhookContextBase struct {
 	//w http.ResponseWriter
-	r             *http.Request
-	c             context.Context
-	botAppContext BotAppContext
-	botContext    BotContext // TODO: rename to something strongo
-	botPlatform   BotPlatform
-	input         WebhookInput
+	r           *http.Request
+	c           context.Context
+	appContext  AppContext
+	botContext  BotContext // TODO: rename to something strongo
+	botPlatform BotPlatform
+	input       WebhookInput
 	//recordsMaker        botsfwmodels.BotRecordsMaker
 	recordsFieldsSetter BotRecordsFieldsSetter
 
@@ -263,7 +263,7 @@ func (whcb *WebhookContextBase) BotUser() (botUser record.DataWithID[string, bot
 	}
 	platformID := whcb.BotPlatform().ID()
 	botUserID := whcb.GetBotUserID()
-	whcb.platformUser, err = botsdal.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
+	whcb.platformUser, err = botsdal2.GetPlatformUser(whcb.c, whcb.tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
 	return whcb.platformUser, err
 }
 
@@ -282,9 +282,9 @@ func (whcb *WebhookContextBase) ExecutionContext() ExecutionContext {
 	return whcb
 }
 
-// BotAppContext returns bot app context
-func (whcb *WebhookContextBase) BotAppContext() BotAppContext {
-	return whcb.botAppContext
+// AppContext returns bot app context
+func (whcb *WebhookContextBase) AppContext() AppContext {
+	return whcb.appContext
 }
 
 // IsInGroup signals if the bot request is send within group botChat
@@ -311,11 +311,11 @@ func NewWebhookContextBase(
 		getLocaleAndChatID: func() (locale, chatID string, err error) {
 			return getLocaleAndChatID(c)
 		},
-		botAppContext: args.AppContext,
-		botPlatform:   botPlatform,
-		botContext:    args.BotContext,
-		input:         args.WebhookInput,
-		getIsInGroup:  getIsInGroup,
+		appContext:   args.AppContext,
+		botPlatform:  botPlatform,
+		botContext:   args.BotContext,
+		input:        args.WebhookInput,
+		getIsInGroup: getIsInGroup,
 		//dal:                 botCoreStores,
 		recordsFieldsSetter: recordsFieldsSetter,
 	}
@@ -538,7 +538,7 @@ func (whcb *WebhookContextBase) getPlatformUserRecord(tx dal.ReadwriteTransactio
 
 	whcb.platformUser.ID = fmt.Sprintf("%v", sender.GetID())
 	whcb.platformUser.Data = whcb.botContext.BotSettings.Profile.NewPlatformUserData()
-	if whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, whcb.platformUser.ID, whcb.platformUser.Data); err != nil {
+	if whcb.platformUser, err = botsdal2.GetPlatformUser(ctx, tx, platformID, whcb.platformUser.ID, whcb.platformUser.Data); err != nil {
 		return
 	}
 	return
@@ -637,7 +637,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 	}
 
 	platformID := whcb.botPlatform.ID()
-	whcb.botChat, err = botsdal.GetBotChat(ctx, whcb.tx, platformID,
+	whcb.botChat, err = botsdal2.GetBotChat(ctx, whcb.tx, platformID,
 		whcb.botContext.BotSettings.Code, whcb.botChat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)
 	if err != nil && !dal.IsNotFound(err) {
 		return fmt.Errorf("failed to get bot char record: %w", err)
@@ -753,14 +753,14 @@ func (whcb *WebhookContextBase) SetLocale(code5 string) error {
 	if code5 == "" {
 		return errors.New("whcb.SetLocate(code5) expects non-empty string")
 	}
-	if whcb.botAppContext == nil {
-		return fmt.Errorf("botAppContext is nil")
+	if whcb.appContext == nil {
+		return fmt.Errorf("appContext is nil")
 	}
-	supportedLocales := whcb.botAppContext.SupportedLocales()
+	supportedLocales := whcb.appContext.SupportedLocales()
 	if supportedLocales == nil {
 		return fmt.Errorf("supportedLocales is nil")
 	}
-	locale, err := whcb.botAppContext.GetLocaleByCode5(code5)
+	locale, err := whcb.appContext.GetLocaleByCode5(code5)
 	if err != nil {
 		return fmt.Errorf(
 			"whcb.SetLocate(%s) failed to call supportedLocales.GetLocaleByCode5(%s): %w",

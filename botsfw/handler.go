@@ -27,7 +27,7 @@ type WebhookHandler interface {
 	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
 
 	// CreateBotCoreStores TODO: should be deprecated after migration to dalgo
-	//CreateBotCoreStores(appContext BotAppContext, r *http.Request) botsfwdal.DataAccess
+	//CreateBotCoreStores(appContext AppContext, r *http.Request) botsfwdal.DataAccess
 
 	// CreateWebhookContext creates WebhookContext for current webhook request
 	CreateWebhookContext(args CreateWebhookContextArgs) (WebhookContext, error)
@@ -39,7 +39,7 @@ type WebhookHandler interface {
 
 type CreateWebhookContextArgs struct {
 	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
-	AppContext   BotAppContext
+	AppContext   AppContext
 	BotContext   BotContext
 	WebhookInput WebhookInput
 	Tx           dal.ReadwriteTransaction
@@ -49,7 +49,7 @@ type CreateWebhookContextArgs struct {
 
 func NewCreateWebhookContextArgs(
 	httpRequest *http.Request,
-	appContext BotAppContext,
+	appContext AppContext,
 	botContext BotContext,
 	webhookInput WebhookInput,
 	tx dal.ReadwriteTransaction,
