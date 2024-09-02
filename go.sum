@@ -4,6 +4,8 @@ github.com/bots-go-framework/bots-go-core v0.0.2 h1:3F/czNOLZCO5rco1Zr9rATLvJrze
 github.com/bots-go-framework/bots-go-core v0.0.2/go.mod h1:u4r0W8t+n/07ulLlPZT3rdCt+mb5WHXP72z4oeTJVN0=
 github.com/dal-go/dalgo v0.12.2 h1:OmiC6TRuBbV8zDHScdkUMlwViB6ORgLm6Tfd9bHDBAo=
 github.com/dal-go/dalgo v0.12.2/go.mod h1:lY3vCOnl9bI8c82reF+kQNpKvSklgoFImGGmNgkFHls=
+github.com/dal-go/dalgo v0.13.0 h1:aCkNSW9VuTH2jXfPtFhbneII77ZM6MZtB/XY8Twe48k=
+github.com/dal-go/dalgo v0.13.0/go.mod h1:lY3vCOnl9bI8c82reF+kQNpKvSklgoFImGGmNgkFHls=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
