@@ -139,7 +139,7 @@ type WebhookMessage interface {
 	//Sequence() int // 'seq' for Facebook, '???' for Telegram
 }
 
-// WebhookTextMessage represents single text message
+// WebhookTextMessage represents a single text message
 type WebhookTextMessage interface {
 	WebhookMessage
 	Text() string
@@ -152,25 +152,25 @@ type WebhookStickerMessage interface {
 	// TODO: Define sticker message interface
 }
 
-// WebhookVoiceMessage represents single voice message
+// WebhookVoiceMessage represents a single voice message
 type WebhookVoiceMessage interface {
 	WebhookMessage
 	// TODO: Define voice message interface
 }
 
-// WebhookPhotoMessage represents single photo message
+// WebhookPhotoMessage represents a single photo message
 type WebhookPhotoMessage interface {
 	WebhookMessage
 	// TODO: Define photo message interface
 }
 
-// WebhookAudioMessage represents single audio message
+// WebhookAudioMessage represents a single audio message
 type WebhookAudioMessage interface {
 	WebhookMessage
 	// TODO: Define audio message interface
 }
 
-// WebhookReferralMessage represents single referral message
+// WebhookReferralMessage represents a single referral message
 // https://developers.facebook.com/docs/messenger-platform/webhook-reference/referral
 type WebhookReferralMessage interface {
 	Type() string
@@ -178,21 +178,22 @@ type WebhookReferralMessage interface {
 	RefData() string
 }
 
-// WebhookContactMessage represents single contact message
+// WebhookContactMessage represents a single contact message
 type WebhookContactMessage interface {
 	GetPhoneNumber() string
 	GetFirstName() string
 	GetLastName() string
 	GetBotUserID() string
+	GetVCard() string
 }
 
-// WebhookNewChatMembersMessage represents single message about a new member of a botChat
+// WebhookNewChatMembersMessage represents a single message about a new member of a botChat
 type WebhookNewChatMembersMessage interface {
 	BotChatID() (string, error)
 	NewChatMembers() []WebhookActor
 }
 
-// WebhookLeftChatMembersMessage represents single message about a member leaving a botChat
+// WebhookLeftChatMembersMessage represents a single message about a member leaving a botChat
 type WebhookLeftChatMembersMessage interface {
 	BotChatID() (string, error)
 	LeftChatMembers() []WebhookActor
@@ -205,7 +206,7 @@ type WebhookChat interface {
 	IsGroupChat() bool
 }
 
-// WebhookPostback represents single postback message
+// WebhookPostback represents a single postback message
 type WebhookPostback interface {
 	PostbackMessage() interface{}
 	Payload() string
