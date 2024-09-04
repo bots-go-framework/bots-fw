@@ -350,7 +350,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			}
 		}
 	case botinput.WebhookMessage:
-		if inputType == botinput.WebhookInputNewChatMembers && len(typeCommands.all) == 1 {
+		if len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
 		}
 		if matchedCommand == nil {
