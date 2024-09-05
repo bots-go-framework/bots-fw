@@ -1,9 +1,9 @@
 github.com/bots-go-framework/bots-fw-store v0.8.2 h1:Ss2ZRFoBeNgEy1TWzRIoVdERMoAv1kp9GlJvq3EbiHo=
 github.com/bots-go-framework/bots-fw-store v0.8.2/go.mod h1:ZxeNr86seS59kKyf9zol15vdZEcH+1CjjzHOFokGrVI=
-github.com/bots-go-framework/bots-go-core v0.0.2 h1:3F/czNOLZCO5rco1Zr9rATLvJrze5PZpa2dMRv4ON+M=
-github.com/bots-go-framework/bots-go-core v0.0.2/go.mod h1:u4r0W8t+n/07ulLlPZT3rdCt+mb5WHXP72z4oeTJVN0=
-github.com/dal-go/dalgo v0.13.0 h1:aCkNSW9VuTH2jXfPtFhbneII77ZM6MZtB/XY8Twe48k=
-github.com/dal-go/dalgo v0.13.0/go.mod h1:lY3vCOnl9bI8c82reF+kQNpKvSklgoFImGGmNgkFHls=
+github.com/bots-go-framework/bots-go-core v0.0.3 h1:z3A7DLUgxbHWxvTCGnkHP9WHpTT9xxROEypoqAfvYIQ=
+github.com/bots-go-framework/bots-go-core v0.0.3/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
+github.com/dal-go/dalgo v0.13.1 h1:vRV4dGpBKaRYteJRIbDTh+7lqS/7Gs8ns3ij3jEy/Ug=
+github.com/dal-go/dalgo v0.13.1/go.mod h1:tErF10bqQiNrwJQ5qwL3kwoaUa6dDq4z3X3pdChr3Ms=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
