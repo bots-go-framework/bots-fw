@@ -20,7 +20,7 @@ jobs:
     uses: strongo/go-ci-action/.github/workflows/workflow.yml@main
 
     secrets:
-      GH_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
       COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
     with:
       code_coverage: true
