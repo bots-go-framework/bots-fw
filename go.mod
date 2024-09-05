@@ -7,7 +7,7 @@ go 1.23.0
 //replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-store v0.8.0
+	github.com/bots-go-framework/bots-fw-store v0.8.2
 	github.com/bots-go-framework/bots-go-core v0.0.2
 	github.com/dal-go/dalgo v0.13.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
@@ -21,6 +21,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/strongo/random v0.0.1 // indirect
-	github.com/strongo/validation v0.0.6 // indirect
+	github.com/strongo/validation v0.0.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
