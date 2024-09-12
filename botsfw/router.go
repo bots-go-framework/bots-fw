@@ -45,16 +45,11 @@ type WebhooksRouter struct {
 // NewWebhookRouter creates new router
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewWebhookRouter(commandsByType map[botinput.WebhookInputType][]Command, errorFooterText func() string) WebhooksRouter {
+func NewWebhookRouter(errorFooterText func() string) WebhooksRouter {
 	r := WebhooksRouter{
-		commandsByType:  make(map[botinput.WebhookInputType]*TypeCommands, len(commandsByType)),
+		commandsByType:  make(map[botinput.WebhookInputType]*TypeCommands),
 		errorFooterText: errorFooterText,
 	}
-
-	for commandsType, commands := range commandsByType {
-		r.AddCommands(commandsType, commands)
-	}
-
 	return r
 }
 
@@ -66,28 +61,49 @@ func (whRouter *WebhooksRouter) CommandsCount() int {
 	return count
 }
 
-// AddCommands add commands to a router
-func (whRouter *WebhooksRouter) AddCommands(commandsType botinput.WebhookInputType, commands []Command) {
-	typeCommands, ok := whRouter.commandsByType[commandsType]
+// AddCommandsGroupedByType adds commands grouped by input type
+func (whRouter *WebhooksRouter) AddCommandsGroupedByType(commandsByType map[botinput.WebhookInputType][]Command) {
+	for inputType, commands := range commandsByType {
+		whRouter.AddCommandsForInputType(inputType, commands...)
+	}
+}
+
+// AddCommands adds commands to router. It  should be called just once with the current implementation of AddCommandsForInputType()
+// TODO: Either leave this one or RegisterCommands
+func (whRouter *WebhooksRouter) AddCommands(commands ...Command) {
+	whRouter.RegisterCommands(commands...)
+	//commandsByType := make(map[botinput.WebhookInputType][]Command)
+	//for _, command := range commands {
+	//	for _, inputType := range command.InputTypes {
+	//		commandsByType[inputType] = append(commandsByType[inputType], command)
+	//	}
+	//}
+	//whRouter.AddCommandsGroupedByType(commandsByType)
+}
+
+// AddCommandsForInputType adds commands for the given input type
+func (whRouter *WebhooksRouter) AddCommandsForInputType(inputType botinput.WebhookInputType, commands ...Command) {
+	typeCommands, ok := whRouter.commandsByType[inputType]
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
-		whRouter.commandsByType[commandsType] = typeCommands
-	} else if commandsType == botinput.WebhookInputInlineQuery {
+		whRouter.commandsByType[inputType] = typeCommands
+	} else if inputType == botinput.WebhookInputInlineQuery {
 		panic("Duplicate add of WebhookInputInlineQuery")
 	}
-	if commandsType == botinput.WebhookInputInlineQuery && len(commands) > 1 {
-		panic("commandsType == WebhookInputInlineQuery && len(commands) > 1")
+	if inputType == botinput.WebhookInputInlineQuery && len(commands) > 1 {
+		panic("inputType == WebhookInputInlineQuery && len(commands) > 1")
 	}
 	for _, command := range commands {
-		typeCommands.addCommand(command, commandsType)
+		typeCommands.addCommand(command, inputType)
 	}
-	if commandsType == botinput.WebhookInputInlineQuery && len(typeCommands.all) > 1 {
-		panic(fmt.Sprintf("commandsType == WebhookInputInlineQuery && len(typeCommands) > 1: %v", typeCommands.all[0]))
+	if inputType == botinput.WebhookInputInlineQuery && len(typeCommands.all) > 1 {
+		panic(fmt.Sprintf("inputType == WebhookInputInlineQuery && len(typeCommands) > 1: %v", typeCommands.all[0]))
 	}
 }
 
 // RegisterCommands is registering commands with router
-func (whRouter *WebhooksRouter) RegisterCommands(commands []Command) {
+// TODO: Either leave this one or AddCommands()
+func (whRouter *WebhooksRouter) RegisterCommands(commands ...Command) {
 	addCommand := func(t botinput.WebhookInputType, command Command) {
 		typeCommands, ok := whRouter.commandsByType[t]
 		if !ok {
