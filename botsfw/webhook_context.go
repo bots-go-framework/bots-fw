@@ -103,8 +103,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	//Store() botsfwdal.DataAccess
 
-	// SaveBotChat takes context as we might want to add timeout or cancellation or something else.
-	SaveBotChat(ctx context.Context) error
+	// SaveBotChat // It is dangerous to allow user to pass context to this func as if it's a transactional context it might lead to deadlock
+	// Previously: takes context as we might want to add timeout or cancellation or something else.
+	SaveBotChat() error
 
 	//RecordsMaker() botsfwmodels.BotRecordsMaker
 
