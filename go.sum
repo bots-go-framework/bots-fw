@@ -4,6 +4,8 @@ github.com/bots-go-framework/bots-go-core v0.0.3 h1:z3A7DLUgxbHWxvTCGnkHP9WHpTT9
 github.com/bots-go-framework/bots-go-core v0.0.3/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
 github.com/dal-go/dalgo v0.13.1 h1:vRV4dGpBKaRYteJRIbDTh+7lqS/7Gs8ns3ij3jEy/Ug=
 github.com/dal-go/dalgo v0.13.1/go.mod h1:tErF10bqQiNrwJQ5qwL3kwoaUa6dDq4z3X3pdChr3Ms=
+github.com/dal-go/dalgo v0.13.2 h1:q1NKsfn9vX90ugMyFp+yNVUyS4ykD/sjXpXibyx1Fb8=
+github.com/dal-go/dalgo v0.13.2/go.mod h1:tErF10bqQiNrwJQ5qwL3kwoaUa6dDq4z3X3pdChr3Ms=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -20,6 +22,8 @@ github.com/strongo/i18n v0.2.2 h1:158nn6f++Nt7hreIDxxJxuLYTE9Fz3+aFZ0mdAyU4sE=
 github.com/strongo/i18n v0.2.2/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
 github.com/strongo/i18n v0.5.0 h1:IesCrs3c6XcZywMIYDYlMrAVIYrvWKi3y1riYeILDyo=
 github.com/strongo/i18n v0.5.0/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
+github.com/strongo/i18n v0.6.1 h1:hNtpU97R5xYavf6n2wfRFWGZHjRZ2lHmube0t2+FHFE=
+github.com/strongo/i18n v0.6.1/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
 github.com/strongo/logus v0.2.0 h1:IbLupLW9WMIwjefJF+u9/Ajlaw6ysFuEeKQxOFX5tOE=
 github.com/strongo/logus v0.2.0/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
