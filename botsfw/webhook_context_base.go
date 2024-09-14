@@ -780,8 +780,9 @@ func (whcb *WebhookContextBase) CommandText(title, icon string) string {
 	return CommandTextNoTrans(title, icon)
 }
 
-func (whcb *WebhookContextBase) SaveBotChat(ctx context.Context) error {
-	return whcb.tx.Set(ctx, whcb.botChat.Record)
+func (whcb *WebhookContextBase) SaveBotChat() error {
+	// It is dangerous to allow user to pass context to this func as if it's a transactional context it might lead to deadlock
+	return whcb.tx.Set(whcb.c, whcb.botChat.Record)
 }
 
 func (whcb *WebhookContextBase) SaveBotUser(ctx context.Context) error {
