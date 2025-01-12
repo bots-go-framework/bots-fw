@@ -14,7 +14,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/strongo/gamp v0.0.1
 	github.com/strongo/i18n v0.6.1
-	github.com/strongo/logus v0.2.0
+	github.com/strongo/logus v0.2.1
 )
 
 require (
