@@ -436,7 +436,7 @@ func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			if chatData := whc.ChatData(); chatData != nil {
 				now := time.Now()
 				chatData.SetDtLastInteraction(now)
-				if chatData.IsChanged() {
+				if chatData.IsChanged() || chatData.HasChangedVars() {
 					chatData.SetUpdatedTime(now)
 				}
 				if err = whc.SaveBotChat(); err != nil {
