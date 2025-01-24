@@ -55,7 +55,8 @@ const (
 	// WebhookInputLeftChatMembers is left botChat members input type
 	WebhookInputLeftChatMembers
 	// WebhookInputSticker is a sticker input type
-	WebhookInputSticker // Telegram
+	WebhookInputSticker
+	WebhookInputSharedUsers // Telegram
 )
 
 var webhookInputTypeNames = map[WebhookInputType]string{
@@ -79,6 +80,7 @@ var webhookInputTypeNames = map[WebhookInputType]string{
 	WebhookInputNewChatMembers:      "NewChatMembers",      // Telegram
 	WebhookInputSticker:             "Sticker",             // Telegram
 	WebhookInputLeftChatMembers:     "LeftChatMembers",     // Telegram
+	WebhookInputSharedUsers:         "SharedUsers",         // Telegram
 }
 
 func GetWebhookInputTypeIdNameString(whInputType WebhookInputType) string {
