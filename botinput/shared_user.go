@@ -16,7 +16,7 @@ type SharedUserMessageItem interface {
 
 type PhotoMessageItem interface {
 	GetFileID() string
-	GetUniqueFileID() string
+	GetFileUniqueID() string
 	GetWidth() int
 	GetHeight() int
 	GetFileSize() int
