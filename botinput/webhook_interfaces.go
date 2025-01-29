@@ -133,8 +133,9 @@ type WebhookRecipient interface {
 	WebhookActor
 }
 
-// WebhookMessage represents single message
+// WebhookMessage represents a single message
 type WebhookMessage interface {
+	WebhookInput
 	IntID() int64
 	StringID() string
 	Chat() WebhookChat
