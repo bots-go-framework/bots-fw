@@ -14,12 +14,12 @@ import (
 // TypeCommands container for commands
 type TypeCommands struct {
 	all    []Command
-	byCode map[string]Command
+	byCode map[CommandCode]Command
 }
 
 func newTypeCommands(commandsCount int) *TypeCommands {
 	return &TypeCommands{
-		byCode: make(map[string]Command, commandsCount),
+		byCode: make(map[CommandCode]Command, commandsCount),
 		all:    make([]Command, 0, commandsCount),
 	}
 }
@@ -152,7 +152,7 @@ func matchCallbackCommands(whc WebhookContext, input botinput.WebhookCallbackQue
 				}
 			}
 			callbackPath := callbackURL.Path
-			if command, ok := typeCommands.byCode[callbackPath]; ok {
+			if command, ok := typeCommands.byCode[CommandCode(callbackPath)]; ok {
 				return &command, callbackURL, nil
 			}
 		}
@@ -205,7 +205,7 @@ func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input b
 
 	for _, command := range commands {
 		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
-			awaitingReplyPrefix := strings.TrimLeft(parentPath+botsfwmodels.AwaitingReplyToPathSeparator+command.Code, botsfwmodels.AwaitingReplyToPathSeparator)
+			awaitingReplyPrefix := strings.TrimLeft(parentPath+botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code), botsfwmodels.AwaitingReplyToPathSeparator)
 
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
 				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
@@ -242,12 +242,12 @@ func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input b
 
 		if !awaitingReplyCommandFound {
 			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
-			if awaitingReplyToPath == command.Code || strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+command.Code) {
+			if awaitingReplyToPath == string(command.Code) || strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code)) {
 				awaitingReplyCommand = command
 				switch {
-				case awaitingReplyToPath == command.Code:
+				case awaitingReplyToPath == string(command.Code):
 					log.Debugf(c, "%v matched by: awaitingReplyToPath == command.ByCode", command.Code)
-				case strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+command.Code):
+				case strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code)):
 					log.Debugf(c, "%v matched by: strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator + command.ByCode)", command.Code)
 				}
 				awaitingReplyCommandFound = true
@@ -547,7 +547,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 			if chatData != nil {
 				path := chatData.GetAwaitingReplyTo()
 				if path == "" {
-					path = matchedCommand.Code
+					path = string(matchedCommand.Code)
 				} else if pathURL, err := url.Parse(path); err == nil {
 					path = pathURL.Path
 				}

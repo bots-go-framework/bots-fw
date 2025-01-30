@@ -23,12 +23,14 @@ const ShortTitle = "short_title"
 
 //const LongTitle = "long_title"
 
+type CommandCode string
+
 // Command defines command metadata and action
 type Command struct {
 	InputTypes     []botinput.WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
 	Icon           string
 	Replies        []Command
-	Code           string
+	Code           CommandCode
 	Title          string
 	Titles         map[string]string
 	ExactMatch     string
@@ -39,7 +41,7 @@ type Command struct {
 }
 
 //goland:noinspection GoUnusedExportedFunction
-func NewInlineQueryCommand(code string, action CommandAction) Command {
+func NewInlineQueryCommand(code CommandCode, action CommandAction) Command {
 	return Command{
 		Code:       code,
 		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputInlineQuery},
@@ -50,10 +52,10 @@ func NewInlineQueryCommand(code string, action CommandAction) Command {
 // NewCallbackCommand create a definition of a callback command
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewCallbackCommand(code string, action CallbackAction) Command {
+func NewCallbackCommand(code CommandCode, action CallbackAction) Command {
 	return Command{
 		Code:           code,
-		Commands:       []string{"/" + code},
+		Commands:       []string{"/" + string(code)},
 		CallbackAction: action,
 	}
 }
@@ -90,7 +92,7 @@ func (c Command) TitleByKey(key string, whc WebhookContext) string {
 
 	if c.Icon == "" {
 		if title == "" {
-			title = c.Code
+			title = string(c.Code)
 		} else {
 			title = whc.Translate(title)
 		}
