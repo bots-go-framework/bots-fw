@@ -356,6 +356,9 @@ func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput)
 		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
 	case botinput.WebhookReferralMessage:
 		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botinput.WebhookTextMessage).Text())
+	case botinput.WebhookSharedUsersMessage:
+		sharedUsers := input.GetSharedUsers()
+		log.Debugf(c, "BotUser#%v(%v %v) => shared %d users", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), len(sharedUsers))
 	default:
 		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
 	}
