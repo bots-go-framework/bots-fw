@@ -3,6 +3,7 @@ package botinput
 // WebhookSharedUsersMessage represents a message with information about shared user
 type WebhookSharedUsersMessage interface {
 	WebhookMessage
+	GetRequestID() int
 	GetSharedUsers() []SharedUserMessageItem
 }
 
