@@ -102,6 +102,9 @@ type CommandsRegisterer interface {
 
 var _ CommandsRegisterer = (*WebhooksRouter)(nil)
 
+type RegisterCommandsFunc func(commands ...Command)
+type RegisterCommandsForInputTypeFunc func(inputType botinput.WebhookInputType, commands ...Command)
+
 // RegisterCommands is registering commands with router
 // TODO: Either leave this one or AddCommands()
 func (whRouter *WebhooksRouter) RegisterCommands(commands ...Command) {
