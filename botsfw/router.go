@@ -62,6 +62,7 @@ func (whRouter *WebhooksRouter) CommandsCount() int {
 }
 
 // AddCommandsGroupedByType adds commands grouped by input type
+// Deprecated: Use RegisterCommands() instead
 func (whRouter *WebhooksRouter) AddCommandsGroupedByType(commandsByType map[botinput.WebhookInputType][]Command) {
 	for inputType, commands := range commandsByType {
 		whRouter.AddCommandsForInputType(inputType, commands...)
@@ -69,19 +70,13 @@ func (whRouter *WebhooksRouter) AddCommandsGroupedByType(commandsByType map[boti
 }
 
 // AddCommands adds commands to router. It  should be called just once with the current implementation of AddCommandsForInputType()
-// TODO: Either leave this one or RegisterCommands
+// Deprecated: Use RegisterCommands() instead
 func (whRouter *WebhooksRouter) AddCommands(commands ...Command) {
 	whRouter.RegisterCommands(commands...)
-	//commandsByType := make(map[botinput.WebhookInputType][]Command)
-	//for _, command := range commands {
-	//	for _, inputType := range command.InputTypes {
-	//		commandsByType[inputType] = append(commandsByType[inputType], command)
-	//	}
-	//}
-	//whRouter.AddCommandsGroupedByType(commandsByType)
 }
 
 // AddCommandsForInputType adds commands for the given input type
+// Deprecated: Use RegisterCommands() instead
 func (whRouter *WebhooksRouter) AddCommandsForInputType(inputType botinput.WebhookInputType, commands ...Command) {
 	typeCommands, ok := whRouter.commandsByType[inputType]
 	if !ok {
