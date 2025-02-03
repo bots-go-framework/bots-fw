@@ -55,6 +55,7 @@ func NewInlineQueryCommand(code CommandCode, action CommandAction) Command {
 func NewCallbackCommand(code CommandCode, action CallbackAction) Command {
 	return Command{
 		Code:           code,
+		InputTypes:     []botinput.WebhookInputType{botinput.WebhookInputCallbackQuery},
 		Commands:       []string{"/" + string(code)},
 		CallbackAction: action,
 	}
