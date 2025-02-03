@@ -14,7 +14,7 @@ import (
 )
 
 func dummyBotProfile() BotProfile {
-	router := &WebhooksRouter{}
+	router := &webhooksRouter{}
 	newBotChatDate := func() botsfwmodels.BotChatData {
 		return nil
 	}

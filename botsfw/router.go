@@ -1,6 +1,7 @@
 package botsfw
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
@@ -36,24 +37,51 @@ func (v *TypeCommands) addCommand(command Command, commandType botinput.WebhookI
 	}
 }
 
-// WebhooksRouter maps routes to commands
-type WebhooksRouter struct {
+// Router dispatches requests to commands by input type, command code or a matching function
+type Router interface {
+	RegisterCommands(commands ...Command)
+	RegisterCommandsForInputType(inputType botinput.WebhookInputType, commands ...Command)
+
+	// Dispatch requests to commands by input type, command code or a matching function
+	Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) error
+
+	// RegisteredCommands returns all registered commands
+	RegisteredCommands() map[botinput.WebhookInputType]map[CommandCode]Command
+}
+
+var _ Router = (*webhooksRouter)(nil)
+
+type ErrorFooterArgs struct {
+	BotProfileID string
+	BotCode      string
+}
+type ErrorFooterTextFunc func(ctx context.Context, botContext ErrorFooterArgs) string
+
+// webhooksRouter maps routes to commands
+type webhooksRouter struct {
 	commandsByType  map[botinput.WebhookInputType]*TypeCommands
-	errorFooterText func() string
+	errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string
+}
+
+func (whRouter *webhooksRouter) RegisteredCommands() map[botinput.WebhookInputType]map[CommandCode]Command {
+	var commandsByType = make(map[botinput.WebhookInputType]map[CommandCode]Command)
+	for inputType, typeCommands := range whRouter.commandsByType {
+		commandsByType[inputType] = typeCommands.byCode
+	}
+	return commandsByType
 }
 
 // NewWebhookRouter creates new router
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewWebhookRouter(errorFooterText func() string) WebhooksRouter {
-	r := WebhooksRouter{
+func NewWebhookRouter(errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string) *webhooksRouter {
+	return &webhooksRouter{
 		commandsByType:  make(map[botinput.WebhookInputType]*TypeCommands),
 		errorFooterText: errorFooterText,
 	}
-	return r
 }
 
-func (whRouter *WebhooksRouter) CommandsCount() int {
+func (whRouter *webhooksRouter) CommandsCount() int {
 	var count int
 	for _, v := range whRouter.commandsByType {
 		count += len(v.all)
@@ -63,7 +91,7 @@ func (whRouter *WebhooksRouter) CommandsCount() int {
 
 // AddCommandsGroupedByType adds commands grouped by input type
 // Deprecated: Use RegisterCommands() instead
-func (whRouter *WebhooksRouter) AddCommandsGroupedByType(commandsByType map[botinput.WebhookInputType][]Command) {
+func (whRouter *webhooksRouter) AddCommandsGroupedByType(commandsByType map[botinput.WebhookInputType][]Command) {
 	for inputType, commands := range commandsByType {
 		whRouter.RegisterCommandsForInputType(inputType, commands...)
 	}
@@ -71,12 +99,12 @@ func (whRouter *WebhooksRouter) AddCommandsGroupedByType(commandsByType map[boti
 
 // AddCommands adds commands to router. It  should be called just once with the current implementation of RegisterCommandsForInputType()
 // Deprecated: Use RegisterCommands() instead
-func (whRouter *WebhooksRouter) AddCommands(commands ...Command) {
+func (whRouter *webhooksRouter) AddCommands(commands ...Command) {
 	whRouter.RegisterCommands(commands...)
 }
 
 // RegisterCommandsForInputType adds commands for the given input type
-func (whRouter *WebhooksRouter) RegisterCommandsForInputType(inputType botinput.WebhookInputType, commands ...Command) {
+func (whRouter *webhooksRouter) RegisterCommandsForInputType(inputType botinput.WebhookInputType, commands ...Command) {
 	typeCommands, ok := whRouter.commandsByType[inputType]
 	if !ok {
 		typeCommands = newTypeCommands(len(commands))
@@ -99,14 +127,14 @@ type CommandsRegisterer interface {
 	RegisterCommands(commands ...Command)
 }
 
-var _ CommandsRegisterer = (*WebhooksRouter)(nil)
+var _ CommandsRegisterer = (*webhooksRouter)(nil)
 
 type RegisterCommandsFunc func(commands ...Command)
 type RegisterCommandsForInputTypeFunc func(inputType botinput.WebhookInputType, commands ...Command)
 
 // RegisterCommands is registering commands with router
 // TODO: Either leave this one or AddCommands()
-func (whRouter *WebhooksRouter) RegisterCommands(commands ...Command) {
+func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 	addCommand := func(t botinput.WebhookInputType, command Command) {
 		typeCommands, ok := whRouter.commandsByType[t]
 		if !ok {
@@ -169,7 +197,7 @@ func matchCallbackCommands(whc WebhookContext, input botinput.WebhookCallbackQue
 	return nil, callbackURL, err
 }
 
-func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
+func (whRouter *webhooksRouter) matchMessageCommands(whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
 	c := whc.Context()
 
 	var awaitingReplyCommand Command
@@ -270,7 +298,7 @@ func (whRouter *WebhooksRouter) matchMessageCommands(whc WebhookContext, input b
 }
 
 // DispatchInlineQuery dispatches inlines query
-func (whRouter *WebhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
+func (whRouter *webhooksRouter) DispatchInlineQuery(responder WebhookResponder) {
 	panic(fmt.Errorf("not implemented, responder: %+v", responder))
 }
 
@@ -323,12 +351,12 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 	return
 }
 
-// Dispatch query to commands
-func (whRouter *WebhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) (err error) {
+// Dispatch a query to commands
+func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) (err error) {
 	c := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
-	// 		log.Criticalf(c, "*WebhooksRouter.Dispatch() => PANIC: %v", err)
+	// 		log.Criticalf(c, "*webhooksRouter.Dispatch() => PANIC: %v", err)
 	// 	}
 	// }()
 
@@ -461,7 +489,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	inputType := whc.Input().InputType()
 	input := whc.Input()
 	inputTypeIdName := botinput.GetWebhookInputTypeIdNameString(inputType)
-	logMessage := fmt.Sprintf("WebhooksRouter.Dispatch() => WebhookIputType=%s, %T", inputTypeIdName, input)
+	logMessage := fmt.Sprintf("webhooksRouter.Dispatch() => WebhookIputType=%s, %T", inputTypeIdName, input)
 	switch inputType {
 	case botinput.WebhookInputText:
 		textMessage := input.(botinput.WebhookTextMessage)
@@ -506,7 +534,7 @@ func logInputDetails(whc WebhookContext, isKnownType bool) {
 	}
 }
 
-func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
+func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, responder WebhookResponder, whc WebhookContext, m MessageFromBot, err error) {
 	if err != nil {
 		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
@@ -574,7 +602,7 @@ func (whRouter *WebhooksRouter) processCommandResponse(matchedCommand *Command, 
 	}
 }
 
-func (whRouter *WebhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
+func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
 	c := whc.Context()
 	log.Errorf(c, err.Error())
 	env := whc.GetBotSettings().Env
@@ -602,7 +630,12 @@ func (whRouter *WebhooksRouter) processCommandResponseError(whc WebhookContext, 
 		)
 
 		if whRouter.errorFooterText != nil {
-			if footer := whRouter.errorFooterText(); footer != "" {
+			ctx := whc.Context()
+			args := ErrorFooterArgs{
+				BotCode:      whc.GetBotCode(),
+				BotProfileID: "", // TODO(help-wanted): implement!
+			}
+			if footer := whRouter.errorFooterText(ctx, args); footer != "" {
 				m.Text += "\n\n" + footer
 			}
 		}

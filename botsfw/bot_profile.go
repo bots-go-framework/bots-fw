@@ -8,7 +8,7 @@ import (
 
 type BotProfile interface {
 	ID() string
-	Router() *WebhooksRouter
+	Router() Router
 	DefaultLocale() i18n.Locale
 	SupportedLocales() []i18n.Locale
 	NewBotChatData() botsfwmodels.BotChatData
@@ -26,14 +26,14 @@ type botProfile struct {
 	newBotUserData   func() botsfwmodels.PlatformUserData
 	newAppUserData   func() botsfwmodels.AppUserData
 	getAppUserByID   AppUserGetter
-	router           *WebhooksRouter
+	router           Router
 }
 
 func (v *botProfile) ID() string {
 	return v.id
 }
 
-func (v *botProfile) Router() *WebhooksRouter {
+func (v *botProfile) Router() Router {
 	return v.router
 }
 
@@ -59,7 +59,7 @@ func (v *botProfile) NewAppUserData() botsfwmodels.AppUserData {
 
 func NewBotProfile(
 	id string,
-	router *WebhooksRouter,
+	router Router,
 	newBotChatData func() botsfwmodels.BotChatData,
 	newBotUserData func() botsfwmodels.PlatformUserData,
 	newAppUserData func() botsfwmodels.AppUserData,
