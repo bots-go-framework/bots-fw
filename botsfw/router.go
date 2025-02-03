@@ -74,7 +74,7 @@ func (whRouter *webhooksRouter) RegisteredCommands() map[botinput.WebhookInputTy
 // NewWebhookRouter creates new router
 //
 //goland:noinspection GoUnusedExportedFunction
-func NewWebhookRouter(errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string) *webhooksRouter {
+func NewWebhookRouter(errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string) Router {
 	return &webhooksRouter{
 		commandsByType:  make(map[botinput.WebhookInputType]*TypeCommands),
 		errorFooterText: errorFooterText,
