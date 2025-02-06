@@ -2,7 +2,6 @@ package botsfw
 
 import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/strongo/i18n"
 	"strings"
 )
@@ -15,13 +14,6 @@ type BotProfile interface {
 	NewBotChatData() botsfwmodels.BotChatData
 	NewPlatformUserData() botsfwmodels.PlatformUserData
 	NewAppUserData() botsfwmodels.AppUserData // TODO: Can we get rit of it and instead use GetAppUserByID/CreateAppUser?
-}
-
-type InlineQueryHandlerFunc func(whc WebhookContext, inlineQuery botinput.WebhookInlineQuery) (handled bool, m MessageFromBot, err error)
-
-type InlineQueryHandler struct {
-	ProfileID         string
-	HandleInlineQuery InlineQueryHandlerFunc
 }
 
 var _ BotProfile = (*botProfile)(nil)
