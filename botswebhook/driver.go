@@ -214,7 +214,10 @@ func (d BotDriver) processWebhookInput(
 		chatData := whc.ChatData()
 
 		recordsToInsert := make([]dal.Record, 0)
-		if chatData.GetAppUserID() == "" {
+
+		// chatData can be nil for iinline requests
+		// TODO: Should we try to deduct chat ID from user ID for inline queries inside a bot chat for "chat_type": "sender"?
+		if chatData != nil && chatData.GetAppUserID() == "" {
 			platformID := whc.BotPlatform().ID()
 			botID := whc.GetBotCode()
 			appContext := whc.AppContext()
