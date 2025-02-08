@@ -159,9 +159,16 @@ var _ BotMessage = (*TextMessageFromBot)(nil)
 //
 //goland:noinspection GoDeprecation
 type MessageFromBot struct {
-	ResponseChannel    BotAPISendMessageChannel `json:"-,omitempty"` // For debug purposes
-	ToChat             ChatUID                  `json:",omitempty"`
-	TextMessageFromBot                          // This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
-	BotMessage         BotMessage               `json:",omitempty"`
+	ResponseChannel BotAPISendMessageChannel `json:"-,omitempty"` // For debug purposes
+	ToChat          ChatUID                  `json:",omitempty"`
+
+	// To be used with Telegram to edit an arbitrary message.
+	// Do not use this field directly when you want to edit the callback message
+	EditMessageIntID int `json:"editMessageIntID,omitempty"`
+
+	// This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
+	TextMessageFromBot // TODO: This feels wrong and need to be refactored! Use BotMessage instead
+
+	BotMessage BotMessage `json:",omitempty"`
 	//FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }
