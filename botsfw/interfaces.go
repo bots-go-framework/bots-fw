@@ -56,7 +56,8 @@ type OnMessageSentResponse struct {
 
 // WebhookResponder is an API provider to send messages through a messenger
 type WebhookResponder interface {
-	SendMessage(c context.Context, m MessageFromBot, channel BotAPISendMessageChannel) (OnMessageSentResponse, error)
+	SendMessage(c context.Context, m MessageFromBot, channel BotAPISendMessageChannel) (response OnMessageSentResponse, err error)
+	DeleteMessage(c context.Context, messageID string) (err error)
 }
 
 // InputMessage represents single input message
