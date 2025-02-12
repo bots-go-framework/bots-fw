@@ -12,6 +12,10 @@ type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
 // CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
+type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.WebhookInlineQuery, queryUrl *url.URL) (m MessageFromBot, err error)
+
+type ChosenInlineResultAction func(whc WebhookContext, chosenResult botinput.WebhookChosenInlineResult, queryUrl *url.URL) (m MessageFromBot, err error)
+
 // CommandMatcher returns true if action is matched to user input
 type CommandMatcher func(Command, WebhookContext) bool
 
@@ -27,17 +31,20 @@ type CommandCode string
 
 // Command defines command metadata and action
 type Command struct {
-	InputTypes     []botinput.WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
-	Icon           string
-	Replies        []Command
-	Code           CommandCode
-	Title          string
-	Titles         map[string]string
-	ExactMatch     string
-	Commands       []string
-	Matcher        CommandMatcher
-	Action         CommandAction
-	CallbackAction CallbackAction
+	Code       CommandCode
+	InputTypes []botinput.WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
+	Icon       string
+	Replies    []Command
+	Title      string
+	Titles     map[string]string
+	ExactMatch string
+	Commands   []string
+	Matcher    CommandMatcher
+	//
+	Action                   CommandAction
+	CallbackAction           CallbackAction
+	InlineQueryAction        InlineQueryAction
+	ChosenInlineResultAction ChosenInlineResultAction
 }
 
 //goland:noinspection GoUnusedExportedFunction
