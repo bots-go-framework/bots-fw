@@ -17,7 +17,7 @@ type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.WebhookInli
 type ChosenInlineResultAction func(whc WebhookContext, chosenResult botinput.WebhookChosenInlineResult, queryUrl *url.URL) (m MessageFromBot, err error)
 
 // CommandMatcher returns true if action is matched to user input
-type CommandMatcher func(Command, WebhookContext) bool
+type CommandMatcher func(command Command, whc WebhookContext) bool
 
 // DefaultTitle key
 const DefaultTitle = "" //
