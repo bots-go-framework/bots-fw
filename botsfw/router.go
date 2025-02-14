@@ -465,14 +465,16 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		var queryURL *url.URL
 		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.InlineQueryAction != nil || command.Action != nil
-		}); matchedCommand == nil && len(typeCommands.all) > 0 {
+		}); matchedCommand == nil && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
 		}
-		if matchedCommand.InlineQueryAction == nil {
-			commandAction = matchedCommand.Action
-		} else {
-			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
-				return matchedCommand.InlineQueryAction(whc, input, queryURL)
+		if matchedCommand != nil {
+			if matchedCommand.InlineQueryAction == nil {
+				commandAction = matchedCommand.Action
+			} else {
+				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+					return matchedCommand.InlineQueryAction(whc, input, queryURL)
+				}
 			}
 		}
 	case botinput.WebhookChosenInlineResult:
@@ -480,14 +482,16 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 
 		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.ChosenInlineResultAction != nil || command.Action != nil
-		}); matchedCommand == nil && len(typeCommands.all) > 0 {
+		}); matchedCommand == nil && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
 		}
-		if matchedCommand.ChosenInlineResultAction == nil {
-			commandAction = matchedCommand.Action
-		} else {
-			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
-				return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
+		if matchedCommand != nil {
+			if matchedCommand.ChosenInlineResultAction == nil {
+				commandAction = matchedCommand.Action
+			} else {
+				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+					return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
+				}
 			}
 		}
 	case botinput.WebhookTextMessage:
