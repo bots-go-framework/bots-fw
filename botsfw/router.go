@@ -145,7 +145,7 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 	}
 	for _, command := range commands {
 		if len(command.InputTypes) == 0 {
-			if command.Action != nil {
+			if command.TextAction != nil {
 				addCommand(botinput.WebhookInputText, command)
 			}
 			if command.CallbackAction != nil {
@@ -154,20 +154,40 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 			if command.ChosenInlineResultAction != nil {
 				addCommand(botinput.WebhookInputChosenInlineResult, command)
 			}
+			if command.Action != nil {
+				panic(fmt.Errorf("command{Code=%v} has Action but no InputTypes", command.Code))
+			}
 		} else {
-			var callbackAdded, inlineQueryAdded, chosenInlineResultAdded bool
+			var textAdded, callbackAdded, inlineQueryAdded, chosenInlineResultAdded bool
 			for _, t := range command.InputTypes {
 				addCommand(t, command)
 				switch t {
+				case botinput.WebhookInputText:
+					if command.TextAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no TextAction and no Action", command.Code, command.InputTypes))
+					}
+					textAdded = true
 				case botinput.WebhookInputCallbackQuery:
+					if command.CallbackAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no CallbackAction and no Action", command.Code, command.InputTypes))
+					}
 					callbackAdded = true
 				case botinput.WebhookInputInlineQuery:
+					if command.InlineQueryAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no InlineQueryAction and no Action", command.Code, command.InputTypes))
+					}
 					inlineQueryAdded = true
 				case botinput.WebhookInputChosenInlineResult:
+					if command.ChosenInlineResultAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no ChosenInlineResultAction and no Action", command.Code, command.InputTypes))
+					}
 					chosenInlineResultAdded = true
 				default:
 					// OK
 				}
+			}
+			if command.TextAction != nil && !textAdded {
+				addCommand(botinput.WebhookInputText, command)
 			}
 			if command.CallbackAction != nil && !callbackAdded {
 				addCommand(botinput.WebhookInputCallbackQuery, command)
@@ -422,7 +442,6 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		panic("len(typeCommands.all) == 0")
 	}
 
-	var isCommandText bool
 	switch input := whc.Input().(type) {
 	case botinput.WebhookCallbackQuery:
 		var callbackURL *url.URL
@@ -446,41 +465,53 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		var queryURL *url.URL
 		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.InlineQueryAction != nil || command.Action != nil
-		}); matchedCommand != nil {
+		}); matchedCommand == nil && len(typeCommands.all) > 0 {
+			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
+		}
+		if matchedCommand.InlineQueryAction == nil {
+			commandAction = matchedCommand.Action
+		} else {
 			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
 				return matchedCommand.InlineQueryAction(whc, input, queryURL)
 			}
-		} else {
-			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
-			commandAction = matchedCommand.Action
 		}
-
 	case botinput.WebhookChosenInlineResult:
 		var queryURL *url.URL
 
 		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.ChosenInlineResultAction != nil || command.Action != nil
-		}); matchedCommand != nil {
+		}); matchedCommand == nil && len(typeCommands.all) > 0 {
+			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
+		}
+		if matchedCommand.ChosenInlineResultAction == nil {
+			commandAction = matchedCommand.Action
+		} else {
 			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
 				return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
 			}
-		} else {
-			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
-			commandAction = matchedCommand.Action
+		}
+	case botinput.WebhookTextMessage:
+		messageText := input.Text()
+		isCommandText := strings.HasPrefix(messageText, "/")
+		matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
+		if matchedCommand != nil {
+			if matchedCommand.TextAction == nil {
+				commandAction = matchedCommand.Action
+			} else {
+				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+					return matchedCommand.TextAction(whc, messageText)
+				}
+			}
 		}
 	case botinput.WebhookMessage:
 		if len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
-		}
-		if matchedCommand == nil {
-			var messageText string
-			if textMessage, ok := input.(botinput.WebhookTextMessage); ok {
-				messageText = textMessage.Text()
-				isCommandText = strings.HasPrefix(messageText, "/")
-			}
-			matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
-			if matchedCommand != nil {
-				log.Debugf(c, "whr.matchMessageCommands() => matchedCommand.Code: %v", matchedCommand.Code)
+		} else if matchedCommand == nil {
+			for _, command := range typeCommands.all {
+				if command.Matcher != nil && command.Matcher(command, whc) {
+					matchedCommand = &command
+					break
+				}
 			}
 		}
 		if matchedCommand != nil {

@@ -9,6 +9,8 @@ import (
 // CommandAction defines an action bot can perform in response to a command
 type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
 
+type TextAction func(whc WebhookContext, text string) (m MessageFromBot, err error)
+
 // CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
@@ -42,6 +44,7 @@ type Command struct {
 	Matcher    CommandMatcher
 	//
 	Action                   CommandAction
+	TextAction               TextAction
 	CallbackAction           CallbackAction
 	InlineQueryAction        InlineQueryAction
 	ChosenInlineResultAction ChosenInlineResultAction
