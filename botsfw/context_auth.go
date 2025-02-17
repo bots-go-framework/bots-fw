@@ -1,9 +1,11 @@
 package botsfw
 
 import (
+	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsdal"
+	"github.com/dal-go/dalgo/dal"
 	"time"
 )
 
@@ -39,21 +41,32 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserID := whc.Input().GetSender().GetID()
 	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	tx := whc.Tx()
+	db := whc.DB()
 	platformID := whc.BotPlatform().ID()
 	botSettings := whc.BotContext().BotSettings
 
-	if botUser, err := botsdal.GetPlatformUser(c, tx, platformID, botUserStrID, botSettings.Profile.NewPlatformUserData()); err != nil {
+	var botUser botsdal.BotUser
+	if botUser, err = botsdal.GetPlatformUser(c, db, platformID, botUserStrID, botSettings.Profile.NewPlatformUserData()); err != nil {
 		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
 	} else if botUser.Data.IsAccessGranted() == value {
 		log.Infof(c, "No need to change platformUser.AccessGranted, as already is: %v", value)
-	} else if changed := botUser.Data.SetAccessGranted(value); changed {
-		if err = tx.Set(c, botUser.Record); err != nil {
-			err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
-			return err
+	} else {
+		if err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
+			if err = tx.Get(ctx, botUser.Record); err != nil {
+				return
+			}
+			if changed := botUser.Data.SetAccessGranted(value); changed {
+				if err = tx.Set(c, botUser.Record); err != nil {
+					err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
+					return err
+				}
+			}
+			return
+		}); err != nil {
+			return
 		}
 	}
-	return nil
+	return
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer
 }
 

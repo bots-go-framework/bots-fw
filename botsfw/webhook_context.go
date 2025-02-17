@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
 	"net/http"
@@ -64,13 +64,15 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	DB() dal.DB
 
 	// Tx is a reference to database transaction used to get/save data of current bot
-	Tx() dal.ReadwriteTransaction
+	//Tx() dal.ReadwriteTransaction
 
 	// ChatData returns data of current bot chat without ID/Key
 	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
 
 	// BotUser returns record of current bot user
-	BotUser() (botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
+	GetBotUser() (botUser botsdal.BotUser, err error)
+	GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error)
+
 	GetBotUserID() string
 
 	// IsInGroup indicates if message was received in a group botChat

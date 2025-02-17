@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"testing"
 )
 
@@ -18,7 +17,7 @@ func TestGetBotUser(t *testing.T) {
 		name        string
 		args        args
 		shouldPanic bool
-		checkResult func(botUser record.DataWithID[string, botsfwmodels.PlatformUserData], err error)
+		checkResult func(botUser BotUser, err error)
 	}{
 		{name: "empty", shouldPanic: true},
 	}

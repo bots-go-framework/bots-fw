@@ -206,7 +206,7 @@ func (d BotDriver) processWebhookInput(
 		return
 	}
 	err = db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, tx, measurementSender)
+		whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db, measurementSender)
 		if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 			handleError(err, "Failed to create WebhookContext")
 			return
@@ -222,7 +222,7 @@ func (d BotDriver) processWebhookInput(
 			botID := whc.GetBotCode()
 			appContext := whc.AppContext()
 			var appUser record.DataWithID[string, botsfwmodels.AppUserData]
-			var botUser record.DataWithID[string, botsfwmodels.PlatformUserData]
+			var botUser botsdal.BotUser
 			bot := botsdal.Bot{
 				Platform: botsfwconst.Platform(platformID),
 				ID:       botID,
