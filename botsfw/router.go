@@ -572,15 +572,15 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}
 		if err == nil {
 			if chatData := whc.ChatData(); chatData != nil {
-				now := time.Now()
-				chatData.SetDtLastInteraction(now)
 				if chatData.IsChanged() || chatData.HasChangedVars() {
+					now := time.Now()
+					chatData.SetDtLastInteraction(now)
 					chatData.SetUpdatedTime(now)
-				}
-				if err = whc.SaveBotChat(); err != nil {
-					log.Errorf(c, "Failed to save botChat data: %v", err)
-					if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
-						log.Errorf(c, "Failed to send error message to user: %v", sendErr)
+					if err = whc.SaveBotChat(); err != nil {
+						log.Errorf(c, "Failed to save botChat data: %v", err)
+						if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
+							log.Errorf(c, "Failed to send error message to user: %v", sendErr)
+						}
 					}
 				}
 			}

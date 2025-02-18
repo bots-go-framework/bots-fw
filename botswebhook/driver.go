@@ -205,19 +205,22 @@ func (d BotDriver) processWebhookInput(
 		err = fmt.Errorf("failed to get bot database: %w", err)
 		return
 	}
-	err = db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db, measurementSender)
-		if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
-			handleError(err, "Failed to create WebhookContext")
-			return
-		}
-		chatData := whc.ChatData()
 
-		recordsToInsert := make([]dal.Record, 0)
+	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db, measurementSender)
+	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
+		handleError(err, "Failed to create WebhookContext")
+		return
+	}
+	chatData := whc.ChatData()
 
-		// chatData can be nil for iinline requests
-		// TODO: Should we try to deduct chat ID from user ID for inline queries inside a bot chat for "chat_type": "sender"?
-		if chatData != nil && chatData.GetAppUserID() == "" {
+	if chatData != nil && chatData.GetAppUserID() == "" {
+		err = db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
+
+			recordsToInsert := make([]dal.Record, 0)
+
+			// chatData can be nil for inline requests
+			// TODO: Should we try to deduct chat ID from user ID for inline queries inside a bot chat for "chat_type": "sender"?
+
 			platformID := whc.BotPlatform().ID()
 			botID := whc.GetBotCode()
 			appContext := whc.AppContext()
@@ -239,26 +242,28 @@ func (d BotDriver) processWebhookInput(
 			}
 
 			chatData.SetAppUserID(appUser.ID)
-		}
 
-		responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
-		router := botContext.BotSettings.Profile.Router()
-
-		if err = router.Dispatch(webhookHandler, responder, whc); err != nil {
-			handleError(err, "Failed to dispatch")
+			for _, recordToInsert := range recordsToInsert {
+				if err = tx.Insert(ctx, recordToInsert); err != nil {
+					return
+				}
+			}
+			return
+		})
+		if err != nil {
+			handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
 			return
 		}
-		for _, recordToInsert := range recordsToInsert {
-			if err = tx.Insert(ctx, recordToInsert); err != nil {
-				return
-			}
-		}
-		return
-	})
-	if err != nil {
-		handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
+	}
+
+	responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
+	router := botContext.BotSettings.Profile.Router()
+
+	if err = router.Dispatch(webhookHandler, responder, whc); err != nil {
+		handleError(err, "Failed to dispatch")
 		return
 	}
+
 	return
 }
 
