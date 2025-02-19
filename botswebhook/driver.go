@@ -108,6 +108,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 }
 
+var isMissingGATrackingAlreadyReported bool
+
 func (d BotDriver) processWebhookInput(
 	ctx context.Context,
 	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
@@ -151,7 +153,9 @@ func (d BotDriver) processWebhookInput(
 		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
 			if d.Analytics.GaTrackingID == "" {
-				log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
+				if !isMissingGATrackingAlreadyReported {
+					log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
+				}
 			} else {
 				timing := gamp.NewTiming(time.Since(started))
 				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
