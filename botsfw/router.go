@@ -711,7 +711,7 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 
 func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
 	c := whc.Context()
-	log.Errorf(c, err.Error())
+	// log.Errorf() we are logging this in dispatcher
 	env := whc.GetBotSettings().Env
 	ga := whc.GA()
 	if env == EnvProduction && ga != nil {
