@@ -442,7 +442,8 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		panic("len(typeCommands.all) == 0")
 	}
 
-	switch input := whc.Input().(type) {
+	input := whc.Input()
+	switch input := input.(type) {
 	case botinput.WebhookCallbackQuery:
 		var callbackURL *url.URL
 		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input, typeCommands.byCode)
@@ -529,13 +530,15 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		commandAction = matchedCommand.Action
 	}
 	if err != nil {
+		err = fmt.Errorf("failed to process input{type=%s} by command{code=%s}: %w",
+			botinput.GetWebhookInputTypeIdNameString(input.InputType()), matchedCommand.Code, err)
 		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
 	if matchedCommand == nil {
-		whc.Input().LogRequest()
 		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
+		whc.Input().LogRequest()
 		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
 			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
 			return
