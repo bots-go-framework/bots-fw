@@ -559,12 +559,12 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}
 	} else { // matchedCommand != nil
 		if matchedCommand.Code == "" {
-			log.Debugf(c, "Matched to: command: %+v", matchedCommand)
+			log.Debugf(c, "Matched to %T: %+v", matchedCommand, matchedCommand)
 		} else {
-			log.Debugf(c, "Matched to: command.Code=%s", matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+			log.Debugf(c, "Matched to %T{Code=%s}", matchedCommand, matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		}
 		if commandAction == nil {
-			err = errors.New("No action for matched command")
+			err = fmt.Errorf("no action for matched command %T{Code=%s}", matchedCommand, matchedCommand.Code)
 		} else {
 			m, err = commandAction(whc)
 			// awaitingReplyToAfter := chatData.GetAwaitingReplyTo()

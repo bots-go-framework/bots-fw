@@ -80,7 +80,9 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		return
 	}
 
-	log.Debugf(ctx, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
+	if len(entriesWithInputs) > 1 {
+		log.Debugf(ctx, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
+	}
 
 	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
 	//defer func() {
@@ -125,26 +127,24 @@ func (d BotDriver) processWebhookInput(
 		measurementSender *gamp.BufferedClient
 	)
 
-	var sendStats bool
-	{ // Initiate Google Analytics Measurement API client
+	// Initiate Google Analytics Measurement API client
+	sendStats := d.Analytics.Enabled != nil && d.Analytics.Enabled(r) ||
+		botContext.BotSettings.Env == botsfw.EnvProduction
 
-		if d.Analytics.Enabled == nil {
-			sendStats = botContext.BotSettings.Env == botsfw.EnvProduction
-			//} else {
-			//if sendStats = d.Analytics.Enabled(r); !sendStats {
-			//
-			//}
-			//log.Debugf(c, "d.AnalyticsSettings.Enabled != nil, sendStats: %v", sendStats)
-		}
-		if sendStats {
+	if sendStats {
+		if d.Analytics.GaTrackingID == "" {
+			sendStats = false
+			if !isMissingGATrackingAlreadyReported {
+				log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
+			}
+		} else {
 			botHost := botContext.BotHost
 			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(ctx), func(err error) {
 				log.Errorf(ctx, "Failed to log to GA: %v", err)
 			})
-		} else {
-			log.Debugf(ctx, "botContext.BotSettings.Env=%s, sendStats=%t",
-				botContext.BotSettings.Env, sendStats)
 		}
+	} else {
+		log.Debugf(ctx, "botContext.BotSettings.Env=%s, sendStats=%t", botContext.BotSettings.Env, sendStats)
 	}
 
 	started := time.Now()
@@ -152,16 +152,10 @@ func (d BotDriver) processWebhookInput(
 	defer func() {
 		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
 		if sendStats {
-			if d.Analytics.GaTrackingID == "" {
-				if !isMissingGATrackingAlreadyReported {
-					log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
-				}
-			} else {
-				timing := gamp.NewTiming(time.Since(started))
-				timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
-				if err := measurementSender.Queue(timing); err != nil {
-					log.Errorf(ctx, "Failed to log timing to GA: %v", err)
-				}
+			timing := gamp.NewTiming(time.Since(started))
+			timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
+			if err := measurementSender.Queue(timing); err != nil {
+				log.Errorf(ctx, "Failed to log timing to GA: %v", err)
 			}
 		}
 
@@ -189,11 +183,11 @@ func (d BotDriver) processWebhookInput(
 		if recovered := recover(); recovered != nil {
 			reportError(recovered)
 		} else if sendStats {
-			log.Debugf(ctx, "Flushing GA...")
+			//log.Debugf(ctx, "Flushing GA...")
 			if err = measurementSender.Flush(); err != nil {
 				log.Warningf(ctx, "Failed to flush to GA: %v", err)
-			} else {
-				log.Debugf(ctx, "Sent to GA: %v items", measurementSender.QueueDepth())
+			} else if queueDepth := measurementSender.QueueDepth(); queueDepth > 0 {
+				log.Debugf(ctx, "Sent to GA: %v items", queueDepth)
 			}
 		} else {
 			log.Debugf(ctx, "GA: sendStats=false")
@@ -346,9 +340,10 @@ func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, m
 
 func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
 	sender := input.GetSender()
+	prefix := fmt.Sprintf("BotUser#%v(%v %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName())
 	switch input := input.(type) {
 	case botinput.WebhookTextMessage:
-		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.Text())
+		log.Debugf(c, "%s => text: %v", prefix, input.Text())
 	case botinput.WebhookNewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
@@ -358,20 +353,20 @@ func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput)
 		}
 		log.Debugf(c, b.String())
 	case botinput.WebhookContactMessage:
-		log.Debugf(c, "BotUser#%v(%v %v) => Contact(botUserID=%s, firstName=%s)", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetBotUserID(), input.GetFirstName())
+		log.Debugf(c, "%s => Contact(botUserID=%s, firstName=%s)", prefix, input.GetBotUserID(), input.GetFirstName())
 	case botinput.WebhookCallbackQuery:
 		callbackData := input.GetData()
-		log.Debugf(c, "BotUser#%v(%v %v) => callback: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), callbackData)
+		log.Debugf(c, "%s => callback: %v", prefix, callbackData)
 	case botinput.WebhookInlineQuery:
-		log.Debugf(c, "BotUser#%v(%v %v) => inline query: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetQuery())
+		log.Debugf(c, "%s => inline query: %v", prefix, input.GetQuery())
 	case botinput.WebhookChosenInlineResult:
-		log.Debugf(c, "BotUser#%v(%v %v) => chosen InlineMessageID: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.GetInlineMessageID())
+		log.Debugf(c, "%s => chosen InlineMessageID: %v", prefix, input.GetInlineMessageID())
 	case botinput.WebhookReferralMessage:
-		log.Debugf(c, "BotUser#%v(%v %v) => text: %v", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), input.(botinput.WebhookTextMessage).Text())
+		log.Debugf(c, "%s => text: %v", prefix, input.(botinput.WebhookTextMessage).Text())
 	case botinput.WebhookSharedUsersMessage:
 		sharedUsers := input.GetSharedUsers()
-		log.Debugf(c, "BotUser#%v(%v %v) => shared %d users", sender.GetID(), sender.GetFirstName(), sender.GetLastName(), len(sharedUsers))
+		log.Debugf(c, "%s => shared %d users", prefix, len(sharedUsers))
 	default:
-		log.Warningf(c, "Unhandled input[%v] type: %T", i, input)
+		log.Warningf(c, "unknown input[%v] type %T", i, input)
 	}
 }
