@@ -204,33 +204,26 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 
 var ErrNoCommandsMatched = errors.New("no commands matched")
 
-func matchByQuery(whc WebhookContext, input interface{ GetQuery() string }, commands map[CommandCode]Command, hasAction func(Command) bool) (matchedCommand *Command, queryURL *url.URL) {
+func matchByQueryOrMatcher(whc WebhookContext, input interface{ GetQuery() string }, commands map[CommandCode]Command, hasAction func(Command) bool) (matchedCommand *Command, queryURL *url.URL) {
 	query := input.GetQuery()
-	checkMatchers := func() bool {
-		for _, command := range commands {
-			if command.Matcher != nil {
-				if command.Matcher(command, whc) {
-					matchedCommand = &command
-					return true
-				}
+	if query != "" {
+		var err error // We ignore error if the query is not a valid URL
+		if queryURL, err = url.Parse(query); err == nil {
+			command := commands[CommandCode(queryURL.Path)]
+			if hasAction(command) {
+				matchedCommand = &command
+				return
 			}
 		}
-		return false
 	}
-	if query != "" {
-		if checkMatchers() {
-			return
+	for _, command := range commands {
+		if command.Matcher != nil {
+			if command.Matcher(command, whc) {
+				matchedCommand = &command
+				return
+			}
 		}
 	}
-	var err error
-	if queryURL, err = url.Parse(query); err == nil { // We ignore error if the query is not a valid URL
-		command := commands[CommandCode(queryURL.Path)]
-		if hasAction(command) {
-			matchedCommand = &command
-			return
-		}
-	}
-	checkMatchers()
 	return
 }
 
@@ -464,7 +457,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}
 	case botinput.WebhookInlineQuery:
 		var queryURL *url.URL
-		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
+		if matchedCommand, queryURL = matchByQueryOrMatcher(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.InlineQueryAction != nil || command.Action != nil
 		}); matchedCommand == nil && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
@@ -481,7 +474,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	case botinput.WebhookChosenInlineResult:
 		var queryURL *url.URL
 
-		if matchedCommand, queryURL = matchByQuery(whc, input, typeCommands.byCode, func(command Command) bool {
+		if matchedCommand, queryURL = matchByQueryOrMatcher(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.ChosenInlineResultAction != nil || command.Action != nil
 		}); matchedCommand == nil && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
