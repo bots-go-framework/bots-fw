@@ -95,14 +95,25 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	//	}
 	//}()
 
-	handleError := func(err error, message string) {
+	handleErrorAndReturnHttpError := func(err error, message string) {
 		logus.Errorf(ctx, "%s: %v", message, err)
 		errText := fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err)
 		http.Error(w, errText, http.StatusInternalServerError)
 	}
 
+	handleErrorAndReturnHttpOK := func(err error, message string) {
+		logus.Errorf(ctx, "%s: %v\nHTTP will return status OK", message, err)
+		w.WriteHeader(http.StatusOK)
+	}
+
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
+			var handleError func(err error, message string)
+			if input.InputType() == botinput.WebhookInputCallbackQuery {
+				handleError = handleErrorAndReturnHttpOK
+			} else {
+				handleError = handleErrorAndReturnHttpError
+			}
 			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
 				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
 			}

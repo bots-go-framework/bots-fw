@@ -479,13 +479,15 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		}); matchedCommand == nil && len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
 		}
-		if matchedCommand != nil {
-			if matchedCommand.ChosenInlineResultAction == nil {
-				commandAction = matchedCommand.Action
-			} else {
-				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
-					return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
-				}
+		if matchedCommand == nil {
+			log.Debugf(c, "No command found for WebhookChosenInlineResult")
+			return nil
+		}
+		if matchedCommand.ChosenInlineResultAction == nil {
+			commandAction = matchedCommand.Action
+		} else {
+			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+				return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
 			}
 		}
 	case botinput.WebhookTextMessage:
@@ -531,6 +533,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 
 	if matchedCommand == nil {
 		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
+		if inputType == botinput.WebhookInputChosenInlineResult {
+			return
+		}
 		whc.Input().LogRequest()
 		if m = webhookHandler.HandleUnmatched(whc); m.Text != "" || m.BotMessage != nil {
 			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
@@ -722,8 +727,9 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 			err = nil
 		}
 	}
-	inputType := whc.Input().InputType()
-	if inputType == botinput.WebhookInputText || inputType == botinput.WebhookInputContact {
+	//inputType := whc.Input().InputType()
+	switch whc.Input().InputType() {
+	case botinput.WebhookInputText, botinput.WebhookInputContact:
 		// TODO: Try to get botChat ID from user?
 		m := whc.NewMessage(
 			whc.Translate(MessageTextOopsSomethingWentWrong) +
@@ -746,5 +752,7 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 		if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
 			log.Errorf(c, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 		}
+	case botinput.WebhookInputCallbackQuery: // TODO: For Telegram call answerInlineQuery to report error to user.
+	default: // What here?
 	}
 }
