@@ -676,22 +676,23 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 		}
 	}
 	if matchedCommand != nil {
-		var path, title string
-		if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
-			chatData := whc.ChatData()
-			if chatData != nil {
-				path = chatData.GetAwaitingReplyTo()
-				if path == "" {
-					path = string(matchedCommand.Code)
-				} else if pathURL, err := url.Parse(path); err == nil {
-					path = pathURL.Path
-				}
-				title = matchedCommand.Title
-			} else {
-				path = botinput.GetWebhookInputTypeIdNameString(inputType)
-				title = matchedCommand.Title
-			}
-		}
+		path := string(matchedCommand.Code)
+		title := matchedCommand.Title
+		//if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
+		//	chatData := whc.ChatData()
+		//	if chatData != nil {
+		//		path = chatData.GetAwaitingReplyTo()
+		//		if path == "" {
+		//			path = string(matchedCommand.Code)
+		//		} else if pathURL, err := url.Parse(path); err == nil {
+		//			path = pathURL.Path
+		//		}
+		//		title = matchedCommand.Title
+		//	} else {
+		//		path = botinput.GetWebhookInputTypeIdNameString(inputType)
+		//		title = matchedCommand.Title
+		//	}
+		//}
 
 		if path != "" {
 			host := whc.BotPlatform().ID()
