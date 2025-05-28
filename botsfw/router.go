@@ -697,11 +697,13 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 
 		if path != "" {
 			host := whc.BotPlatform().ID()
-			path = "bot/" + whc.GetBotCode() + "/"
+			botCode := whc.GetBotCode()
+			path = "bot/" + botCode + "/"
 			pageView := analytics.NewPageview(host, path)
 			if title != "" {
 				pageView = pageView.SetTitle(title)
 			}
+			pageView.Properties().Set("bot", botCode)
 			whAnalytics := whc.Analytics()
 			whAnalytics.Enqueue(pageView)
 		}
