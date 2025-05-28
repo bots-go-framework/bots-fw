@@ -12,7 +12,7 @@ type WebhookAnalytics interface {
 var _ WebhookAnalytics = (*webhookAnalytics)(nil)
 
 type webhookAnalytics struct {
-	whcb WebhookContextBase
+	whcb *WebhookContextBase
 }
 
 func (wha webhookAnalytics) UserContext() *analytics.UserContext {
