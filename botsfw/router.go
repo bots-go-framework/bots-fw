@@ -676,7 +676,6 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 		}
 	}
 	if matchedCommand != nil {
-		gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 		pathPrefix := "bot/"
 		var path, title string
 		if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
@@ -697,7 +696,12 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 		}
 
 		if path != "" {
-			pageView := analytics.NewPageview(gaHostName, path).SetTitle(title)
+			host := whc.BotPlatform().ID()
+			path = "bot/" + whc.GetBotCode() + "/"
+			pageView := analytics.NewPageview(host, path)
+			if title != "" {
+				pageView = pageView.SetTitle(title)
+			}
 			whAnalytics := whc.Analytics()
 			whAnalytics.Enqueue(pageView)
 		}
