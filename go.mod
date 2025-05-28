@@ -1,6 +1,6 @@
 module github.com/bots-go-framework/bots-fw
 
-go 1.22.3
+go 1.24.3
 
 //replace github.com/strongo/app => ../../strongo/app
 //replace github.com/strongo/i18n => ../../strongo/i18n
@@ -12,7 +12,7 @@ require (
 	github.com/dal-go/dalgo v0.21.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.10.0
-	github.com/strongo/gamp v0.0.1
+	github.com/strongo/analytics v0.0.6
 	github.com/strongo/i18n v0.6.1
 	github.com/strongo/logus v0.2.1
 )

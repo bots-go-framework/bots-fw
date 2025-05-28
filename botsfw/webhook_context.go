@@ -6,18 +6,12 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/strongo/gamp"
 	"github.com/strongo/i18n"
 	"net/http"
 )
 
 // WebhookInlineQueryContext provides context for inline query (TODO: check & document)
 type WebhookInlineQueryContext interface {
-}
-
-// GaQueuer queues messages for sending to Google Analytics
-type GaQueuer interface { // TODO: can be unexported?
-	Queue(message gamp.Message) error
 }
 
 // ExecutionContext TODO: either specify clear purpose and added value or remove
@@ -119,7 +113,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	Responder() WebhookResponder
 
-	GA() GaContext // TODO: We should have an abstraction for analytics
+	Analytics() WebhookAnalytics
 }
 
 // BotState provides state of the bot (TODO: document how is used)

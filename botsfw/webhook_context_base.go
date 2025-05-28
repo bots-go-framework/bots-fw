@@ -9,7 +9,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/gamp"
+	"github.com/strongo/analytics"
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
@@ -59,6 +59,8 @@ type WebhookContextBase struct {
 	//recordsMaker        botsfwmodels.BotRecordsMaker
 	recordsFieldsSetter BotRecordsFieldsSetter
 
+	whAnalytics WebhookAnalytics
+
 	getIsInGroup func() (bool, error)
 
 	getLocaleAndChatID func() (locale, chatID string, err error) // TODO: Document why we need to pass context. Is it to support transactions?
@@ -83,8 +85,10 @@ type WebhookContextBase struct {
 	//dal botsfwdal.DataAccess
 	db dal.DB
 	//tx dal.ReadwriteTransaction
+}
 
-	gaContext gaContext
+func (whcb *WebhookContextBase) Analytics() WebhookAnalytics {
+	return whcb.whAnalytics
 }
 
 func (whcb *WebhookContextBase) DB() dal.DB {
@@ -333,10 +337,6 @@ func NewWebhookContextBase(
 		//dal:                 botCoreStores,
 		recordsFieldsSetter: recordsFieldsSetter,
 	}
-	whcb.gaContext = gaContext{
-		whcb:          whcb,
-		gaMeasurement: args.GaMeasurement,
-	}
 	// TODO: make sure we do not fail here for non group chats
 	//var isInGroup bool
 	//if isInGroup, err = getIsInGroup(); err != nil {
@@ -394,64 +394,6 @@ func (whcb *WebhookContextBase) GetTime() time.Time { // TODO: remove
 // InputType returns input type
 func (whcb *WebhookContextBase) InputType() botinput.WebhookInputType { // TODO: remove
 	return whcb.input.InputType()
-}
-
-// GaMeasurement returns a provider to send information to Google Analytics
-func (gac gaContext) GaMeasurement() GaQueuer {
-	return gac.gaMeasurement
-}
-
-type gaContext struct {
-	whcb          *WebhookContextBase
-	gaMeasurement GaQueuer
-}
-
-// GA provides interface to Google Analytics
-func (whcb *WebhookContextBase) GA() GaContext {
-	return whcb.gaContext
-}
-
-func (gac gaContext) Queue(message gamp.Message) error {
-	if gac.gaMeasurement == nil { // TODO: not good :(
-		return nil
-	}
-	if message.GetTrackingID() == "" {
-		message.SetTrackingID(gac.whcb.GetBotSettings().GAToken)
-		if message.GetTrackingID() == "" {
-			return fmt.Errorf("gaContext.Queue(%v): %w", message, gamp.ErrNoTrackingID)
-		}
-	}
-	return gac.gaMeasurement.Queue(message)
-}
-
-//	func (gac gaContext) Flush() error {
-//		return gac.gaMeasurement.
-//	}
-//
-// GaCommon creates context for Google Analytics
-func (gac gaContext) GaCommon() (result gamp.Common) {
-	whcb := gac.whcb
-	if whcb.botChat.Record != nil && whcb.botChat.Record.Exists() {
-		result.UserID = whcb.botChat.Data.GetAppUserID()
-		result.UserLanguage = strings.ToLower(whcb.botChat.Data.GetPreferredLanguage())
-		platformID := whcb.botPlatform.ID()
-		result.ApplicationID = fmt.Sprintf("bot.%v.%v", platformID, whcb.GetBotCode())
-		result.UserAgent = fmt.Sprintf("%v bot @ %v", platformID, whcb.r.Host)
-		result.DataSource = "bot"
-		return
-	}
-	return gamp.Common{
-		DataSource: "bot",
-		ClientID:   "", // TODO: DO NOT USE hardcoded value here!
-	}
-}
-
-func (gac gaContext) GaEvent(category, action string) *gamp.Event { // TODO: remove
-	return gamp.NewEvent(category, action, gac.GaCommon())
-}
-
-func (gac gaContext) GaEventWithLabel(category, action, label string) *gamp.Event {
-	return gamp.NewEventWithLabel(category, action, label, gac.GaCommon())
 }
 
 // BotPlatform indicates on which bot platform we process message
@@ -579,25 +521,11 @@ func (whcb *WebhookContextBase) createPlatformUserRecord(tx dal.ReadwriteTransac
 	log.Infof(ctx, "Bot user entity created")
 
 	{ // Log analytics
-		ga := whcb.gaContext
-		if err = ga.Queue(ga.GaEvent("users", "user-created")); err != nil { //TODO: Should be outside
-			log.Errorf(ctx, "Failed to queue GA event: %v", err)
-			err = nil
-			return
-		}
-		if err = ga.Queue(ga.GaEventWithLabel("users", "messenger-linked", whcb.botPlatform.ID())); err != nil { // TODO: Should be outside
-			log.Errorf(ctx, "Failed to queue GA event: %v", err)
-			err = nil
-			return
-		}
+		whAnalytics := whcb.Analytics()
 
-		if whcb.GetBotSettings().Env == EnvProduction {
-			if err = ga.Queue(ga.GaEventWithLabel("bot-users", "bot-user-created", whcb.botPlatform.ID())); err != nil {
-				log.Errorf(ctx, "Failed to queue GA event: %v", err)
-				err = nil
-				return
-			}
-		}
+		whAnalytics.Enqueue(analytics.NewEvent("user-created", "users", "bot-create-user"))
+		whAnalytics.Enqueue(analytics.NewEvent("messenger-linked", "users", "bot-create-user"))
+		whAnalytics.Enqueue(analytics.NewEvent("bot-user-created", "users", "bot-create-user"))
 	}
 
 	return
@@ -693,13 +621,9 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 			return err
 		}
 
-		if whcb.GetBotSettings().Env == EnvProduction {
-			ga := whcb.gaContext
-			if err = ga.Queue(ga.GaEventWithLabel("bot-chats", "bot-botChat-created", whcb.botPlatform.ID())); err != nil {
-				log.Errorf(ctx, "Failed to queue GA event: %v", err)
-				err = nil
-			}
-		}
+		event := analytics.NewEvent("bot-botChat-created", "bots", "create-bot-chat")
+		event.SetLabel(whcb.botPlatform.ID())
+		whcb.Analytics().Enqueue(event)
 	}
 
 	if sender := whcb.input.GetSender(); sender != nil {

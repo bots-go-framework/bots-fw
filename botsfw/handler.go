@@ -43,11 +43,7 @@ type CreateWebhookContextArgs struct {
 	AppContext   AppContext
 	BotContext   BotContext
 	WebhookInput botinput.WebhookInput
-
-	Db dal.DB //Tx dal.ReadwriteTransaction
-
-	//BotCoreStores botsfwdal.DataAccess
-	GaMeasurement GaQueuer
+	Db           dal.DB
 }
 
 func NewCreateWebhookContextArgs(
@@ -56,18 +52,12 @@ func NewCreateWebhookContextArgs(
 	botContext BotContext,
 	webhookInput botinput.WebhookInput,
 	db dal.DB,
-	//botCoreStores botsfwdal.DataAccess,
-	gaMeasurement GaQueuer,
 ) CreateWebhookContextArgs {
 	return CreateWebhookContextArgs{
 		HttpRequest:  httpRequest,
 		AppContext:   appContext,
 		BotContext:   botContext,
 		WebhookInput: webhookInput,
-
-		Db: db, //Tx: tx,
-
-		//BotCoreStores: botCoreStores,
-		GaMeasurement: gaMeasurement,
+		Db:           db,
 	}
 }

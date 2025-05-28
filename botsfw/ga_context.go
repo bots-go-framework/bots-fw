@@ -1,12 +1,28 @@
 package botsfw
 
-import "github.com/strongo/gamp"
+import (
+	"github.com/strongo/analytics"
+	"strings"
+)
 
-// GaContext provides context to Google Analytics - TODO: we should have an abstraction for analytics
-type GaContext interface {
-	GaQueuer
-	// Flush() error
-	GaCommon() gamp.Common
-	GaEvent(category, action string) *gamp.Event
-	GaEventWithLabel(category, action, label string) *gamp.Event
+type WebhookAnalytics interface {
+	Enqueue(message analytics.Message)
+}
+
+var _ WebhookAnalytics = (*webhookAnalytics)(nil)
+
+type webhookAnalytics struct {
+	whcb WebhookContextBase
+}
+
+func (wha webhookAnalytics) UserContext() *analytics.UserContext {
+	return &analytics.UserContext{
+		UserID:       wha.whcb.AppUserID(),
+		UserLanguage: strings.ToLower(wha.whcb.botChat.Data.GetPreferredLanguage()),
+	}
+}
+
+func (wha webhookAnalytics) Enqueue(message analytics.Message) {
+	ctx := wha.whcb.Context()
+	wha.UserContext().QueueMessage(ctx, message)
 }

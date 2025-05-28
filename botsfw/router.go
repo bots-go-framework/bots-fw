@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
-	"github.com/strongo/gamp"
+	"github.com/strongo/analytics"
 	"net/url"
 	"strings"
 	"time"
@@ -649,8 +649,6 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 	}
 
 	c := whc.Context()
-	ga := whc.GA()
-	// gam.GeographicalOverride()
 
 	responseChannel := m.ResponseChannel
 	if responseChannel == "" {
@@ -677,35 +675,31 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 			log.Errorf(c, fmt.Errorf("%s: %w", failedToSendMessageToMessenger, err).Error()) // TODO: Decide how do we handle this
 		}
 	}
-	if matchedCommand != nil && ga != nil {
+	if matchedCommand != nil {
 		gaHostName := fmt.Sprintf("%v.debtstracker.io", strings.ToLower(whc.BotPlatform().ID()))
 		pathPrefix := "bot/"
-		var pageView *gamp.Pageview
+		var path, title string
 		if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
 			chatData := whc.ChatData()
 			if chatData != nil {
-				path := chatData.GetAwaitingReplyTo()
+				path = chatData.GetAwaitingReplyTo()
 				if path == "" {
 					path = string(matchedCommand.Code)
 				} else if pathURL, err := url.Parse(path); err == nil {
 					path = pathURL.Path
 				}
-				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+path, matchedCommand.Title)
+				path = pathPrefix + path
+				title = matchedCommand.Title
 			} else {
-				pageView = gamp.NewPageviewWithDocumentHost(gaHostName, pathPrefix+botinput.GetWebhookInputTypeIdNameString(inputType), matchedCommand.Title)
+				path = pathPrefix + botinput.GetWebhookInputTypeIdNameString(inputType)
+				title = matchedCommand.Title
 			}
 		}
 
-		if pageView != nil {
-			pageView.Common = ga.GaCommon()
-			if err = ga.Queue(pageView); err != nil {
-				if strings.Contains(err.Error(), "no tracking ID") {
-					log.Debugf(c, "process command response: failed to send page view to GA: %v", err)
-				} else {
-					log.Warningf(c, "proess command response: failed to send page view to GA: %v", err)
-				}
-				err = nil
-			}
+		if path != "" {
+			pageView := analytics.NewPageview(gaHostName, path).SetTitle(title)
+			whAnalytics := whc.Analytics()
+			whAnalytics.Enqueue(pageView)
 		}
 	}
 }
@@ -714,18 +708,9 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 	c := whc.Context()
 	// log.Errorf() we are logging this in dispatcher
 	env := whc.GetBotSettings().Env
-	ga := whc.GA()
-	if env == EnvProduction && ga != nil {
-		exceptionMessage := gamp.NewException(err.Error(), false)
-		exceptionMessage.Common = ga.GaCommon()
-		if err = ga.Queue(exceptionMessage); err != nil {
-			if strings.Contains(err.Error(), "no tracking ID") {
-				log.Debugf(c, "processCommandResponseError: failed to send page view to GA: %v", err)
-			} else {
-				log.Warningf(c, "processCommandResponseError: failed to send page view to GA: %v", err)
-			}
-			err = nil
-		}
+
+	if env == EnvProduction {
+		whc.Analytics().Enqueue(analytics.NewErrorMessage(err))
 	}
 	//inputType := whc.Input().InputType()
 	switch whc.Input().InputType() {

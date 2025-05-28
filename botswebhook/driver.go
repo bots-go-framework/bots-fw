@@ -12,12 +12,11 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/gamp"
+	"github.com/strongo/analytics"
 	"github.com/strongo/logus"
 	"net/http"
 	"runtime/debug"
 	"strings"
-	"time"
 )
 
 // ErrorIcon is used to report errors to user
@@ -121,8 +120,6 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 }
 
-var isMissingGATrackingAlreadyReported bool
-
 func (d BotDriver) processWebhookInput(
 	ctx context.Context,
 	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
@@ -134,49 +131,23 @@ func (d BotDriver) processWebhookInput(
 	err error,
 ) {
 	var (
-		whc               botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
-		measurementSender *gamp.BufferedClient
+		whc botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
 	)
-
-	// Initiate Google Analytics Measurement API client
-	sendStats := d.Analytics.Enabled != nil && d.Analytics.Enabled(r) ||
-		botContext.BotSettings.Env == botsfw.EnvProduction
-
-	if sendStats {
-		if d.Analytics.GaTrackingID == "" {
-			sendStats = false
-			if !isMissingGATrackingAlreadyReported {
-				log.Warningf(ctx, "driver.Analytics.GaTrackingID is not set")
-			}
-		} else {
-			botHost := botContext.BotHost
-			measurementSender = gamp.NewBufferedClient("", botHost.GetHTTPClient(ctx), func(err error) {
-				log.Errorf(ctx, "Failed to log to GA: %v", err)
-			})
-		}
-	} else {
-		log.Debugf(ctx, "botContext.BotSettings.Env=%s, sendStats=%t", botContext.BotSettings.Env, sendStats)
-	}
-
-	started := time.Now()
 
 	defer func() {
 		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
-		if sendStats {
-			timing := gamp.NewTiming(time.Since(started))
-			timing.TrackingID = d.Analytics.GaTrackingID // TODO: What to do if different FB bots have different Tacking IDs? Can FB handler get messages for different bots? If not (what probably is the case) can we get ID from bot settings instead of driver?
-			if err := measurementSender.Queue(timing); err != nil {
-				log.Errorf(ctx, "Failed to log timing to GA: %v", err)
-			}
-		}
 
-		reportError := func(recovered interface{}) {
-			messageText := fmt.Sprintf("Server error (panic): %v\n\n%v", recovered, d.panicTextFooter)
+		if recovered := recover(); recovered != nil {
+			messageText := fmt.Sprintf("Panic: %v\n\n%v", recovered, d.panicTextFooter)
 			stack := string(debug.Stack())
 			log.Criticalf(ctx, "Panic recovered: %s\n%s", messageText, stack)
 
-			if sendStats { // Zero if GA is disabled
-				d.reportErrorToGA(ctx, whc, measurementSender, messageText)
+			// Initiate Google Analytics Measurement API client
+
+			if analyticsEnabled := d.Analytics.Enabled != nil && d.Analytics.Enabled(r) || botContext.BotSettings.Env == botsfw.EnvProduction; analyticsEnabled {
+				d.reportPanicToAnalytics(ctx, whc, messageText)
+			} else {
+				log.Debugf(ctx, "botContext.BotSettings.Env=%s, analyticsEnabled=%t", botContext.BotSettings.Env, analyticsEnabled)
 			}
 
 			if whc != nil {
@@ -190,19 +161,6 @@ func (d BotDriver) processWebhookInput(
 				}
 			}
 		}
-
-		if recovered := recover(); recovered != nil {
-			reportError(recovered)
-		} else if sendStats {
-			//log.Debugf(ctx, "Flushing GA...")
-			if err = measurementSender.Flush(); err != nil {
-				log.Warningf(ctx, "Failed to flush to GA: %v", err)
-			} else if queueDepth := measurementSender.QueueDepth(); queueDepth > 0 {
-				log.Debugf(ctx, "Sent to GA: %v items", queueDepth)
-			}
-		} else {
-			log.Debugf(ctx, "GA: sendStats=false")
-		}
 	}()
 
 	if input == nil {
@@ -215,7 +173,7 @@ func (d BotDriver) processWebhookInput(
 		return
 	}
 
-	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db, measurementSender)
+	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db)
 	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 		handleError(err, "Failed to create WebhookContext")
 		return
@@ -326,27 +284,11 @@ func isRunningLocally(host string) bool { // TODO(help-wanted): allow customizat
 	return result
 }
 
-func (BotDriver) reportErrorToGA(c context.Context, whc botsfw.WebhookContext, measurementSender *gamp.BufferedClient, messageText string) {
-	log.Warningf(c, "reportErrorToGA() is temporary disabled")
-
-	ga := whc.GA()
-	if ga == nil {
-		return
-	}
-	gaMessage := gamp.NewException(messageText, true)
-	gaMessage.Common = ga.GaCommon()
-
-	if err := ga.Queue(gaMessage); err != nil {
-		log.Errorf(c, "Failed to queue exception message for GA: %v", err)
-	} else {
-		log.Debugf(c, "Exception message queued for GA.")
-	}
-
-	if err := measurementSender.Flush(); err != nil {
-		log.Errorf(c, "Failed to flush GA buffer after exception: %v", err)
-	} else {
-		log.Debugf(c, "GA buffer flushed after exception")
-	}
+func (BotDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, recovered any) {
+	log.Warningf(c, "reportPanicToAnalytics() is temporary disabled")
+	err := fmt.Errorf("panic: %v", recovered)
+	msg := analytics.NewErrorMessage(err) // TODO: replace with analytics.NewPanicMessage()
+	whc.Analytics().Enqueue(msg)
 }
 
 func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
