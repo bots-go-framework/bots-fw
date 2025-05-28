@@ -676,7 +676,6 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 		}
 	}
 	if matchedCommand != nil {
-		pathPrefix := "bot/"
 		var path, title string
 		if inputType := whc.Input().InputType(); inputType != botinput.WebhookInputCallbackQuery {
 			chatData := whc.ChatData()
@@ -687,10 +686,9 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 				} else if pathURL, err := url.Parse(path); err == nil {
 					path = pathURL.Path
 				}
-				path = pathPrefix + path
 				title = matchedCommand.Title
 			} else {
-				path = pathPrefix + botinput.GetWebhookInputTypeIdNameString(inputType)
+				path = botinput.GetWebhookInputTypeIdNameString(inputType)
 				title = matchedCommand.Title
 			}
 		}
