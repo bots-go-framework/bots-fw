@@ -695,10 +695,9 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 		//}
 
 		if path != "" {
-			host := whc.BotPlatform().ID()
+			platformID := whc.BotPlatform().ID()
 			botCode := whc.GetBotCode()
-			path = "bot/" + botCode + "/" + path
-			pageView := analytics.NewPageview(host, path)
+			pageView := analytics.NewPageview(platformID, "bot/"+botCode+"/"+path).SetURL(platformID + "://" + botCode + "/" + path)
 			if title != "" {
 				pageView = pageView.SetTitle(title)
 			}
