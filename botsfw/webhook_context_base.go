@@ -25,6 +25,10 @@ type whContextDummy struct {
 	*WebhookContextBase
 }
 
+func (w whContextDummy) TranslateWithMap(key string, args map[string]string) string {
+	panic(fmt.Sprintf("must be implemented in platform specific code: key=%s", key))
+}
+
 func (w whContextDummy) NewEditMessage(text string, format MessageFormat) (MessageFromBot, error) {
 	panic(fmt.Sprintf("must be implemented in platform specific code: text=%s, format=%v", text, format))
 }

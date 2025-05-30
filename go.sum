@@ -18,6 +18,8 @@ github.com/strongo/analytics v0.0.11 h1:rgORqeYRf1kXkJOBX+7UO5Op2ulcc5jkp7fbUC5+
 github.com/strongo/analytics v0.0.11/go.mod h1:1OdiZI9/fPDN8ep1Pbz+F3UZPNbttUD7T1St15r760c=
 github.com/strongo/i18n v0.6.1 h1:hNtpU97R5xYavf6n2wfRFWGZHjRZ2lHmube0t2+FHFE=
 github.com/strongo/i18n v0.6.1/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
+github.com/strongo/i18n v0.7.0 h1:AaauCVm1GUF8j0WvMhEKQ/NeAKEQKOzFhC2lCKamcd0=
+github.com/strongo/i18n v0.7.0/go.mod h1:4jBQ4PJ3Uiri2Y+LHJ5/o1nB1H2ToddRW/yZXSOTUjE=
 github.com/strongo/logus v0.2.1 h1:ZzAtdSg6PPF1Y43WbNWl7MH1XYl7kvKMxyxv/lpbadI=
 github.com/strongo/logus v0.2.1/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
