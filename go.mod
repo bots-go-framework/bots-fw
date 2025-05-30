@@ -13,7 +13,7 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.10.0
 	github.com/strongo/analytics v0.0.11
-	github.com/strongo/i18n v0.7.0
+	github.com/strongo/i18n v0.7.1
 	github.com/strongo/logus v0.2.1
 )
 
