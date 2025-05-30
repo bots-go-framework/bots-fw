@@ -23,5 +23,6 @@ require (
 	github.com/strongo/random v0.0.1 // indirect
 	github.com/strongo/slice v0.3.1 // indirect
 	github.com/strongo/validation v0.0.7 // indirect
+	go.uber.org/mock v0.5.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
