@@ -288,6 +288,20 @@ func (mr *MockWebhookContextMockRecorder) GetBotUserID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBotUserID", reflect.TypeOf((*MockWebhookContext)(nil).GetBotUserID))
 }
 
+// GetTranslator mocks base method.
+func (m *MockWebhookContext) GetTranslator(locale string) i18n.SingleLocaleTranslator {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTranslator", locale)
+	ret0, _ := ret[0].(i18n.SingleLocaleTranslator)
+	return ret0
+}
+
+// GetTranslator indicates an expected call of GetTranslator.
+func (mr *MockWebhookContextMockRecorder) GetTranslator(locale any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTranslator", reflect.TypeOf((*MockWebhookContext)(nil).GetTranslator), locale)
+}
+
 // Input mocks base method.
 func (m *MockWebhookContext) Input() botinput.WebhookInput {
 	m.ctrl.T.Helper()

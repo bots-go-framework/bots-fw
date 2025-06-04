@@ -339,6 +339,15 @@ func NewWebhookContextBase(
 	return
 }
 
+func (whcb *WebhookContextBase) GetTranslator(locale string) i18n.SingleLocaleTranslator {
+	return translator{
+		localeCode5: func() string {
+			return locale
+		},
+		Translator: whcb.appContext.GetTranslator(whcb.c),
+	}
+}
+
 // Input returns webhook input
 func (whcb *WebhookContextBase) Input() botinput.WebhookInput {
 	return whcb.input

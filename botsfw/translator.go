@@ -6,7 +6,7 @@ var _ i18n.SingleLocaleTranslator = (*translator)(nil)
 
 type translator struct {
 	i18n.Translator
-	localeCode5 func() string
+	localeCode5 func() string // Can this be simply a string member?
 }
 
 func (t translator) Locale() i18n.Locale {

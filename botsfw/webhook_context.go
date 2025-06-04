@@ -110,6 +110,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 
 	//botinput.WebhookInput // TODO: Should be removed!!!
 	i18n.SingleLocaleTranslator
+	GetTranslator(locale string) i18n.SingleLocaleTranslator
 
 	Responder() WebhookResponder
 
