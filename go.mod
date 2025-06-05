@@ -13,8 +13,9 @@ require (
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/stretchr/testify v1.10.0
 	github.com/strongo/analytics v0.0.11
-	github.com/strongo/i18n v0.7.1
+	github.com/strongo/i18n v0.8.2
 	github.com/strongo/logus v0.2.1
+	go.uber.org/mock v0.5.2
 )
 
 require (
@@ -23,6 +24,5 @@ require (
 	github.com/strongo/random v0.0.1 // indirect
 	github.com/strongo/slice v0.3.1 // indirect
 	github.com/strongo/validation v0.0.7 // indirect
-	go.uber.org/mock v0.5.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
