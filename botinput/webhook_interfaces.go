@@ -12,77 +12,6 @@ type WebhookEntry interface {
 	GetTime() time.Time
 }
 
-// WebhookInputType is enum of input type
-type WebhookInputType int
-
-const (
-	// WebhookInputUnknown is an unknown input type
-	WebhookInputUnknown WebhookInputType = iota
-	// WebhookInputNotImplemented is not implemented input type
-	WebhookInputNotImplemented
-	// WebhookInputText is a text input type
-	WebhookInputText // Facebook, Telegram, Viber
-	// WebhookInputVoice is voice input type
-	WebhookInputVoice
-	// WebhookInputPhoto is a photo input type
-	WebhookInputPhoto
-	// WebhookInputAudio is an audio input type
-	WebhookInputAudio
-	// WebhookInputContact is a contact input type
-	WebhookInputContact // Facebook, Telegram, Viber
-	// WebhookInputPostback is unknown input type
-	WebhookInputPostback
-	// WebhookInputDelivery is a postback input type
-	WebhookInputDelivery
-	// WebhookInputAttachment is a delivery report input type
-	WebhookInputAttachment
-	// WebhookInputInlineQuery is an attachment input type
-	WebhookInputInlineQuery // Telegram
-	// WebhookInputCallbackQuery is inline input type
-	WebhookInputCallbackQuery
-	// WebhookInputReferral is a callback input type
-	WebhookInputReferral // FBM
-	// WebhookInputChosenInlineResult is chosen inline result input type
-	WebhookInputChosenInlineResult // Telegram
-	// WebhookInputSubscribed is subscribed input type
-	WebhookInputSubscribed // Viber
-	// WebhookInputUnsubscribed is unsubscribed input type
-	WebhookInputUnsubscribed // Viber
-	// WebhookInputConversationStarted is conversation started input type
-	WebhookInputConversationStarted // Viber
-	// WebhookInputNewChatMembers is new botChat members input type
-	WebhookInputNewChatMembers // Telegram groups
-	// WebhookInputLeftChatMembers is left botChat members input type
-	WebhookInputLeftChatMembers
-	// WebhookInputSticker is a sticker input type
-	WebhookInputSticker
-	WebhookInputSharedUsers // Telegram
-)
-
-var webhookInputTypeNames = map[WebhookInputType]string{
-	WebhookInputUnknown:             "unknown",
-	WebhookInputNotImplemented:      "NotImplemented",
-	WebhookInputText:                "Text",
-	WebhookInputVoice:               "Voice",
-	WebhookInputPhoto:               "Photo",
-	WebhookInputAudio:               "Audio",
-	WebhookInputReferral:            "Referral",
-	WebhookInputContact:             "Contact",
-	WebhookInputPostback:            "Postback",
-	WebhookInputDelivery:            "Delivery",
-	WebhookInputAttachment:          "Attachment",
-	WebhookInputInlineQuery:         "InlineQuery",
-	WebhookInputCallbackQuery:       "CallbackQuery",
-	WebhookInputChosenInlineResult:  "ChosenInlineResult",
-	WebhookInputSubscribed:          "Subscribed",          // Viber
-	WebhookInputUnsubscribed:        "Unsubscribed",        // Viber
-	WebhookInputConversationStarted: "ConversationStarted", // Telegram
-	WebhookInputNewChatMembers:      "NewChatMembers",      // Telegram
-	WebhookInputSticker:             "Sticker",             // Telegram
-	WebhookInputLeftChatMembers:     "LeftChatMembers",     // Telegram
-	WebhookInputSharedUsers:         "SharedUsers",         // Telegram
-}
-
 func GetWebhookInputTypeIdNameString(whInputType WebhookInputType) string {
 	name, ok := webhookInputTypeNames[whInputType]
 	if ok {
@@ -263,6 +192,64 @@ type WebhookCallbackQuery interface {
 	GetMessage() WebhookMessage
 	GetData() string
 	Chat() WebhookChat
+}
+
+//type SuccessfulPayment struct {
+//	Currency                string
+//	TotalAmount             int
+//	Payload                 string
+//	IsRecurring             bool
+//	IsFirstRecurring        bool
+//	MessengerChargeID       string
+//	PaymentProviderChargeID string
+//	//
+//	SubscriptionExpirationDate *time.Time
+//}
+
+type webhookPayment interface {
+	GetCurrency() string
+	GetTotalAmount() int
+	GetInvoicePayload() string
+	GetMessengerChargeID() string
+	GetPaymentProviderChargeID() string
+}
+type WebhookSuccessfulPayment interface {
+	webhookPayment
+	GetSubscriptionExpirationDate() time.Time
+	GetIsRecurring() bool
+	GetIsFirstRecurring() bool
+	GetShippingOptionID() string
+	GetOrderInfo() OrderInfo
+}
+
+type WebhookRefundedPayment interface {
+	webhookPayment
+}
+
+type WebhookPreCheckoutQuery interface {
+	GetPreCheckoutQueryID() string
+	GetCurrency() string
+	GetTotalAmount() int
+	GetInvoicePayload() string
+	GetFrom() WebhookSender
+	GetShippingOptionID() string
+	GetOrderInfo() OrderInfo
+}
+
+type OrderInfo interface {
+	GetUserName() string //
+	GetPhoneNumber() string
+	GetEmailAddress() string
+	GetShippingAddress() ShippingAddress
+}
+
+type ShippingAddress interface {
+	GetCountryCode() string // Two-letter ISO 3166-1 alpha-2 country code
+	GetState() string       // if applicable
+	GetCity() string
+	GetStreetLine1() string // First line for the address
+	GetStreetLine2() string // Second line for the address
+	GetPostCode() string
 }
 
 // WebhookAttachment represents attachment to a message

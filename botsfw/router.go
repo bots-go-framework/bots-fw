@@ -7,6 +7,7 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/strongo/analytics"
+	"github.com/strongo/logus"
 	"net/url"
 	"strings"
 	"time"
@@ -154,6 +155,15 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 			if command.ChosenInlineResultAction != nil {
 				addCommand(botinput.WebhookInputChosenInlineResult, command)
 			}
+			if command.PreCheckoutQueryAction != nil {
+				addCommand(botinput.WebhookInputPreCheckoutQuery, command)
+			}
+			if command.SuccessfulPaymentAction != nil {
+				addCommand(botinput.WebhookInputSuccessfulPayment, command)
+			}
+			if command.RefundedPaymentAction != nil {
+				addCommand(botinput.WebhookInputRefundedPayment, command)
+			}
 			if command.Action != nil {
 				panic(fmt.Errorf("command{Code=%v} has Action but no InputTypes", command.Code))
 			}
@@ -172,6 +182,14 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no CallbackAction and no Action", command.Code, command.InputTypes))
 					}
 					callbackAdded = true
+				case botinput.WebhookInputPreCheckoutQuery:
+					if command.PreCheckoutQueryAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no PreCheckoutQueryAction and no Action", command.Code, command.InputTypes))
+					}
+				case botinput.WebhookInputSuccessfulPayment:
+					if command.SuccessfulPaymentAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no SuccessfulPaymentAction and no Action", command.Code, command.InputTypes))
+					}
 				case botinput.WebhookInputInlineQuery:
 					if command.InlineQueryAction == nil && command.Action == nil {
 						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no InlineQueryAction and no Action", command.Code, command.InputTypes))
@@ -227,29 +245,18 @@ func matchByQueryOrMatcher(whc WebhookContext, input interface{ GetQuery() strin
 	return
 }
 
-func matchCallbackCommands(whc WebhookContext, input botinput.WebhookCallbackQuery, commands map[CommandCode]Command) (matchedCommand *Command, callbackURL *url.URL, err error) {
-
-	callbackData := input.GetData()
-	callbackURL, err = url.Parse(callbackData)
-	if err != nil {
-		log.Debugf(whc.Context(), "Failed to parse callback data to URL: %v", err.Error())
-	} else {
-		for _, c := range commands {
-			if c.Matcher != nil && c.Matcher(c, whc) {
-				return &c, callbackURL, nil
-			}
-		}
-		callbackPath := callbackURL.Path
-		if command, ok := commands[CommandCode(callbackPath)]; ok {
-			return &command, callbackURL, nil
+func matchCallbackCommands(whc WebhookContext, dataText string, dataURL *url.URL, commands map[CommandCode]Command) (matchedCommand *Command, err error) {
+	for _, c := range commands {
+		if c.Matcher != nil && c.Matcher(c, whc) {
+			return &c, nil
 		}
 	}
-	//if matchedCommand == nil {
-	log.Errorf(whc.Context(), fmt.Errorf("%w: %s", ErrNoCommandsMatched, fmt.Sprintf("callbackData=[%v]", callbackData)).Error())
+	if command, ok := commands[CommandCode(dataURL.Path)]; ok {
+		return &command, nil
+	}
+	log.Errorf(whc.Context(), fmt.Errorf("%w: %s", ErrNoCommandsMatched, fmt.Sprintf("dataText=[%v]", dataText)).Error())
 	whc.Input().LogRequest() // TODO: LogRequest() should not be part of Input?
-	//}
-
-	return nil, callbackURL, err
+	return nil, err
 }
 
 func (whRouter *webhooksRouter) matchMessageCommands(whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
@@ -408,10 +415,10 @@ func changeLocaleIfLangPassed(whc WebhookContext, callbackUrl *url.URL) (m Messa
 
 // Dispatch a query to commands
 func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responder WebhookResponder, whc WebhookContext) (err error) {
-	c := whc.Context()
+	ctx := whc.Context()
 	// defer func() {
 	// 	if err := recover(); err != nil {
-	// 		log.Criticalf(c, "*webhooksRouter.Dispatch() => PANIC: %v", err)
+	// 		log.Criticalf(ctx, "*webhooksRouter.Dispatch() => PANIC: %v", err)
 	// 	}
 	// }()
 
@@ -419,7 +426,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 
 	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
-		log.Debugf(c, "No commands found to match by inputType: %v", botinput.GetWebhookInputTypeIdNameString(inputType))
+		log.Debugf(ctx, "No commands found to match by inputType: %v", botinput.GetWebhookInputTypeIdNameString(inputType))
 		whc.Input().LogRequest()
 		logInputDetails(whc, false)
 		return
@@ -435,18 +442,23 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		panic("len(typeCommands.all) == 0")
 	}
 
-	input := whc.Input()
-	switch input := input.(type) {
+	switch input := whc.Input().(type) {
 	case botinput.WebhookCallbackQuery:
+		callbackData := input.GetData()
 		var callbackURL *url.URL
-		matchedCommand, callbackURL, err = matchCallbackCommands(whc, input, typeCommands.byCode)
+		if callbackData != "" {
+			if callbackURL, err = url.Parse(callbackData); err != nil {
+				log.Warningf(whc.Context(), "Failed to parse callback data to URL: %v", err.Error())
+			}
+		}
+		matchedCommand, err = matchCallbackCommands(whc, callbackData, callbackURL, typeCommands.byCode)
 		if err == nil && matchedCommand != nil {
 			if matchedCommand.Code == "" {
 				err = fmt.Errorf("matchedCommand(%T: %v).ByCode is empty string", matchedCommand, matchedCommand)
 			} else if matchedCommand.CallbackAction == nil {
 				err = fmt.Errorf("matchedCommand(%T: %v).CallbackAction == nil", matchedCommand, matchedCommand.Code)
 			} else {
-				log.Debugf(c, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
+				log.Debugf(ctx, "matchCallbackCommands() => matchedCommand: %T(code=%v)", matchedCommand, matchedCommand.Code)
 				if m, err = changeLocaleIfLangPassed(whc, callbackURL); err != nil || m.Text != "" {
 					return
 				}
@@ -480,7 +492,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			matchedCommand = &typeCommands.all[0] // TODO: fallback to default command
 		}
 		if matchedCommand == nil {
-			log.Debugf(c, "No command found for WebhookChosenInlineResult")
+			log.Debugf(ctx, "No command found for WebhookChosenInlineResult")
 			return nil
 		}
 		if matchedCommand.ChosenInlineResultAction == nil {
@@ -502,6 +514,48 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 					return matchedCommand.TextAction(whc, messageText)
 				}
 			}
+		}
+	case botinput.WebhookPreCheckoutQuery:
+		payloadData := input.GetInvoicePayload()
+		var payloadURL *url.URL
+		if payloadURL, err = url.Parse(payloadData); err != nil {
+			logus.Debugf(ctx, "failed to parse InvoicePayload as URL: %w", err)
+			return
+		}
+		matchedCommand, err = matchCallbackCommands(whc, payloadData, payloadURL, typeCommands.byCode)
+		if matchedCommand == nil && len(typeCommands.all) == 1 {
+			matchedCommand = &typeCommands.all[0]
+		}
+		if matchedCommand.PreCheckoutQueryAction != nil {
+			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+				return matchedCommand.PreCheckoutQueryAction(whc, input)
+			}
+		} else if matchedCommand.Action != nil {
+			commandAction = matchedCommand.Action
+		} else {
+			err = fmt.Errorf("matchedCommand(code=%s) has no PreCheckoutQueryAction or Action", matchedCommand.Code)
+			return
+		}
+	case botinput.WebhookSuccessfulPayment:
+		payloadData := input.GetInvoicePayload()
+		var payloadURL *url.URL
+		if payloadURL, err = url.Parse(payloadData); err != nil {
+			logus.Debugf(ctx, "failed to parse InvoicePayload as URL: %w", err)
+			return
+		}
+		matchedCommand, err = matchCallbackCommands(whc, payloadData, payloadURL, typeCommands.byCode)
+		if matchedCommand == nil && len(typeCommands.all) == 1 {
+			matchedCommand = &typeCommands.all[0]
+		}
+		if matchedCommand.SuccessfulPaymentAction != nil {
+			commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+				return matchedCommand.SuccessfulPaymentAction(whc, input)
+			}
+		} else if matchedCommand.Action != nil {
+			commandAction = matchedCommand.Action
+		} else {
+			err = fmt.Errorf("matchedCommand(code=%s) has no SuccessfulPaymentAction or Action", matchedCommand.Code)
+			return
 		}
 	case botinput.WebhookMessage:
 		if len(typeCommands.all) == 1 {
@@ -526,13 +580,13 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 	}
 	if err != nil {
 		err = fmt.Errorf("failed to process input{type=%s} by command{code=%s}: %w",
-			botinput.GetWebhookInputTypeIdNameString(input.InputType()), matchedCommand.Code, err)
+			botinput.GetWebhookInputTypeIdNameString(whc.Input().InputType()), matchedCommand.Code, err)
 		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
 	}
 
 	if matchedCommand == nil {
-		log.Debugf(c, "whr.matchMessageCommands() => matchedCommand == nil")
+		log.Debugf(ctx, "whr.matchMessageCommands() => matchedCommand == nil")
 		if inputType == botinput.WebhookInputChosenInlineResult {
 			return
 		}
@@ -552,14 +606,14 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 					m.Text += fmt.Sprintf("\n\n<i>AwaitingReplyTo: %s</i>", awaitingReplyTo)
 				}
 			}
-			log.Debugf(c, "No command found for the input message: %v", whc.Input().InputType())
+			log.Debugf(ctx, "No command found for the input message: %v", whc.Input().InputType())
 			whRouter.processCommandResponse(matchedCommand, responder, whc, m, nil)
 		}
 	} else { // matchedCommand != nil
 		if matchedCommand.Code == "" {
-			log.Debugf(c, "Matched to %T: %+v", matchedCommand, matchedCommand)
+			log.Debugf(ctx, "Matched to %T: %+v", matchedCommand, matchedCommand)
 		} else {
-			log.Debugf(c, "Matched to %T{Code=%s}", matchedCommand, matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
+			log.Debugf(ctx, "Matched to %T{Code=%s}", matchedCommand, matchedCommand.Code) // runtime.FuncForPC(reflect.ValueOf(command.Action).Pointer()).Name()
 		}
 		if commandAction == nil {
 			err = fmt.Errorf("no action for matched command %T{Code=%s}", matchedCommand, matchedCommand.Code)
@@ -567,7 +621,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			m, err = commandAction(whc)
 			// awaitingReplyToAfter := chatData.GetAwaitingReplyTo()
 			// if isCommandText && awaitingReplyToAfter == awaitingReplyToBefore { // TODO: Looks dangerous? Should be commands be responsible?
-			// 	log.Debugf(c, "Auto-resetting AwaitingReplyTo when not changed after processing and isCommandText=true")
+			// 	log.Debugf(ctx, "Auto-resetting AwaitingReplyTo when not changed after processing and isCommandText=true")
 			// 	chatData.SetAwaitingReplyTo("")
 			// }
 		}
@@ -578,9 +632,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 					chatData.SetDtLastInteraction(now)
 					chatData.SetUpdatedTime(now)
 					if err = whc.SaveBotChat(); err != nil {
-						log.Errorf(c, "Failed to save botChat data: %v", err)
-						if _, sendErr := whc.Responder().SendMessage(c, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
-							log.Errorf(c, "Failed to send error message to user: %v", sendErr)
+						log.Errorf(ctx, "Failed to save botChat data: %v", err)
+						if _, sendErr := whc.Responder().SendMessage(ctx, whc.NewMessage("Failed to save botChat data: "+err.Error()), BotAPISendMessageOverHTTPS); sendErr != nil {
+							log.Errorf(ctx, "Failed to send error message to user: %v", sendErr)
 						}
 					}
 				}
@@ -709,7 +763,7 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *Command, 
 }
 
 func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, matchedCommand *Command, responder WebhookResponder, err error) {
-	c := whc.Context()
+	ctx := whc.Context()
 	// log.Errorf() we are logging this in dispatcher
 	env := whc.GetBotSettings().Env
 
@@ -717,7 +771,7 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 		whc.Analytics().Enqueue(analytics.NewErrorMessage(err))
 	}
 	//inputType := whc.Input().InputType()
-	switch whc.Input().InputType() {
+	switch inputType := whc.Input().InputType(); inputType {
 	case botinput.WebhookInputText, botinput.WebhookInputContact:
 		// TODO: Try to get botChat ID from user?
 		m := whc.NewMessage(
@@ -728,7 +782,6 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 		)
 
 		if whRouter.errorFooterText != nil {
-			ctx := whc.Context()
 			args := ErrorFooterArgs{
 				BotCode:      whc.GetBotCode(),
 				BotProfileID: "", // TODO(help-wanted): implement!
@@ -737,11 +790,13 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc WebhookContext, 
 				m.Text += "\n\n" + footer
 			}
 		}
-
-		if _, respErr := responder.SendMessage(c, m, BotAPISendMessageOverResponse); respErr != nil {
-			log.Errorf(c, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
+		if _, respErr := responder.SendMessage(ctx, m, BotAPISendMessageOverResponse); respErr != nil {
+			log.Errorf(ctx, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 		}
-	case botinput.WebhookInputCallbackQuery: // TODO: For Telegram call answerInlineQuery to report error to user.
-	default: // What here?
+	case botinput.WebhookInputCallbackQuery:
+		// TODO: For Telegram call answerInlineQuery to report error to user.
+		logus.Errorf(ctx, "Failed to process callback query by command{code=%s}: %v", matchedCommand.Code, inputType)
+	default:
+		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
 	}
 }

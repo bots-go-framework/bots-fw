@@ -115,7 +115,7 @@ type BotMessageType int
 const (
 	// BotMessageTypeUndefined unknown type
 	BotMessageTypeUndefined BotMessageType = iota
-	// BotMessageTypeCallbackAnswer sends callback answer
+	// BotMessageTypeCallbackAnswer sends a callback answer
 	BotMessageTypeCallbackAnswer
 	// BotMessageTypeInlineResults sends inline results
 	BotMessageTypeInlineResults
@@ -127,11 +127,20 @@ const (
 	BotMessageTypeLeaveChat
 	// BotMessageTypeExportChatInviteLink sends invite link
 	BotMessageTypeExportChatInviteLink
+
+	BotMessageTypeSendInvoice
+	BotMessageTypeCreateInvoiceLink
+	BotMessageTypeAnswerPreCheckoutQuery
+
+	BotMessageTypeSetDescription
+	BotMessageTypeSetShortDescription
+	BotMessageTypeSetCommands
 )
 
 // BotMessage is an output message from bot to user
 type BotMessage interface {
 	BotMessageType() BotMessageType
+	//BotEndpoint() string
 }
 
 // TextMessageFromBot is a text output message from bot to user
@@ -143,6 +152,10 @@ type TextMessageFromBot struct {
 	Keyboard              botsgocore.Keyboard `json:",omitempty"`
 	IsEdit                bool                `json:",omitempty"`
 	EditMessageUID        MessageUID          `json:",omitempty"`
+}
+
+func (m *TextMessageFromBot) BotEndpoint() string {
+	return "sendMessage"
 }
 
 // BotMessageType returns if we want to send a new message or edit existing one

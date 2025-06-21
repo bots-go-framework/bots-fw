@@ -27,7 +27,7 @@ func dummyBotProfile() BotProfile {
 	getAppUserByID := func(ctx context.Context, tx dal.ReadSession, botID, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
 		return
 	}
-	return NewBotProfile("test", router, newBotChatDate, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, []i18n.Locale{})
+	return NewBotProfile("test", router, newBotChatDate, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, []i18n.Locale{}, BotTranslations{})
 }
 
 func TestNewBotSettings(t *testing.T) {

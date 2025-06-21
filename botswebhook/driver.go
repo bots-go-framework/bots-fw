@@ -22,14 +22,14 @@ import (
 // ErrorIcon is used to report errors to user
 var ErrorIcon = "🚨"
 
-// BotDriver keeps information about bots and map requests to appropriate handlers
-type BotDriver struct {
+// webhookDriver keeps information about bots and map requests to appropriate handlers
+type webhookDriver struct {
 	Analytics       AnalyticsSettings
 	botHost         botsfw.BotHost
 	panicTextFooter string
 }
 
-var _ botsfw.WebhookDriver = (*BotDriver)(nil) // Ensure BotDriver is implementing interface WebhookDriver
+var _ botsfw.WebhookDriver = (*webhookDriver)(nil) // Ensure webhookDriver is implementing interface WebhookDriver
 
 // AnalyticsSettings keeps data for Google Analytics
 type AnalyticsSettings struct {
@@ -37,12 +37,12 @@ type AnalyticsSettings struct {
 	Enabled      func(r *http.Request) bool
 }
 
-// NewBotDriver registers new bot driver (TODO: describe why we need it)
-func NewBotDriver(gaSettings AnalyticsSettings, botHost botsfw.BotHost, panicTextFooter string) BotDriver {
+// NewWebhookDriver registers new bot driver (TODO: describe why we need it)
+func NewWebhookDriver(gaSettings AnalyticsSettings, botHost botsfw.BotHost, panicTextFooter string) botsfw.WebhookDriver {
 	if botHost == nil {
 		panic("required argument botHost == nil")
 	}
-	return BotDriver{
+	return webhookDriver{
 		Analytics:       gaSettings,
 		botHost:         botHost,
 		panicTextFooter: panicTextFooter,
@@ -50,18 +50,15 @@ func NewBotDriver(gaSettings AnalyticsSettings, botHost botsfw.BotHost, panicTex
 }
 
 // RegisterWebhookHandlers adds handlers to a bot driver
-func (d BotDriver) RegisterWebhookHandlers(httpRouter botsfw.HttpRouter, pathPrefix string, webhookHandlers ...botsfw.WebhookHandler) {
+func (d webhookDriver) RegisterWebhookHandlers(httpRouter botsfw.HttpRouter, pathPrefix string, webhookHandlers ...botsfw.WebhookHandler) {
 	for _, webhookHandler := range webhookHandlers {
 		webhookHandler.RegisterHttpHandlers(d, d.botHost, httpRouter, pathPrefix)
 	}
 }
 
 // HandleWebhook takes and HTTP request and process it
-func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler) {
-
-	ctx := d.botHost.Context(r)
-
-	//log.Debugf(c, "BotDriver.HandleWebhook()")
+func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler) {
+	//log.Debugf(c, "webhookDriver.HandleWebhook()")
 	if w == nil {
 		panic("Parameter 'w http.ResponseWriter' is nil")
 	}
@@ -72,6 +69,8 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 		panic("Parameter 'webhookHandler WebhookHandler' is nil")
 	}
 
+	ctx := d.botHost.Context(r)
+
 	// A bot can receiver multiple messages in a single request
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(ctx, r)
 
@@ -80,7 +79,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 
 	if len(entriesWithInputs) > 1 {
-		log.Debugf(ctx, "BotDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
+		log.Debugf(ctx, "webhookDriver.HandleWebhook() => botCode=%v, len(entriesWithInputs): %d", botContext.BotSettings.Code, len(entriesWithInputs))
 	}
 
 	//botCoreStores := webhookHandler.CreateBotCoreStores(d.appContext, r)
@@ -120,7 +119,7 @@ func (d BotDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, webhook
 	}
 }
 
-func (d BotDriver) processWebhookInput(
+func (d webhookDriver) processWebhookInput(
 	ctx context.Context,
 	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
 	botContext *botsfw.BotContext,
@@ -234,7 +233,7 @@ func (d BotDriver) processWebhookInput(
 	return
 }
 
-func (BotDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botsfw.EntryInputs, err error) bool {
+func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botsfw.EntryInputs, err error) bool {
 	if err != nil {
 		var errAuthFailed botsfw.ErrAuthFailed
 		if errors.As(err, &errAuthFailed) {
@@ -284,14 +283,14 @@ func isRunningLocally(host string) bool { // TODO(help-wanted): allow customizat
 	return result
 }
 
-func (BotDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, recovered any) {
+func (webhookDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, recovered any) {
 	log.Warningf(c, "reportPanicToAnalytics() is temporary disabled")
 	err := fmt.Errorf("panic: %v", recovered)
 	msg := analytics.NewErrorMessage(err) // TODO: replace with analytics.NewPanicMessage()
 	whc.Analytics().Enqueue(msg)
 }
 
-func (BotDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
+func (webhookDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
 	sender := input.GetSender()
 	prefix := fmt.Sprintf("BotUser#%v(%v %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName())
 	switch input := input.(type) {

@@ -14,6 +14,12 @@ type TextAction func(whc WebhookContext, text string) (m MessageFromBot, err err
 // CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
+type SuccessfulPaymentAction func(whc WebhookContext, payment botinput.WebhookSuccessfulPayment) (m MessageFromBot, err error)
+
+type RefundedPaymentAction func(whc WebhookContext, payment botinput.WebhookRefundedPayment) (m MessageFromBot, err error)
+
+type PreCheckoutQueryAction func(whc WebhookContext, preCheckout botinput.WebhookPreCheckoutQuery) (m MessageFromBot, err error)
+
 type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.WebhookInlineQuery, queryUrl *url.URL) (m MessageFromBot, err error)
 
 type ChosenInlineResultAction func(whc WebhookContext, chosenResult botinput.WebhookChosenInlineResult, queryUrl *url.URL) (m MessageFromBot, err error)
@@ -48,6 +54,9 @@ type Command struct {
 	CallbackAction           CallbackAction
 	InlineQueryAction        InlineQueryAction
 	ChosenInlineResultAction ChosenInlineResultAction
+	PreCheckoutQueryAction   PreCheckoutQueryAction
+	SuccessfulPaymentAction  SuccessfulPaymentAction
+	RefundedPaymentAction
 }
 
 //goland:noinspection GoUnusedExportedFunction

@@ -3,13 +3,14 @@ package botsdal
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 )
 
 const botChatsCollection = "botChats"
 
-func NewBotChatKey(platformID, botID, chatID string) *dal.Key {
+func NewBotChatKey(platformID botsfwconst.Platform, botID, chatID string) *dal.Key {
 	botKey := NewBotKey(platformID, botID)
 	return dal.NewKeyWithParentAndID(botKey, botChatsCollection, chatID)
 }
@@ -19,7 +20,7 @@ func NewBotChatKey(platformID, botID, chatID string) *dal.Key {
 func GetBotChat(
 	ctx context.Context,
 	tx dal.ReadSession,
-	platformID, botID, chatID string,
+	platformID botsfwconst.Platform, botID, chatID string,
 	newData func() botsfwmodels.BotChatData,
 ) (chat record.DataWithID[string, botsfwmodels.BotChatData], err error) {
 	key := NewBotChatKey(platformID, botID, chatID)

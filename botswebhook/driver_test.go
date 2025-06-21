@@ -13,6 +13,6 @@ func TestNewBotDriver(t *testing.T) {
 				t.Errorf("Unexpected error, got: %v", err)
 			}
 		}()
-		NewBotDriver(AnalyticsSettings{}, nil, "")
+		NewWebhookDriver(AnalyticsSettings{}, nil, "")
 	})
 }

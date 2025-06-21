@@ -3,6 +3,7 @@ package botsdal
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"testing"
 )
@@ -10,7 +11,7 @@ import (
 func TestGetBotUser(t *testing.T) {
 	type args struct {
 		//collection string
-		platform  string
+		platform  botsfwconst.Platform
 		botUserID string
 	}
 	tests := []struct {
@@ -40,7 +41,7 @@ func TestGetBotUser(t *testing.T) {
 
 func TestCreateBotUserRecord(t *testing.T) {
 	type args struct {
-		platform    string
+		platform    botsfwconst.Platform
 		botUserID   string
 		botUserData botsfwmodels.PlatformUserData
 	}

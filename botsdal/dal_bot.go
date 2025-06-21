@@ -1,11 +1,14 @@
 package botsdal
 
-import "github.com/dal-go/dalgo/dal"
+import (
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
+	"github.com/dal-go/dalgo/dal"
+)
 
 const botsCollection = "bots"
 
 // NewBotKey creates a dalgo key to specific bot record
-func NewBotKey(platformID, botID string) *dal.Key {
+func NewBotKey(platformID botsfwconst.Platform, botID string) *dal.Key {
 	platformKey := NewPlatformKey(platformID)
 	if botID == "" {
 		panic("botID is required parameter")

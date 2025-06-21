@@ -7,6 +7,7 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsdal"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/analytics"
@@ -245,7 +246,7 @@ func (whcb *WebhookContextBase) getBotUser(ctx context.Context, tx dal.Getter) (
 	if whcb.platformUser.Data != nil {
 		return whcb.platformUser, nil
 	}
-	platformID := whcb.BotPlatform().ID()
+	platformID := botsfwconst.Platform(whcb.BotPlatform().ID())
 	botUserID := whcb.GetBotUserID()
 	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, whcb.db, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
 	return whcb.platformUser, err
@@ -470,7 +471,7 @@ func (whcb *WebhookContextBase) getPlatformUserRecord(tx dal.ReadSession) (err e
 	if whcb.platformUser.Data != nil {
 		return nil
 	}
-	platformID := whcb.botPlatform.ID()
+	platformID := botsfwconst.Platform(whcb.botPlatform.ID())
 	sender := whcb.input.GetSender()
 	ctx := whcb.Context()
 
@@ -565,7 +566,7 @@ func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
 		return fmt.Errorf("failed to call whcb.BotChatID(): %w", err)
 	}
 
-	platformID := whcb.botPlatform.ID()
+	platformID := botsfwconst.Platform(whcb.botPlatform.ID())
 	db := whcb.DB()
 	whcb.botChat, err = botsdal.GetBotChat(ctx, db, platformID,
 		whcb.botContext.BotSettings.Code, whcb.botChat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)

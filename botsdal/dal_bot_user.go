@@ -3,6 +3,7 @@ package botsdal
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
 )
@@ -10,7 +11,7 @@ import (
 const botUsersCollection = "botUsers"
 
 // NewPlatformUserKey creates a dalgo key to specific bot user record
-func NewPlatformUserKey(platformID, botUserID string) *dal.Key {
+func NewPlatformUserKey(platformID botsfwconst.Platform, botUserID string) *dal.Key {
 	platformKey := NewPlatformKey(platformID)
 	if botUserID == "" {
 		panic("botUserID is required parameter")
@@ -22,7 +23,7 @@ func NewPlatformUserKey(platformID, botUserID string) *dal.Key {
 func GetPlatformUser(
 	ctx context.Context,
 	tx dal.ReadSession,
-	platformID, botUserID string,
+	platformID botsfwconst.Platform, botUserID string,
 	platformUserData botsfwmodels.PlatformUserData,
 ) (botUser BotUser, err error) {
 	botUserKey := NewPlatformUserKey(platformID, botUserID)
@@ -34,7 +35,7 @@ func GetPlatformUser(
 func CreatePlatformUserRecord(
 	ctx context.Context,
 	tx dal.ReadwriteTransaction,
-	platformID, botUserID string,
+	platformID botsfwconst.Platform, botUserID string,
 	platformUserData botsfwmodels.PlatformUserData,
 ) (err error) {
 	if validatableData, ok := platformUserData.(interface{ Validate() error }); ok {

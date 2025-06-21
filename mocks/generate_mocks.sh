@@ -1,3 +1,4 @@
+mockgen github.com/bots-go-framework/bots-fw/botsfw BotContextProvider > mock_botsfw/bot_context_provider.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookContext > mock_botsfw/webhook_context.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookResponder > mock_botsfw/webook_responder.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotHost > mock_botsfw/bot_host.go

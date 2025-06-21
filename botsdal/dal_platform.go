@@ -1,12 +1,15 @@
 package botsdal
 
-import "github.com/dal-go/dalgo/dal"
+import (
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
+	"github.com/dal-go/dalgo/dal"
+)
 
 const botPlatformsCollection = "botPlatforms"
 
-func NewPlatformKey(platform string) *dal.Key {
+func NewPlatformKey(platform botsfwconst.Platform) *dal.Key {
 	if platform == "" {
 		panic("platform is required parameter")
 	}
-	return dal.NewKeyWithID(botPlatformsCollection, platform)
+	return dal.NewKeyWithID(botPlatformsCollection, string(platform))
 }

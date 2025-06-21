@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsdal"
+	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"time"
 )
@@ -42,7 +43,7 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	botUserStrID := fmt.Sprintf("%v", botUserID)
 	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
 	db := whc.DB()
-	platformID := whc.BotPlatform().ID()
+	platformID := botsfwconst.Platform(whc.BotPlatform().ID())
 	botSettings := whc.BotContext().BotSettings
 
 	var botUser botsdal.BotUser
