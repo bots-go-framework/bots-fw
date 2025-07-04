@@ -1,7 +1,5 @@
 package botsfw
 
-//go:generate ffjson $GOFILE
-
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw/botinput"
@@ -127,6 +125,8 @@ const (
 	BotMessageTypeLeaveChat
 	// BotMessageTypeExportChatInviteLink sends invite link
 	BotMessageTypeExportChatInviteLink
+
+	BotMessageTypeSendPhoto
 
 	BotMessageTypeSendInvoice
 	BotMessageTypeCreateInvoiceLink
