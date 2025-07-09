@@ -149,6 +149,9 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...Command) {
 			if command.TextAction != nil {
 				addCommand(botinput.WebhookInputText, command)
 			}
+			if command.StartAction != nil && command.TextAction == nil {
+				addCommand(botinput.WebhookInputText, command)
+			}
 			if command.CallbackAction != nil {
 				addCommand(botinput.WebhookInputCallbackQuery, command)
 			}
@@ -259,7 +262,11 @@ func matchCallbackCommands(whc WebhookContext, dataText string, dataURL *url.URL
 	return nil, err
 }
 
-func (whRouter *webhooksRouter) matchMessageCommands(whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command) (matchedCommand *Command) {
+func (whRouter *webhooksRouter) matchMessageCommands(
+	whc WebhookContext, input botinput.WebhookMessage, isCommandText bool, messageText, parentPath string, commands []Command,
+) (
+	matchedCommand *Command,
+) {
 	c := whc.Context()
 
 	var awaitingReplyCommand Command
@@ -285,7 +292,34 @@ func (whRouter *webhooksRouter) matchMessageCommands(whc WebhookContext, input b
 		if atIndex := strings.Index(commandText, "@"); isCommandText && atIndex >= 0 {
 			commandText = commandText[:atIndex]
 		}
+
+		var startText string
+		const startWithParamsPrefixLen = len("/start ")
+		if len(commandText) > startWithParamsPrefixLen && strings.HasPrefix(commandText, "/start ") {
+			startText = commandText[startWithParamsPrefixLen:]
+		}
+
+		var startCommand *Command
+
 		for _, command := range commands {
+			if isCommandText {
+				if commandText == "/"+string(command.Code) || strings.HasPrefix(commandText, "/"+string(command.Code)+" ") {
+					log.Debugf(c, "command matched by command.Code=%s", command.Code)
+					if startText != "" {
+						startCommand = &command
+						continue
+					} else {
+						matchedCommand = &command
+						return
+					}
+				}
+				if startText != "" && command.StartAction != nil {
+					if startText == string(command.Code) {
+						matchedCommand = &command
+						return
+					}
+				}
+			}
 			for _, commandName := range command.Commands {
 				if commandName == commandText || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
 					log.Debugf(c, "command(code=%v) matched by command.commands", command.Code)
@@ -293,6 +327,10 @@ func (whRouter *webhooksRouter) matchMessageCommands(whc WebhookContext, input b
 					return
 				}
 			}
+		}
+		if startCommand != nil {
+			matchedCommand = startCommand
+			return
 		}
 	}
 
@@ -507,7 +545,11 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		isCommandText := strings.HasPrefix(messageText, "/")
 		matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 		if matchedCommand != nil {
-			if matchedCommand.TextAction == nil {
+			if isCommandText && messageText[:len("/start")] == "/start" && matchedCommand.StartAction != nil {
+				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {
+					return matchedCommand.StartAction(whc, messageText)
+				}
+			} else if matchedCommand.TextAction == nil {
 				commandAction = matchedCommand.Action
 			} else {
 				commandAction = func(whc WebhookContext) (m MessageFromBot, err error) {

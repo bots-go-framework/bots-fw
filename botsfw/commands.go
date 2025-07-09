@@ -11,6 +11,8 @@ type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
 
 type TextAction func(whc WebhookContext, text string) (m MessageFromBot, err error)
 
+type StartAction TextAction
+
 // CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
 
@@ -51,6 +53,7 @@ type Command struct {
 	//
 	Action                   CommandAction
 	TextAction               TextAction
+	StartAction              StartAction
 	CallbackAction           CallbackAction
 	InlineQueryAction        InlineQueryAction
 	ChosenInlineResultAction ChosenInlineResultAction
