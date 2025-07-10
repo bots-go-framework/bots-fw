@@ -3,7 +3,7 @@ package botsfw
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw/botinput"
-	botsgocore "github.com/bots-go-framework/bots-go-core"
+	"github.com/bots-go-framework/bots-go-core/botkb"
 	"github.com/strongo/i18n"
 	"strconv"
 	//"github.com/strongo/bots-api-fbm"
@@ -145,13 +145,13 @@ type BotMessage interface {
 
 // TextMessageFromBot is a text output message from bot to user
 type TextMessageFromBot struct {
-	Text                  string              `json:",omitempty"`
-	Format                MessageFormat       `json:",omitempty"`
-	DisableWebPagePreview bool                `json:",omitempty"`
-	DisableNotification   bool                `json:",omitempty"`
-	Keyboard              botsgocore.Keyboard `json:",omitempty"`
-	IsEdit                bool                `json:",omitempty"`
-	EditMessageUID        MessageUID          `json:",omitempty"`
+	Text                  string         `json:",omitempty"`
+	Format                MessageFormat  `json:",omitempty"`
+	DisableWebPagePreview bool           `json:",omitempty"`
+	DisableNotification   bool           `json:",omitempty"`
+	Keyboard              botkb.Keyboard `json:",omitempty"`
+	IsEdit                bool           `json:",omitempty"`
+	EditMessageUID        MessageUID     `json:",omitempty"`
 }
 
 func (m *TextMessageFromBot) BotEndpoint() string {
