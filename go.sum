@@ -2,6 +2,8 @@ github.com/bots-go-framework/bots-fw-store v0.10.0 h1:e6bD274mjrHVp+X05/7uqqT3s5
 github.com/bots-go-framework/bots-fw-store v0.10.0/go.mod h1:7oU4B8j5HuJZM8AftosbyQD+AqckXsDv8eU1auGPzn8=
 github.com/bots-go-framework/bots-go-core v0.1.0 h1:mZZ0QC/CfvsLufYjkJR+nYeXkbNEJ5IXwAn2noxpzTE=
 github.com/bots-go-framework/bots-go-core v0.1.0/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
+github.com/bots-go-framework/bots-go-core v0.2.1 h1:LN2575Fv+441LSQWae+R8nZzt1JbGRdVK1SP2Yt4Skk=
+github.com/bots-go-framework/bots-go-core v0.2.1/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
 github.com/dal-go/dalgo v0.24.0 h1:lwf2S7+zBhp5z1HQXSKpsLd5ZXkby0aDm3jcEQA2VQI=
 github.com/dal-go/dalgo v0.24.0/go.mod h1:BoMNGwDE9FdjynV7xCn5f/GdVJxvfePwjsMldn+BhqA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
