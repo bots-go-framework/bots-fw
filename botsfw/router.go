@@ -480,6 +480,8 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		panic("len(typeCommands.all) == 0")
 	}
 
+	var isInlineQuery bool
+
 	switch input := whc.Input().(type) {
 	case botinput.WebhookCallbackQuery:
 		callbackData := input.GetData()
@@ -506,6 +508,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 			}
 		}
 	case botinput.WebhookInlineQuery:
+		isInlineQuery = true
 		var queryURL *url.URL
 		if matchedCommand, queryURL = matchByQueryOrMatcher(whc, input, typeCommands.byCode, func(command Command) bool {
 			return command.InlineQueryAction != nil || command.Action != nil
@@ -640,7 +643,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler WebhookHandler, responde
 		if chat := whc.Input().Chat(); chat != nil && chat.IsGroupChat() {
 			// m = MessageFromBot{Text: "@" + whc.GetBotCode() + ": " + whc.Translate(MessageTextBotDidNotUnderstandTheCommand), Format: MessageFormatHTML}
 			// whr.processCommandResponse(matchedCommand, responder, whc, m, nil)
-		} else {
+		} else if !isInlineQuery {
 			m = whc.NewMessageByCode(MessageTextBotDidNotUnderstandTheCommand)
 			chatEntity := whc.ChatData()
 			if chatEntity != nil {
