@@ -6,4 +6,4 @@ import (
 	"github.com/bots-go-framework/bots-fw/botinput"
 )
 
-type BotUserCreator func(c context.Context, botID string, apiUser botinput.WebhookActor) (botsfwmodels.PlatformUserData, error)
+type BotUserCreator func(c context.Context, botID string, apiUser botinput.Actor) (botsfwmodels.PlatformUserData, error)

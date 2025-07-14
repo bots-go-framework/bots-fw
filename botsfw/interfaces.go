@@ -2,6 +2,7 @@ package botsfw
 
 import (
 	"context"
+	"github.com/bots-go-framework/bots-fw/botmsg"
 	"net/http"
 )
 
@@ -56,7 +57,7 @@ type OnMessageSentResponse struct {
 
 // WebhookResponder is an API provider to send messages through a messenger
 type WebhookResponder interface {
-	SendMessage(c context.Context, m MessageFromBot, channel BotAPISendMessageChannel) (response OnMessageSentResponse, err error)
+	SendMessage(c context.Context, m botmsg.MessageFromBot, channel botmsg.BotAPISendMessageChannel) (response OnMessageSentResponse, err error)
 	DeleteMessage(c context.Context, messageID string) (err error)
 }
 
@@ -65,13 +66,10 @@ type InputMessage interface {
 	Text() string
 }
 
-// BotAPISendMessageChannel specifies messenger channel
-type BotAPISendMessageChannel string
-
 const (
 	// BotAPISendMessageOverHTTPS indicates message should be sent over HTTPS
-	BotAPISendMessageOverHTTPS = BotAPISendMessageChannel("https")
+	BotAPISendMessageOverHTTPS = botmsg.BotAPISendMessageChannel("https")
 
 	// BotAPISendMessageOverResponse indicates message should be sent in HTTP response
-	BotAPISendMessageOverResponse = BotAPISendMessageChannel("response")
+	BotAPISendMessageOverResponse = botmsg.BotAPISendMessageChannel("response")
 )

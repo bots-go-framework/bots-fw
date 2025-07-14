@@ -1,8 +1,9 @@
-package botsfw
+package botswebhook
 
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
@@ -13,7 +14,7 @@ import (
 	"testing"
 )
 
-func dummyBotProfile() BotProfile {
+func dummyBotProfile() botsfw.BotProfile {
 	router := &webhooksRouter{}
 	newBotChatDate := func() botsfwmodels.BotChatData {
 		return nil
@@ -27,7 +28,7 @@ func dummyBotProfile() BotProfile {
 	getAppUserByID := func(ctx context.Context, tx dal.ReadSession, botID, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
 		return
 	}
-	return NewBotProfile("test", router, newBotChatDate, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, []i18n.Locale{}, BotTranslations{})
+	return botsfw.NewBotProfile("test", router, newBotChatDate, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, []i18n.Locale{}, botsfw.BotTranslations{})
 }
 
 func TestNewBotSettings(t *testing.T) {
@@ -38,7 +39,7 @@ func TestNewBotSettings(t *testing.T) {
 		localeCode5 = "Kode5"
 		gaToken     = "ga-token1"
 	)
-	assertBotSettings := func(bs BotSettings) {
+	assertBotSettings := func(bs botsfw.BotSettings) {
 		assert.Equal(t, platform, bs.Platform)
 		assert.Equal(t, code, bs.Code)
 		assert.Equal(t, token, bs.Token)
@@ -56,7 +57,7 @@ func TestNewBotSettings(t *testing.T) {
 		return
 	}
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := NewBotSettings(platform, EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -66,14 +67,14 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := NewBotSettings(platform, EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
 		assertBotSettings(bs)
 	})
 }
 
 func TestNewBotSettingsBy(t *testing.T) {
 	type args struct {
-		bots []BotSettings
+		bots []botsfw.BotSettings
 	}
 
 	testBotProfile := dummyBotProfile()
@@ -91,7 +92,7 @@ func TestNewBotSettingsBy(t *testing.T) {
 		{
 			name: "single_bot",
 			args: args{
-				bots: []BotSettings{
+				bots: []botsfw.BotSettings{
 					{
 						Profile: testBotProfile,
 						Code:    "TestBot",
@@ -111,7 +112,7 @@ func TestNewBotSettingsBy(t *testing.T) {
 					}
 				}()
 			}
-			actual := NewBotSettingsBy(tt.args.bots...)
+			actual := botsfw.NewBotSettingsBy(tt.args.bots...)
 			assert.Equal(t, len(tt.args.bots), len(actual.ByCode))
 		})
 	}

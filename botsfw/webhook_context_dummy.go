@@ -3,6 +3,7 @@ package botsfw
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	botsfw2 "github.com/bots-go-framework/bots-fw/botmsg"
 )
 
 var _ WebhookContext = (*whContextDummy)(nil)
@@ -13,7 +14,7 @@ type whContextDummy struct {
 	*WebhookContextBase
 }
 
-func (w whContextDummy) NewEditMessage(text string, format MessageFormat) (MessageFromBot, error) {
+func (w whContextDummy) NewEditMessage(text string, format botsfw2.Format) (botsfw2.MessageFromBot, error) {
 	panic(fmt.Sprintf("must be implemented in platform specific code: text=%s, format=%v", text, format))
 }
 

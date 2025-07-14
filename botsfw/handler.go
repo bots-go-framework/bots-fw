@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	botsfw2 "github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/dal-go/dalgo/dal"
 	"net/http"
 )
@@ -25,7 +26,7 @@ type WebhookHandler interface {
 	// GetBotContextAndInputs returns bot context and inputs for current request
 	// It returns multiple inputs as some platforms (like Facebook Messenger)
 	// may send multiple message in one request
-	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []EntryInputs, err error)
+	GetBotContextAndInputs(c context.Context, r *http.Request) (botContext *BotContext, entriesWithInputs []botinput.EntryInputs, err error)
 
 	// CreateBotCoreStores TODO: should be deprecated after migration to dalgo
 	//CreateBotCoreStores(appContext AppContext, r *http.Request) botsfwdal.DataAccess
@@ -34,15 +35,15 @@ type WebhookHandler interface {
 	CreateWebhookContext(args CreateWebhookContextArgs) (WebhookContext, error)
 
 	GetResponder(w http.ResponseWriter, whc WebhookContext) WebhookResponder
-	HandleUnmatched(whc WebhookContext) (m MessageFromBot)
-	//ProcessInput(input webhookInput, entry *WebhookEntry)
+	HandleUnmatched(whc WebhookContext) (m botsfw2.MessageFromBot)
+	//ProcessInput(input webhookInput, entry *Entry)
 }
 
 type CreateWebhookContextArgs struct {
 	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
 	AppContext   AppContext
 	BotContext   BotContext
-	WebhookInput botinput.WebhookInput
+	WebhookInput botinput.InputMessage
 	Db           dal.DB
 }
 
@@ -50,7 +51,7 @@ func NewCreateWebhookContextArgs(
 	httpRequest *http.Request,
 	appContext AppContext,
 	botContext BotContext,
-	webhookInput botinput.WebhookInput,
+	webhookInput botinput.InputMessage,
 	db dal.DB,
 ) CreateWebhookContextArgs {
 	return CreateWebhookContextArgs{

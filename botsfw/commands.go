@@ -3,28 +3,29 @@ package botsfw
 import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	"github.com/bots-go-framework/bots-fw/botmsg"
 	"net/url"
 )
 
 // CommandAction defines an action bot can perform in response to a command
-type CommandAction func(whc WebhookContext) (m MessageFromBot, err error)
+type CommandAction func(whc WebhookContext) (m botmsg.MessageFromBot, err error)
 
-type TextAction func(whc WebhookContext, text string) (m MessageFromBot, err error)
+type TextAction func(whc WebhookContext, text string) (m botmsg.MessageFromBot, err error)
 
 type StartAction TextAction
 
 // CallbackAction defines a callback action bot can perform in response to a callback command
-type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m MessageFromBot, err error)
+type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m botmsg.MessageFromBot, err error)
 
-type SuccessfulPaymentAction func(whc WebhookContext, payment botinput.WebhookSuccessfulPayment) (m MessageFromBot, err error)
+type SuccessfulPaymentAction func(whc WebhookContext, payment botinput.SuccessfulPayment) (m botmsg.MessageFromBot, err error)
 
-type RefundedPaymentAction func(whc WebhookContext, payment botinput.WebhookRefundedPayment) (m MessageFromBot, err error)
+type RefundedPaymentAction func(whc WebhookContext, payment botinput.WebhookRefundedPayment) (m botmsg.MessageFromBot, err error)
 
-type PreCheckoutQueryAction func(whc WebhookContext, preCheckout botinput.WebhookPreCheckoutQuery) (m MessageFromBot, err error)
+type PreCheckoutQueryAction func(whc WebhookContext, preCheckout botinput.WebhookPreCheckoutQuery) (m botmsg.MessageFromBot, err error)
 
-type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.WebhookInlineQuery, queryUrl *url.URL) (m MessageFromBot, err error)
+type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.InlineQuery, queryUrl *url.URL) (m botmsg.MessageFromBot, err error)
 
-type ChosenInlineResultAction func(whc WebhookContext, chosenResult botinput.WebhookChosenInlineResult, queryUrl *url.URL) (m MessageFromBot, err error)
+type ChosenInlineResultAction func(whc WebhookContext, chosenResult botinput.ChosenInlineResult, queryUrl *url.URL) (m botmsg.MessageFromBot, err error)
 
 // CommandMatcher returns true if action is matched to user input
 type CommandMatcher func(command Command, whc WebhookContext) bool
@@ -42,7 +43,7 @@ type CommandCode string
 // Command defines command metadata and action
 type Command struct {
 	Code       CommandCode
-	InputTypes []botinput.WebhookInputType // Instant match if != WebhookInputUnknown && == whc.InputTypes()
+	InputTypes []botinput.Type // Instant match if != TypeUnknown && == whc.InputTypes()
 	Icon       string
 	Replies    []Command
 	Title      string
@@ -66,7 +67,7 @@ type Command struct {
 func NewInlineQueryCommand(code CommandCode, action CommandAction) Command {
 	return Command{
 		Code:       code,
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputInlineQuery},
+		InputTypes: []botinput.Type{botinput.TypeInlineQuery},
 		Action:     action,
 	}
 }
@@ -77,7 +78,7 @@ func NewInlineQueryCommand(code CommandCode, action CommandAction) Command {
 func NewCallbackCommand(code CommandCode, action CallbackAction) Command {
 	return Command{
 		Code:           code,
-		InputTypes:     []botinput.WebhookInputType{botinput.WebhookInputCallbackQuery},
+		InputTypes:     []botinput.Type{botinput.TypeCallbackQuery},
 		Commands:       []string{"/" + string(code)},
 		CallbackAction: action,
 	}

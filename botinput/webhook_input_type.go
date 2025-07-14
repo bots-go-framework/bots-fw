@@ -2,78 +2,78 @@ package botinput
 
 //go:generate stringer -type=WebhookInputType
 
-// WebhookInputType is enum of input type
-type WebhookInputType int
+// Type is enum of input type
+type Type int
 
 const (
-	// WebhookInputUnknown is an unknown input type
-	WebhookInputUnknown WebhookInputType = iota
-	// WebhookInputNotImplemented is not implemented input type
-	WebhookInputNotImplemented
-	// WebhookInputText is a text input type
-	WebhookInputText // Facebook, Telegram, Viber
-	// WebhookInputVoice is voice input type
-	WebhookInputVoice
-	// WebhookInputPhoto is a photo input type
-	WebhookInputPhoto
-	// WebhookInputAudio is an audio input type
-	WebhookInputAudio
-	// WebhookInputContact is a contact input type
-	WebhookInputContact // Facebook, Telegram, Viber
-	// WebhookInputPostback is unknown input type
-	WebhookInputPostback
-	// WebhookInputDelivery is a postback input type
-	WebhookInputDelivery
-	// WebhookInputAttachment is a delivery report input type
-	WebhookInputAttachment
-	// WebhookInputInlineQuery is an attachment input type
-	WebhookInputInlineQuery // Telegram
-	// WebhookInputCallbackQuery is inline input type
-	WebhookInputCallbackQuery
-	// WebhookInputReferral is a callback input type
-	WebhookInputReferral // FBM
-	// WebhookInputChosenInlineResult is chosen inline result input type
-	WebhookInputChosenInlineResult // Telegram
-	// WebhookInputSubscribed is subscribed input type
-	WebhookInputSubscribed // Viber
-	// WebhookInputUnsubscribed is unsubscribed input type
-	WebhookInputUnsubscribed // Viber
-	// WebhookInputConversationStarted is conversation started input type
-	WebhookInputConversationStarted // Viber
-	// WebhookInputNewChatMembers is new botChat members input type
-	WebhookInputNewChatMembers // Telegram groups
-	// WebhookInputLeftChatMembers is left botChat members input type
-	WebhookInputLeftChatMembers
-	// WebhookInputSticker is a sticker input type
-	WebhookInputSticker
-	WebhookInputSharedUsers // Telegram
-	WebhookInputPreCheckoutQuery
-	WebhookInputSuccessfulPayment
-	WebhookInputRefundedPayment
+	// TypeUnknown is an unknown input type
+	TypeUnknown Type = iota
+	// TypeNotImplemented is not implemented input type
+	TypeNotImplemented
+	// TypeText is a text input type
+	TypeText // Facebook, Telegram, Viber
+	// TypeVoice is voice input type
+	TypeVoice
+	// TypePhoto is a photo input type
+	TypePhoto
+	// TypeAudio is an audio input type
+	TypeAudio
+	// TypeContact is a contact input type
+	TypeContact // Facebook, Telegram, Viber
+	// TypePostback is unknown input type
+	TypePostback
+	// TypeDelivery is a postback input type
+	TypeDelivery
+	// TypeAttachment is a delivery report input type
+	TypeAttachment
+	// TypeInlineQuery is an attachment input type
+	TypeInlineQuery // Telegram
+	// TypeCallbackQuery is inline input type
+	TypeCallbackQuery
+	// TypeReferral is a callback input type
+	TypeReferral // FBM
+	// TypeChosenInlineResult is chosen inline result input type
+	TypeChosenInlineResult // Telegram
+	// TypeSubscribed is subscribed input type
+	TypeSubscribed // Viber
+	// TypeUnsubscribed is unsubscribed input type
+	TypeUnsubscribed // Viber
+	// TypeConversationStarted is conversation started input type
+	TypeConversationStarted // Viber
+	// TypeNewChatMembers is new botChat members input type
+	TypeNewChatMembers // Telegram groups
+	// TypeLeftChatMembers is left botChat members input type
+	TypeLeftChatMembers
+	// TypeSticker is a sticker input type
+	TypeSticker
+	TypeSharedUsers // Telegram
+	TypePreCheckoutQuery
+	TypeSuccessfulPayment
+	TypeRefundedPayment
 )
 
-var webhookInputTypeNames = map[WebhookInputType]string{
-	WebhookInputUnknown:             "unknown",
-	WebhookInputNotImplemented:      "NotImplemented",
-	WebhookInputText:                "Text",
-	WebhookInputVoice:               "Voice",
-	WebhookInputPhoto:               "Photo",
-	WebhookInputAudio:               "Audio",
-	WebhookInputReferral:            "Referral",
-	WebhookInputContact:             "Contact",
-	WebhookInputPostback:            "Postback",
-	WebhookInputDelivery:            "Delivery",
-	WebhookInputAttachment:          "Attachment",
-	WebhookInputInlineQuery:         "InlineQuery",
-	WebhookInputCallbackQuery:       "CallbackQuery",
-	WebhookInputChosenInlineResult:  "ChosenInlineResult",
-	WebhookInputSubscribed:          "Subscribed",          // Viber
-	WebhookInputUnsubscribed:        "Unsubscribed",        // Viber
-	WebhookInputConversationStarted: "ConversationStarted", // Telegram
-	WebhookInputNewChatMembers:      "NewChatMembers",      // Telegram
-	WebhookInputSticker:             "Sticker",             // Telegram
-	WebhookInputLeftChatMembers:     "LeftChatMembers",     // Telegram
-	WebhookInputSharedUsers:         "SharedUsers",         // Telegram
-	WebhookInputSuccessfulPayment:   "SuccessfulPayment",   // Telegram
-	WebhookInputRefundedPayment:     "RefundedPayment",     // Telegram
+var webhookInputTypeNames = map[Type]string{
+	TypeUnknown:             "unknown",
+	TypeNotImplemented:      "NotImplemented",
+	TypeText:                "Text",
+	TypeVoice:               "Voice",
+	TypePhoto:               "Photo",
+	TypeAudio:               "Audio",
+	TypeReferral:            "Referral",
+	TypeContact:             "Contact",
+	TypePostback:            "Postback",
+	TypeDelivery:            "Delivery",
+	TypeAttachment:          "Attachment",
+	TypeInlineQuery:         "InlineQuery",
+	TypeCallbackQuery:       "CallbackQuery",
+	TypeChosenInlineResult:  "ChosenInlineResult",
+	TypeSubscribed:          "Subscribed",          // Viber
+	TypeUnsubscribed:        "Unsubscribed",        // Viber
+	TypeConversationStarted: "ConversationStarted", // Telegram
+	TypeNewChatMembers:      "NewChatMembers",      // Telegram
+	TypeSticker:             "Sticker",             // Telegram
+	TypeLeftChatMembers:     "LeftChatMembers",     // Telegram
+	TypeSharedUsers:         "SharedUsers",         // Telegram
+	TypeSuccessfulPayment:   "SuccessfulPayment",   // Telegram
+	TypeRefundedPayment:     "RefundedPayment",     // Telegram
 }

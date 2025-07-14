@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-// WebhookEntry represents a single message from a messenger user
-type WebhookEntry interface {
-	GetID() interface{}
+// Entry represents a single message from a messenger user
+type Entry interface {
+	GetID() any
 	GetTime() time.Time
 }
 
-func GetWebhookInputTypeIdNameString(whInputType WebhookInputType) string {
+func GetBotInputTypeIdNameString(whInputType Type) string {
 	name, ok := webhookInputTypeNames[whInputType]
 	if ok {
 		return fmt.Sprintf("%d:%s", whInputType, name)
@@ -20,20 +20,20 @@ func GetWebhookInputTypeIdNameString(whInputType WebhookInputType) string {
 	return strconv.Itoa(int(whInputType))
 }
 
-// WebhookInput represent a single message
+// InputMessage represent a single message
 // '/entry/messaging' for Facebook Messenger
-type WebhookInput interface {
-	GetSender() WebhookUser
-	GetRecipient() WebhookRecipient
+type InputMessage interface {
+	GetSender() User
+	GetRecipient() Recipient
 	GetTime() time.Time
-	InputType() WebhookInputType
+	InputType() Type
 	BotChatID() (string, error)
-	Chat() WebhookChat
+	Chat() Chat
 	LogRequest() // TODO: should not be part of Input? If should - specify why
 }
 
-// WebhookActor represents sender
-type WebhookActor interface {
+// Actor represents sender
+type Actor interface {
 	Platform() string // TODO: Consider removing this?
 	GetID() any
 	IsBotUser() bool
@@ -43,75 +43,75 @@ type WebhookActor interface {
 	GetLanguage() string
 }
 
-// WebhookSender represents sender with avatar
-type WebhookSender interface {
+// Sender represents sender with avatar
+type Sender interface {
 	GetAvatar() string // Extension to support avatar (Viber)
-	WebhookActor
+	Actor
 }
 
-// WebhookUser represents sender with country
-type WebhookUser interface {
-	WebhookSender
+// User represents sender with country
+type User interface {
+	Sender
 
 	// GetCountry is an extension to support language & country (Viber)
 	GetCountry() string
 }
 
-// WebhookRecipient represents receiver
-type WebhookRecipient interface {
-	WebhookActor
+// Recipient represents receiver
+type Recipient interface {
+	Actor
 }
 
-// WebhookMessage represents a single message
-type WebhookMessage interface {
-	WebhookInput
+// Message represents a single input  message
+type Message interface {
+	InputMessage
 	IntID() int64
 	StringID() string
-	Chat() WebhookChat
+	Chat() Chat
 	//Sequence() int // 'seq' for Facebook, '???' for Telegram
 }
 
-// WebhookTextMessage represents a single text message
-type WebhookTextMessage interface {
-	WebhookMessage
+// TextMessage represents a single text message
+type TextMessage interface {
+	Message
 	Text() string
 	IsEdited() bool
 }
 
-// WebhookStickerMessage represents single sticker message
-type WebhookStickerMessage interface {
-	WebhookMessage
+// StickerMessage represents single sticker message
+type StickerMessage interface {
+	Message
 	// TODO: Define sticker message interface
 }
 
-// WebhookVoiceMessage represents a single voice message
-type WebhookVoiceMessage interface {
-	WebhookMessage
+// VoiceMessage represents a single voice message
+type VoiceMessage interface {
+	Message
 	// TODO: Define voice message interface
 }
 
-// WebhookPhotoMessage represents a single photo message
-type WebhookPhotoMessage interface {
-	WebhookMessage
+// PhotoMessage represents a single photo message
+type PhotoMessage interface {
+	Message
 	// TODO: Define photo message interface
 }
 
-// WebhookAudioMessage represents a single audio message
-type WebhookAudioMessage interface {
-	WebhookMessage
+// AudioMessage represents a single audio message
+type AudioMessage interface {
+	Message
 	// TODO: Define audio message interface
 }
 
-// WebhookReferralMessage represents a single referral message
+// ReferralMessage represents a single referral message
 // https://developers.facebook.com/docs/messenger-platform/webhook-reference/referral
-type WebhookReferralMessage interface {
+type ReferralMessage interface {
 	Type() string
 	Source() string
 	RefData() string
 }
 
-// WebhookContactMessage represents a single contact message
-type WebhookContactMessage interface {
+// ContactMessage represents a single contact message
+type ContactMessage interface {
 	GetPhoneNumber() string
 	GetFirstName() string
 	GetLastName() string
@@ -119,79 +119,79 @@ type WebhookContactMessage interface {
 	GetVCard() string
 }
 
-// WebhookNewChatMembersMessage represents a single message about a new member of a botChat
-type WebhookNewChatMembersMessage interface {
+// NewChatMembersMessage represents a single message about a new member of a botChat
+type NewChatMembersMessage interface {
 	BotChatID() (string, error)
-	NewChatMembers() []WebhookActor
+	NewChatMembers() []Actor
 }
 
-// WebhookLeftChatMembersMessage represents a single message about a member leaving a botChat
-type WebhookLeftChatMembersMessage interface {
+// LeftChatMembersMessage represents a single message about a member leaving a botChat
+type LeftChatMembersMessage interface {
 	BotChatID() (string, error)
-	LeftChatMembers() []WebhookActor
+	LeftChatMembers() []Actor
 }
 
-// WebhookChat represents botChat of a messenger
-type WebhookChat interface {
+// Chat represents botChat of a messenger
+type Chat interface {
 	GetID() string
 	GetType() string
 	IsGroupChat() bool
 }
 
-// WebhookPostback represents a single postback message
-type WebhookPostback interface {
-	PostbackMessage() interface{}
+// Postback represents a single postback message
+type Postback interface {
+	PostbackMessage() any
 	Payload() string
 }
 
-// WebhookSubscribed represents a subscription message
-type WebhookSubscribed interface {
-	SubscribedMessage() interface{}
+// Subscribed represents a subscription message
+type Subscribed interface {
+	SubscribedMessage() any
 }
 
-// WebhookUnsubscribed represents a message when user unsubscribe
-type WebhookUnsubscribed interface {
-	UnsubscribedMessage() interface{}
+// Unsubscribed represents a message when user unsubscribe
+type Unsubscribed interface {
+	UnsubscribedMessage() any
 }
 
-// WebhookConversationStarted represents a single message about new conversation
-type WebhookConversationStarted interface {
-	ConversationStartedMessage() interface{}
+// ConversationStarted represents a single message about new conversation
+type ConversationStarted interface {
+	ConversationStartedMessage() any
 }
 
-// WebhookInlineQuery represents a single inline message
-type WebhookInlineQuery interface {
-	GetID() interface{}
+// InlineQuery represents a single inline message
+type InlineQuery interface {
+	GetID() any
 	GetInlineQueryID() string
-	GetFrom() WebhookSender
+	GetFrom() Sender
 	GetQuery() string
 	GetOffset() string
 	//GetLocation() - TODO: Not implemented yet
 }
 
-// WebhookDelivery represents a single delivery report message
-type WebhookDelivery interface {
+// Delivery represents a single delivery report message
+type Delivery interface {
 	Payload() string
 }
 
-// WebhookChosenInlineResult represents a single report message on chosen inline result
-type WebhookChosenInlineResult interface {
+// ChosenInlineResult represents a single report message on chosen inline result
+type ChosenInlineResult interface {
 	GetResultID() string
 	GetInlineMessageID() string // Telegram only?
-	GetFrom() WebhookSender
+	GetFrom() Sender
 	GetQuery() string
 	//GetLocation() - TODO: Not implemented yet
 }
 
-// WebhookCallbackQuery represents a single callback query message
-type WebhookCallbackQuery interface {
+// CallbackQuery represents a single callback query message
+type CallbackQuery interface {
 	GetID() string
 	//GetInlineMessageID() string // Telegram only?
 	//GetChatInstanceID() string  // Telegram only?
-	GetFrom() WebhookSender
-	GetMessage() WebhookMessage
+	GetFrom() Sender
+	GetMessage() Message
 	GetData() string
-	Chat() WebhookChat
+	Chat() Chat
 }
 
 //type SuccessfulPayment struct {
@@ -213,7 +213,7 @@ type webhookPayment interface {
 	GetMessengerChargeID() string
 	GetPaymentProviderChargeID() string
 }
-type WebhookSuccessfulPayment interface {
+type SuccessfulPayment interface {
 	webhookPayment
 	GetSubscriptionExpirationDate() time.Time
 	GetIsRecurring() bool
@@ -231,7 +231,7 @@ type WebhookPreCheckoutQuery interface {
 	GetCurrency() string
 	GetTotalAmount() int
 	GetInvoicePayload() string
-	GetFrom() WebhookSender
+	GetFrom() Sender
 	GetShippingOptionID() string
 	GetOrderInfo() OrderInfo
 }

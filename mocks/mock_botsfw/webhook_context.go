@@ -16,6 +16,7 @@ import (
 
 	botsfwmodels "github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	botinput "github.com/bots-go-framework/bots-fw/botinput"
+	botmsg "github.com/bots-go-framework/bots-fw/botmsg"
 	botsdal "github.com/bots-go-framework/bots-fw/botsdal"
 	botsfw "github.com/bots-go-framework/bots-fw/botsfw"
 	dal "github.com/dal-go/dalgo/dal"
@@ -303,10 +304,10 @@ func (mr *MockWebhookContextMockRecorder) GetTranslator(locale any) *gomock.Call
 }
 
 // Input mocks base method.
-func (m *MockWebhookContext) Input() botinput.WebhookInput {
+func (m *MockWebhookContext) Input() botinput.InputMessage {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Input")
-	ret0, _ := ret[0].(botinput.WebhookInput)
+	ret0, _ := ret[0].(botinput.InputMessage)
 	return ret0
 }
 
@@ -374,10 +375,10 @@ func (mr *MockWebhookContextMockRecorder) MustBotChatID() *gomock.Call {
 }
 
 // NewEditMessage mocks base method.
-func (m *MockWebhookContext) NewEditMessage(text string, format botsfw.MessageFormat) (botsfw.MessageFromBot, error) {
+func (m *MockWebhookContext) NewEditMessage(text string, format botmsg.Format) (botmsg.MessageFromBot, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewEditMessage", text, format)
-	ret0, _ := ret[0].(botsfw.MessageFromBot)
+	ret0, _ := ret[0].(botmsg.MessageFromBot)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -389,10 +390,10 @@ func (mr *MockWebhookContextMockRecorder) NewEditMessage(text, format any) *gomo
 }
 
 // NewMessage mocks base method.
-func (m *MockWebhookContext) NewMessage(text string) botsfw.MessageFromBot {
+func (m *MockWebhookContext) NewMessage(text string) botmsg.MessageFromBot {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewMessage", text)
-	ret0, _ := ret[0].(botsfw.MessageFromBot)
+	ret0, _ := ret[0].(botmsg.MessageFromBot)
 	return ret0
 }
 
@@ -403,14 +404,14 @@ func (mr *MockWebhookContextMockRecorder) NewMessage(text any) *gomock.Call {
 }
 
 // NewMessageByCode mocks base method.
-func (m *MockWebhookContext) NewMessageByCode(messageCode string, a ...any) botsfw.MessageFromBot {
+func (m *MockWebhookContext) NewMessageByCode(messageCode string, a ...any) botmsg.MessageFromBot {
 	m.ctrl.T.Helper()
 	varargs := []any{messageCode}
 	for _, a_2 := range a {
 		varargs = append(varargs, a_2)
 	}
 	ret := m.ctrl.Call(m, "NewMessageByCode", varargs...)
-	ret0, _ := ret[0].(botsfw.MessageFromBot)
+	ret0, _ := ret[0].(botmsg.MessageFromBot)
 	return ret0
 }
 

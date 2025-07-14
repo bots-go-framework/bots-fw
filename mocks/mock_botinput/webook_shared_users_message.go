@@ -57,10 +57,10 @@ func (mr *MockWebhookSharedUsersMessageMockRecorder) BotChatID() *gomock.Call {
 }
 
 // Chat mocks base method.
-func (m *MockWebhookSharedUsersMessage) Chat() botinput.WebhookChat {
+func (m *MockWebhookSharedUsersMessage) Chat() botinput.Chat {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Chat")
-	ret0, _ := ret[0].(botinput.WebhookChat)
+	ret0, _ := ret[0].(botinput.Chat)
 	return ret0
 }
 
@@ -71,10 +71,10 @@ func (mr *MockWebhookSharedUsersMessageMockRecorder) Chat() *gomock.Call {
 }
 
 // GetRecipient mocks base method.
-func (m *MockWebhookSharedUsersMessage) GetRecipient() botinput.WebhookRecipient {
+func (m *MockWebhookSharedUsersMessage) GetRecipient() botinput.Recipient {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecipient")
-	ret0, _ := ret[0].(botinput.WebhookRecipient)
+	ret0, _ := ret[0].(botinput.Recipient)
 	return ret0
 }
 
@@ -99,10 +99,10 @@ func (mr *MockWebhookSharedUsersMessageMockRecorder) GetRequestID() *gomock.Call
 }
 
 // GetSender mocks base method.
-func (m *MockWebhookSharedUsersMessage) GetSender() botinput.WebhookUser {
+func (m *MockWebhookSharedUsersMessage) GetSender() botinput.User {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSender")
-	ret0, _ := ret[0].(botinput.WebhookUser)
+	ret0, _ := ret[0].(botinput.User)
 	return ret0
 }
 
@@ -141,10 +141,10 @@ func (mr *MockWebhookSharedUsersMessageMockRecorder) GetTime() *gomock.Call {
 }
 
 // InputType mocks base method.
-func (m *MockWebhookSharedUsersMessage) InputType() botinput.WebhookInputType {
+func (m *MockWebhookSharedUsersMessage) InputType() botinput.Type {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InputType")
-	ret0, _ := ret[0].(botinput.WebhookInputType)
+	ret0, _ := ret[0].(botinput.Type)
 	return ret0
 }
 

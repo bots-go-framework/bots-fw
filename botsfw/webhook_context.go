@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
@@ -80,9 +81,9 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// SetLocale sets Locale for current session
 	SetLocale(code5 string) error
 
-	NewMessage(text string) MessageFromBot
-	NewMessageByCode(messageCode string, a ...interface{}) MessageFromBot
-	NewEditMessage(text string, format MessageFormat) (MessageFromBot, error)
+	NewMessage(text string) botmsg.MessageFromBot
+	NewMessageByCode(messageCode string, a ...interface{}) botmsg.MessageFromBot
+	NewEditMessage(text string, format botmsg.Format) (botmsg.MessageFromBot, error)
 	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
 
 	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
@@ -108,7 +109,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	// RecordsFieldsSetter returns a helper that sets fields of bot related records
 	RecordsFieldsSetter() BotRecordsFieldsSetter
 
-	//botinput.WebhookInput // TODO: Should be removed!!!
+	//botinput.InputMessage // TODO: Should be removed!!!
 	i18n.SingleLocaleTranslator
 	GetTranslator(locale string) i18n.SingleLocaleTranslator
 
@@ -125,5 +126,5 @@ type BotState interface {
 // BotInputProvider provides an input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
 type BotInputProvider interface {
 	// Input returns a webhook input from a specific bot interface (Telegram, FB Messenger, Viber, etc.)
-	Input() botinput.WebhookInput
+	Input() botinput.InputMessage
 }

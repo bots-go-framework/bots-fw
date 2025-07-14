@@ -1,8 +1,10 @@
-package botsfw
+package botswebhook
 
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	botsfw3 "github.com/bots-go-framework/bots-fw/botmsg"
+	"github.com/bots-go-framework/bots-fw/botsfw"
 	"testing"
 )
 
@@ -33,11 +35,11 @@ func TestWebhooksRouter_CommandsCount(t *testing.T) {
 	}
 
 	// Add a command
-	cmd := Command{
+	cmd := botsfw.Command{
 		Code:       "test",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputText},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeText},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
 	router.AddCommands(cmd)
@@ -53,11 +55,11 @@ func TestWebhooksRouter_AddCommands(t *testing.T) {
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 
 	// Add a command
-	cmd1 := Command{
+	cmd1 := botsfw.Command{
 		Code:       "test1",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputText},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeText},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
 	router.AddCommands(cmd1)
@@ -69,19 +71,19 @@ func TestWebhooksRouter_AddCommands(t *testing.T) {
 	}
 
 	// Add another command
-	cmd2 := Command{
+	cmd2 := botsfw.Command{
 		Code:       "test2",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputText},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeText},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
 	router.AddCommands(cmd2)
 
 	// Verify both commands were added
 	commands = router.RegisteredCommands()
-	if len(commands[botinput.WebhookInputText]) != 2 {
-		t.Errorf("Expected 2 commands, got %d", len(commands[botinput.WebhookInputText]))
+	if len(commands[botinput.TypeText]) != 2 {
+		t.Errorf("Expected 2 commands, got %d", len(commands[botinput.TypeText]))
 	}
 }
 
@@ -90,19 +92,19 @@ func TestWebhooksRouter_RegisterCommandsForInputType(t *testing.T) {
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 
 	// Add a command for a specific input type
-	cmd := Command{
+	cmd := botsfw.Command{
 		Code:       "test",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputInlineQuery},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeInlineQuery},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
-	router.RegisterCommandsForInputType(botinput.WebhookInputInlineQuery, cmd)
+	router.RegisterCommandsForInputType(botinput.TypeInlineQuery, cmd)
 
 	// Verify the command was added for the correct input type
 	commands := router.RegisteredCommands()
-	if len(commands[botinput.WebhookInputInlineQuery]) != 1 {
-		t.Errorf("Expected 1 command for input type %v, got %d", botinput.WebhookInputInlineQuery, len(commands[botinput.WebhookInputInlineQuery]))
+	if len(commands[botinput.TypeInlineQuery]) != 1 {
+		t.Errorf("Expected 1 command for input type %v, got %d", botinput.TypeInlineQuery, len(commands[botinput.TypeInlineQuery]))
 	}
 }
 
@@ -111,23 +113,23 @@ func TestWebhooksRouter_AddCommandsGroupedByType(t *testing.T) {
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 
 	// Create commands grouped by type
-	cmd1 := Command{
+	cmd1 := botsfw.Command{
 		Code:       "test1",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputText},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeText},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
-	cmd2 := Command{
+	cmd2 := botsfw.Command{
 		Code:       "test2",
-		InputTypes: []botinput.WebhookInputType{botinput.WebhookInputInlineQuery},
-		Action: func(whc WebhookContext) (MessageFromBot, error) {
-			return MessageFromBot{}, nil
+		InputTypes: []botinput.Type{botinput.TypeInlineQuery},
+		Action: func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+			return botsfw3.MessageFromBot{}, nil
 		},
 	}
-	commandsByType := map[botinput.WebhookInputType][]Command{
-		botinput.WebhookInputText:        {cmd1},
-		botinput.WebhookInputInlineQuery: {cmd2},
+	commandsByType := map[botinput.Type][]botsfw.Command{
+		botinput.TypeText:        {cmd1},
+		botinput.TypeInlineQuery: {cmd2},
 	}
 
 	// Add the commands
@@ -135,10 +137,10 @@ func TestWebhooksRouter_AddCommandsGroupedByType(t *testing.T) {
 
 	// Verify the commands were added for the correct input types
 	commands := router.RegisteredCommands()
-	if len(commands[botinput.WebhookInputText]) != 1 {
-		t.Errorf("Expected 1 command for input type %v, got %d", botinput.WebhookInputText, len(commands[botinput.WebhookInputText]))
+	if len(commands[botinput.TypeText]) != 1 {
+		t.Errorf("Expected 1 command for input type %v, got %d", botinput.TypeText, len(commands[botinput.TypeText]))
 	}
-	if len(commands[botinput.WebhookInputInlineQuery]) != 1 {
-		t.Errorf("Expected 1 command for input type %v, got %d", botinput.WebhookInputInlineQuery, len(commands[botinput.WebhookInputInlineQuery]))
+	if len(commands[botinput.TypeInlineQuery]) != 1 {
+		t.Errorf("Expected 1 command for input type %v, got %d", botinput.TypeInlineQuery, len(commands[botinput.TypeInlineQuery]))
 	}
 }

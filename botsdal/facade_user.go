@@ -12,7 +12,7 @@ import (
 type Bot struct {
 	Platform botsfwconst.Platform
 	ID       string
-	User     botinput.WebhookUser
+	User     botinput.User
 }
 
 type AppUserDal interface {
@@ -38,7 +38,7 @@ type AppUserDal interface {
 //	return appUserDal{}
 //}
 //
-//func (a appUserDal) CreateAppUserFromBotUser(ctx context.Context, tx dal.ReadwriteTransaction, platform, botID string, botUser botinput.WebhookUser) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
+//func (a appUserDal) CreateAppUserFromBotUser(ctx context.Context, tx dal.ReadwriteTransaction, platform, botID string, botUser botinput.User) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
 //	//TODO implement me
 //	panic("implement me")
 //}

@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	botmsg "github.com/bots-go-framework/bots-fw/botmsg"
 	botsfw "github.com/bots-go-framework/bots-fw/botsfw"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -56,7 +57,7 @@ func (mr *MockWebhookResponderMockRecorder) DeleteMessage(c, messageID any) *gom
 }
 
 // SendMessage mocks base method.
-func (m_2 *MockWebhookResponder) SendMessage(c context.Context, m botsfw.MessageFromBot, channel botsfw.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
+func (m_2 *MockWebhookResponder) SendMessage(c context.Context, m botmsg.MessageFromBot, channel botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
 	m_2.ctrl.T.Helper()
 	ret := m_2.ctrl.Call(m_2, "SendMessage", c, m, channel)
 	ret0, _ := ret[0].(botsfw.OnMessageSentResponse)

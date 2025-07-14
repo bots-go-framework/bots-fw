@@ -107,7 +107,7 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
 			var handleError func(err error, message string)
-			if input.InputType() == botinput.WebhookInputCallbackQuery {
+			if input.InputType() == botinput.TypeCallbackQuery {
 				handleError = handleErrorAndReturnHttpOK
 			} else {
 				handleError = handleErrorAndReturnHttpError
@@ -124,7 +124,7 @@ func (d webhookDriver) processWebhookInput(
 	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
 	botContext *botsfw.BotContext,
 	i int,
-	input botinput.WebhookInput,
+	input botinput.InputMessage,
 	handleError func(err error, message string),
 ) (
 	err error,
@@ -233,7 +233,7 @@ func (d webhookDriver) processWebhookInput(
 	return
 }
 
-func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botsfw.EntryInputs, err error) bool {
+func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botinput.EntryInputs, err error) bool {
 	if err != nil {
 		var errAuthFailed botsfw.ErrAuthFailed
 		if errors.As(err, &errAuthFailed) {
@@ -290,13 +290,13 @@ func (webhookDriver) reportPanicToAnalytics(c context.Context, whc botsfw.Webhoo
 	whc.Analytics().Enqueue(msg)
 }
 
-func (webhookDriver) logInput(c context.Context, i int, input botinput.WebhookInput) {
+func (webhookDriver) logInput(c context.Context, i int, input botinput.InputMessage) {
 	sender := input.GetSender()
 	prefix := fmt.Sprintf("BotUser#%v(%v %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName())
 	switch input := input.(type) {
-	case botinput.WebhookTextMessage:
+	case botinput.TextMessage:
 		log.Debugf(c, "%s => text: %v", prefix, input.Text())
-	case botinput.WebhookNewChatMembersMessage:
+	case botinput.NewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
 		b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
@@ -304,17 +304,17 @@ func (webhookDriver) logInput(c context.Context, i int, input botinput.WebhookIn
 			b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
 		}
 		log.Debugf(c, b.String())
-	case botinput.WebhookContactMessage:
+	case botinput.ContactMessage:
 		log.Debugf(c, "%s => Contact(botUserID=%s, firstName=%s)", prefix, input.GetBotUserID(), input.GetFirstName())
-	case botinput.WebhookCallbackQuery:
+	case botinput.CallbackQuery:
 		callbackData := input.GetData()
 		log.Debugf(c, "%s => callback: %v", prefix, callbackData)
-	case botinput.WebhookInlineQuery:
+	case botinput.InlineQuery:
 		log.Debugf(c, "%s => inline query: %v", prefix, input.GetQuery())
-	case botinput.WebhookChosenInlineResult:
+	case botinput.ChosenInlineResult:
 		log.Debugf(c, "%s => chosen InlineMessageID: %v", prefix, input.GetInlineMessageID())
-	case botinput.WebhookReferralMessage:
-		log.Debugf(c, "%s => text: %v", prefix, input.(botinput.WebhookTextMessage).Text())
+	case botinput.ReferralMessage:
+		log.Debugf(c, "%s => text: %v", prefix, input.(botinput.TextMessage).Text())
 	case botinput.WebhookSharedUsersMessage:
 		sharedUsers := input.GetSharedUsers()
 		log.Debugf(c, "%s => shared %d users", prefix, len(sharedUsers))

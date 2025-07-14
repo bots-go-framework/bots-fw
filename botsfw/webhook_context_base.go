@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
+	botsfw3 "github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
@@ -27,7 +28,7 @@ type WebhookContextBase struct {
 	appContext  AppContext
 	botContext  BotContext // TODO: rename to something strongo
 	botPlatform BotPlatform
-	input       botinput.WebhookInput
+	input       botinput.InputMessage
 	//recordsMaker        botsfwmodels.BotRecordsMaker
 	recordsFieldsSetter BotRecordsFieldsSetter
 
@@ -171,7 +172,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		}
 	}
 	switch input := input.(type) {
-	case botinput.WebhookCallbackQuery:
+	case botinput.CallbackQuery:
 		data := input.GetData()
 		if strings.Contains(data, "botChat=") {
 			values, err := url.ParseQuery(data)
@@ -181,9 +182,9 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 			chatID := values.Get("botChat")
 			whcb.SetChatID(chatID)
 		}
-	case botinput.WebhookInlineQuery:
+	case botinput.InlineQuery:
 		// pass
-	case botinput.WebhookChosenInlineResult:
+	case botinput.ChosenInlineResult:
 		// pass
 	default:
 		whcb.LogRequest()
@@ -350,22 +351,22 @@ func (whcb *WebhookContextBase) GetTranslator(locale string) i18n.SingleLocaleTr
 }
 
 // Input returns webhook input
-func (whcb *WebhookContextBase) Input() botinput.WebhookInput {
+func (whcb *WebhookContextBase) Input() botinput.InputMessage {
 	return whcb.input
 }
 
 // Chat returns webhook botChat
-func (whcb *WebhookContextBase) Chat() botinput.WebhookChat { // TODO: remove
+func (whcb *WebhookContextBase) Chat() botinput.Chat { // TODO: remove
 	return whcb.input.Chat()
 }
 
 // GetRecipient returns receiver of the message
-func (whcb *WebhookContextBase) GetRecipient() botinput.WebhookRecipient { // TODO: remove
+func (whcb *WebhookContextBase) GetRecipient() botinput.Recipient { // TODO: remove
 	return whcb.input.GetRecipient()
 }
 
 // GetSender returns sender of the message
-//func (whcb *WebhookContextBase) GetSender() botinput.WebhookUser { // TODO: remove
+//func (whcb *WebhookContextBase) GetSender() botinput.User { // TODO: remove
 //	return whcb.input.GetSender()
 //}
 
@@ -375,7 +376,7 @@ func (whcb *WebhookContextBase) GetTime() time.Time { // TODO: remove
 }
 
 // InputType returns input type
-func (whcb *WebhookContextBase) InputType() botinput.WebhookInputType { // TODO: remove
+func (whcb *WebhookContextBase) InputType() botinput.Type { // TODO: remove
 	return whcb.input.InputType()
 }
 
@@ -641,21 +642,21 @@ func (whcb *WebhookContextBase) SetContext(c context.Context) {
 
 // MessageText returns text of a received message
 func (whcb *WebhookContextBase) MessageText() string {
-	if tm, ok := whcb.Input().(botinput.WebhookTextMessage); ok {
+	if tm, ok := whcb.Input().(botinput.TextMessage); ok {
 		return tm.Text()
 	}
 	return ""
 }
 
 // NewMessageByCode creates new translated message by i18n code
-func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m MessageFromBot) {
+func (whcb *WebhookContextBase) NewMessageByCode(messageCode string, a ...interface{}) (m botsfw3.MessageFromBot) {
 	text := whcb.Translate(messageCode)
 	text = fmt.Sprintf(text, a...)
 	return whcb.NewMessage(text)
 }
 
 // NewMessage creates a new text message from bot
-func (whcb *WebhookContextBase) NewMessage(text string) (m MessageFromBot) {
+func (whcb *WebhookContextBase) NewMessage(text string) (m botsfw3.MessageFromBot) {
 	m.Text = text
 	return
 }
