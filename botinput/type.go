@@ -1,6 +1,6 @@
 package botinput
 
-//go:generate stringer -type=WebhookInputType
+//go:generate stringer -type=Type
 
 // Type is enum of input type
 type Type int
@@ -51,29 +51,3 @@ const (
 	TypeSuccessfulPayment
 	TypeRefundedPayment
 )
-
-var webhookInputTypeNames = map[Type]string{
-	TypeUnknown:             "unknown",
-	TypeNotImplemented:      "NotImplemented",
-	TypeText:                "Text",
-	TypeVoice:               "Voice",
-	TypePhoto:               "Photo",
-	TypeAudio:               "Audio",
-	TypeReferral:            "Referral",
-	TypeContact:             "Contact",
-	TypePostback:            "Postback",
-	TypeDelivery:            "Delivery",
-	TypeAttachment:          "Attachment",
-	TypeInlineQuery:         "InlineQuery",
-	TypeCallbackQuery:       "CallbackQuery",
-	TypeChosenInlineResult:  "ChosenInlineResult",
-	TypeSubscribed:          "Subscribed",          // Viber
-	TypeUnsubscribed:        "Unsubscribed",        // Viber
-	TypeConversationStarted: "ConversationStarted", // Telegram
-	TypeNewChatMembers:      "NewChatMembers",      // Telegram
-	TypeSticker:             "Sticker",             // Telegram
-	TypeLeftChatMembers:     "LeftChatMembers",     // Telegram
-	TypeSharedUsers:         "SharedUsers",         // Telegram
-	TypeSuccessfulPayment:   "SuccessfulPayment",   // Telegram
-	TypeRefundedPayment:     "RefundedPayment",     // Telegram
-}

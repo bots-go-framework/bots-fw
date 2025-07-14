@@ -2,7 +2,6 @@ package botinput
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -13,11 +12,7 @@ type Entry interface {
 }
 
 func GetBotInputTypeIdNameString(whInputType Type) string {
-	name, ok := webhookInputTypeNames[whInputType]
-	if ok {
-		return fmt.Sprintf("%d:%s", whInputType, name)
-	}
-	return strconv.Itoa(int(whInputType))
+	return fmt.Sprintf("%d:%s", whInputType, whInputType)
 }
 
 // InputMessage represent a single message
@@ -206,15 +201,16 @@ type CallbackQuery interface {
 //	SubscriptionExpirationDate *time.Time
 //}
 
-type webhookPayment interface {
+type payment interface {
 	GetCurrency() string
 	GetTotalAmount() int
 	GetInvoicePayload() string
 	GetMessengerChargeID() string
 	GetPaymentProviderChargeID() string
 }
+
 type SuccessfulPayment interface {
-	webhookPayment
+	payment
 	GetSubscriptionExpirationDate() time.Time
 	GetIsRecurring() bool
 	GetIsFirstRecurring() bool
@@ -222,11 +218,11 @@ type SuccessfulPayment interface {
 	GetOrderInfo() OrderInfo
 }
 
-type WebhookRefundedPayment interface {
-	webhookPayment
+type RefundedPayment interface {
+	payment
 }
 
-type WebhookPreCheckoutQuery interface {
+type PreCheckoutQuery interface {
 	GetPreCheckoutQueryID() string
 	GetCurrency() string
 	GetTotalAmount() int
@@ -252,8 +248,8 @@ type ShippingAddress interface {
 	GetPostCode() string
 }
 
-// WebhookAttachment represents attachment to a message
-type WebhookAttachment interface {
+// Attachment represents attachment to a message
+type Attachment interface {
 	Type() string       // Enum(image, video, audio) for Facebook
 	PayloadUrl() string // 'payload.url' for Facebook
 }

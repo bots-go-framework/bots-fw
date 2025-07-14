@@ -315,7 +315,7 @@ func (webhookDriver) logInput(c context.Context, i int, input botinput.InputMess
 		log.Debugf(c, "%s => chosen InlineMessageID: %v", prefix, input.GetInlineMessageID())
 	case botinput.ReferralMessage:
 		log.Debugf(c, "%s => text: %v", prefix, input.(botinput.TextMessage).Text())
-	case botinput.WebhookSharedUsersMessage:
+	case botinput.SharedUsersMessage:
 		sharedUsers := input.GetSharedUsers()
 		log.Debugf(c, "%s => shared %d users", prefix, len(sharedUsers))
 	default:

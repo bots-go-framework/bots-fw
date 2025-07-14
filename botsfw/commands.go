@@ -19,9 +19,9 @@ type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m botmsg.Mes
 
 type SuccessfulPaymentAction func(whc WebhookContext, payment botinput.SuccessfulPayment) (m botmsg.MessageFromBot, err error)
 
-type RefundedPaymentAction func(whc WebhookContext, payment botinput.WebhookRefundedPayment) (m botmsg.MessageFromBot, err error)
+type RefundedPaymentAction func(whc WebhookContext, payment botinput.RefundedPayment) (m botmsg.MessageFromBot, err error)
 
-type PreCheckoutQueryAction func(whc WebhookContext, preCheckout botinput.WebhookPreCheckoutQuery) (m botmsg.MessageFromBot, err error)
+type PreCheckoutQueryAction func(whc WebhookContext, preCheckout botinput.PreCheckoutQuery) (m botmsg.MessageFromBot, err error)
 
 type InlineQueryAction func(whc WebhookContext, inlineQuery botinput.InlineQuery, queryUrl *url.URL) (m botmsg.MessageFromBot, err error)
 

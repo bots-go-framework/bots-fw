@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockWebhookNewChatMembersMessage is a mock of NewChatMembersMessage interface.
-type MockWebhookNewChatMembersMessage struct {
+// MockNewChatMembersMessage is a mock of NewChatMembersMessage interface.
+type MockNewChatMembersMessage struct {
 	ctrl     *gomock.Controller
-	recorder *MockWebhookNewChatMembersMessageMockRecorder
+	recorder *MockNewChatMembersMessageMockRecorder
 	isgomock struct{}
 }
 
-// MockWebhookNewChatMembersMessageMockRecorder is the mock recorder for MockWebhookNewChatMembersMessage.
-type MockWebhookNewChatMembersMessageMockRecorder struct {
-	mock *MockWebhookNewChatMembersMessage
+// MockNewChatMembersMessageMockRecorder is the mock recorder for MockNewChatMembersMessage.
+type MockNewChatMembersMessageMockRecorder struct {
+	mock *MockNewChatMembersMessage
 }
 
-// NewMockWebhookNewChatMembersMessage creates a new mock instance.
-func NewMockWebhookNewChatMembersMessage(ctrl *gomock.Controller) *MockWebhookNewChatMembersMessage {
-	mock := &MockWebhookNewChatMembersMessage{ctrl: ctrl}
-	mock.recorder = &MockWebhookNewChatMembersMessageMockRecorder{mock}
+// NewMockNewChatMembersMessage creates a new mock instance.
+func NewMockNewChatMembersMessage(ctrl *gomock.Controller) *MockNewChatMembersMessage {
+	mock := &MockNewChatMembersMessage{ctrl: ctrl}
+	mock.recorder = &MockNewChatMembersMessageMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockWebhookNewChatMembersMessage) EXPECT() *MockWebhookNewChatMembersMessageMockRecorder {
+func (m *MockNewChatMembersMessage) EXPECT() *MockNewChatMembersMessageMockRecorder {
 	return m.recorder
 }
 
 // BotChatID mocks base method.
-func (m *MockWebhookNewChatMembersMessage) BotChatID() (string, error) {
+func (m *MockNewChatMembersMessage) BotChatID() (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BotChatID")
 	ret0, _ := ret[0].(string)
@@ -50,13 +50,13 @@ func (m *MockWebhookNewChatMembersMessage) BotChatID() (string, error) {
 }
 
 // BotChatID indicates an expected call of BotChatID.
-func (mr *MockWebhookNewChatMembersMessageMockRecorder) BotChatID() *gomock.Call {
+func (mr *MockNewChatMembersMessageMockRecorder) BotChatID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BotChatID", reflect.TypeOf((*MockWebhookNewChatMembersMessage)(nil).BotChatID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BotChatID", reflect.TypeOf((*MockNewChatMembersMessage)(nil).BotChatID))
 }
 
 // NewChatMembers mocks base method.
-func (m *MockWebhookNewChatMembersMessage) NewChatMembers() []botinput.Actor {
+func (m *MockNewChatMembersMessage) NewChatMembers() []botinput.Actor {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NewChatMembers")
 	ret0, _ := ret[0].([]botinput.Actor)
@@ -64,7 +64,7 @@ func (m *MockWebhookNewChatMembersMessage) NewChatMembers() []botinput.Actor {
 }
 
 // NewChatMembers indicates an expected call of NewChatMembers.
-func (mr *MockWebhookNewChatMembersMessageMockRecorder) NewChatMembers() *gomock.Call {
+func (mr *MockNewChatMembersMessageMockRecorder) NewChatMembers() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChatMembers", reflect.TypeOf((*MockWebhookNewChatMembersMessage)(nil).NewChatMembers))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewChatMembers", reflect.TypeOf((*MockNewChatMembersMessage)(nil).NewChatMembers))
 }

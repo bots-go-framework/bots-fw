@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockWebhookLeftChatMembersMessage is a mock of LeftChatMembersMessage interface.
-type MockWebhookLeftChatMembersMessage struct {
+// MockLeftChatMembersMessage is a mock of LeftChatMembersMessage interface.
+type MockLeftChatMembersMessage struct {
 	ctrl     *gomock.Controller
-	recorder *MockWebhookLeftChatMembersMessageMockRecorder
+	recorder *MockLeftChatMembersMessageMockRecorder
 	isgomock struct{}
 }
 
-// MockWebhookLeftChatMembersMessageMockRecorder is the mock recorder for MockWebhookLeftChatMembersMessage.
-type MockWebhookLeftChatMembersMessageMockRecorder struct {
-	mock *MockWebhookLeftChatMembersMessage
+// MockLeftChatMembersMessageMockRecorder is the mock recorder for MockLeftChatMembersMessage.
+type MockLeftChatMembersMessageMockRecorder struct {
+	mock *MockLeftChatMembersMessage
 }
 
-// NewMockWebhookLeftChatMembersMessage creates a new mock instance.
-func NewMockWebhookLeftChatMembersMessage(ctrl *gomock.Controller) *MockWebhookLeftChatMembersMessage {
-	mock := &MockWebhookLeftChatMembersMessage{ctrl: ctrl}
-	mock.recorder = &MockWebhookLeftChatMembersMessageMockRecorder{mock}
+// NewMockLeftChatMembersMessage creates a new mock instance.
+func NewMockLeftChatMembersMessage(ctrl *gomock.Controller) *MockLeftChatMembersMessage {
+	mock := &MockLeftChatMembersMessage{ctrl: ctrl}
+	mock.recorder = &MockLeftChatMembersMessageMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockWebhookLeftChatMembersMessage) EXPECT() *MockWebhookLeftChatMembersMessageMockRecorder {
+func (m *MockLeftChatMembersMessage) EXPECT() *MockLeftChatMembersMessageMockRecorder {
 	return m.recorder
 }
 
 // BotChatID mocks base method.
-func (m *MockWebhookLeftChatMembersMessage) BotChatID() (string, error) {
+func (m *MockLeftChatMembersMessage) BotChatID() (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BotChatID")
 	ret0, _ := ret[0].(string)
@@ -50,13 +50,13 @@ func (m *MockWebhookLeftChatMembersMessage) BotChatID() (string, error) {
 }
 
 // BotChatID indicates an expected call of BotChatID.
-func (mr *MockWebhookLeftChatMembersMessageMockRecorder) BotChatID() *gomock.Call {
+func (mr *MockLeftChatMembersMessageMockRecorder) BotChatID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BotChatID", reflect.TypeOf((*MockWebhookLeftChatMembersMessage)(nil).BotChatID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BotChatID", reflect.TypeOf((*MockLeftChatMembersMessage)(nil).BotChatID))
 }
 
 // LeftChatMembers mocks base method.
-func (m *MockWebhookLeftChatMembersMessage) LeftChatMembers() []botinput.Actor {
+func (m *MockLeftChatMembersMessage) LeftChatMembers() []botinput.Actor {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LeftChatMembers")
 	ret0, _ := ret[0].([]botinput.Actor)
@@ -64,7 +64,7 @@ func (m *MockWebhookLeftChatMembersMessage) LeftChatMembers() []botinput.Actor {
 }
 
 // LeftChatMembers indicates an expected call of LeftChatMembers.
-func (mr *MockWebhookLeftChatMembersMessageMockRecorder) LeftChatMembers() *gomock.Call {
+func (mr *MockLeftChatMembersMessageMockRecorder) LeftChatMembers() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeftChatMembers", reflect.TypeOf((*MockWebhookLeftChatMembersMessage)(nil).LeftChatMembers))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LeftChatMembers", reflect.TypeOf((*MockLeftChatMembersMessage)(nil).LeftChatMembers))
 }

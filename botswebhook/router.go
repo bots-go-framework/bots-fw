@@ -550,7 +550,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 				}
 			}
 		}
-	case botinput.WebhookPreCheckoutQuery:
+	case botinput.PreCheckoutQuery:
 		payloadData := input.GetInvoicePayload()
 		var payloadURL *url.URL
 		if payloadURL, err = url.Parse(payloadData); err != nil {

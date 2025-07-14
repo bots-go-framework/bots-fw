@@ -1,7 +1,7 @@
 package botmsg
 
 import (
-	"github.com/bots-go-framework/bots-fw/botkb"
+	"github.com/bots-go-framework/bots-go-core/botkb"
 	"strconv"
 )
 
