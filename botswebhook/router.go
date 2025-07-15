@@ -829,7 +829,7 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 			log.Errorf(ctx, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 		}
 	case botinput.TypeCallbackQuery:
-		// TODO: For Telegram call answerInlineQuery to report error to user.
+		// TODO: For Telegram call answerCallbackQuery to report error to user.
 		logus.Errorf(ctx, "Failed to process callback query by command{code=%s}: %v", matchedCommand.Code, inputType)
 	default:
 		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
