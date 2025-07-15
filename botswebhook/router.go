@@ -538,7 +538,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		isCommandText := strings.HasPrefix(messageText, "/")
 		matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 		if matchedCommand != nil {
-			if isCommandText && messageText[:len("/start")] == "/start" && matchedCommand.StartAction != nil {
+			if isCommandText && strings.HasPrefix(messageText, "/start") && matchedCommand.StartAction != nil {
 				commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
 					return matchedCommand.StartAction(whc, messageText)
 				}
