@@ -15,15 +15,12 @@ type webhookAnalytics struct {
 	whcb *WebhookContextBase
 }
 
-func (wha webhookAnalytics) UserContext() *analytics.UserContext {
+func (wha webhookAnalytics) UserContext() analytics.UserContext {
 	var userLanguage string
 	if wha.whcb.botChat.Data != nil {
 		userLanguage = strings.ToLower(wha.whcb.botChat.Data.GetPreferredLanguage())
 	}
-	return &analytics.UserContext{
-		UserID:       wha.whcb.AppUserID(),
-		UserLanguage: userLanguage,
-	}
+	return analytics.NewUserContext(wha.whcb.AppUserID()).SetUserLanguage(userLanguage)
 }
 
 func (wha webhookAnalytics) Enqueue(message analytics.Message) {
