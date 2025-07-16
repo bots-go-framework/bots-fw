@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
-	botsfw3 "github.com/bots-go-framework/bots-fw/botmsg"
+	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/analytics"
 	"github.com/strongo/logus"
@@ -392,7 +392,7 @@ func (whRouter *webhooksRouter) DispatchInlineQuery(responder botsfw.WebhookResp
 	panic(fmt.Errorf("not implemented, responder: %+v", responder))
 }
 
-func changeLocaleIfLangPassed(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botsfw3.MessageFromBot, err error) {
+func changeLocaleIfLangPassed(whc botsfw.WebhookContext, callbackUrl *url.URL) (m botmsg.MessageFromBot, err error) {
 	c := whc.Context()
 	q := callbackUrl.Query()
 	lang := q.Get("l")
@@ -463,7 +463,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 	var (
 		matchedCommand *botsfw.Command
 		commandAction  botsfw.CommandAction
-		m              botsfw3.MessageFromBot
+		m              botmsg.MessageFromBot
 	)
 
 	if len(typeCommands.all) == 0 {
@@ -492,7 +492,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 				if m, err = changeLocaleIfLangPassed(whc, callbackURL); err != nil || m.Text != "" {
 					return
 				}
-				commandAction = func(whc botsfw.WebhookContext) (botsfw3.MessageFromBot, error) {
+				commandAction = func(whc botsfw.WebhookContext) (botmsg.MessageFromBot, error) {
 					return matchedCommand.CallbackAction(whc, callbackURL)
 				}
 			}
@@ -509,7 +509,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 			if matchedCommand.InlineQueryAction == nil {
 				commandAction = matchedCommand.Action
 			} else {
-				commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+				commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 					return matchedCommand.InlineQueryAction(whc, input, queryURL)
 				}
 			}
@@ -529,7 +529,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		if matchedCommand.ChosenInlineResultAction == nil {
 			commandAction = matchedCommand.Action
 		} else {
-			commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+			commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 				return matchedCommand.ChosenInlineResultAction(whc, input, queryURL)
 			}
 		}
@@ -539,13 +539,13 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, "", typeCommands.all)
 		if matchedCommand != nil {
 			if isCommandText && strings.HasPrefix(messageText, "/start") && matchedCommand.StartAction != nil {
-				commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+				commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 					return matchedCommand.StartAction(whc, messageText)
 				}
 			} else if matchedCommand.TextAction == nil {
 				commandAction = matchedCommand.Action
 			} else {
-				commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+				commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 					return matchedCommand.TextAction(whc, messageText)
 				}
 			}
@@ -562,7 +562,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 			matchedCommand = &typeCommands.all[0]
 		}
 		if matchedCommand.PreCheckoutQueryAction != nil {
-			commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+			commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 				return matchedCommand.PreCheckoutQueryAction(whc, input)
 			}
 		} else if matchedCommand.Action != nil {
@@ -583,7 +583,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 			matchedCommand = &typeCommands.all[0]
 		}
 		if matchedCommand.SuccessfulPaymentAction != nil {
-			commandAction = func(whc botsfw.WebhookContext) (m botsfw3.MessageFromBot, err error) {
+			commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
 				return matchedCommand.SuccessfulPaymentAction(whc, input)
 			}
 		} else if matchedCommand.Action != nil {
@@ -731,7 +731,7 @@ func logInputDetails(whc botsfw.WebhookContext, isKnownType bool) {
 	}
 }
 
-func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, whc botsfw.WebhookContext, m botsfw3.MessageFromBot, err error) {
+func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, whc botsfw.WebhookContext, m botmsg.MessageFromBot, err error) {
 	if err != nil {
 		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
@@ -831,6 +831,17 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 	case botinput.TypeCallbackQuery:
 		// TODO: For Telegram call answerCallbackQuery to report error to user.
 		logus.Errorf(ctx, "Failed to process callback query by command{code=%s}: %v", matchedCommand.Code, inputType)
+		var msg botmsg.MessageFromBot
+		msg.BotMessage = botmsg.AnswerCallbackQuery{
+			CallbackQueryID: whc.Input().(botinput.CallbackQuery).GetID(),
+			Text:            "💥 Error: " + err.Error(),
+			ShowAlert:       true,
+			CacheTime:       3,
+		}
+		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverHTTPS); err != nil {
+			logus.Errorf(ctx, "Failed to send callback error message to messenger: %v", err)
+		}
+
 	default:
 		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
 	}
