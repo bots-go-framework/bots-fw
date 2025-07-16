@@ -797,13 +797,23 @@ func (whRouter *webhooksRouter) processCommandResponse(
 			am = m.Analytics
 			pageview, _ = am.(analytics.Pageview)
 		}
-		path := strings.TrimLeft(string(matchedCommand.Code), "/")
+		path := string(matchedCommand.Code)
 		if path != "" && (m.Text != "" || m.BotMessage != nil && m.BotMessage.BotMessageType() == botmsg.TypeText) {
+			if path[0] != '/' {
+				path = "/" + path
+			}
 			botPlatformID := whc.BotPlatform().ID()
 			if pageview == nil || pageview.Host() != botPlatformID || pageview.Path() == "" {
 				originalPageview := pageview
-				pageview = analytics.NewPageview(botPlatformID, "bot/"+path)
-				if originalPageview != nil {
+				if !strings.HasPrefix(path, "/bot/") {
+					path = "/bot/" + path
+				}
+				pageview = analytics.NewPageview(botPlatformID, path)
+				if originalPageview == nil {
+					if matchedCommand.Title != "" {
+						pageview.SetTitle(matchedCommand.Title)
+					}
+				} else {
 					if title := originalPageview.Title(); title != "" {
 						pageview.SetTitle(title)
 					}
