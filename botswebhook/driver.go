@@ -137,9 +137,9 @@ func (d webhookDriver) processWebhookInput(
 		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
 
 		if recovered := recover(); recovered != nil {
-			messageText := fmt.Sprintf("Panic: %v\n\n%v", recovered, d.panicTextFooter)
 			stack := string(debug.Stack())
-			log.Criticalf(ctx, "Panic recovered: %s\n%s", messageText, stack)
+			messageText := fmt.Sprintf("Panic: %v\n\nStack trace:\n%s\n\n%s", recovered, stack, d.panicTextFooter)
+			log.Criticalf(ctx, "Panic recovered: %s", messageText)
 
 			// Initiate Google Analytics Measurement API client
 
@@ -283,9 +283,9 @@ func isRunningLocally(host string) bool { // TODO(help-wanted): allow customizat
 	return result
 }
 
-func (webhookDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, recovered any) {
+func (webhookDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, messageText string) {
 	log.Warningf(c, "reportPanicToAnalytics() is temporary disabled")
-	err := fmt.Errorf("panic: %v", recovered)
+	err := fmt.Errorf("%s", messageText)
 	msg := analytics.NewErrorMessage(err) // TODO: replace with analytics.NewPanicMessage()
 	whc.Analytics().Enqueue(msg)
 }
