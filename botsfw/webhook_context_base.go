@@ -309,7 +309,6 @@ func NewWebhookContextBase(
 		getIsInGroup: getIsInGroup,
 		//dal:                 botCoreStores,
 		recordsFieldsSetter: recordsFieldsSetter,
-		whAnalytics:         webhookAnalytics{},
 	}
 	whcb.whAnalytics = webhookAnalytics{whcb: whcb}
 	// TODO: make sure we do not fail here for non group chats
