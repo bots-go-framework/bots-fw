@@ -1,6 +1,7 @@
 package botmsg
 
 import (
+	"github.com/strongo/analytics"
 	"strconv"
 )
 
@@ -62,5 +63,7 @@ type MessageFromBot struct {
 	TextMessageFromBot // TODO: This feels wrong and need to be refactored! Use BotMessage instead
 
 	BotMessage BotMessage `json:",omitempty"`
+
+	Analytics analytics.Message
 	//FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
 }

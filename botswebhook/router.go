@@ -731,7 +731,13 @@ func logInputDetails(whc botsfw.WebhookContext, isKnownType bool) {
 	}
 }
 
-func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, whc botsfw.WebhookContext, m botmsg.MessageFromBot, err error) {
+func (whRouter *webhooksRouter) processCommandResponse(
+	matchedCommand *botsfw.Command,
+	responder botsfw.WebhookResponder,
+	whc botsfw.WebhookContext,
+	m botmsg.MessageFromBot,
+	err error,
+) {
 	if err != nil {
 		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 		return
@@ -765,8 +771,6 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *botsfw.Co
 		}
 	}
 	if matchedCommand != nil {
-		path := string(matchedCommand.Code)
-		title := matchedCommand.Title
 		//if inputType := whc.Input().InputType(); inputType != botinput.TypeCallbackQuery {
 		//	chatData := whc.ChatData()
 		//	if chatData != nil {
@@ -783,16 +787,52 @@ func (whRouter *webhooksRouter) processCommandResponse(matchedCommand *botsfw.Co
 		//	}
 		//}
 
-		if path != "" {
-			platformID := whc.BotPlatform().ID()
-			botCode := whc.GetBotCode()
-			pageView := analytics.NewPageview(platformID, "bot/"+botCode+"/"+path).SetURL(platformID + "://" + botCode + "/" + path)
-			if title != "" {
-				pageView = pageView.SetTitle(title)
+		var am analytics.Message
+
+		botCode := whc.GetBotCode()
+
+		var pageview analytics.Pageview
+
+		if m.Analytics != nil {
+			am = m.Analytics
+			pageview, _ = am.(analytics.Pageview)
+		}
+		path := strings.TrimLeft(string(matchedCommand.Code), "/")
+		if path != "" && (m.Text != "" || m.BotMessage != nil && m.BotMessage.BotMessageType() == botmsg.TypeText) {
+			botPlatformID := whc.BotPlatform().ID()
+			if pageview == nil || pageview.Host() != botPlatformID || pageview.Path() == "" {
+				originalPageview := pageview
+				pageview = analytics.NewPageview(botPlatformID, "bot/"+path)
+				if originalPageview != nil {
+					if title := originalPageview.Title(); title != "" {
+						pageview.SetTitle(title)
+					}
+					if uc := originalPageview.User(); uc != nil {
+						pageview.SetUserContext(uc)
+					}
+					if props := pageview.Properties(); len(props) > 0 {
+						for k, v := range originalPageview.Properties() {
+							props.Set(k, v)
+						}
+					}
+				}
+				am = pageview
 			}
-			pageView.Properties().Set("bot", botCode)
+
+			pageview.SetUserAgent(botPlatformID)
+
+			pageview.SetURL(botPlatformID + "://" + botCode + "/" + path)
+
+			if matchedCommand.Title != "" && pageview.Title() == "" {
+				pageview.SetTitle(matchedCommand.Title)
+			}
+		}
+		if am != nil {
+			props := am.Properties()
+			props.Set("bot", botCode)
+			props.Set("input_type", whc.Input().InputType().String())
 			whAnalytics := whc.Analytics()
-			whAnalytics.Enqueue(pageView)
+			whAnalytics.Enqueue(am)
 		}
 	}
 }
