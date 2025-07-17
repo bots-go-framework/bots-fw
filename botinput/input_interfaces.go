@@ -22,6 +22,8 @@ type InputMessage interface {
 	GetRecipient() Recipient
 	GetTime() time.Time
 	InputType() Type
+	MessageIntID() int
+	MessageStringID() string
 	BotChatID() (string, error)
 	Chat() Chat
 	LogRequest() // TODO: should not be part of Input? If should - specify why
@@ -60,8 +62,6 @@ type Recipient interface {
 // Message represents a single input  message
 type Message interface {
 	InputMessage
-	IntID() int64
-	StringID() string
 	Chat() Chat
 	//Sequence() int // 'seq' for Facebook, '???' for Telegram
 }

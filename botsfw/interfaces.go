@@ -47,12 +47,13 @@ func NewBotContext(botHost BotHost, botSettings *BotSettings) *BotContext {
 
 // MessengerResponse represents response from a messenger
 type MessengerResponse interface {
+	GetMessageID() string
 }
 
 // OnMessageSentResponse represents response on message sent event
 type OnMessageSentResponse struct {
-	StatusCode      int
-	TelegramMessage MessengerResponse // TODO: change to some interface
+	StatusCode int
+	Message    MessengerResponse // TODO: change to some interface
 }
 
 // WebhookResponder is an API provider to send messages through a messenger
