@@ -296,6 +296,8 @@ func (webhookDriver) logInput(c context.Context, i int, input botinput.InputMess
 	switch input := input.(type) {
 	case botinput.TextMessage:
 		log.Debugf(c, "%s => text: %v", prefix, input.Text())
+	case botinput.LocationMessage:
+		log.Debugf(c, "%s => location: %d:%d", prefix, input.GetLatitude(), input.GetLongitude())
 	case botinput.NewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer

@@ -11,7 +11,8 @@ const (
 	// TypeNotImplemented is not implemented input type
 	TypeNotImplemented
 	// TypeText is a text input type
-	TypeText // Facebook, Telegram, Viber
+	TypeText     // Facebook, Telegram, Viber
+	TypeEditText // Facebook, Telegram, Viber
 	// TypeVoice is voice input type
 	TypeVoice
 	// TypePhoto is a photo input type
@@ -30,6 +31,7 @@ const (
 	TypeInlineQuery // Telegram
 	// TypeCallbackQuery is inline input type
 	TypeCallbackQuery
+	TypeLocation
 	// TypeReferral is a callback input type
 	TypeReferral // FBM
 	// TypeChosenInlineResult is chosen inline result input type

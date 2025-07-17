@@ -11,32 +11,34 @@ func _() {
 	_ = x[TypeUnknown-0]
 	_ = x[TypeNotImplemented-1]
 	_ = x[TypeText-2]
-	_ = x[TypeVoice-3]
-	_ = x[TypePhoto-4]
-	_ = x[TypeAudio-5]
-	_ = x[TypeContact-6]
-	_ = x[TypePostback-7]
-	_ = x[TypeDelivery-8]
-	_ = x[TypeAttachment-9]
-	_ = x[TypeInlineQuery-10]
-	_ = x[TypeCallbackQuery-11]
-	_ = x[TypeReferral-12]
-	_ = x[TypeChosenInlineResult-13]
-	_ = x[TypeSubscribed-14]
-	_ = x[TypeUnsubscribed-15]
-	_ = x[TypeConversationStarted-16]
-	_ = x[TypeNewChatMembers-17]
-	_ = x[TypeLeftChatMembers-18]
-	_ = x[TypeSticker-19]
-	_ = x[TypeSharedUsers-20]
-	_ = x[TypePreCheckoutQuery-21]
-	_ = x[TypeSuccessfulPayment-22]
-	_ = x[TypeRefundedPayment-23]
+	_ = x[TypeEditText-3]
+	_ = x[TypeVoice-4]
+	_ = x[TypePhoto-5]
+	_ = x[TypeAudio-6]
+	_ = x[TypeContact-7]
+	_ = x[TypePostback-8]
+	_ = x[TypeDelivery-9]
+	_ = x[TypeAttachment-10]
+	_ = x[TypeInlineQuery-11]
+	_ = x[TypeCallbackQuery-12]
+	_ = x[TypeLocation-13]
+	_ = x[TypeReferral-14]
+	_ = x[TypeChosenInlineResult-15]
+	_ = x[TypeSubscribed-16]
+	_ = x[TypeUnsubscribed-17]
+	_ = x[TypeConversationStarted-18]
+	_ = x[TypeNewChatMembers-19]
+	_ = x[TypeLeftChatMembers-20]
+	_ = x[TypeSticker-21]
+	_ = x[TypeSharedUsers-22]
+	_ = x[TypePreCheckoutQuery-23]
+	_ = x[TypeSuccessfulPayment-24]
+	_ = x[TypeRefundedPayment-25]
 }
 
-const _Type_name = "TypeUnknownTypeNotImplementedTypeTextTypeVoiceTypePhotoTypeAudioTypeContactTypePostbackTypeDeliveryTypeAttachmentTypeInlineQueryTypeCallbackQueryTypeReferralTypeChosenInlineResultTypeSubscribedTypeUnsubscribedTypeConversationStartedTypeNewChatMembersTypeLeftChatMembersTypeStickerTypeSharedUsersTypePreCheckoutQueryTypeSuccessfulPaymentTypeRefundedPayment"
+const _Type_name = "TypeUnknownTypeNotImplementedTypeTextTypeEditTextTypeVoiceTypePhotoTypeAudioTypeContactTypePostbackTypeDeliveryTypeAttachmentTypeInlineQueryTypeCallbackQueryTypeLocationTypeReferralTypeChosenInlineResultTypeSubscribedTypeUnsubscribedTypeConversationStartedTypeNewChatMembersTypeLeftChatMembersTypeStickerTypeSharedUsersTypePreCheckoutQueryTypeSuccessfulPaymentTypeRefundedPayment"
 
-var _Type_index = [...]uint16{0, 11, 29, 37, 46, 55, 64, 75, 87, 99, 113, 128, 145, 157, 179, 193, 209, 232, 250, 269, 280, 295, 315, 336, 355}
+var _Type_index = [...]uint16{0, 11, 29, 37, 49, 58, 67, 76, 87, 99, 111, 125, 140, 157, 169, 181, 203, 217, 233, 256, 274, 293, 304, 319, 339, 360, 379}
 
 func (i Type) String() string {
 	if i < 0 || i >= Type(len(_Type_index)-1) {

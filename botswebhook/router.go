@@ -145,6 +145,9 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 			if command.CallbackAction != nil {
 				addCommand(botinput.TypeCallbackQuery, command)
 			}
+			if command.LocationAction != nil {
+				addCommand(botinput.TypeLocation, command)
+			}
 			if command.ChosenInlineResultAction != nil {
 				addCommand(botinput.TypeChosenInlineResult, command)
 			}
@@ -161,7 +164,7 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 				panic(fmt.Errorf("command{Code=%v} has Action but no InputTypes", command.Code))
 			}
 		} else {
-			var textAdded, callbackAdded, inlineQueryAdded, chosenInlineResultAdded bool
+			var textAdded, callbackAdded, locationAdded, inlineQueryAdded, chosenInlineResultAdded bool
 			for _, t := range command.InputTypes {
 				addCommand(t, command)
 				switch t {
@@ -193,6 +196,10 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no ChosenInlineResultAction and no Action", command.Code, command.InputTypes))
 					}
 					chosenInlineResultAdded = true
+				case botinput.TypeLocation:
+					if command.LocationAction == nil && command.Action == nil {
+						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no LocationAction and no Action", command.Code, command.InputTypes))
+					}
 				default:
 					// OK
 				}
@@ -208,6 +215,9 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 			}
 			if command.ChosenInlineResultAction != nil && !chosenInlineResultAdded {
 				addCommand(botinput.TypeChosenInlineResult, command)
+			}
+			if command.LocationAction != nil && locationAdded {
+				addCommand(botinput.TypeLocation, command)
 			}
 		}
 	}
@@ -250,6 +260,29 @@ func matchCallbackCommands(whc botsfw.WebhookContext, dataText string, dataURL *
 	log.Errorf(whc.Context(), fmt.Errorf("%w: %s", ErrNoCommandsMatched, fmt.Sprintf("dataText=[%v]", dataText)).Error())
 	whc.Input().LogRequest() // TODO: LogRequest() should not be part of Input?
 	return nil, err
+}
+
+func (whRouter *webhooksRouter) matchNonTextCommands(
+	whc botsfw.WebhookContext, awaitingReplyTo string, commands []botsfw.Command,
+) (
+	matchedCommand *botsfw.Command,
+) {
+	if awaitingReplyTo == "" {
+		if len(commands) == 1 && commands[0].Code == "" {
+			matchedCommand = &commands[0]
+		}
+		return
+	}
+	if i := strings.Index(awaitingReplyTo, "?"); i != -1 {
+		awaitingReplyTo = awaitingReplyTo[:i]
+	}
+	for _, c := range commands {
+		if string(c.Code) == awaitingReplyTo || c.Matcher != nil && c.Matcher(c, whc) {
+			matchedCommand = &c
+			return
+		}
+	}
+	return
 }
 
 func (whRouter *webhooksRouter) matchMessageCommands(
@@ -450,7 +483,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 	// 	}
 	// }()
 
-	inputType := whc.Input().InputType()
+	input := whc.Input()
+
+	inputType := input.InputType()
 
 	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
@@ -472,7 +507,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 
 	var isInlineQuery bool
 
-	switch input := whc.Input().(type) {
+	switch input := input.(type) {
 	case botinput.CallbackQuery:
 		callbackData := input.GetData()
 		var callbackURL *url.URL
@@ -592,6 +627,24 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 			err = fmt.Errorf("matchedCommand(code=%s) has no SuccessfulPaymentAction or Action", matchedCommand.Code)
 			return
 		}
+
+	case botinput.LocationMessage:
+		awaitingReplyTo := whc.ChatData().GetAwaitingReplyTo()
+		matchedCommand = whRouter.matchNonTextCommands(whc, awaitingReplyTo, typeCommands.all)
+		if matchedCommand != nil {
+			if matchedCommand.LocationAction != nil {
+				commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
+					return matchedCommand.LocationAction(whc, input.GetLatitude(), input.GetLongitude())
+				}
+			} else if matchedCommand.Action == nil {
+				commandAction = matchedCommand.Action
+			} else if matchedCommand.TextAction != nil {
+				commandAction = func(whc botsfw.WebhookContext) (m botmsg.MessageFromBot, err error) {
+					return matchedCommand.TextAction(whc, "")
+				}
+			}
+		}
+
 	case botinput.Message:
 		if len(typeCommands.all) == 1 {
 			matchedCommand = &typeCommands.all[0]
@@ -610,7 +663,7 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		if inputType == botinput.TypeUnknown {
 			panic("Unknown input type")
 		}
-		matchedCommand = &typeCommands.all[0]
+		matchedCommand = &typeCommands.all[0] // This does not feels right
 		commandAction = matchedCommand.Action
 	}
 	if err != nil {

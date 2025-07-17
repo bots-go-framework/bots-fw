@@ -73,6 +73,13 @@ type TextMessage interface {
 	IsEdited() bool
 }
 
+// LocationMessage represents a location with geo point sent by user
+type LocationMessage interface {
+	Message
+	GetLatitude() float64
+	GetLongitude() float64
+}
+
 // StickerMessage represents single sticker message
 type StickerMessage interface {
 	Message

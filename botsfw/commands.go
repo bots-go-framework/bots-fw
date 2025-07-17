@@ -17,6 +17,7 @@ type StartAction TextAction
 // CallbackAction defines a callback action bot can perform in response to a callback command
 type CallbackAction func(whc WebhookContext, callbackUrl *url.URL) (m botmsg.MessageFromBot, err error)
 
+type LocationAction func(whc WebhookContext, latitude, longitude float64) (m botmsg.MessageFromBot, err error)
 type SuccessfulPaymentAction func(whc WebhookContext, payment botinput.SuccessfulPayment) (m botmsg.MessageFromBot, err error)
 
 type RefundedPaymentAction func(whc WebhookContext, payment botinput.RefundedPayment) (m botmsg.MessageFromBot, err error)
@@ -56,6 +57,7 @@ type Command struct {
 	TextAction               TextAction
 	StartAction              StartAction
 	CallbackAction           CallbackAction
+	LocationAction           LocationAction
 	InlineQueryAction        InlineQueryAction
 	ChosenInlineResultAction ChosenInlineResultAction
 	PreCheckoutQueryAction   PreCheckoutQueryAction
