@@ -126,20 +126,6 @@ func (mr *MockVoiceMessageMockRecorder) InputType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InputType", reflect.TypeOf((*MockVoiceMessage)(nil).InputType))
 }
 
-// IntID mocks base method.
-func (m *MockVoiceMessage) IntID() int64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntID")
-	ret0, _ := ret[0].(int64)
-	return ret0
-}
-
-// IntID indicates an expected call of IntID.
-func (mr *MockVoiceMessageMockRecorder) IntID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntID", reflect.TypeOf((*MockVoiceMessage)(nil).IntID))
-}
-
 // LogRequest mocks base method.
 func (m *MockVoiceMessage) LogRequest() {
 	m.ctrl.T.Helper()
@@ -152,16 +138,30 @@ func (mr *MockVoiceMessageMockRecorder) LogRequest() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogRequest", reflect.TypeOf((*MockVoiceMessage)(nil).LogRequest))
 }
 
-// StringID mocks base method.
-func (m *MockVoiceMessage) StringID() string {
+// MessageIntID mocks base method.
+func (m *MockVoiceMessage) MessageIntID() int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StringID")
+	ret := m.ctrl.Call(m, "MessageIntID")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// MessageIntID indicates an expected call of MessageIntID.
+func (mr *MockVoiceMessageMockRecorder) MessageIntID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageIntID", reflect.TypeOf((*MockVoiceMessage)(nil).MessageIntID))
+}
+
+// MessageStringID mocks base method.
+func (m *MockVoiceMessage) MessageStringID() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MessageStringID")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// StringID indicates an expected call of StringID.
-func (mr *MockVoiceMessageMockRecorder) StringID() *gomock.Call {
+// MessageStringID indicates an expected call of MessageStringID.
+func (mr *MockVoiceMessageMockRecorder) MessageStringID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringID", reflect.TypeOf((*MockVoiceMessage)(nil).StringID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageStringID", reflect.TypeOf((*MockVoiceMessage)(nil).MessageStringID))
 }

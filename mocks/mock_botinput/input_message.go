@@ -137,3 +137,31 @@ func (mr *MockInputMessageMockRecorder) LogRequest() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogRequest", reflect.TypeOf((*MockInputMessage)(nil).LogRequest))
 }
+
+// MessageIntID mocks base method.
+func (m *MockInputMessage) MessageIntID() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MessageIntID")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// MessageIntID indicates an expected call of MessageIntID.
+func (mr *MockInputMessageMockRecorder) MessageIntID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageIntID", reflect.TypeOf((*MockInputMessage)(nil).MessageIntID))
+}
+
+// MessageStringID mocks base method.
+func (m *MockInputMessage) MessageStringID() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MessageStringID")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// MessageStringID indicates an expected call of MessageStringID.
+func (mr *MockInputMessageMockRecorder) MessageStringID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageStringID", reflect.TypeOf((*MockInputMessage)(nil).MessageStringID))
+}

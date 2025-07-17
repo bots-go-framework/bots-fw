@@ -126,20 +126,6 @@ func (mr *MockPhotoMessageMockRecorder) InputType() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InputType", reflect.TypeOf((*MockPhotoMessage)(nil).InputType))
 }
 
-// IntID mocks base method.
-func (m *MockPhotoMessage) IntID() int64 {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IntID")
-	ret0, _ := ret[0].(int64)
-	return ret0
-}
-
-// IntID indicates an expected call of IntID.
-func (mr *MockPhotoMessageMockRecorder) IntID() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IntID", reflect.TypeOf((*MockPhotoMessage)(nil).IntID))
-}
-
 // LogRequest mocks base method.
 func (m *MockPhotoMessage) LogRequest() {
 	m.ctrl.T.Helper()
@@ -152,16 +138,30 @@ func (mr *MockPhotoMessageMockRecorder) LogRequest() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogRequest", reflect.TypeOf((*MockPhotoMessage)(nil).LogRequest))
 }
 
-// StringID mocks base method.
-func (m *MockPhotoMessage) StringID() string {
+// MessageIntID mocks base method.
+func (m *MockPhotoMessage) MessageIntID() int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StringID")
+	ret := m.ctrl.Call(m, "MessageIntID")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// MessageIntID indicates an expected call of MessageIntID.
+func (mr *MockPhotoMessageMockRecorder) MessageIntID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageIntID", reflect.TypeOf((*MockPhotoMessage)(nil).MessageIntID))
+}
+
+// MessageStringID mocks base method.
+func (m *MockPhotoMessage) MessageStringID() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MessageStringID")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// StringID indicates an expected call of StringID.
-func (mr *MockPhotoMessageMockRecorder) StringID() *gomock.Call {
+// MessageStringID indicates an expected call of MessageStringID.
+func (mr *MockPhotoMessageMockRecorder) MessageStringID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StringID", reflect.TypeOf((*MockPhotoMessage)(nil).StringID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MessageStringID", reflect.TypeOf((*MockPhotoMessage)(nil).MessageStringID))
 }
