@@ -504,6 +504,18 @@ func (mr *MockWebhookContextMockRecorder) SetLocale(code5 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetLocale", reflect.TypeOf((*MockWebhookContext)(nil).SetLocale), code5)
 }
 
+// SetUser mocks base method.
+func (m *MockWebhookContext) SetUser(id string, data botsfwmodels.AppUserData) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetUser", id, data)
+}
+
+// SetUser indicates an expected call of SetUser.
+func (mr *MockWebhookContextMockRecorder) SetUser(id, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUser", reflect.TypeOf((*MockWebhookContext)(nil).SetUser), id, data)
+}
+
 // Translate mocks base method.
 func (m *MockWebhookContext) Translate(key string, args ...any) string {
 	m.ctrl.T.Helper()
