@@ -141,6 +141,11 @@ func (d webhookDriver) processWebhookInput(
 			messageText := fmt.Sprintf("Panic: %v\n\nStack trace:\n%s\n\n%s", recovered, stack, d.panicTextFooter)
 			log.Criticalf(ctx, "Panic recovered: %s", messageText)
 
+			const maxLen = 5 * 1024
+			if len(messageText) > maxLen {
+				messageText = messageText[:maxLen] + fmt.Sprintf("\n\n...\n\nText truncated at %dKB", maxLen/1024)
+			}
+
 			// Initiate Google Analytics Measurement API client
 
 			if analyticsEnabled := d.Analytics.Enabled != nil && d.Analytics.Enabled(r) || botContext.BotSettings.Env == botsfw.EnvProduction; analyticsEnabled {
