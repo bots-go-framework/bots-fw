@@ -212,6 +212,8 @@ func (d webhookDriver) processWebhookInput(
 				recordsToInsert = append(recordsToInsert, botUser.Record)
 			}
 
+			whc.SetUser(appUser.ID, appUser.Data)
+
 			chatData.SetAppUserID(appUser.ID)
 
 			for _, recordToInsert := range recordsToInsert {

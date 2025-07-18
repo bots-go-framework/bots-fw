@@ -89,6 +89,7 @@ type WebhookContext interface { // TODO: Make interface much smaller?
 	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
 
 	AppUserID() string
+	SetUser(id string, data botsfwmodels.AppUserData)
 
 	// AppUserInt64ID Deprecate: use AppUserID() instead
 	//AppUserInt64ID() int64

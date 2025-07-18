@@ -15,6 +15,7 @@ import (
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -205,11 +206,23 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 //	return appUserID
 //}
 
+func (whcb *WebhookContextBase) SetUser(id string, data botsfwmodels.AppUserData) {
+	whcb.appUserID = id
+	whcb.appUserData = data
+}
+
 // AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
 func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 	if whcb.appUserID == "" && !whcb.isLoadingChatData {
 		if chatData := whcb.ChatData(); chatData != nil {
-			whcb.appUserID = chatData.GetAppUserID()
+			if whcb.appUserID = chatData.GetAppUserID(); whcb.appUserID != "" {
+				return whcb.appUserID
+			}
+		}
+	}
+	if whcb.platformUser.Data != nil {
+		if whcb.appUserID = whcb.platformUser.Data.GetAppUserID(); whcb.appUserID != "" {
+			return whcb.appUserID
 		}
 	}
 	if whcb.platformUser.Data == nil {
@@ -221,7 +234,9 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 		}
 	}
 	if whcb.platformUser.Data != nil {
-		whcb.appUserID = whcb.platformUser.Data.GetAppUserID()
+		if whcb.appUserID = whcb.platformUser.Data.GetAppUserID(); whcb.appUserID != "" {
+			return whcb.appUserID
+		}
 	}
 	return whcb.appUserID
 	//if appUserID == "" && !whcb.isLoadingPlatformUserData {
@@ -490,7 +505,19 @@ func (whcb *WebhookContextBase) createPlatformUserRecord(tx dal.ReadwriteTransac
 	//platformID := whcb.botPlatform.ID()
 	botID := whcb.GetBotCode()
 	sender := whcb.input.GetSender()
-	botUserID := fmt.Sprintf("%v", sender.GetID())
+
+	var botUserID string
+	switch senderID := sender.GetID().(type) {
+	case string:
+		botUserID = senderID
+	case int:
+		botUserID = strconv.Itoa(senderID)
+	case int64:
+		botUserID = strconv.FormatInt(senderID, 10)
+	default:
+		botUserID = fmt.Sprintf("%v", sender.GetID())
+	}
+
 	ctx := whcb.Context()
 
 	if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.platformUser.Data, sender, botID, botUserID, botUserID); err != nil {
@@ -501,7 +528,7 @@ func (whcb *WebhookContextBase) createPlatformUserRecord(tx dal.ReadwriteTransac
 		log.Errorf(ctx, "WebhookContextBase.getOrCreatePlatformUserRecord(): failed to create bot user: %v", err)
 		return err
 	}
-	log.Infof(ctx, "Bot user entity created")
+	log.Infof(ctx, "Bot user record created")
 
 	{ // Log analytics
 		whAnalytics := whcb.Analytics()
@@ -530,7 +557,7 @@ func (whcb *WebhookContextBase) getOrCreatePlatformUserRecord() (botUser botsdal
 		if !dal.IsNotFound(err) {
 			return whcb.platformUser, err
 		} else {
-			log.Debugf(ctx, "Bot user entity not found, creating a new one...")
+			log.Debugf(ctx, "Bot user record not found, creating a new one...")
 			if err = whcb.db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
 				if err = whcb.createPlatformUserRecord(tx); err != nil {
 					return fmt.Errorf("failed to create platform user record: %w", err)
