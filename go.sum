@@ -1,7 +1,7 @@
 github.com/bots-go-framework/bots-fw-store v0.10.0 h1:e6bD274mjrHVp+X05/7uqqT3s5xZOqV9divKTaM2W+w=
 github.com/bots-go-framework/bots-fw-store v0.10.0/go.mod h1:7oU4B8j5HuJZM8AftosbyQD+AqckXsDv8eU1auGPzn8=
-github.com/bots-go-framework/bots-go-core v0.2.1 h1:LN2575Fv+441LSQWae+R8nZzt1JbGRdVK1SP2Yt4Skk=
-github.com/bots-go-framework/bots-go-core v0.2.1/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
+github.com/bots-go-framework/bots-go-core v0.2.2 h1:9Wi8L4Y1sCpHiYAVejgXkwrezwk2r2yIF9I3IG3iJzc=
+github.com/bots-go-framework/bots-go-core v0.2.2/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
 github.com/dal-go/dalgo v0.24.0 h1:lwf2S7+zBhp5z1HQXSKpsLd5ZXkby0aDm3jcEQA2VQI=
 github.com/dal-go/dalgo v0.24.0/go.mod h1:BoMNGwDE9FdjynV7xCn5f/GdVJxvfePwjsMldn+BhqA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -10,8 +10,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/strongo/analytics v0.2.1 h1:PP/TMyE20QjfQjPY7S+bUbSgyd01f9ZUjeuniRsEvEE=
-github.com/strongo/analytics v0.2.1/go.mod h1:1OdiZI9/fPDN8ep1Pbz+F3UZPNbttUD7T1St15r760c=
 github.com/strongo/analytics v0.2.2 h1:D2xxTemgCK+4Qk0iBVvXXKsZnm5iS350TPAaZnXFeT8=
 github.com/strongo/analytics v0.2.2/go.mod h1:1OdiZI9/fPDN8ep1Pbz+F3UZPNbttUD7T1St15r760c=
 github.com/strongo/i18n v0.8.2 h1:tJxeajC6OLENFus2GQ/jZGDjFmd6lPQuhand9jD0Moc=
