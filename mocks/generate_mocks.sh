@@ -4,6 +4,7 @@ mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookContext > mock_botsfw
 mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookResponder > mock_botsfw/webook_responder.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotHost > mock_botsfw/bot_host.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotPlatform > mock_botsfw/bot_platform.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw BotProfile > mock_botsfw/bot_profile.go
 mockgen github.com/bots-go-framework/bots-fw/botinput Entry > mock_botinput/entry.go
 mockgen github.com/bots-go-framework/bots-fw/botinput InputMessage > mock_botinput/input_message.go
 mockgen github.com/bots-go-framework/bots-fw/botinput User > mock_botinput/user.go
