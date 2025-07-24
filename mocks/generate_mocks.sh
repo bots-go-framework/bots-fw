@@ -32,3 +32,4 @@ mockgen github.com/bots-go-framework/bots-fw/botinput Subscribed > mock_botinput
 mockgen github.com/bots-go-framework/bots-fw/botinput Unsubscribed > mock_botinput/unsubscribed.go
 mockgen github.com/bots-go-framework/bots-fw/botinput NewChatMembersMessage > mock_botinput/webhook_new_chat_members_message.go
 mockgen github.com/bots-go-framework/bots-fw/botinput LeftChatMembersMessage > mock_botinput/webhook_left_chat_members_message.go
+mockgen github.com/bots-go-framework/bots-fw-store/botsfwmodels BotChatData > mock_botsfwmodels/bot_chat_data.go
