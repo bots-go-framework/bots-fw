@@ -15,7 +15,7 @@ require (
 	github.com/strongo/analytics v0.2.2
 	github.com/strongo/i18n v0.8.5
 	github.com/strongo/logus v0.2.1
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 )
 
 require (
