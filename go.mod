@@ -13,7 +13,7 @@ require (
 	github.com/dal-go/dalgo v0.26.3
 	github.com/stretchr/testify v1.10.0
 	github.com/strongo/analytics v0.2.2
-	github.com/strongo/i18n v0.8.5
+	github.com/strongo/i18n v0.8.6
 	github.com/strongo/logus v0.2.1
 	go.uber.org/mock v0.6.0
 )
