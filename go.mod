@@ -10,7 +10,7 @@ go 1.24.3
 require (
 	github.com/bots-go-framework/bots-fw-store v0.10.0
 	github.com/bots-go-framework/bots-go-core v0.2.3
-	github.com/dal-go/dalgo v0.30.1
+	github.com/dal-go/dalgo v0.30.3
 	github.com/stretchr/testify v1.11.1
 	github.com/strongo/analytics v0.2.2
 	github.com/strongo/i18n v0.8.6
