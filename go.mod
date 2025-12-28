@@ -12,7 +12,7 @@ require (
 	github.com/bots-go-framework/bots-go-core v0.2.3
 	github.com/dal-go/dalgo v0.40.2
 	github.com/stretchr/testify v1.11.1
-	github.com/strongo/analytics v0.2.2
+	github.com/strongo/analytics v0.2.3
 	github.com/strongo/i18n v0.8.6
 	github.com/strongo/logus v0.4.0
 	go.uber.org/mock v0.6.0
