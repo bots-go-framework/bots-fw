@@ -16,9 +16,9 @@ with usage of [dalgo](https://github.com/dal-go) library.
 
 ## ♺ Continuous Integration
 
-[![Build and Test](https://github.com/strongo/bots-framework/actions/workflows/go.yml/badge.svg)](https://github.com/bots-go-framework/bots-fw/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/strongo/bots-framework?cache=1)](https://goreportcard.com/report/github.com/strongo/bots-framework)
-[![GoDoc](https://godoc.org/github.com/strongo/bots-framework?status.svg)](https://godoc.org/github.com/strongo/bots-framework)
+[![Build and Test](https://github.com/bots-go-framework/bots-fw/actions/workflows/go.yml/badge.svg)](https://github.com/bots-go-framework/bots-fw/actions/workflows/go.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bots-go-framework/bots-fw?cache=1)](https://goreportcard.com/report/github.com/bots-go-framework/bots-fw)
+[![GoDoc](https://godoc.org/github.com/bots-go-framework/bots-fw?status.svg)](https://godoc.org/github.com/bots-go-framework/bots-fw)
 [![Coverage Status](https://coveralls.io/repos/github/bots-go-framework/bots-fw/badge.svg?branch=main)](https://coveralls.io/github/bots-go-framework/bots-fw?branch=main) - [help with code coverage](https://github.com/bots-go-framework/bots-fw/issues/64)
 needed.
 
