@@ -1,5 +1,7 @@
 github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv2QzDdQ=
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
+github.com/RoaringBitmap/roaring/v2 v2.14.4 h1:4aKySrrg9G/5oRtJ3TrZLObVqxgQ9f1znCRBwEwjuVw=
+github.com/RoaringBitmap/roaring/v2 v2.14.4/go.mod h1:oMvV6omPWr+2ifRdeZvVJyaz+aoEUopyv5iH0u/+wbY=
 github.com/bits-and-blooms/bitset v1.12.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bits-and-blooms/bitset v1.24.4 h1:95H15Og1clikBrKr/DuzMXkQzECs1M6hhoGXLwLQOZE=
 github.com/bits-and-blooms/bitset v1.24.4/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
@@ -11,6 +13,8 @@ github.com/dal-go/dalgo v0.40.1 h1:1cH3go6+z6uJGdWVr2dL3cbM8ABKuELlxu//Nrngl58=
 github.com/dal-go/dalgo v0.40.1/go.mod h1:9BiVqlOZmpaDEHCU1uqB4CPYiu6WlaM84oUNiR0ptlo=
 github.com/dal-go/dalgo v0.40.2 h1:J2wlA6SSF9FmmJ3PkJC6GWAp+kHj3mGyrvybNrgGQLo=
 github.com/dal-go/dalgo v0.40.2/go.mod h1:+4W48ajQr3fm7hO7J362gRs72o8Y7E0TBfekJFvP/2Y=
+github.com/dal-go/dalgo v0.41.1 h1:M3j/oMqE3MQD2l170X04IZBn2MHenrMKL76ma7IXVYM=
+github.com/dal-go/dalgo v0.41.1/go.mod h1:c9vfeYEwt1Emqa9sntGvZlFSLWOfyRAcngefNrk3AoI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
