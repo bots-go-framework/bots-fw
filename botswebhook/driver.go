@@ -308,9 +308,9 @@ func (webhookDriver) logInput(c context.Context, i int, input botinput.InputMess
 	case botinput.NewChatMembersMessage:
 		newMembers := input.NewChatMembers()
 		var b bytes.Buffer
-		b.WriteString(fmt.Sprintf("NewChatMembers: %d", len(newMembers)))
+		fmt.Fprintf(&b, "NewChatMembers: %d", len(newMembers))
 		for i, member := range newMembers {
-			b.WriteString(fmt.Sprintf("\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName()))
+			fmt.Fprintf(&b, "\t%d: (%v) - %v %v", i+1, member.GetUserName(), member.GetFirstName(), member.GetLastName())
 		}
 		log.Debugf(c, b.String())
 	case botinput.ContactMessage:

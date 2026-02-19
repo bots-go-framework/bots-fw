@@ -52,7 +52,7 @@ type BotMessage interface {
 //
 //goland:noinspection GoDeprecation
 type MessageFromBot struct {
-	ResponseChannel BotAPISendMessageChannel `json:"-,omitempty"` // For debug purposes
+	ResponseChannel BotAPISendMessageChannel `json:"-"` // For debug purposes
 	ToChat          ChatUID                  `json:",omitempty"`
 
 	// To be used with Telegram to edit an arbitrary message.
