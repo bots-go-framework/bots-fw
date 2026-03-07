@@ -16,6 +16,8 @@ github.com/dal-go/dalgo v0.41.3 h1:CGalpahqyQ3D5xTD85jwLnsZ+H2m9kSg7BCxsu4Wljk=
 github.com/dal-go/dalgo v0.41.3/go.mod h1:UsfnN3vdZ58s3gGRHNadEiqGheo8yqirEHUWTxGR8a0=
 github.com/dal-go/dalgo v0.41.5 h1:9cZJyO+ReRBwTgnnUZ5I4UCh900ezefhiQqjcxeG8rQ=
 github.com/dal-go/dalgo v0.41.5/go.mod h1:Y7CDkUTABhzyyWQpu3Ju6JQIke2MU7i7exK/fHAgzPM=
+github.com/dal-go/dalgo v0.41.6 h1:2lsqSTViaFqylMZHvwJ067+xZoGqwjlarbXPr78khW4=
+github.com/dal-go/dalgo v0.41.6/go.mod h1:pByZGvKecYkqYbBAOcV2Pic/5aPjZglpM6N4LZHvYSI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/mschoch/smat v0.2.0 h1:8imxQsjDm8yFEAVBe7azKmKSgzSkZXDuKkSq9374khM=
@@ -28,6 +30,8 @@ github.com/strongo/analytics v0.2.3 h1:zGJfB0HmW1TTsQjIM0qHvNSPgAQq15+PZIeVNA5LN
 github.com/strongo/analytics v0.2.3/go.mod h1:Qvk9Yfg0ni27upMrLYQc6J4CcKTGgDOfUhMQejyJmPg=
 github.com/strongo/i18n v0.8.6 h1:isjuFKg7DkglDViQs89WtI9cA670ii1ph/c/fpu5vnk=
 github.com/strongo/i18n v0.8.6/go.mod h1:ovsWfJ7dPNqYvm5PjETCmsIkvrX645lBFVPYZQpSx9o=
+github.com/strongo/i18n v0.8.7 h1:516aeDw5kcBW5mTSbL1OTfYxEEK2j7U+Z7xOWsV4pi8=
+github.com/strongo/i18n v0.8.7/go.mod h1:GyqLL0ldFfN3A6/3j3tB6/XbAO35zJt9/RHNXu24yk0=
 github.com/strongo/logus v0.4.0 h1:EdwNafWX1eGWvPqMvu3gHVqXtBOUvV9KWbxm6tCU+dU=
 github.com/strongo/logus v0.4.0/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
