@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/dal-go/dalgo/dal"
 	"github.com/dal-go/dalgo/record"
@@ -50,9 +49,4 @@ func (testTranslator) TranslateWithMap(key, _ string, _ map[string]string) strin
 }
 func (testTranslator) TranslateNoWarning(key, _ string, args ...any) string {
 	return key
-}
-
-// newTestMessageFromBot is a helper to create a MessageFromBot for test expectations.
-func newTestMessageFromBot(text string) botmsg.MessageFromBot {
-	return botmsg.MessageFromBot{TextMessageFromBot: botmsg.TextMessageFromBot{Text: text}}
 }

@@ -1,7 +1,14 @@
 mockgen github.com/bots-go-framework/bots-fw/botmsg Attachment > mock_botmsg/attachment.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotContextProvider > mock_botsfw/bot_context_provider.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookContext > mock_botsfw/webhook_context.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookRequestContext > mock_botsfw/webhook_request_context.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookInputContext > mock_botsfw/webhook_input_context.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookUserData > mock_botsfw/webhook_user_data.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookI18n > mock_botsfw/webhook_i18n.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookMessaging > mock_botsfw/webhook_messaging.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookTelemetry > mock_botsfw/webhook_telemetry.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookResponder > mock_botsfw/webook_responder.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookAnalytics > mock_botsfw/webhook_analytics.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotHost > mock_botsfw/bot_host.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotPlatform > mock_botsfw/bot_platform.go
 mockgen github.com/bots-go-framework/bots-fw/botsfw BotProfile > mock_botsfw/bot_profile.go

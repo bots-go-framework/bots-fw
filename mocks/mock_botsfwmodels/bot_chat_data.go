@@ -308,15 +308,15 @@ func (mr *MockBotChatDataMockRecorder) SetBotUserID(id any) *gomock.Call {
 }
 
 // SetDtLastInteraction mocks base method.
-func (m *MockBotChatData) SetDtLastInteraction(time time.Time) {
+func (m *MockBotChatData) SetDtLastInteraction(arg0 time.Time) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetDtLastInteraction", time)
+	m.ctrl.Call(m, "SetDtLastInteraction", arg0)
 }
 
 // SetDtLastInteraction indicates an expected call of SetDtLastInteraction.
-func (mr *MockBotChatDataMockRecorder) SetDtLastInteraction(time any) *gomock.Call {
+func (mr *MockBotChatDataMockRecorder) SetDtLastInteraction(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDtLastInteraction", reflect.TypeOf((*MockBotChatData)(nil).SetDtLastInteraction), time)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDtLastInteraction", reflect.TypeOf((*MockBotChatData)(nil).SetDtLastInteraction), arg0)
 }
 
 // SetIsGroupChat mocks base method.

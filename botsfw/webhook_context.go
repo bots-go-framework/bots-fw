@@ -11,115 +11,156 @@ import (
 	"net/http"
 )
 
-// WebhookInlineQueryContext provides context for inline query (TODO: check & document)
+// WebhookInlineQueryContext provides context for inline query
+// Deprecated: not used; will be removed in a future version.
 type WebhookInlineQueryContext interface {
 }
 
-// ExecutionContext TODO: either specify clear purpose and added value or remove
+// ExecutionContext wraps Context() and adds no independent value.
+// Deprecated: use WebhookRequestContext directly.
 type ExecutionContext interface {
 	Context() context.Context
 }
 
-// WebhookContext provides context for current request from user to bot
-type WebhookContext interface { // TODO: Make interface much smaller?
-	//dal.TransactionCoordinator
-	Environment() string
-	BotInputProvider
-	BotPlatform() BotPlatform
+// --- Sub-interfaces ---
 
-	Request() *http.Request
-
-	//Init(w http.ResponseWriter, r *http.Request) error
-
-	// Context return context
+// WebhookRequestContext provides identity and infrastructure access for the current request.
+type WebhookRequestContext interface {
+	// Context returns the Go context for this request.
 	Context() context.Context
 
-	// SetContext sets context
+	// SetContext replaces the request context (e.g. after adding values or a deadline).
 	SetContext(c context.Context)
 
-	ExecutionContext() ExecutionContext
+	// Request returns the raw HTTP request.
+	Request() *http.Request
 
-	AppContext() AppContext
+	// Environment returns the deployment environment (e.g. "local", "production").
+	Environment() string
 
+	// BotPlatform returns the platform this request arrived on (Telegram, Viber, FBM, …).
+	BotPlatform() BotPlatform
+
+	// BotContext returns settings and host information for the current bot.
 	BotContext() BotContext
 
-	MustBotChatID() string
-
-	// GetBotCode returns bot code. This is a shortcut to BotSettings().Code
+	// GetBotCode is a convenience shortcut for BotContext().BotSettings.Code.
 	GetBotCode() string
 
-	// GetBotToken returns bot token. This is a shortcut to BotSettings().Token
-	// Deprecated: use BotSettings().Token instead
-	//GetBotToken() string
-
-	// GetBotSettings returns bot settings
+	// GetBotSettings is a convenience shortcut for BotContext().BotSettings.
 	GetBotSettings() *BotSettings
 
-	// DB is a reference to database used to store data of current bot
+	// DB returns the database handle assigned to this bot.
 	DB() dal.DB
 
-	// Tx is a reference to database transaction used to get/save data of current bot
-	//Tx() dal.ReadwriteTransaction
+	// AppContext returns application-level context (i18n, DAL, etc.).
+	AppContext() AppContext
 
-	// ChatData returns data of current bot chat without ID/Key
-	ChatData() botsfwmodels.BotChatData // Formerly ChatEntity()
+	// ExecutionContext returns the execution context.
+	// Deprecated: use Context() directly.
+	ExecutionContext() ExecutionContext
+}
 
-	// BotUser returns record of current bot user
-	GetBotUser() (botUser botsdal.BotUser, err error)
-	GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error)
+// WebhookInputContext provides access to the incoming message from the user.
+type WebhookInputContext interface {
+	BotInputProvider
 
+	// GetBotUserID returns the platform-specific user ID of the sender as a string.
 	GetBotUserID() string
 
-	// IsInGroup indicates if message was received in a group botChat
-	IsInGroup() (bool, error) // We  need to return an error as well (for Telegram chat instance).
+	// MustBotChatID returns the chat ID or panics if it cannot be determined.
+	MustBotChatID() string
 
-	// CommandText TODO: needs to be documented
-	CommandText(title, icon string) string
+	// IsInGroup reports whether the message was received in a group chat.
+	IsInGroup() (bool, error)
+}
 
-	//DefaultLocale() strongoapp.ByLocale
+// WebhookUserData provides read/write access to the persistent state of the current
+// bot user, app user, and chat.
+type WebhookUserData interface {
+	// ChatData returns the current bot chat's persistent data.
+	// Returns nil for input types that have no associated chat (e.g. InlineQuery).
+	ChatData() botsfwmodels.BotChatData
 
-	// SetLocale sets Locale for current session
-	SetLocale(code5 string) error
-
-	NewMessage(text string) botmsg.MessageFromBot
-	NewMessageByCode(messageCode string, a ...interface{}) botmsg.MessageFromBot
-	NewEditMessage(text string, format botmsg.Format) (botmsg.MessageFromBot, error)
-	//NewEditMessageKeyboard(kbMarkup tgbotapi.InlineKeyboardMarkup) MessageFromBot
-
-	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
-
-	AppUserID() string
-	SetUser(id string, data botsfwmodels.AppUserData)
-
-	// AppUserInt64ID Deprecate: use AppUserID() instead
-	//AppUserInt64ID() int64
-
-	AppUserData() (botsfwmodels.AppUserData, error)
-	//SaveAppUser(appUserID int64, appUserEntity BotAppUser) error
-
-	BotState
-
-	//Store() botsfwdal.DataAccess
-
-	// SaveBotChat // It is dangerous to allow user to pass context to this func as if it's a transactional context it might lead to deadlock
-	// Previously: takes context as we might want to add timeout or cancellation or something else.
+	// SaveBotChat persists the current chat data to the database.
 	SaveBotChat() error
 
-	//RecordsMaker() botsfwmodels.BotRecordsMaker
+	// GetBotUser returns the current platform user record.
+	GetBotUser() (botUser botsdal.BotUser, err error)
 
-	// RecordsFieldsSetter returns a helper that sets fields of bot related records
+	// GetBotUserForUpdate returns the platform user record inside a write transaction.
+	GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error)
+
+	// AppUserID returns the application-layer user ID linked to this bot user.
+	AppUserID() string
+
+	// SetUser caches the resolved app user ID and data into the context.
+	SetUser(id string, data botsfwmodels.AppUserData)
+
+	// AppUserData loads and returns the app user's persistent data.
+	AppUserData() (botsfwmodels.AppUserData, error)
+
+	// RecordsFieldsSetter returns the helper used to populate new bot/chat/user records.
 	RecordsFieldsSetter() BotRecordsFieldsSetter
 
-	//botinput.InputMessage // TODO: Should be removed!!!
+	// UpdateLastProcessed records the message sequence number / timestamp on the chat entity.
+	UpdateLastProcessed(chatEntity botsfwmodels.BotChatData) error
+
+	// IsNewerThen reports whether the current message is newer than the chat entity's
+	// last-processed sequence number (used to detect and discard duplicate deliveries).
+	IsNewerThen(chatEntity botsfwmodels.BotChatData) bool
+}
+
+// WebhookI18n provides localisation support for the current request.
+type WebhookI18n interface {
 	i18n.SingleLocaleTranslator
+
+	// SetLocale switches the active locale for this request.
+	SetLocale(code5 string) error
+
+	// GetTranslator returns a translator pinned to the given locale code.
 	GetTranslator(locale string) i18n.SingleLocaleTranslator
 
-	Responder() WebhookResponder
+	// CommandText formats a command title and icon into a display string.
+	CommandText(title, icon string) string
+}
 
+// WebhookMessaging provides helpers to construct and send messages back to the user.
+type WebhookMessaging interface {
+	// NewMessage creates a plain-text MessageFromBot.
+	NewMessage(text string) botmsg.MessageFromBot
+
+	// NewMessageByCode creates a MessageFromBot from an i18n key, formatting it with args.
+	NewMessageByCode(messageCode string, a ...interface{}) botmsg.MessageFromBot
+
+	// NewEditMessage creates a MessageFromBot that edits the previously sent message.
+	NewEditMessage(text string, format botmsg.Format) (botmsg.MessageFromBot, error)
+
+	// Responder returns the WebhookResponder used to deliver messages to the platform.
+	Responder() WebhookResponder
+}
+
+// WebhookTelemetry provides access to the analytics pipeline.
+type WebhookTelemetry interface {
 	Analytics() WebhookAnalytics
 }
 
-// BotState provides state of the bot (TODO: document how is used)
+// --- Composed interface ---
+
+// WebhookContext is the full request context passed to every command action handler.
+// It is a composition of focused sub-interfaces. Prefer accepting the narrowest
+// sub-interface that covers your function's actual needs.
+type WebhookContext interface {
+	WebhookRequestContext
+	WebhookInputContext
+	WebhookUserData
+	WebhookI18n
+	WebhookMessaging
+	WebhookTelemetry
+}
+
+// BotState provides state of the bot.
+// Deprecated: use WebhookUserData.IsNewerThen instead.
 type BotState interface {
 	IsNewerThen(chatEntity botsfwmodels.BotChatData) bool
 }
