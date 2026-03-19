@@ -39,4 +39,10 @@ mockgen github.com/bots-go-framework/bots-fw/botinput Subscribed > mock_botinput
 mockgen github.com/bots-go-framework/bots-fw/botinput Unsubscribed > mock_botinput/unsubscribed.go
 mockgen github.com/bots-go-framework/bots-fw/botinput NewChatMembersMessage > mock_botinput/webhook_new_chat_members_message.go
 mockgen github.com/bots-go-framework/bots-fw/botinput LeftChatMembersMessage > mock_botinput/webhook_left_chat_members_message.go
+mockgen github.com/bots-go-framework/bots-fw/botinput CallbackQuery > mock_botinput/callback_query.go
+mockgen github.com/bots-go-framework/bots-fw/botinput PreCheckoutQuery > mock_botinput/pre_checkout_query.go
+mockgen github.com/bots-go-framework/bots-fw/botinput SuccessfulPayment > mock_botinput/successful_payment.go
+mockgen github.com/bots-go-framework/bots-fw/botinput RefundedPayment > mock_botinput/refunded_payment.go
+mockgen github.com/bots-go-framework/bots-fw/botinput LocationMessage > mock_botinput/location_message.go
+mockgen github.com/bots-go-framework/bots-fw/botsfw WebhookHandler > mock_botsfw/webhook_handler.go
 mockgen github.com/bots-go-framework/bots-fw-store/botsfwmodels BotChatData > mock_botsfwmodels/bot_chat_data.go
