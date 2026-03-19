@@ -104,8 +104,7 @@ func TestMatchCallbackCommands_ByURLPath(t *testing.T) {
 	}
 	if matched == nil {
 		t.Fatal("expected a matched command, got nil")
-	}
-	if matched.Code != "settings" {
+	} else if matched.Code != "settings" {
 		t.Errorf("expected code 'settings', got %q", matched.Code)
 	}
 }
@@ -150,8 +149,7 @@ func TestMatchCallbackCommands_ByMatcher(t *testing.T) {
 	}
 	if matched == nil {
 		t.Fatal("expected a matched command via Matcher, got nil")
-	}
-	if matched.Code != "custom" {
+	} else if matched.Code != "custom" {
 		t.Errorf("expected code 'custom', got %q", matched.Code)
 	}
 }
@@ -196,8 +194,7 @@ func TestMatchNonTextCommands_AwaitingReplyMatchesCode(t *testing.T) {
 	matched := router.matchNonTextCommands(mockWHC, "loc_cmd", commands)
 	if matched == nil {
 		t.Fatal("expected match by code")
-	}
-	if matched.Code != "loc_cmd" {
+	} else if matched.Code != "loc_cmd" {
 		t.Errorf("expected code 'loc_cmd', got %q", matched.Code)
 	}
 }
@@ -213,8 +210,7 @@ func TestMatchNonTextCommands_AwaitingReplyWithQueryParams(t *testing.T) {
 	matched := router.matchNonTextCommands(mockWHC, "loc_cmd?param=1", commands)
 	if matched == nil {
 		t.Fatal("expected match after trimming query params")
-	}
-	if matched.Code != "loc_cmd" {
+	} else if matched.Code != "loc_cmd" {
 		t.Errorf("expected code 'loc_cmd', got %q", matched.Code)
 	}
 }
@@ -236,8 +232,7 @@ func TestMatchNonTextCommands_AwaitingReplyViaMatcher(t *testing.T) {
 	matched := router.matchNonTextCommands(mockWHC, "something_else", commands)
 	if matched == nil {
 		t.Fatal("expected match via Matcher")
-	}
-	if matched.Code != "matchable" {
+	} else if matched.Code != "matchable" {
 		t.Errorf("expected code 'matchable', got %q", matched.Code)
 	}
 }
@@ -269,8 +264,7 @@ func TestMatchMessageCommands_ByCode(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/help", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by code /help")
-	}
-	if matched.Code != "help" {
+	} else if matched.Code != "help" {
 		t.Errorf("expected code 'help', got %q", matched.Code)
 	}
 }
@@ -286,8 +280,7 @@ func TestMatchMessageCommands_ByCodeWithBotName(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/help@mybot", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by code /help@mybot")
-	}
-	if matched.Code != "help" {
+	} else if matched.Code != "help" {
 		t.Errorf("expected code 'help', got %q", matched.Code)
 	}
 }
@@ -303,8 +296,7 @@ func TestMatchMessageCommands_ByExactMatch(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "Hello!", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by ExactMatch")
-	}
-	if matched.Code != "greet" {
+	} else if matched.Code != "greet" {
 		t.Errorf("expected code 'greet', got %q", matched.Code)
 	}
 }
@@ -321,8 +313,7 @@ func TestMatchMessageCommands_ByDefaultTitle(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "mycommand", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by DefaultTitle (code as title)")
-	}
-	if matched.Code != "mycommand" {
+	} else if matched.Code != "mycommand" {
 		t.Errorf("expected code 'mycommand', got %q", matched.Code)
 	}
 }
@@ -339,8 +330,7 @@ func TestMatchMessageCommands_ByDefaultTitle_WithTitleTranslation(t *testing.T) 
 	matched := router.matchMessageCommands(mockWHC, nil, false, "Information", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by DefaultTitle with Title translation")
-	}
-	if matched.Code != "info" {
+	} else if matched.Code != "info" {
 		t.Errorf("expected code 'info', got %q", matched.Code)
 	}
 }
@@ -362,8 +352,7 @@ func TestMatchMessageCommands_ByMatcher(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "anythingunknown", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by Matcher")
-	}
-	if matched.Code != "custom" {
+	} else if matched.Code != "custom" {
 		t.Errorf("expected code 'custom', got %q", matched.Code)
 	}
 }
@@ -379,8 +368,7 @@ func TestMatchMessageCommands_AwaitingReplyTo(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "some user text", "", commands)
 	if matched == nil {
 		t.Fatal("expected match via awaitingReplyTo")
-	}
-	if matched.Code != "reply_cmd" {
+	} else if matched.Code != "reply_cmd" {
 		t.Errorf("expected code 'reply_cmd', got %q", matched.Code)
 	}
 }
@@ -415,8 +403,7 @@ func TestMatchMessageCommands_StartAction(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/start ref123", "", commands)
 	if matched == nil {
 		t.Fatal("expected match for /start <code> with StartAction")
-	}
-	if matched.Code != "ref123" {
+	} else if matched.Code != "ref123" {
 		t.Errorf("expected code 'ref123', got %q", matched.Code)
 	}
 }
@@ -434,8 +421,7 @@ func TestMatchMessageCommands_StartFallsBackToStartCommand(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/start unknown", "", commands)
 	if matched == nil {
 		t.Fatal("expected fallback match to start command")
-	}
-	if matched.Code != "start" {
+	} else if matched.Code != "start" {
 		t.Errorf("expected code 'start', got %q", matched.Code)
 	}
 }
@@ -452,8 +438,7 @@ func TestMatchMessageCommands_CommandWithSpace(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/help argument", "", commands)
 	if matched == nil {
 		t.Fatal("expected match for /help with argument")
-	}
-	if matched.Code != "help" {
+	} else if matched.Code != "help" {
 		t.Errorf("expected code 'help', got %q", matched.Code)
 	}
 }
@@ -870,8 +855,7 @@ func TestMatchMessageCommands_ByCommandsField(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, true, "/a", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by Commands field")
-	}
-	if matched.Code != "alias" {
+	} else if matched.Code != "alias" {
 		t.Errorf("expected code 'alias', got %q", matched.Code)
 	}
 }
@@ -887,8 +871,7 @@ func TestMatchMessageCommands_ByCommandsFieldWithArgs(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "/alias extra", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by Commands field prefix")
-	}
-	if matched.Code != "alias" {
+	} else if matched.Code != "alias" {
 		t.Errorf("expected code 'alias', got %q", matched.Code)
 	}
 }
@@ -907,8 +890,7 @@ func TestMatchMessageCommands_ByDefaultTitle_WithIcon(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "Help 🆘", "", commands)
 	if matched == nil {
 		t.Fatal("expected match by DefaultTitle with icon")
-	}
-	if matched.Code != "helpicon" {
+	} else if matched.Code != "helpicon" {
 		t.Errorf("expected code 'helpicon', got %q", matched.Code)
 	}
 }
@@ -928,8 +910,7 @@ func TestMatchMessageCommands_AwaitingReplyToSuffix(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "some user input", "", commands)
 	if matched == nil {
 		t.Fatal("expected match via awaitingReplyTo suffix path")
-	}
-	if matched.Code != "child_cmd" {
+	} else if matched.Code != "child_cmd" {
 		t.Errorf("expected code 'child_cmd', got %q", matched.Code)
 	}
 }
@@ -951,8 +932,7 @@ func TestMatchMessageCommands_AwaitingReplyToWithReplies(t *testing.T) {
 	matched := router.matchMessageCommands(mockWHC, nil, false, "any text", "", commands)
 	if matched == nil {
 		t.Fatal("expected match via command.Replies")
-	}
-	if matched.Code != "sub" {
+	} else if matched.Code != "sub" {
 		t.Errorf("expected code 'sub', got %q", matched.Code)
 	}
 }
