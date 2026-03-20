@@ -4,6 +4,8 @@ github.com/RoaringBitmap/roaring/v2 v2.14.5 h1:ckd0o545JqDPeVJDgeFoaM21eBixUnlWf
 github.com/RoaringBitmap/roaring/v2 v2.14.5/go.mod h1:eq4wdNXxtJIS/oikeCzdX1rBzek7ANzbth041hrU8Q4=
 github.com/RoaringBitmap/roaring/v2 v2.15.0 h1:gCbixa3UiG7g6WUZNVOfEEg2HTc1vR4OVdMkX8t1ZFc=
 github.com/RoaringBitmap/roaring/v2 v2.15.0/go.mod h1:eq4wdNXxtJIS/oikeCzdX1rBzek7ANzbth041hrU8Q4=
+github.com/RoaringBitmap/roaring/v2 v2.16.0 h1:Kys1UNf49d5W8Tq3bpuAhIr/Z8/yPB+59CO8A6c/BbE=
+github.com/RoaringBitmap/roaring/v2 v2.16.0/go.mod h1:eq4wdNXxtJIS/oikeCzdX1rBzek7ANzbth041hrU8Q4=
 github.com/bits-and-blooms/bitset v1.24.4 h1:95H15Og1clikBrKr/DuzMXkQzECs1M6hhoGXLwLQOZE=
 github.com/bits-and-blooms/bitset v1.24.4/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bots-go-framework/bots-fw-store v0.10.0 h1:e6bD274mjrHVp+X05/7uqqT3s5xZOqV9divKTaM2W+w=
@@ -24,6 +26,8 @@ github.com/dal-go/dalgo v0.41.7 h1:N+FBm+wTNBWo5CoOcTlvLrk0O8DINqIYBh5oljkbSEk=
 github.com/dal-go/dalgo v0.41.7/go.mod h1:Ie27/bswwwVWwQCsUdNl44L3E32uL1raZtg4WSEBd6k=
 github.com/dal-go/dalgo v0.41.8 h1:ro+lY5hZrUECLCYpIV/tYm6olFK2RGX8L4+qf/lOEAg=
 github.com/dal-go/dalgo v0.41.8/go.mod h1:hSQ7sNhf5WZz/XcHgO0UKUCc24rhgU2C7fcrmcsx80U=
+github.com/dal-go/dalgo v0.41.9 h1:gZP/RkVFv5Z1tAp/WPWQ1yNDzF5MWrGe5EDjbAKgOuk=
+github.com/dal-go/dalgo v0.41.9/go.mod h1:jPNOxd415Z6KOuU7ZjdcjiRs4Vl4OkirOzyRbtuFZzI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/mschoch/smat v0.2.0 h1:8imxQsjDm8yFEAVBe7azKmKSgzSkZXDuKkSq9374khM=
