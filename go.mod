@@ -8,13 +8,13 @@ go 1.24.3
 //replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-store v0.10.0
-	github.com/bots-go-framework/bots-go-core v0.2.3
-	github.com/dal-go/dalgo v0.41.9
+	github.com/bots-go-framework/bots-fw-store v0.10.1
+	github.com/bots-go-framework/bots-go-core v0.2.4
+	github.com/dal-go/dalgo v0.41.10
 	github.com/stretchr/testify v1.11.1
-	github.com/strongo/analytics v0.2.3
-	github.com/strongo/i18n v0.8.7
-	github.com/strongo/logus v0.4.0
+	github.com/strongo/analytics v0.2.4
+	github.com/strongo/i18n v0.8.8
+	github.com/strongo/logus v0.4.1
 	go.uber.org/mock v0.6.0
 )
 
