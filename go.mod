@@ -10,7 +10,7 @@ go 1.24.3
 require (
 	github.com/bots-go-framework/bots-fw-store v0.10.3
 	github.com/bots-go-framework/bots-go-core v0.2.4
-	github.com/dal-go/dalgo v0.41.12
+	github.com/dal-go/dalgo v0.41.13
 	github.com/stretchr/testify v1.11.1
 	github.com/strongo/analytics v0.2.5
 	github.com/strongo/i18n v0.8.9
@@ -19,7 +19,7 @@ require (
 )
 
 require (
-	github.com/RoaringBitmap/roaring/v2 v2.17.0 // indirect
+	github.com/RoaringBitmap/roaring/v2 v2.18.0 // indirect
 	github.com/bits-and-blooms/bitset v1.24.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
