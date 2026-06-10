@@ -5,7 +5,6 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 )
 
 const botUsersCollection = "botUsers"
@@ -44,8 +43,7 @@ func CreatePlatformUserRecord(
 		}
 	}
 	key := NewPlatformUserKey(platformID, botUserID)
-	platformUser := record.NewDataWithID(botUserID, key, platformUserData)
-	err = tx.Insert(ctx, platformUser.Record)
+	_, err = dal.InsertRecordWithDataAndID(ctx, tx, key, botUserID, platformUserData)
 	return err
 }
 
