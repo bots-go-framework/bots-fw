@@ -1,7 +1,16 @@
 # dalgo typed `Collection[K, T]` — applicability to bots-fw
 
-**Status:** investigated; **not adopted** (yet). dalgo upgraded to `v0.59.1` only.
+**Status:** **partially adopted.** dalgo `v0.61.0` added the factory accessor
+`dal.GetRecordWithIDIntoData`; `GetBotChat` and `GetPlatformUser` are now migrated
+onto it. Writes (`CreatePlatformUserRecord`) and struct/composite ids remain
+future work.
 **Date:** 2026-06-10
+
+> **Update (v0.61.0):** the dalgo-side unlock landed as
+> `dal.GetRecordWithIDIntoData[K, D](ctx, s, key, id, data)` — it decodes into a
+> caller-supplied value, so interface `D` (e.g. `BotChatData`) works. The reads
+> below are migrated; the design analysis is retained for context and for the
+> still-open items.
 
 ## TL;DR
 
@@ -151,18 +160,19 @@ Even with (A), `botsdal` would benefit from:
 - Removing the large commented-out blocks in `app_user_store.go`,
   `dal_bot_user.go`, `facade_user.go` first, so the refactor target is clear.
 
-## Recommendation
+## Recommendation / status
 
-1. **Now:** keep dalgo on `v0.59.1` (done). Do **not** force-fit `Collection[K,
-   T]` into the interface-generic `botsdal` — it would add churn and a worse
-   return type for no gain.
-2. **Next (dalgo):** add `record.GetDataWithID` (concrete) and
-   `record.ReadDataWithID` (caller-supplied/interface data). The latter is the
-   real unlock for frameworks like bots-fw and is low-risk (a thin, additive,
-   cycle-free helper).
-3. **Later (bots-fw):** once (2) lands, migrate `GetBotChat` / `GetPlatformUser`
-   / `CreatePlatformUserRecord` onto the typed helpers, after the commented-code
-   cleanup in §B.
-
-Adoption is feasible — it is gated on dalgo growing `DataWithID`-shaped accessors
-(or bots-fw going concrete/generic), not on anything fundamental.
+1. ~~**Next (dalgo):** add a caller-supplied/interface-data accessor.~~ **Done in
+   dalgo `v0.61.0`** as `dal.GetRecordWithIDIntoData` (the type
+   `record.ReadDataWithID` was renamed during review to `GetRecordWithIDIntoData`,
+   and `record.DataWithID` is now an alias for `dal.RecordWithDataAndID`).
+2. ~~**Later (bots-fw):** migrate `GetBotChat` / `GetPlatformUser`.~~ **Done** —
+   both now delegate to `dal.GetRecordWithIDIntoData(ctx, tx, key, id, data)`,
+   returning the same `record.DataWithID[string, D]` shape as before (it is now an
+   alias of `dal.RecordWithDataAndID`).
+3. **Still open:**
+   - `CreatePlatformUserRecord` is a write (`Insert`), not a read, so it stays on
+     `record.NewDataWithID` + `tx.Insert` — `GetRecordWithIDIntoData` is read-only.
+   - struct/composite ids in the typed `id K` slot remain deferred in dalgo.
+   - the large commented-out blocks in `app_user_store.go` / `dal_bot_user.go` /
+     `facade_user.go` are still candidates for cleanup.
