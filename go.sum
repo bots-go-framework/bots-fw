@@ -8,6 +8,8 @@ github.com/bots-go-framework/bots-go-core v0.2.4 h1:ppsw1MohTCFIDjp5tmccAokRAeq2
 github.com/bots-go-framework/bots-go-core v0.2.4/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
 github.com/dal-go/dalgo v0.59.1 h1:RchGS5iq0+ob+PXjxYx928Cg33aE1N5t56koW3My+c8=
 github.com/dal-go/dalgo v0.59.1/go.mod h1:20tJJx7yt8qI8CZhUv1E/Q0HbIDRZXLVBU3JMzDpdvU=
+github.com/dal-go/dalgo v0.60.1 h1:eoKxwvKM3ws8SKndDVEPAfsB1ZBoIjUpK6X8q5NC4/w=
+github.com/dal-go/dalgo v0.60.1/go.mod h1:20tJJx7yt8qI8CZhUv1E/Q0HbIDRZXLVBU3JMzDpdvU=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/mschoch/smat v0.2.0 h1:8imxQsjDm8yFEAVBe7azKmKSgzSkZXDuKkSq9374khM=
