@@ -24,7 +24,5 @@ func GetBotChat(
 	newData func() botsfwmodels.BotChatData,
 ) (chat record.DataWithID[string, botsfwmodels.BotChatData], err error) {
 	key := NewBotChatKey(platformID, botID, chatID)
-	data := newData()
-	chat = record.NewDataWithID(chatID, key, data)
-	return chat, tx.Get(ctx, chat.Record)
+	return dal.GetRecordWithIDIntoData(ctx, tx, key, chatID, newData())
 }

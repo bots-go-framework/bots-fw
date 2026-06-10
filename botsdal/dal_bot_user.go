@@ -27,8 +27,8 @@ func GetPlatformUser(
 	platformUserData botsfwmodels.PlatformUserData,
 ) (botUser BotUser, err error) {
 	botUserKey := NewPlatformUserKey(platformID, botUserID)
-	botUser = BotUser(record.NewDataWithID(botUserID, botUserKey, platformUserData))
-	return botUser, tx.Get(ctx, botUser.Record)
+	dataWithID, err := dal.GetRecordWithIDIntoData(ctx, tx, botUserKey, botUserID, platformUserData)
+	return BotUser(dataWithID), err
 }
 
 // CreatePlatformUserRecord creates bot user record in database
