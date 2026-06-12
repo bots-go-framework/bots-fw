@@ -1,0 +1,15 @@
+titles:
+  en: Project Metadata
+record_file:
+  name: project_metadata.ingr
+  format: ingr
+  type: "[]map[string]any"
+primary_key:
+  - $ID
+columns:
+  value:
+    type: string
+    titles:
+      en: Value
+columns_order:
+  - value

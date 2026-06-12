@@ -1,0 +1,35 @@
+titles:
+  en: Files
+record_file:
+  name: files.ingr
+  format: ingr
+  type: "[]map[string]any"
+primary_key:
+  - $ID
+columns:
+  content_hash:
+    type: string
+    titles:
+      en: Content Hash
+  language:
+    type: string
+    titles:
+      en: Language
+  size:
+    type: int
+    titles:
+      en: Size
+  node_count:
+    type: int
+    titles:
+      en: Node Count
+  errors:
+    type: any
+    titles:
+      en: Errors
+columns_order:
+  - content_hash
+  - language
+  - size
+  - node_count
+  - errors

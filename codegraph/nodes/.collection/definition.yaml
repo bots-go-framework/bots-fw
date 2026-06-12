@@ -1,0 +1,105 @@
+titles:
+  en: Nodes
+record_file:
+  name: nodes.ingr
+  format: ingr
+  type: "[]map[string]any"
+primary_key:
+  - $ID
+columns:
+  kind:
+    type: string
+    titles:
+      en: Kind
+  name:
+    type: string
+    titles:
+      en: Name
+  qualified_name:
+    type: string
+    titles:
+      en: Qualified Name
+  file_path:
+    type: string
+    titles:
+      en: File Path
+  language:
+    type: string
+    titles:
+      en: Language
+  start_line:
+    type: int
+    titles:
+      en: Start Line
+  end_line:
+    type: int
+    titles:
+      en: End Line
+  start_column:
+    type: int
+    titles:
+      en: Start Column
+  end_column:
+    type: int
+    titles:
+      en: End Column
+  docstring:
+    type: any
+    titles:
+      en: Docstring
+  signature:
+    type: any
+    titles:
+      en: Signature
+  visibility:
+    type: any
+    titles:
+      en: Visibility
+  is_exported:
+    type: bool
+    titles:
+      en: Is Exported
+  is_async:
+    type: bool
+    titles:
+      en: Is Async
+  is_static:
+    type: bool
+    titles:
+      en: Is Static
+  is_abstract:
+    type: bool
+    titles:
+      en: Is Abstract
+  decorators:
+    type: any
+    titles:
+      en: Decorators
+  type_parameters:
+    type: any
+    titles:
+      en: Type Parameters
+  return_type:
+    type: any
+    titles:
+      en: Return Type
+columns_order:
+  - kind
+  - name
+  - qualified_name
+  - file_path
+  - language
+  - start_line
+  - end_line
+  - start_column
+  - end_column
+  - docstring
+  - signature
+  - visibility
+  - is_exported
+  - is_async
+  - is_static
+  - is_abstract
+  - decorators
+  - type_parameters
+  - return_type

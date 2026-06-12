@@ -1,0 +1,45 @@
+titles:
+  en: Edges
+record_file:
+  name: edges.ingr
+  format: ingr
+  type: "[]map[string]any"
+primary_key:
+  - $ID
+columns:
+  source:
+    type: string
+    titles:
+      en: Source
+  target:
+    type: string
+    titles:
+      en: Target
+  kind:
+    type: string
+    titles:
+      en: Kind
+  metadata:
+    type: any
+    titles:
+      en: Metadata
+  line:
+    type: int
+    titles:
+      en: Line
+  col:
+    type: int
+    titles:
+      en: Column
+  provenance:
+    type: any
+    titles:
+      en: Provenance
+columns_order:
+  - source
+  - target
+  - kind
+  - metadata
+  - line
+  - col
+  - provenance
