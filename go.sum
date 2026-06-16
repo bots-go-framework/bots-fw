@@ -4,6 +4,8 @@ github.com/bits-and-blooms/bitset v1.24.4 h1:95H15Og1clikBrKr/DuzMXkQzECs1M6hhoG
 github.com/bits-and-blooms/bitset v1.24.4/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bots-go-framework/bots-fw-store v0.10.3 h1:nGw1puS+wzI5XAnNyUBFerbaqxAT9sxCMs4ESq+kH9Y=
 github.com/bots-go-framework/bots-fw-store v0.10.3/go.mod h1:s5L7PAMhdpf+zqkewV5m4uQKm/oVtv4QNyhdkSmNJwE=
+github.com/bots-go-framework/bots-fw-store v0.10.4 h1:4vD+IvBDITQgwBob1PCG6cGNJJWKQi2oGYHNE9FGIBw=
+github.com/bots-go-framework/bots-fw-store v0.10.4/go.mod h1:s5L7PAMhdpf+zqkewV5m4uQKm/oVtv4QNyhdkSmNJwE=
 github.com/bots-go-framework/bots-go-core v0.2.4 h1:ppsw1MohTCFIDjp5tmccAokRAeq2PcuhNQooxsN4fFc=
 github.com/bots-go-framework/bots-go-core v0.2.4/go.mod h1:XCn9z4TI8sbgwyus+VDzw7iMY2QCPWEAvl23GMDjeEU=
 github.com/dal-go/dalgo v0.62.0 h1:+ZvsV/y9QRZFpIAtm4XL6TwmR24MzQPcRxwV/qZ7g18=
@@ -12,6 +14,8 @@ github.com/dal-go/dalgo v0.62.1 h1:HBQLjQcuYO0vExKD4Tm/Qo8kM9Ji9wuJbxi7+f5Tfu0=
 github.com/dal-go/dalgo v0.62.1/go.mod h1:csGX33TfUj0H6Yod5HgZs7Fjij7avifVU8dc/nZSxkg=
 github.com/dal-go/dalgo v0.62.2 h1:rA+k9QCgS0UnZV0oonvDtA+QoM3Wj1doVBWo1higBTw=
 github.com/dal-go/dalgo v0.62.2/go.mod h1:wwaibB/UlzwAY1r9KZw5JCis+aroIwAu5WQJ/aoWZiU=
+github.com/dal-go/dalgo v0.62.4 h1:HD2r3eEAsnPKvqz73nEuemnrtTlCggBbi1PtK6xmDCQ=
+github.com/dal-go/dalgo v0.62.4/go.mod h1:wwaibB/UlzwAY1r9KZw5JCis+aroIwAu5WQJ/aoWZiU=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/mschoch/smat v0.2.0 h1:8imxQsjDm8yFEAVBe7azKmKSgzSkZXDuKkSq9374khM=
@@ -24,6 +28,8 @@ github.com/strongo/analytics v0.2.5 h1:wNobPTa5C9hQUembtVYEXHIGGBWO29H0iUhTicR9C
 github.com/strongo/analytics v0.2.5/go.mod h1:UcOgf57sMznb4zRxLA827+lC+HX6WWBU30YIQmbNwu0=
 github.com/strongo/i18n v0.8.10 h1:sg2RltRlJiHq/2mutmBnF6KNpn3T3cfdOgK+DGecsvQ=
 github.com/strongo/i18n v0.8.10/go.mod h1:CTRWUsNFHmTAq71hHgsoaaBDnC+czZManuoFqLeJ36U=
+github.com/strongo/i18n v0.8.12 h1:Jl874EfzQRrCn5sTvlfRVPMbDxVDsZl95a8iwVHe3UM=
+github.com/strongo/i18n v0.8.12/go.mod h1:gzIv4ENpyj8JJEnBmBgyuGSHuQctGhVTeY4+lt8bMGA=
 github.com/strongo/logus v0.4.1 h1:jEkcT5JzawDYjexRVHkCQiG4tv6Bm2a/c/ZdLk0IPqM=
 github.com/strongo/logus v0.4.1/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/random v0.0.1 h1:OZHJBb/3uEa7OX8L2Dv2pLnSeewRmXMyTACoeto6O8I=
