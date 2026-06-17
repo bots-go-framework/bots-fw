@@ -8,7 +8,7 @@ go 1.24.3
 //replace github.com/bots-go-framework/bots-fw-store => ../bots-fw-store
 
 require (
-	github.com/bots-go-framework/bots-fw-store v0.10.4
+	github.com/bots-go-framework/bots-fw-store v0.10.5
 	github.com/bots-go-framework/bots-go-core v0.2.4
 	github.com/dal-go/dalgo v0.62.5
 	github.com/stretchr/testify v1.11.1
@@ -25,7 +25,7 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/strongo/random v0.0.1 // indirect
-	github.com/strongo/slice v0.3.4 // indirect
+	github.com/strongo/slice v0.3.5 // indirect
 	github.com/strongo/validation v0.0.9 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
