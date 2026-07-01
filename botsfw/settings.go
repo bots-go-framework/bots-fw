@@ -66,6 +66,23 @@ type BotSettings struct {
 	// GAToken is Google Analytics token - TODO: Refactor tu support multiple or move out
 	GAToken string
 
+	// WebhookSecretToken is the secret Telegram (or other platform) sends back on every
+	// webhook call in the `X-Telegram-Bot-Api-Secret-Token` header (set via `secret_token`
+	// when registering the webhook, e.g. Telegram's `setWebhook`). Webhook handlers MUST
+	// verify this value (constant-time) before processing an update, otherwise anyone who
+	// knows the bot's webhook URL can POST forged updates and impersonate any platform user.
+	//
+	// If left empty, no verification is possible for this bot - this is a backward-compat
+	// escape hatch for existing deployments, not a recommended posture. See
+	// RequireWebhookSecret to make an empty secret a hard failure instead.
+	WebhookSecretToken string
+
+	// RequireWebhookSecret, when true, tells a webhook handler to reject all requests for
+	// this bot (rather than just logging a warning) if WebhookSecretToken is empty. Defaults
+	// to false (off) so existing deployments that haven't configured a secret yet keep
+	// working, but every bot SHOULD set WebhookSecretToken and flip this to true.
+	RequireWebhookSecret bool
+
 	// Locale is a default locale for a bot.
 	// While a bot profile can support multiple locales a bot can be dedicated to a specific country/language
 	Locale i18n.Locale
