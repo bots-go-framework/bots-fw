@@ -158,8 +158,17 @@ func (d webhookDriver) processWebhookInput(
 				var chatID string
 				if chatID, err = whc.Input().BotChatID(); err == nil && chatID != "" {
 					if responder := whc.Responder(); responder != nil {
-						if _, err = responder.SendMessage(ctx, whc.NewMessage(ErrorIcon+" "+messageText), botsfw.BotAPISendMessageOverResponse); err != nil {
-							log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
+						m := whc.NewMessage(ErrorIcon + " " + messageText)
+						if _, err = botsfw.SendMessageThroughGate(ctx, responder, m, botsfw.BotAPISendMessageOverResponse); err != nil {
+							if botsfw.IsSendNotPermitted(err) {
+								// A gated platform will not accept an unsolicited
+								// message here. Reporting the panic to the user is
+								// best-effort; the panic is already logged and sent
+								// to analytics above.
+								log.Warningf(ctx, "not reporting error to user: %v", err)
+							} else {
+								log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
+							}
 						}
 					}
 				}

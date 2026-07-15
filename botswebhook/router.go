@@ -778,9 +778,14 @@ func logInputDetails(whc botsfw.WebhookContext, isKnownType bool) {
 	}
 
 	m := whc.NewMessage(fmt.Sprintf("Unknown Type=%d", inputType)) // TODO: Move out of framework to app?
-	_, err := whc.Responder().SendMessage(c, m, botsfw.BotAPISendMessageOverResponse)
-	if err != nil {
-		log.Errorf(c, "Failed to send message: %v", err)
+	if _, err := botsfw.SendMessageThroughGate(c, whc.Responder(), m, botsfw.BotAPISendMessageOverResponse); err != nil {
+		if botsfw.IsSendNotPermitted(err) {
+			// Expected on gated platforms, not a failure: the platform does not
+			// permit an unsolicited message right now.
+			log.Warningf(c, "Not reporting unknown input type to the user: %v", err)
+		} else {
+			log.Errorf(c, "Failed to send message: %v", err)
+		}
 	}
 }
 
@@ -802,7 +807,12 @@ func (whRouter *webhooksRouter) processCommandResponse(
 	if responseChannel == "" {
 		responseChannel = botsfw.BotAPISendMessageOverResponse
 	}
-	if _, err = responder.SendMessage(c, m, responseChannel); err != nil {
+	if gateErr := botsfw.CanSend(c, responder, m); gateErr != nil {
+		// The platform does not permit this send right now — e.g. WhatsApp outside
+		// the 24h customer-service window. Skip it rather than spending an API call
+		// to earn a rejection. Not an error: it is the platform working as designed.
+		log.Warningf(c, "command response not sent: %v", gateErr)
+	} else if _, err = responder.SendMessage(c, m, responseChannel); err != nil {
 		const failedToSendMessageToMessenger = "failed to send a message to messenger"
 		errText := err.Error()
 		switch {
