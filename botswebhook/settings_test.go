@@ -90,17 +90,33 @@ func TestNewBotSettingsBy(t *testing.T) {
 			expectsPanic: true,
 		},
 		{
+			// Platform is required: bot codes are unique per platform, and a bot
+			// with no platform can never be resolved by the platform-scoped
+			// GetBotContext, so registering one is always a mistake.
 			name: "single_bot",
 			args: args{
 				bots: []botsfw.BotSettings{
 					{
-						Profile: testBotProfile,
-						Code:    "TestBot",
-						ID:      "test123",
+						Platform: botsfwconst.PlatformTelegram,
+						Profile:  testBotProfile,
+						Code:     "TestBot",
+						ID:       "test123",
 					},
 				},
 			},
 			expectsPanic: false,
+		},
+		{
+			name: "bot_without_platform",
+			args: args{
+				bots: []botsfw.BotSettings{
+					{
+						Profile: testBotProfile,
+						Code:    "NoPlatformBot",
+					},
+				},
+			},
+			expectsPanic: true,
 		},
 	}
 	for _, tt := range tests {
@@ -113,7 +129,13 @@ func TestNewBotSettingsBy(t *testing.T) {
 				}()
 			}
 			actual := botsfw.NewBotSettingsBy(tt.args.bots...)
-			assert.Equal(t, len(tt.args.bots), len(actual.ByCode))
+			// Count via the platform-scoped map: ByCode is deprecated and
+			// first-wins, so it under-counts when a code is shared across platforms.
+			var registered int
+			for _, byCode := range actual.ByPlatformAndCode {
+				registered += len(byCode)
+			}
+			assert.Equal(t, len(tt.args.bots), registered)
 		})
 	}
 }
