@@ -44,13 +44,26 @@ func NewBotContextProvider(botHost BotHost, appContext AppContext, botSettingPro
 
 var ErrUnknownBot = errors.New("unknown bot")
 
+// GetBotContext returns the BotContext for a bot on a specific platform.
+//
+// The lookup is scoped to platformID. This matters: before it was, this method
+// accepted platformID and ignored it, resolving purely by bot ID or code. With a
+// single platform that was invisible. With two, a webhook for platform A could
+// resolve platform B's settings — including its Token and WebhookSecretToken —
+// whenever the two shared an ID or code.
+//
+// Returns ErrUnknownBot when no bot with that ID or code exists ON THAT PLATFORM,
+// even if one exists elsewhere. That is deliberate: a caller asking for a WhatsApp
+// bot must never be handed a Telegram one.
 func (v botContextProvider) GetBotContext(ctx context.Context, platformID botsfwconst.Platform, botID string) (botContext *BotContext, err error) {
+	if platformID == "" {
+		return nil, errors.New("required parameter platformID is empty")
+	}
 	botSettingsBy := v.botSettingProvider(ctx)
-	botSettings, ok := botSettingsBy.ByID[botID]
-	if !ok {
-		if botSettings, ok = botSettingsBy.ByCode[botID]; !ok {
-			return nil, ErrUnknownBot
-		}
+
+	botSettings := botSettingsBy.findByPlatform(platformID, botID)
+	if botSettings == nil {
+		return nil, ErrUnknownBot
 	}
 	return &BotContext{
 		AppContext:  v.appContext,

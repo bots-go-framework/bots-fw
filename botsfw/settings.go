@@ -154,48 +154,121 @@ type BotSettingsProvider func(ctx context.Context) BotSettingsBy
 // TODO: Decide if it should have map[string]*BotSettings instead of map[string]BotSettings
 type BotSettingsBy struct {
 
-	// ByCode keeps settings by bot code - it is a human-readable ID of a bot
+	// ByCode keeps settings by bot code - it is a human-readable ID of a bot.
+	//
+	// Deprecated: ambiguous once more than one platform is in play, because the
+	// same code may legitimately be used for the same product on Telegram and on
+	// WhatsApp. First registration wins here. Use ByPlatformAndCode, or resolve
+	// via BotContextProvider.GetBotContext which is platform-scoped.
 	ByCode map[string]*BotSettings
 
 	// ByID keeps settings by bot ID - it is a machine-readable ID of a bot.
+	//
+	// Deprecated: ambiguous across platforms, as ByCode. Use ByPlatformAndID.
 	ByID map[string]*BotSettings
 
 	ByProfile map[string][]*BotSettings
+
+	// ByPlatformAndCode keeps settings by platform, then bot code.
+	//
+	// Bot codes are only unique WITHIN a platform: "debtus" on Telegram and
+	// "debtus" on WhatsApp are different bots with different tokens.
+	ByPlatformAndCode map[botsfwconst.Platform]map[string]*BotSettings
+
+	// ByPlatformAndID keeps settings by platform, then bot ID.
+	ByPlatformAndID map[botsfwconst.Platform]map[string]*BotSettings
+}
+
+// findByPlatform resolves a bot by ID or code within a single platform.
+//
+// Returns nil if no such bot exists on that platform, even if one exists on
+// another — which is the point.
+func (settingsBy BotSettingsBy) findByPlatform(platform botsfwconst.Platform, botID string) *BotSettings {
+	if byID, ok := settingsBy.ByPlatformAndID[platform]; ok {
+		if s, ok := byID[botID]; ok {
+			return s
+		}
+	}
+	if byCode, ok := settingsBy.ByPlatformAndCode[platform]; ok {
+		if s, ok := byCode[botID]; ok {
+			return s
+		}
+	}
+	// Fall back to the legacy flat maps for a BotSettingsBy built by hand rather
+	// than by NewBotSettingsBy — but still verify the platform, so the fallback
+	// cannot reintroduce the cross-platform leak it exists to be compatible with.
+	if s, ok := settingsBy.ByID[botID]; ok && s.Platform == platform {
+		return s
+	}
+	if s, ok := settingsBy.ByCode[botID]; ok && s.Platform == platform {
+		return s
+	}
+	return nil
 }
 
 // NewBotSettingsBy create settings per different keys (ID, code, API token, Locale)
+//
+// Bot codes and IDs must be unique WITHIN a platform, not globally. The same
+// product on two platforms legitimately shares a code — "debtus" on Telegram and
+// "debtus" on WhatsApp are different bots with different tokens — and rejecting
+// that made a second platform impossible to register.
 func NewBotSettingsBy(bots ...BotSettings) (settingsBy BotSettingsBy) {
 	count := len(bots)
 	if count == 0 {
 		panic("NewBotSettingsBy: missing required parameter: bots")
 	}
 	settingsBy = BotSettingsBy{
-		ByCode:    make(map[string]*BotSettings, count),
-		ByID:      make(map[string]*BotSettings, count),
-		ByProfile: make(map[string][]*BotSettings),
+		ByCode:            make(map[string]*BotSettings, count),
+		ByID:              make(map[string]*BotSettings, count),
+		ByProfile:         make(map[string][]*BotSettings),
+		ByPlatformAndCode: make(map[botsfwconst.Platform]map[string]*BotSettings),
+		ByPlatformAndID:   make(map[botsfwconst.Platform]map[string]*BotSettings),
 	}
 	processBotSettings := func(i int, bot BotSettings) {
 		if bot.Code == "" {
 			panic(fmt.Sprintf("Bot with empty code at index %v", i))
 		}
-		if _, ok := settingsBy.ByCode[bot.Code]; ok {
-			panic(fmt.Sprintf("Bot with duplicate code: %v", bot.Code))
-		} else {
+		if bot.Platform == "" {
+			panic(fmt.Sprintf("Bot with empty platform at index %v, code=%v", i, bot.Code))
+		}
+
+		byCode, ok := settingsBy.ByPlatformAndCode[bot.Platform]
+		if !ok {
+			byCode = make(map[string]*BotSettings, count)
+			settingsBy.ByPlatformAndCode[bot.Platform] = byCode
+		}
+		if _, ok = byCode[bot.Code]; ok {
+			panic(fmt.Sprintf("Bot with duplicate code on platform %v: %v", bot.Platform, bot.Code))
+		}
+		byCode[bot.Code] = &bot
+
+		if bot.ID != "" {
+			byID, ok := settingsBy.ByPlatformAndID[bot.Platform]
+			if !ok {
+				byID = make(map[string]*BotSettings, count)
+				settingsBy.ByPlatformAndID[bot.Platform] = byID
+			}
+			if _, ok = byID[bot.ID]; ok {
+				panic(fmt.Sprintf("Bot with duplicate ID on platform %v: %v", bot.Platform, bot.ID))
+			}
+			byID[bot.ID] = &bot
+		}
+
+		// The legacy flat maps are kept populated for compatibility, first
+		// registration wins. They are ambiguous across platforms by construction,
+		// which is why they are deprecated and why GetBotContext no longer trusts
+		// them without checking Platform.
+		if _, ok = settingsBy.ByCode[bot.Code]; !ok {
 			settingsBy.ByCode[bot.Code] = &bot
 		}
 		if bot.ID != "" {
-			if _, ok := settingsBy.ByID[bot.ID]; ok {
-				panic(fmt.Sprintf("Bot with duplicate ID: %v", bot.ID))
-			} else {
+			if _, ok = settingsBy.ByID[bot.ID]; !ok {
 				settingsBy.ByID[bot.ID] = &bot
 			}
 		}
+
 		profileID := bot.Profile.ID()
-		if profileBots, ok := settingsBy.ByProfile[profileID]; ok {
-			settingsBy.ByProfile[profileID] = append(profileBots, &bot)
-		} else {
-			settingsBy.ByProfile[profileID] = []*BotSettings{&bot}
-		}
+		settingsBy.ByProfile[profileID] = append(settingsBy.ByProfile[profileID], &bot)
 	}
 	for i, bot := range bots {
 		processBotSettings(i, bot)
