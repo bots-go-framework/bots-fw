@@ -52,10 +52,8 @@ func TestEncode_exact64Bytes(t *testing.T) {
 	// Craft an input whose raw encoding is exactly 64 bytes.
 	// "v\ts" = 3 bytes, so the remaining 61 bytes fill subject.
 	verb := "v"
-	subject := strings.Repeat("x", 61)
-	raw := verb + "\t" + subject // 1 + 1 + 61 = 63 bytes — add a char to reach 64
-	subject = strings.Repeat("x", 62)
-	raw = verb + "\t" + subject
+	subject := strings.Repeat("x", 62)
+	raw := verb + "\t" + subject // 1 + 1 + 62 = 64 bytes
 	assert.Equal(t, 64, len(raw))
 
 	tok, err := botstoken.Encode(verb, subject, nil)
