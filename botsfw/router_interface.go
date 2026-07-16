@@ -12,4 +12,11 @@ type Router interface {
 
 	// RegisteredCommands returns all registered commands
 	RegisteredCommands() map[botinput.Type]map[CommandCode]Command
+
+	// SetFallbackHandler registers a catch-all action for the given input type.
+	// The fallback fires only when no registered command matches the input.
+	// Unlike a catch-all Matcher command, the fallback is order-independent:
+	// it is stored separately and never blocks the normal command-matching loop.
+	// Only one fallback per input type is supported; a second call replaces the first.
+	SetFallbackHandler(inputType botinput.Type, action CommandAction)
 }

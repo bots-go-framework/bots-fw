@@ -50,8 +50,9 @@ type ErrorFooterTextFunc func(ctx context.Context, botContext ErrorFooterArgs) s
 
 // webhooksRouter maps routes to commands
 type webhooksRouter struct {
-	commandsByType  map[botinput.Type]*TypeCommands
-	errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string
+	commandsByType   map[botinput.Type]*TypeCommands
+	fallbackHandlers map[botinput.Type]botsfw.CommandAction
+	errorFooterText  func(ctx context.Context, botContext ErrorFooterArgs) string
 }
 
 func (whRouter *webhooksRouter) RegisteredCommands() map[botinput.Type]map[botsfw.CommandCode]botsfw.Command {
@@ -67,9 +68,20 @@ func (whRouter *webhooksRouter) RegisteredCommands() map[botinput.Type]map[botsf
 //goland:noinspection GoUnusedExportedFunction
 func NewWebhookRouter(errorFooterText func(ctx context.Context, botContext ErrorFooterArgs) string) botsfw.Router {
 	return &webhooksRouter{
-		commandsByType:  make(map[botinput.Type]*TypeCommands),
-		errorFooterText: errorFooterText,
+		commandsByType:   make(map[botinput.Type]*TypeCommands),
+		fallbackHandlers: make(map[botinput.Type]botsfw.CommandAction),
+		errorFooterText:  errorFooterText,
 	}
+}
+
+// SetFallbackHandler registers a catch-all CommandAction for the given input type.
+// It fires only when no registered command matches; unlike a catch-all Matcher command
+// it does not need to be registered last and cannot accidentally block other commands.
+func (whRouter *webhooksRouter) SetFallbackHandler(inputType botinput.Type, action botsfw.CommandAction) {
+	if whRouter.fallbackHandlers == nil {
+		whRouter.fallbackHandlers = make(map[botinput.Type]botsfw.CommandAction)
+	}
+	whRouter.fallbackHandlers[inputType] = action
 }
 
 func (whRouter *webhooksRouter) CommandsCount() int {
@@ -489,6 +501,13 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 
 	typeCommands, found := whRouter.commandsByType[inputType]
 	if !found {
+		// Before giving up, try an explicit fallback registered for this input type.
+		if fallback, ok := whRouter.fallbackHandlers[inputType]; ok {
+			var m botmsg.MessageFromBot
+			m, err = fallback(whc)
+			whRouter.processCommandResponse(nil, responder, whc, m, err)
+			return
+		}
 		log.Debugf(ctx, "No commands found to match by inputType: %v", botinput.GetBotInputTypeIdNameString(inputType))
 		whc.Input().LogRequest()
 		logInputDetails(whc, false)
@@ -676,6 +695,12 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 	if matchedCommand == nil {
 		log.Debugf(ctx, "whr.matchMessageCommands() => matchedCommand == nil")
 		if inputType == botinput.TypeChosenInlineResult {
+			return
+		}
+		// Try the explicit fallback handler before falling through to HandleUnmatched.
+		if fallback, ok := whRouter.fallbackHandlers[inputType]; ok {
+			m, err = fallback(whc)
+			whRouter.processCommandResponse(nil, responder, whc, m, err)
 			return
 		}
 		whc.Input().LogRequest()
