@@ -168,9 +168,11 @@ func TestLogInputDetails_EditedText_SendError(t *testing.T) {
 
 // ─── RegisterCommands: LocationAction with InputTypes including TypeLocation ──
 
-// TestRegisterCommands_LocationActionWithInputType covers the
-// `if command.LocationAction != nil && locationAdded` branch (line ~231 router.go)
-// by registering a command that has both LocationAction and TypeLocation in InputTypes.
+// TestRegisterCommands_LocationActionWithInputType registers a command that lists
+// TypeLocation in InputTypes (so the loop's TypeLocation case sets locationAdded)
+// and asserts it is registered for location. The complementary case — a
+// LocationAction WITHOUT TypeLocation in InputTypes — is covered by
+// TestRegisterCommands_LocationActionWithoutTypeLocation (bugfix_test.go).
 func TestRegisterCommands_LocationActionWithInputType(t *testing.T) {
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 	router.RegisterCommands(botsfw.Command{
