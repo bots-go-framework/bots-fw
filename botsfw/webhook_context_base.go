@@ -250,21 +250,25 @@ func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
 	//}
 }
 
+// GetBotUserForUpdate reads the bot (platform) user WITHIN the caller's
+// transaction, so a subsequent update in the same tx is based on a consistent
+// read. It MUST use the passed tx: opening a nested transaction on whcb.db here
+// breaks the for-update contract (the read wouldn't be part of the caller's tx)
+// and deadlocks / is unsupported on backends that forbid nested transactions.
 func (whcb *WebhookContextBase) GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error) {
-	err = whcb.db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-		botUser, err = whcb.getBotUser(ctx, tx)
-		return
-	})
-	return
+	return whcb.getBotUser(ctx, tx)
 }
 
-func (whcb *WebhookContextBase) getBotUser(ctx context.Context, tx dal.Getter) (botUser botsdal.BotUser, err error) {
+func (whcb *WebhookContextBase) getBotUser(ctx context.Context, tx dal.ReadSession) (botUser botsdal.BotUser, err error) {
 	if whcb.platformUser.Data != nil {
 		return whcb.platformUser, nil
 	}
 	platformID := botsfwconst.Platform(whcb.BotPlatform().ID())
 	botUserID := whcb.GetBotUserID()
-	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, whcb.db, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
+	// Read through the passed getter (a tx when called for-update), NOT whcb.db, so
+	// the read participates in the caller's transaction instead of opening a second
+	// read outside it (which deadlocks under an already-open write tx).
+	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
 	return whcb.platformUser, err
 }
 
