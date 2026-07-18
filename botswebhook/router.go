@@ -212,6 +212,7 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 					if command.LocationAction == nil && command.Action == nil {
 						panic(fmt.Errorf("command{Code=%v,InputTypes=%+v} has no LocationAction and no Action", command.Code, command.InputTypes))
 					}
+					locationAdded = true
 				default:
 					// OK
 				}
@@ -228,7 +229,7 @@ func (whRouter *webhooksRouter) RegisterCommands(commands ...botsfw.Command) {
 			if command.ChosenInlineResultAction != nil && !chosenInlineResultAdded {
 				addCommand(botinput.TypeChosenInlineResult, command)
 			}
-			if command.LocationAction != nil && locationAdded {
+			if command.LocationAction != nil && !locationAdded {
 				addCommand(botinput.TypeLocation, command)
 			}
 		}

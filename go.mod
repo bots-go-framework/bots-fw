@@ -10,7 +10,7 @@ go 1.25
 require (
 	github.com/bots-go-framework/bots-fw-store v0.11.0
 	github.com/bots-go-framework/bots-go-core v0.2.5
-	github.com/dal-go/dalgo v0.62.13
+	github.com/dal-go/dalgo v0.62.15
 	github.com/stretchr/testify v1.11.1
 	github.com/strongo/analytics v0.2.5
 	github.com/strongo/i18n v0.8.15
@@ -26,6 +26,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/strongo/random v0.0.1 // indirect
 	github.com/strongo/slice v0.3.5 // indirect
-	github.com/strongo/validation v0.0.9 // indirect
+	github.com/strongo/validation v0.0.10 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
