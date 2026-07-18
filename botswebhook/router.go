@@ -297,6 +297,25 @@ func (whRouter *webhooksRouter) matchNonTextCommands(
 	return
 }
 
+// matchMessageCommands picks the command to handle a text message, applying a
+// FIXED precedence (highest first). Each tier is tried in full before the next;
+// the first tier to match wins:
+//
+//  1. Explicit command      — "/code", "/start <code>", or a Command.Commands alias.
+//  2. AwaitingReplyTo        — the chat is mid-flow (e.g. a wizard step); the reply
+//     belongs to that command. This OUTRANKS the content
+//     matchers below so a catch-all Matcher can never
+//     hijack an in-progress flow.
+//  3. Content matchers       — Command.ExactMatch, then Command.DefaultTitle, then
+//     Command.Matcher (first matching command, in
+//     registration order).
+//  4. No match               — returns nil; the caller then tries the input-type
+//     fallback handler (SetFallbackHandler) and finally
+//     WebhookHandler.HandleUnmatched.
+//
+// Precedence is by TIER, not registration order: a later-registered awaiting-reply
+// command still beats an earlier catch-all Matcher. Set RoutingTracer to observe
+// which tier/command won for a given message.
 func (whRouter *webhooksRouter) matchMessageCommands(
 	whc botsfw.WebhookContext, input botinput.Message, isCommandText bool, messageText, parentPath string, commands []botsfw.Command,
 ) (
@@ -304,7 +323,6 @@ func (whRouter *webhooksRouter) matchMessageCommands(
 ) {
 	c := whc.Context()
 
-	var awaitingReplyCommand botsfw.Command
 	messageTextLowerCase := strings.ToLower(messageText)
 
 	// if parentPath == "" {
@@ -320,8 +338,9 @@ func (whRouter *webhooksRouter) matchMessageCommands(
 
 	// log.Debugf(c, "awaitingReplyTo: %v", awaitingReplyTo)
 
-	var awaitingReplyCommandFound bool
-
+	// Tier 1 — explicit commands ("/code", "/start <code>", Command.Commands alias).
+	// These outrank everything, including an in-progress AwaitingReplyTo flow, so a
+	// user can always e.g. "/cancel" out of a wizard.
 	{
 		commandText := messageTextLowerCase
 		if atIndex := strings.Index(commandText, "@"); isCommandText && atIndex >= 0 {
@@ -344,12 +363,14 @@ func (whRouter *webhooksRouter) matchMessageCommands(
 						startCommand = &command
 						continue
 					} else {
+						traceRoute(c, string(command.Code), "command-code", awaitingReplyTo, messageText)
 						matchedCommand = &command
 						return
 					}
 				}
 				if startText != "" && command.StartAction != nil {
 					if startText == string(command.Code) {
+						traceRoute(c, string(command.Code), "start-command", awaitingReplyTo, messageText)
 						matchedCommand = &command
 						return
 					}
@@ -358,78 +379,72 @@ func (whRouter *webhooksRouter) matchMessageCommands(
 			for _, commandName := range command.Commands {
 				if commandName == commandText || strings.HasPrefix(messageTextLowerCase, commandName+" ") {
 					log.Debugf(c, "command(code=%v) matched by command.commands", command.Code)
+					traceRoute(c, string(command.Code), "command-alias", awaitingReplyTo, messageText)
 					matchedCommand = &command
 					return
 				}
 			}
 		}
 		if startCommand != nil {
+			traceRoute(c, string(startCommand.Code), "start-command", awaitingReplyTo, messageText)
 			matchedCommand = startCommand
 			return
 		}
 	}
 
-	for _, command := range commands {
-		if !awaitingReplyCommandFound && awaitingReplyTo != "" {
+	// Tier 2 — AwaitingReplyTo. A reply the user is giving to an in-progress flow
+	// (e.g. a wizard step armed via chatData.SetAwaitingReplyTo) MUST take priority
+	// over the Tier 3 content matchers below (ExactMatch / DefaultTitle / Matcher),
+	// so a catch-all Matcher command can never hijack it. Only the Tier 1 explicit
+	// "/commands" above outrank an awaiting reply. Running this as a dedicated pass
+	// (before Tier 3) makes the priority explicit and independent of registration
+	// order — a later-registered awaiting command still beats an earlier Matcher.
+	if awaitingReplyTo != "" {
+		for _, command := range commands {
 			awaitingReplyPrefix := strings.TrimLeft(parentPath+botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code), botsfwmodels.AwaitingReplyToPathSeparator)
-
 			if strings.HasPrefix(awaitingReplyTo, awaitingReplyPrefix) {
-				// log.Debugf(c, "[%v] is a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
-				// log.Debugf(c, "awaitingReplyCommand: %v", command.ByCode)
-				if matchedCommand = whRouter.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matchedCommand != nil {
+				if matched := whRouter.matchMessageCommands(whc, input, isCommandText, messageText, awaitingReplyPrefix, command.Replies); matched != nil {
 					log.Debugf(c, "%v matched by command.replies", command.Code)
-					awaitingReplyCommand = *matchedCommand
-					awaitingReplyCommandFound = true
-					continue
+					traceRoute(c, string(command.Code), "awaiting-reply-replies", awaitingReplyTo, messageText)
+					return matched
 				}
-				//} else {
-				// log.Debugf(c, "[%v] is NOT a prefix for [%v]", awaitingReplyPrefix, awaitingReplyTo)
+			}
+			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
+			if awaitingReplyToPath == string(command.Code) || strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code)) {
+				log.Debugf(c, "%v matched by awaitingReplyTo path", command.Code)
+				traceRoute(c, string(command.Code), "awaiting-reply", awaitingReplyTo, messageText)
+				matched := command
+				return &matched
 			}
 		}
+	}
 
+	// Tier 3 — content matchers (ExactMatch, then DefaultTitle, then Matcher).
+	// Reached only when no Tier 1/2 command claimed the message, so a wizard step is
+	// never overridden by a matcher. First matching command wins, in registration order.
+	for _, command := range commands {
 		if command.ExactMatch != "" && (command.ExactMatch == messageText || whc.TranslateNoWarning(command.ExactMatch) == messageText) {
 			log.Debugf(c, "%v matched by command.exactMatch", command.Code)
-			matchedCommand = &command
-			return
+			traceRoute(c, string(command.Code), "exact-match", awaitingReplyTo, messageText)
+			matched := command
+			return &matched
 		}
-
 		if command.DefaultTitle(whc) == messageText {
-			log.Debugf(c, "%v matched by command.GetFullName()", command.Code)
-			matchedCommand = &command
-			return
-			// } else {
-			// log.Debugf(c, "command(code=%v).Title(whc): %v", command.ByCode, command.DefaultTitle(whc))
+			log.Debugf(c, "%v matched by command.DefaultTitle", command.Code)
+			traceRoute(c, string(command.Code), "default-title", awaitingReplyTo, messageText)
+			matched := command
+			return &matched
 		}
 		if command.Matcher != nil && command.Matcher(command, whc) {
 			log.Debugf(c, "%v matched by command.matcher()", command.Code)
-			matchedCommand = &command
-			return
+			traceRoute(c, string(command.Code), "matcher", awaitingReplyTo, messageText)
+			matched := command
+			return &matched
 		}
+	}
 
-		if !awaitingReplyCommandFound {
-			awaitingReplyToPath := botsfwmodels.AwaitingReplyToPath(awaitingReplyTo)
-			if awaitingReplyToPath == string(command.Code) || strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code)) {
-				awaitingReplyCommand = command
-				switch {
-				case awaitingReplyToPath == string(command.Code):
-					log.Debugf(c, "%v matched by: awaitingReplyToPath == command.ByCode", command.Code)
-				case strings.HasSuffix(awaitingReplyToPath, botsfwmodels.AwaitingReplyToPathSeparator+string(command.Code)):
-					log.Debugf(c, "%v matched by: strings.HasSuffix(awaitingReplyToPath, AwaitingReplyToPathSeparator + command.ByCode)", command.Code)
-				}
-				awaitingReplyCommandFound = true
-				continue
-			}
-		}
-		// log.Debugf(c, "%v - not matched, matchedCommand: %v", command.ByCode, matchedCommand)
-	}
-	if awaitingReplyCommandFound {
-		matchedCommand = &awaitingReplyCommand
-		// log.Debugf(c, "Assign awaitingReplyCommand to matchedCommand: %v", awaitingReplyCommand.ByCode)
-	} else {
-		matchedCommand = nil
-		// log.Debugf(c, "Cleaning up matchedCommand: %v", matchedCommand)
-	}
-	return
+	traceRoute(c, "", "no-match", awaitingReplyTo, messageText)
+	return nil
 }
 
 // DispatchInlineQuery dispatches inlines query
