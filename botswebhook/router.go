@@ -847,7 +847,13 @@ func (whRouter *webhooksRouter) processCommandResponse(
 
 	responseChannel := m.ResponseChannel
 	if responseChannel == "" {
-		responseChannel = botsfw.BotAPISendMessageOverResponse
+		if whc.Input().InputType() == botinput.TypeCallbackQuery {
+			// Telegram webhook responses are not reliably applied for callback
+			// edits. Use the Bot API so wizard menus update in place.
+			responseChannel = botsfw.BotAPISendMessageOverHTTPS
+		} else {
+			responseChannel = botsfw.BotAPISendMessageOverResponse
+		}
 	}
 	if gateErr := botsfw.CanSend(c, responder, m); gateErr != nil {
 		// The platform does not permit this send right now — e.g. WhatsApp outside
