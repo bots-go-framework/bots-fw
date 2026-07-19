@@ -875,6 +875,17 @@ func (whRouter *webhooksRouter) processCommandResponse(
 			log.Errorf(c, fmt.Errorf("%s: %w", failedToSendMessageToMessenger, err).Error()) // TODO: Decide how do we handle this
 		}
 	}
+	// Editing a Telegram message does not acknowledge the button press. Always
+	// answer a successful callback unless the command supplied its own callback
+	// answer, otherwise Telegram leaves the client's "Loading…" indicator open.
+	if whc.Input().InputType() == botinput.TypeCallbackQuery &&
+		(m.BotMessage == nil || m.BotMessage.BotMessageType() != botmsg.TypeCallbackAnswer) {
+		if callbackQuery, ok := whc.Input().(botinput.CallbackQuery); ok {
+			acknowledgeCallbackQuery(c, responder, callbackQuery)
+		} else {
+			log.Errorf(c, "Callback-query input %T does not implement botinput.CallbackQuery", whc.Input())
+		}
+	}
 	if matchedCommand != nil {
 		//if inputType := whc.Input().InputType(); inputType != botinput.TypeCallbackQuery {
 		//	chatData := whc.ChatData()
@@ -949,6 +960,15 @@ func (whRouter *webhooksRouter) processCommandResponse(
 			whAnalytics := whc.Analytics()
 			whAnalytics.Enqueue(am)
 		}
+	}
+}
+
+func acknowledgeCallbackQuery(ctx context.Context, responder botsfw.WebhookResponder, callbackQuery botinput.CallbackQuery) {
+	ack := botmsg.MessageFromBot{
+		BotMessage: botmsg.AnswerCallbackQuery{CallbackQueryID: callbackQuery.GetID()},
+	}
+	if _, err := responder.SendMessage(ctx, ack, botsfw.BotAPISendMessageOverHTTPS); err != nil {
+		log.Errorf(ctx, "Failed to acknowledge callback query: %v", err)
 	}
 }
 

@@ -1379,6 +1379,30 @@ func TestProcessCommandResponseError_CallbackQueryInput(t *testing.T) {
 	router.processCommandResponseError(whc, &cmd, responder, fmt.Errorf("callback error"))
 }
 
+func TestAcknowledgeCallbackQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	im := newMockIM(ctrl, botinput.TypeCallbackQuery)
+	cbInput := &callbackInput{MockInputMessage: im, data: "some/data"}
+	responder := mock_botsfw.NewMockWebhookResponder(ctrl)
+
+	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverHTTPS).
+		DoAndReturn(func(_ context.Context, msg botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
+			answer, ok := msg.BotMessage.(botmsg.AnswerCallbackQuery)
+			if !ok {
+				t.Fatalf("BotMessage = %T, want botmsg.AnswerCallbackQuery", msg.BotMessage)
+			}
+			if answer.CallbackQueryID != "cb1" {
+				t.Errorf("CallbackQueryID = %q, want cb1", answer.CallbackQueryID)
+			}
+			if answer.Text != "" || answer.ShowAlert {
+				t.Errorf("success acknowledgement should be silent: %+v", answer)
+			}
+			return botsfw.OnMessageSentResponse{}, nil
+		}).Times(1)
+
+	acknowledgeCallbackQuery(context.Background(), responder, cbInput)
+}
+
 func TestCallbackErrorText_InvalidUserRecord(t *testing.T) {
 	err := validation.NewErrBadRecordFieldValue("spaces.space1.type", "unknown space type")
 	got := callbackErrorText(err)
