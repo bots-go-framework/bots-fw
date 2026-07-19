@@ -4,6 +4,8 @@ github.com/bits-and-blooms/bitset v1.24.4 h1:95H15Og1clikBrKr/DuzMXkQzECs1M6hhoG
 github.com/bits-and-blooms/bitset v1.24.4/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/bots-go-framework/bots-fw-store v0.11.0 h1:z72LZoo1oPHjqlpxNQWsX2mWRuObE+F8yBHVFysrfkQ=
 github.com/bots-go-framework/bots-fw-store v0.11.0/go.mod h1:GMJ9+2696MVkx2zymF/gSLE9JvC3AyURrtb2NVHaT0g=
+github.com/bots-go-framework/bots-fw-store v0.11.1 h1:u6jCwCpA5jF9F8lXLok3ibOpekgwDMUgZyrZ6pBTEpQ=
+github.com/bots-go-framework/bots-fw-store v0.11.1/go.mod h1:0yS6Pg516jHIrIInv+kvWRWxXNGGqR4tlvRua8GfT20=
 github.com/bots-go-framework/bots-go-core v0.2.5 h1:Uv9zb23yHJY/GnfEF6ocucAmfS12pwFHiig29ZoSqME=
 github.com/bots-go-framework/bots-go-core v0.2.5/go.mod h1:O/J3Q4HhTpbsbCL87Zhlf1BPtvfVp9UcfBWsc8D8ghw=
 github.com/dal-go/dalgo v0.62.15 h1:ZToGaqcV7iLaZMAXkOxGwTFmoHHydkSy9oSC4dsWqIk=
