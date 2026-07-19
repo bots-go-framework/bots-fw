@@ -188,7 +188,7 @@ func newPlatformUserDbo() *botsfwmodels.PlatformUserBaseDbo {
 	dbo := &botsfwmodels.PlatformUserBaseDbo{}
 	dbo.DtCreated = now
 	dbo.DtUpdated = now
-	dbo.WithRequiredBotIDs.BotIDs = []string{"bot1"}
+	dbo.BotIDs = []string{"bot1"}
 	return dbo
 }
 
