@@ -12,6 +12,7 @@ import (
 	"github.com/strongo/logus"
 	"github.com/strongo/validation"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -847,9 +848,7 @@ func (whRouter *webhooksRouter) processCommandResponse(
 
 	responseChannel := m.ResponseChannel
 	if responseChannel == "" {
-		// Telegram webhook responses are not reliably applied. Use the Bot API
-		// for all command output, including text commands such as /start.
-		responseChannel = botsfw.BotAPISendMessageOverHTTPS
+		responseChannel = defaultResponseChannel(c)
 	}
 	if gateErr := botsfw.CanSend(c, responder, m); gateErr != nil {
 		// The platform does not permit this send right now — e.g. WhatsApp outside
@@ -962,6 +961,23 @@ func (whRouter *webhooksRouter) processCommandResponse(
 			whAnalytics := whc.Analytics()
 			whAnalytics.Enqueue(am)
 		}
+	}
+}
+
+const defaultResponseChannelEnv = "BOTSFW_DEFAULT_RESPONSE_CHANNEL"
+
+// defaultResponseChannel returns the transport for command results that do not
+// explicitly choose one. The efficient webhook response is the default; set
+// BOTSFW_DEFAULT_RESPONSE_CHANNEL=https to use the Bot API instead.
+func defaultResponseChannel(ctx context.Context) botmsg.BotAPISendMessageChannel {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(defaultResponseChannelEnv))) {
+	case "", "response":
+		return botsfw.BotAPISendMessageOverResponse
+	case "https":
+		return botsfw.BotAPISendMessageOverHTTPS
+	default:
+		log.Warningf(ctx, "Unknown %s value %q; using response", defaultResponseChannelEnv, os.Getenv(defaultResponseChannelEnv))
+		return botsfw.BotAPISendMessageOverResponse
 	}
 }
 

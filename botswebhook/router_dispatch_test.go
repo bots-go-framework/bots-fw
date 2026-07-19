@@ -1403,6 +1403,27 @@ func TestAcknowledgeCallbackQuery(t *testing.T) {
 	acknowledgeCallbackQuery(context.Background(), responder, cbInput)
 }
 
+func TestDefaultResponseChannel(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		name  string
+		value string
+		want  botmsg.BotAPISendMessageChannel
+	}{
+		{name: "unset", want: botsfw.BotAPISendMessageOverResponse},
+		{name: "response", value: "response", want: botsfw.BotAPISendMessageOverResponse},
+		{name: "https", value: "https", want: botsfw.BotAPISendMessageOverHTTPS},
+		{name: "invalid", value: "other", want: botsfw.BotAPISendMessageOverResponse},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(defaultResponseChannelEnv, tt.value)
+			if got := defaultResponseChannel(ctx); got != tt.want {
+				t.Errorf("defaultResponseChannel() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCallbackErrorText_InvalidUserRecord(t *testing.T) {
 	err := validation.NewErrBadRecordFieldValue("spaces.space1.type", "unknown space type")
 	got := callbackErrorText(err)
