@@ -1358,7 +1358,7 @@ func TestProcessCommandResponseError_CallbackQueryInput(t *testing.T) {
 	whc.EXPECT().Analytics().Return(analytics).AnyTimes()
 
 	responder := mock_botsfw.NewMockWebhookResponder(ctrl)
-	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverHTTPS).
 		DoAndReturn(func(_ context.Context, msg botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
 			answer, ok := msg.BotMessage.(botmsg.AnswerCallbackQuery)
 			if !ok {

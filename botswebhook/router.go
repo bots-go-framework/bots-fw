@@ -992,7 +992,7 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 			ShowAlert:       true,
 			CacheTime:       3,
 		}
-		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverResponse); err != nil {
+		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			logus.Errorf(ctx, "Failed to send callback error message to messenger: %v", err)
 		}
 
