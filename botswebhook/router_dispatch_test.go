@@ -1121,7 +1121,33 @@ func TestProcessCommandResponse_WithError(t *testing.T) {
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 	cmd := botsfw.Command{Code: "test", TextAction: dummyTextAction}
 
-	router.processCommandResponse(&cmd, responder, whc, botmsg.MessageFromBot{}, fmt.Errorf("test error"))
+	if handled := router.processCommandResponse(&cmd, responder, whc, botmsg.MessageFromBot{}, fmt.Errorf("test error")); !handled {
+		t.Fatal("expected successfully reported error to be handled")
+	}
+}
+
+func TestDispatch_ConsumesErrorReportedToTextUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	textInput := newMockTextInput(ctrl, "/fail")
+	whc, responder, analytics, _ := setupDispatchWHC(ctrl, textInput)
+	analytics.EXPECT().Enqueue(gomock.Any()).AnyTimes()
+	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+		Return(botsfw.OnMessageSentResponse{}, nil)
+
+	router := NewWebhookRouter(nil).(*webhooksRouter)
+	router.RegisterCommands(botsfw.Command{
+		Code:     "fail",
+		Commands: []string{"/fail"},
+		TextAction: func(botsfw.WebhookContext, string) (botmsg.MessageFromBot, error) {
+			return botmsg.MessageFromBot{}, fmt.Errorf("expected failure")
+		},
+	})
+
+	if err := router.Dispatch(nil, responder, whc); err != nil {
+		t.Fatalf("Dispatch() returned %v after reporting the error to the user", err)
+	}
 }
 
 func TestProcessCommandResponse_SendsSuccessfully(t *testing.T) {

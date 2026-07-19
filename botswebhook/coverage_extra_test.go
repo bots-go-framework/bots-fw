@@ -829,10 +829,10 @@ func TestDispatch_SaveBotChat_Error(t *testing.T) {
 
 	handler := mock_botsfw.NewMockWebhookHandler(ctrl)
 	err := router.Dispatch(handler, responder, whc)
-	// Dispatch propagates the SaveBotChat error (after logging and notifying the user),
-	// so we expect a non-nil error here.
-	if err == nil {
-		t.Fatal("expected Dispatch to surface the SaveBotChat error, got nil")
+	// The router reports the save error to the user, then consumes it so the
+	// webhook driver does not append a second HTTP error to the same response.
+	if err != nil {
+		t.Fatalf("expected Dispatch to consume the reported SaveBotChat error, got %v", err)
 	}
 }
 

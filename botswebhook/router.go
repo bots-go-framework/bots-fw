@@ -523,7 +523,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		if fallback, ok := whRouter.fallbackHandlers[inputType]; ok {
 			var m botmsg.MessageFromBot
 			m, err = fallback(whc)
-			whRouter.processCommandResponse(nil, responder, whc, m, err)
+			if whRouter.processCommandResponse(nil, responder, whc, m, err) {
+				err = nil
+			}
 			return
 		}
 		log.Debugf(ctx, "No commands found to match by inputType: %v", botinput.GetBotInputTypeIdNameString(inputType))
@@ -706,7 +708,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 	if err != nil {
 		err = fmt.Errorf("failed to process input{type=%s} by command{code=%s}: %w",
 			botinput.GetBotInputTypeIdNameString(whc.Input().InputType()), matchedCommand.Code, err)
-		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
+		if whRouter.processCommandResponseError(whc, matchedCommand, responder, err) {
+			err = nil
+		}
 		return
 	}
 
@@ -718,7 +722,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 		// Try the explicit fallback handler before falling through to HandleUnmatched.
 		if fallback, ok := whRouter.fallbackHandlers[inputType]; ok {
 			m, err = fallback(whc)
-			whRouter.processCommandResponse(nil, responder, whc, m, err)
+			if whRouter.processCommandResponse(nil, responder, whc, m, err) {
+				err = nil
+			}
 			return
 		}
 		whc.Input().LogRequest()
@@ -772,7 +778,9 @@ func (whRouter *webhooksRouter) Dispatch(webhookHandler botsfw.WebhookHandler, r
 			}
 
 		}
-		whRouter.processCommandResponse(matchedCommand, responder, whc, m, err)
+		if whRouter.processCommandResponse(matchedCommand, responder, whc, m, err) {
+			err = nil
+		}
 	}
 	return
 }
@@ -838,10 +846,9 @@ func (whRouter *webhooksRouter) processCommandResponse(
 	whc botsfw.WebhookContext,
 	m botmsg.MessageFromBot,
 	err error,
-) {
+) (errorReportedToUser bool) {
 	if err != nil {
-		whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
-		return
+		return whRouter.processCommandResponseError(whc, matchedCommand, responder, err)
 	}
 
 	c := whc.Context()
@@ -962,6 +969,7 @@ func (whRouter *webhooksRouter) processCommandResponse(
 			whAnalytics.Enqueue(am)
 		}
 	}
+	return false
 }
 
 const defaultResponseChannelEnv = "BOTSFW_DEFAULT_RESPONSE_CHANNEL"
@@ -990,7 +998,10 @@ func acknowledgeCallbackQuery(ctx context.Context, responder botsfw.WebhookRespo
 	}
 }
 
-func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookContext, matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, err error) {
+// processCommandResponseError returns true only when it successfully delivered
+// an error to the user. Callers then consume the error so the webhook driver
+// does not append a second HTTP error to the Telegram response body.
+func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookContext, matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, err error) bool {
 	ctx := whc.Context()
 	// log.Errorf() we are logging this in dispatcher
 	env := whc.GetBotSettings().Env
@@ -1020,7 +1031,9 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 		}
 		if _, respErr := responder.SendMessage(ctx, m, botsfw.BotAPISendMessageOverResponse); respErr != nil {
 			log.Errorf(ctx, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
+			return false
 		}
+		return true
 	case botinput.TypeCallbackQuery:
 		logus.Errorf(ctx, "Failed to process callback query by command{code=%s}: %v", matchedCommand.Code, inputType)
 		var msg botmsg.MessageFromBot
@@ -1032,11 +1045,14 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 		}
 		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverHTTPS); err != nil {
 			logus.Errorf(ctx, "Failed to send callback error message to messenger: %v", err)
+			return false
 		}
+		return true
 
 	default:
 		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
 	}
+	return false
 }
 
 // callbackErrorText returns a short, user-safe explanation for a failed inline
