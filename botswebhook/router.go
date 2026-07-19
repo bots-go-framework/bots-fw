@@ -10,6 +10,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/analytics"
 	"github.com/strongo/logus"
+	"github.com/strongo/validation"
 	"net/url"
 	"strings"
 	"time"
@@ -983,20 +984,30 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 			log.Errorf(ctx, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 		}
 	case botinput.TypeCallbackQuery:
-		// TODO: For Telegram call answerCallbackQuery to report error to user.
 		logus.Errorf(ctx, "Failed to process callback query by command{code=%s}: %v", matchedCommand.Code, inputType)
 		var msg botmsg.MessageFromBot
 		msg.BotMessage = botmsg.AnswerCallbackQuery{
 			CallbackQueryID: whc.Input().(botinput.CallbackQuery).GetID(),
-			Text:            "💥 Error: " + err.Error(),
+			Text:            callbackErrorText(err),
 			ShowAlert:       true,
 			CacheTime:       3,
 		}
-		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverHTTPS); err != nil {
+		if _, err = responder.SendMessage(ctx, msg, botsfw.BotAPISendMessageOverResponse); err != nil {
 			logus.Errorf(ctx, "Failed to send callback error message to messenger: %v", err)
 		}
 
 	default:
 		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
 	}
+}
+
+// callbackErrorText returns a short, user-safe explanation for a failed inline
+// action. Telegram's answerCallbackQuery rejects texts longer than 200 bytes,
+// and exposing err.Error() can leak internal state and user data. The complete
+// cause remains in the server log and production error analytics.
+func callbackErrorText(err error) string {
+	if validation.IsBadRecordError(err) {
+		return "⚠️ We couldn't complete this because your account data needs attention. Please contact support."
+	}
+	return "⚠️ We couldn't complete this action. Please try again."
 }

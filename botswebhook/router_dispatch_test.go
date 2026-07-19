@@ -13,6 +13,7 @@ import (
 	"github.com/bots-go-framework/bots-fw/mocks/mock_botsfw"
 	"github.com/bots-go-framework/bots-fw/mocks/mock_botsfwmodels"
 	"github.com/strongo/i18n"
+	"github.com/strongo/validation"
 	"go.uber.org/mock/gomock"
 )
 
@@ -1357,12 +1358,36 @@ func TestProcessCommandResponseError_CallbackQueryInput(t *testing.T) {
 	whc.EXPECT().Analytics().Return(analytics).AnyTimes()
 
 	responder := mock_botsfw.NewMockWebhookResponder(ctrl)
-	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), gomock.Any()).Return(botsfw.OnMessageSentResponse{}, nil).Times(1)
+	responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+		DoAndReturn(func(_ context.Context, msg botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
+			answer, ok := msg.BotMessage.(botmsg.AnswerCallbackQuery)
+			if !ok {
+				t.Fatalf("BotMessage = %T, want botmsg.AnswerCallbackQuery", msg.BotMessage)
+			}
+			if got, want := answer.Text, "⚠️ We couldn't complete this action. Please try again."; got != want {
+				t.Errorf("callback alert = %q, want %q", got, want)
+			}
+			if len(answer.Text) > 200 {
+				t.Errorf("callback alert has %d bytes, Telegram allows at most 200", len(answer.Text))
+			}
+			return botsfw.OnMessageSentResponse{}, nil
+		}).Times(1)
 
 	router := NewWebhookRouter(nil).(*webhooksRouter)
 	cmd := botsfw.Command{Code: "test"}
 
 	router.processCommandResponseError(whc, &cmd, responder, fmt.Errorf("callback error"))
+}
+
+func TestCallbackErrorText_InvalidUserRecord(t *testing.T) {
+	err := validation.NewErrBadRecordFieldValue("spaces.space1.type", "unknown space type")
+	got := callbackErrorText(err)
+	if got != "⚠️ We couldn't complete this because your account data needs attention. Please contact support." {
+		t.Errorf("callbackErrorText() = %q", got)
+	}
+	if len(got) > 200 {
+		t.Errorf("callback alert has %d bytes, Telegram allows at most 200", len(got))
+	}
 }
 
 func TestProcessCommandResponseError_CallbackQueryInput_SendFails(t *testing.T) {
