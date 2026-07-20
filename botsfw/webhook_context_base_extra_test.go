@@ -198,7 +198,7 @@ func TestWebhookContextBase_IsInGroup(t *testing.T) {
 func TestWebhookContextBase_MustBotChatID(t *testing.T) {
 	t.Run("returns_id_when_set", func(t *testing.T) {
 		whcb := &WebhookContextBase{}
-		whcb.botChat.ID = "chat123"
+		whcb.SetChatID("chat123")
 		assert.Equal(t, "chat123", whcb.MustBotChatID())
 	})
 }
@@ -206,7 +206,7 @@ func TestWebhookContextBase_MustBotChatID(t *testing.T) {
 func TestWebhookContextBase_BotChatID(t *testing.T) {
 	t.Run("returns_cached_id", func(t *testing.T) {
 		whcb := &WebhookContextBase{}
-		whcb.botChat.ID = "cached-id"
+		whcb.SetChatID("cached-id")
 		id, err := whcb.BotChatID()
 		require.NoError(t, err)
 		assert.Equal(t, "cached-id", id)

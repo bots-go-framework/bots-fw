@@ -1,20 +1,14 @@
 package botsfw
 
 import (
-	"github.com/bots-go-framework/bots-fw/botsdal"
+	"context"
+
 	"github.com/strongo/i18n"
 )
 
-// AppContext is a context for an app that uses the botsfw
+// AppContext provides application-owned presentation services to bots-fw.
+// Persistence is injected separately through BotSettings.Store.
 type AppContext interface {
-	//strongoapp.AppUserSettings // TODO: Do we really need it here?
-
-	botsdal.AppUserDal
-	//AppUserCollectionName() string
-	//GetAppUserByBotUserID(ctx context.Context, platform, botID, botUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error)
-
-	i18n.TranslationContext
-
-	//NewBotAppUserEntity() botsfwmodels.AppUserData
-	//GetBotChatEntityFactory(platform string) func() botsfwmodels.BotChatData
+	i18n.LocalesProvider
+	GetTranslator(ctx context.Context) i18n.Translator
 }

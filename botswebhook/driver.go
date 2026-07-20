@@ -5,13 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
-	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/analytics"
 	"github.com/strongo/logus"
 	"net/http"
@@ -180,63 +175,20 @@ func (d webhookDriver) processWebhookInput(
 		panic(fmt.Sprintf("entryWithInputs.Inputs[%d] == nil", i))
 	}
 	d.logInput(ctx, i, input)
-	var db dal.DB
-	if db, err = botContext.BotSettings.GetDatabase(ctx); err != nil {
-		err = fmt.Errorf("failed to get bot database: %w", err)
-		return
+	store := botContext.BotSettings.Store
+	if store == nil {
+		return fmt.Errorf("bot %q has no state store", botContext.BotSettings.Code)
 	}
-
-	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, db)
+	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, store)
 	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 		handleError(err, "Failed to create WebhookContext")
 		return
 	}
-	chatData := whc.ChatData()
 
-	if chatData != nil && chatData.GetAppUserID() == "" {
-		err = db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-
-			recordsToInsert := make([]dal.Record, 0)
-
-			// chatData can be nil for inline requests
-			// TODO: Should we try to deduct chat ID from user ID for inline queries inside a bot chat for "chat_type": "sender"?
-
-			platformID := whc.BotPlatform().ID()
-			botID := whc.GetBotCode()
-			appContext := whc.AppContext()
-			var appUser record.DataWithID[string, botsfwmodels.AppUserData]
-			var botUser botsdal.BotUser
-			bot := botsdal.Bot{
-				Platform: botsfwconst.Platform(platformID),
-				ID:       botID,
-				User:     whc.Input().GetSender(),
-			}
-			if appUser, botUser, err = appContext.CreateAppUserFromBotUser(ctx, tx, bot); err != nil {
-				return
-			}
-			if appUser.Record != nil {
-				recordsToInsert = append(recordsToInsert, appUser.Record)
-			}
-			if botUser.Record != nil {
-				recordsToInsert = append(recordsToInsert, botUser.Record)
-			}
-
-			whc.SetUser(appUser.ID, appUser.Data)
-
-			chatData.SetAppUserID(appUser.ID)
-
-			for _, recordToInsert := range recordsToInsert {
-				if err = tx.Insert(ctx, recordToInsert); err != nil {
-					return
-				}
-			}
-			return
-		})
-		if err != nil {
-			handleError(err, fmt.Sprintf("Failed to run transaction for entriesWithInputs[%d]", i))
-			return
-		}
-	}
+	// Identity resolution and its persistence happen inside the injected store,
+	// before dispatch. Router actions and outgoing messages remain outside that
+	// persistence operation.
+	_ = whc.ChatData()
 
 	responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
 	router := botContext.BotSettings.Profile.Router()

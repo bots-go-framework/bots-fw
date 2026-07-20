@@ -2,9 +2,9 @@ package botsfw
 
 import (
 	"context"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	botsfw2 "github.com/bots-go-framework/bots-fw/botmsg"
-	"github.com/dal-go/dalgo/dal"
 	"net/http"
 )
 
@@ -44,7 +44,7 @@ type CreateWebhookContextArgs struct {
 	AppContext   AppContext
 	BotContext   BotContext
 	WebhookInput botinput.InputMessage
-	Db           dal.DB
+	Store        botsfwstore.StateStore
 }
 
 func NewCreateWebhookContextArgs(
@@ -52,13 +52,13 @@ func NewCreateWebhookContextArgs(
 	appContext AppContext,
 	botContext BotContext,
 	webhookInput botinput.InputMessage,
-	db dal.DB,
+	store botsfwstore.StateStore,
 ) CreateWebhookContextArgs {
 	return CreateWebhookContextArgs{
 		HttpRequest:  httpRequest,
 		AppContext:   appContext,
 		BotContext:   botContext,
 		WebhookInput: webhookInput,
-		Db:           db,
+		Store:        store,
 	}
 }

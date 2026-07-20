@@ -1,12 +1,10 @@
 package botswebhook
 
 import (
-	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore/botsfwstoretest"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/stretchr/testify/assert"
 	"github.com/strongo/i18n"
 	"os"
@@ -22,13 +20,7 @@ func dummyBotProfile() botsfw.BotProfile {
 	newBotUserData := func() botsfwmodels.PlatformUserData {
 		return nil
 	}
-	newAppUserData := func() botsfwmodels.AppUserData {
-		return nil
-	}
-	getAppUserByID := func(ctx context.Context, tx dal.ReadSession, botID, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
-		return
-	}
-	return botsfw.NewBotProfile("test", router, newBotChatDate, newBotUserData, newAppUserData, getAppUserByID, i18n.LocaleEnUS, []i18n.Locale{}, botsfw.BotTranslations{})
+	return botsfw.NewBotProfile("test", router, newBotChatDate, newBotUserData, i18n.LocaleEnUS, []i18n.Locale{}, botsfw.BotTranslations{})
 }
 
 func TestNewBotSettings(t *testing.T) {
@@ -49,15 +41,9 @@ func TestNewBotSettings(t *testing.T) {
 
 	testBotProfile := dummyBotProfile()
 
-	getDatabase := func(_ context.Context) (db dal.DB, err error) {
-		return
-	}
-
-	getAppUser := func(ctx context.Context, tx dal.ReadSession, botID, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
-		return
-	}
+	store := &botsfwstoretest.FakeStateStore{}
 	t.Run("hardcoded", func(t *testing.T) {
-		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", token, gaToken, i18n.Locale{Code5: localeCode5}, store)
 		assertBotSettings(bs)
 	})
 	t.Run("from_env_vars", func(t *testing.T) {
@@ -67,7 +53,7 @@ func TestNewBotSettings(t *testing.T) {
 		if err := os.Setenv("TELEGRAM_GA_TOKEN_"+strings.ToUpper(code), gaToken); err != nil {
 			t.Fatalf("Failed to set environment variable: %v", err)
 		}
-		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, getDatabase, getAppUser)
+		bs := botsfw.NewBotSettings(platform, botsfw.EnvLocal, testBotProfile, code, "", "", "", i18n.Locale{Code5: localeCode5}, store)
 		assertBotSettings(bs)
 	})
 }

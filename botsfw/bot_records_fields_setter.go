@@ -13,9 +13,6 @@ type BotRecordsFieldsSetter interface {
 	// If both '*' and platform specific setters are defined, the generic setter will be used first.
 	Platform() string
 
-	// SetAppUserFields sets fields of app user record
-	SetAppUserFields(appUser botsfwmodels.AppUserData, sender botinput.Sender) error
-
 	// SetBotUserFields sets fields of bot user record
 	SetBotUserFields(botUser botsfwmodels.PlatformUserData, sender botinput.Sender, botID, botUserID, appUserID string) error
 

@@ -2,8 +2,7 @@
 
 A [Go language](https://golang.org/) framework to develop bots for messengers.
 
-Developed & shared by [Sneat-co](https://github.com/sneat-co) & [Strongo](https://github.com/strongo) teams
-with usage of [dalgo](https://github.com/dal-go) library.
+Developed & shared by [Sneat-co](https://github.com/sneat-co) & [Strongo](https://github.com/strongo) teams.
 
 **Reasons to use**:
 
@@ -22,7 +21,6 @@ We build with our own tooling:
 - **[SpecScore](https://specscore.md)** — specify requirements as `SpecScore.md` artifacts
 - **[SpecStudio](https://specscore.studio)** — author & manage specs across their lifecycle
 - **[inGitDB](https://ingitdb.com)** — store structured data in Git where applicable
-- **[DALgo](https://dalgo.io)** — data access layer for Go
 - **[cover100.dev](https://cover100.dev)** — drive toward 100% test coverage
 - **[DataTug](https://datatug.io)** — query & explore data
 <!-- /dev-approach -->
@@ -90,7 +88,6 @@ You can use any Bot API library by implementing couple of simple interface but t
 
 ## 📦 Other Go libraries used by the bot framework
 
-* [dal-go/dalgo](https://github.com/dal-go/dalgo) - Database abstraction layer (DAL) in Go language
 * [strongo/gamp](https://github.com/strongo/gamp) - Golang buffered client for Google Analytics (GA) Measurement
   Protocol
 
@@ -98,10 +95,12 @@ You can use any Bot API library by implementing couple of simple interface but t
 
 We are building a [cross-table of features](can-i-use-bots-api.md) supported by different bot APIs.
 
-## Database Abstraction Layer (DAL)
+## Persistence
 
-Thanks to [dalgo](https://github.com/dal-go) library the framework can work with different databases.
-The Db structure is described in [README-DB.md](README-DB.md).
+`bots-fw` is persistence-neutral. Inject a `botsfwstore.StateStore` into each
+`BotSettings`; DALgo applications should use the optional
+[`bots-fw-store-dalgo`](https://github.com/bots-go-framework/bots-fw-store-dalgo) adapter. The full architecture
+and code migration guide are in [PERSISTENCE.md](PERSISTENCE.md).
 
 ## 🫂 Contributors
 

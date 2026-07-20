@@ -15,11 +15,10 @@ import (
 	reflect "reflect"
 
 	botsfwmodels "github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	botsfwstore "github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	botinput "github.com/bots-go-framework/bots-fw/botinput"
 	botmsg "github.com/bots-go-framework/bots-fw/botmsg"
-	botsdal "github.com/bots-go-framework/bots-fw/botsdal"
 	botsfw "github.com/bots-go-framework/bots-fw/botsfw"
-	dal "github.com/dal-go/dalgo/dal"
 	i18n "github.com/strongo/i18n"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -175,15 +174,16 @@ func (mr *MockWebhookContextMockRecorder) Context() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Context", reflect.TypeOf((*MockWebhookContext)(nil).Context))
 }
 
-// DB mocks base method.
-func (m *MockWebhookContext) DB() dal.DB {
+// DB is a test-only compatibility seam for consumers migrating old mock
+// expectations. It is intentionally absent from botsfw.WebhookContext and uses
+// any so the core module remains independent of database packages.
+func (m *MockWebhookContext) DB() any {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DB")
-	ret0, _ := ret[0].(dal.DB)
-	return ret0
+	return ret[0]
 }
 
-// DB indicates an expected call of DB.
+// DB indicates an expected call of the test-only compatibility seam.
 func (mr *MockWebhookContextMockRecorder) DB() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DB", reflect.TypeOf((*MockWebhookContext)(nil).DB))
@@ -246,10 +246,10 @@ func (mr *MockWebhookContextMockRecorder) GetBotSettings() *gomock.Call {
 }
 
 // GetBotUser mocks base method.
-func (m *MockWebhookContext) GetBotUser() (botsdal.BotUser, error) {
+func (m *MockWebhookContext) GetBotUser() (botsfwstore.PlatformUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBotUser")
-	ret0, _ := ret[0].(botsdal.BotUser)
+	ret0, _ := ret[0].(botsfwstore.PlatformUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -260,19 +260,18 @@ func (mr *MockWebhookContextMockRecorder) GetBotUser() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBotUser", reflect.TypeOf((*MockWebhookContext)(nil).GetBotUser))
 }
 
-// GetBotUserForUpdate mocks base method.
-func (m *MockWebhookContext) GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botsdal.BotUser, error) {
+// SetBotUserAccessGranted mocks base method.
+func (m *MockWebhookContext) SetBotUserAccessGranted(value bool) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBotUserForUpdate", ctx, tx)
-	ret0, _ := ret[0].(botsdal.BotUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "SetBotUserAccessGranted", value)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// GetBotUserForUpdate indicates an expected call of GetBotUserForUpdate.
-func (mr *MockWebhookContextMockRecorder) GetBotUserForUpdate(ctx, tx any) *gomock.Call {
+// SetBotUserAccessGranted indicates an expected call of SetBotUserAccessGranted.
+func (mr *MockWebhookContextMockRecorder) SetBotUserAccessGranted(value any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBotUserForUpdate", reflect.TypeOf((*MockWebhookContext)(nil).GetBotUserForUpdate), ctx, tx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBotUserAccessGranted", reflect.TypeOf((*MockWebhookContext)(nil).SetBotUserAccessGranted), value)
 }
 
 // GetBotUserID mocks base method.

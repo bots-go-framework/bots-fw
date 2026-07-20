@@ -3,25 +3,11 @@ package botsfw
 import (
 	"context"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/strongo/i18n"
 	"os"
 	"strings"
-)
-
-type DbGetter = func(ctx context.Context) (db dal.DB, err error)
-
-type AppUserGetter = func(
-	ctx context.Context,
-	tx dal.ReadSession,
-	botID string,
-	appUserID string,
-) (
-	appUser record.DataWithID[string, botsfwmodels.AppUserData],
-	err error,
 )
 
 // BotSettings keeps parameters of a bot that are static and are not changed in runtime
@@ -87,17 +73,9 @@ type BotSettings struct {
 	// While a bot profile can support multiple locales a bot can be dedicated to a specific country/language
 	Locale i18n.Locale
 
-	// GetDatabase returns connection to a database assigned to a bot.
-	// You can use same database for multiple bots
-	// but if you need you can use different databases for different bots.
-	// It's up to bots creator how to map bots to a database.
-	// In most cases a single DB is used for all bots.
-	GetDatabase DbGetter
-	getAppUser  AppUserGetter
-}
-
-func (v BotSettings) GetAppUserByID(ctx context.Context, tx dal.ReadSession, appUserID string) (appUser record.DataWithID[string, botsfwmodels.AppUserData], err error) {
-	return v.getAppUser(ctx, tx, v.Code, appUserID)
+	// Store owns framework identity and chat state for this bot. It is a narrow
+	// use-case port, never a generic database handle.
+	Store botsfwstore.StateStore
 }
 
 // NewBotSettings configures bot application
@@ -107,8 +85,7 @@ func NewBotSettings(
 	profile BotProfile,
 	code, id, token, gaToken string,
 	locale i18n.Locale,
-	getDatabase DbGetter,
-	getAppUser AppUserGetter,
+	store botsfwstore.StateStore,
 ) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
@@ -133,17 +110,19 @@ func NewBotSettings(
 	if locale.Code5 == "" {
 		panic("NewBotSettings: missing required parameter: Locale.Code5")
 	}
+	if store == nil {
+		panic("NewBotSettings: missing required parameter: store")
+	}
 	return BotSettings{
-		Platform:    platform,
-		Profile:     profile,
-		Code:        code,
-		ID:          id,
-		Env:         environment,
-		Token:       token,
-		GAToken:     gaToken,
-		Locale:      locale,
-		GetDatabase: getDatabase,
-		getAppUser:  getAppUser,
+		Platform: platform,
+		Profile:  profile,
+		Code:     code,
+		ID:       id,
+		Env:      environment,
+		Token:    token,
+		GAToken:  gaToken,
+		Locale:   locale,
+		Store:    store,
 	}
 }
 

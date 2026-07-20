@@ -17,8 +17,8 @@ type webhookAnalytics struct {
 
 func (wha webhookAnalytics) UserContext() analytics.UserContext {
 	var userLanguage string
-	if wha.whcb.botChat.Data != nil {
-		userLanguage = strings.ToLower(wha.whcb.botChat.Data.GetPreferredLanguage())
+	if chatData := wha.whcb.ChatData(); chatData != nil {
+		userLanguage = strings.ToLower(chatData.GetPreferredLanguage())
 	}
 	return analytics.NewUserContext(wha.whcb.AppUserID()).SetUserLanguage(userLanguage)
 }

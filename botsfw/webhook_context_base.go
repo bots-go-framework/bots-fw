@@ -5,17 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	botsfw3 "github.com/bots-go-framework/bots-fw/botmsg"
-	"github.com/bots-go-framework/bots-fw/botsdal"
-	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
-	"github.com/strongo/analytics"
 	"github.com/strongo/i18n"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -41,38 +36,22 @@ type WebhookContextBase struct {
 
 	locale i18n.Locale
 
-	// At the moment, there is no reason to expose botChat record publicly
-	// If there is some it should be documented with a use case
-	botChat      record.DataWithID[string, botsfwmodels.BotChatData]
-	platformUser botsdal.BotUser // Telegram user ID is an integer, but we keep it as a string for consistency & simplicity.
+	chatID            string
+	linkedIdentity    *botsfwstore.LinkedIdentity
+	isLoadingChatData bool
 
-	isLoadingChatData         bool // TODO: This smells bad. Needs refactoring?
-	isLoadingPlatformUserData bool // TODO: This smells bad. Needs refactoring?
-
-	//
 	appUserID   string
 	appUserData botsfwmodels.AppUserData
 
 	translator
 	//Locales    strongoapp.LocalesProvider
 
-	//dal botsfwdal.DataAccess
-	db dal.DB
-	//tx dal.ReadwriteTransaction
+	store botsfwstore.StateStore
 }
 
 func (whcb *WebhookContextBase) Analytics() WebhookAnalytics {
 	return whcb.whAnalytics
 }
-
-func (whcb *WebhookContextBase) DB() dal.DB {
-	return whcb.db
-}
-
-// Tx returns a transaction that is used to read/write botChat & bot user data
-//func (whcb *WebhookContextBase) Tx() dal.ReadwriteTransaction {
-//	return whcb.tx
-//}
 
 func (whcb *WebhookContextBase) RecordsFieldsSetter() BotRecordsFieldsSetter {
 	return whcb.recordsFieldsSetter
@@ -88,44 +67,12 @@ func (whcb *WebhookContextBase) BotContext() BotContext {
 
 // SetChatID sets botChat ID - TODO: Should it be private?
 func (whcb *WebhookContextBase) SetChatID(chatID string) {
-	whcb.botChat.ID = chatID
-	//whcb.botChat.Key = botsdal.newChatKey(whcb.botPlatform.ID(), whcb.botContext.BotSettings.Code, chatID)
+	whcb.chatID = chatID
 }
 
 // LogRequest logs request data to logging system
 func (whcb *WebhookContextBase) LogRequest() {
 	whcb.input.LogRequest()
-}
-
-// // RunReadwriteTransaction starts a transaction. This needed to coordinate application & framework changes.
-//func (whcb *WebhookContextBase) RunReadwriteTransaction(c context.Context, f func(ctx context.Context)) error {
-//	db, err := whcb.botContext.BotHost.DB(c)
-//	if err != nil {
-//		return err
-//	}
-//	return db.RunReadwriteTransaction(c, f, options...)
-//}
-
-//
-//// RunReadonlyTransaction starts a readonly transaction.
-//func (whcb *WebhookContextBase) RunReadonlyTransaction(c context.Context, f dal.ROTxWorker, options ...dal.TransactionOption) error {
-//	db, err := whcb.botContext.BotHost.DB(c)
-//	if err != nil {
-//		return err
-//	}
-//	return db.RunReadonlyTransaction(c, f, options...)
-//}
-
-// IsInTransaction detects if request is within a transaction
-func (whcb *WebhookContextBase) IsInTransaction(context.Context) bool {
-	panic("not implemented")
-	//return whcb.botContext.BotHost.DB().IsInTransaction(c)
-}
-
-// NonTransactionalContext creates a non transaction context for operations that needs to be executed outside of transaction.
-func (whcb *WebhookContextBase) NonTransactionalContext(context.Context) context.Context {
-	panic("not implemented")
-	//return whcb.botContext.BotHost.DB().NonTransactionalContext(tc)
 }
 
 // Request returns reference to current HTTP request
@@ -151,8 +98,8 @@ func (whcb *WebhookContextBase) MustBotChatID() (chatID string) {
 
 // BotChatID returns bot botChat ID
 func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
-	if whcb.botChat.ID != "" {
-		return whcb.botChat.ID, nil
+	if whcb.chatID != "" {
+		return whcb.chatID, nil
 	}
 	//log.Debugf(whcb.c, "*WebhookContextBase.BotChatID()")
 
@@ -161,7 +108,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		return
 	} else if botChatID != "" {
 		whcb.SetChatID(botChatID)
-		return whcb.botChat.ID, nil
+		return whcb.chatID, nil
 	}
 	if whcb.getLocaleAndChatID != nil {
 		if _, botChatID, err = whcb.getLocaleAndChatID(); err != nil {
@@ -169,7 +116,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		}
 		if botChatID != "" {
 			whcb.SetChatID(botChatID)
-			return whcb.botChat.ID, nil
+			return whcb.chatID, nil
 		}
 	}
 	switch input := input.(type) {
@@ -192,7 +139,7 @@ func (whcb *WebhookContextBase) BotChatID() (botChatID string, err error) {
 		log.Debugf(whcb.c, "BotChatID(): *.WebhookContextBaseBotChatID(): Unhandled input type: %T", input)
 	}
 
-	return whcb.botChat.ID, nil
+	return whcb.chatID, nil
 }
 
 // AppUserInt64ID Deprecate: use AppUserID() instead
@@ -211,79 +158,61 @@ func (whcb *WebhookContextBase) SetUser(id string, data botsfwmodels.AppUserData
 	whcb.appUserData = data
 }
 
-// AppUserID return current app user ID as a string. AppUserIntID() is deprecated.
-func (whcb *WebhookContextBase) AppUserID() (appUserID string) {
-	if whcb.appUserID == "" && !whcb.isLoadingChatData {
-		if chatData := whcb.ChatData(); chatData != nil {
-			if whcb.appUserID = chatData.GetAppUserID(); whcb.appUserID != "" {
-				return whcb.appUserID
-			}
-		}
+// AppUserID returns the application user linked to the current bot identity.
+func (whcb *WebhookContextBase) AppUserID() string {
+	if whcb.appUserID != "" {
+		return whcb.appUserID
 	}
-	if whcb.platformUser.Data != nil {
-		if whcb.appUserID = whcb.platformUser.Data.GetAppUserID(); whcb.appUserID != "" {
-			return whcb.appUserID
-		}
+	if whcb.isLoadingChatData {
+		return ""
 	}
-	if whcb.platformUser.Data == nil {
-		var err error
-		if err = whcb.getPlatformUserRecord(whcb.db); err != nil {
-			if !dal.IsNotFound(err) {
-				panic(fmt.Errorf("failed to get bot user entity: %w", err))
-			}
-		}
-	}
-	if whcb.platformUser.Data != nil {
-		if whcb.appUserID = whcb.platformUser.Data.GetAppUserID(); whcb.appUserID != "" {
-			return whcb.appUserID
-		}
+	if whcb.ChatData() != nil && whcb.linkedIdentity != nil {
+		whcb.SetUser(whcb.linkedIdentity.AppUser.ID, whcb.linkedIdentity.AppUser.Data)
 	}
 	return whcb.appUserID
-	//if appUserID == "" && !whcb.isLoadingPlatformUserData {
-	//	if platformUser, err := whcb.getOrCreatePlatformUserRecord(); err != nil {
-	//		if !dal.IsNotFound(err) {
-	//			panic(fmt.Errorf("failed to get bot user entity: %w", err))
-	//		}
-	//	} else {
-	//		appUserID = platformUser.GetAppUserID()
-	//	}
-	//}
 }
 
-// GetBotUserForUpdate reads the bot (platform) user WITHIN the caller's
-// transaction, so a subsequent update in the same tx is based on a consistent
-// read. It MUST use the passed tx: opening a nested transaction on whcb.db here
-// breaks the for-update contract (the read wouldn't be part of the caller's tx)
-// and deadlocks / is unsupported on backends that forbid nested transactions.
-func (whcb *WebhookContextBase) GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error) {
-	return whcb.getBotUser(ctx, tx)
-}
-
-func (whcb *WebhookContextBase) getBotUser(ctx context.Context, tx dal.ReadSession) (botUser botsdal.BotUser, err error) {
-	if whcb.platformUser.Data != nil {
-		return whcb.platformUser, nil
+func (whcb *WebhookContextBase) identity(chatID string) botsfwstore.Identity {
+	sender := whcb.input.GetSender()
+	identity := botsfwstore.Identity{
+		PlatformID: whcb.botPlatform.ID(),
+		BotID:      whcb.GetBotCode(),
+		BotUserID:  whcb.GetBotUserID(),
+		ChatID:     chatID,
 	}
-	platformID := botsfwconst.Platform(whcb.BotPlatform().ID())
-	botUserID := whcb.GetBotUserID()
-	// Read through the passed getter (a tx when called for-update), NOT whcb.db, so
-	// the read participates in the caller's transaction instead of opening a second
-	// read outside it (which deadlocks under an already-open write tx).
-	whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, botUserID, whcb.botContext.BotSettings.Profile.NewPlatformUserData())
-	return whcb.platformUser, err
+	if sender != nil {
+		identity.FirstName = sender.GetFirstName()
+		identity.LastName = sender.GetLastName()
+		identity.Username = sender.GetUserName()
+		identity.LanguageCode = sender.GetLanguage()
+	}
+	return identity
 }
 
-func (whcb *WebhookContextBase) GetBotUser() (botUser botsdal.BotUser, err error) {
-	return whcb.getBotUser(whcb.c, whcb.db)
+func (whcb *WebhookContextBase) GetBotUser() (botsfwstore.PlatformUser, error) {
+	if whcb.linkedIdentity != nil && whcb.linkedIdentity.PlatformUser.Data != nil {
+		return whcb.linkedIdentity.PlatformUser, nil
+	}
+	if whcb.ChatData() != nil && whcb.linkedIdentity != nil {
+		return whcb.linkedIdentity.PlatformUser, nil
+	}
+	return whcb.store.PlatformUser(whcb.Context(), whcb.identity(""), whcb.botContext.BotSettings.Profile.NewPlatformUserData)
 }
 
-// GetAppUser loads information about current app user from persistent storage
-func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) { // TODO: Can/should this be cached?
-	appUserID := whcb.AppUserID()
-	appUser, err := whcb.BotContext().BotSettings.GetAppUserByID(whcb.c, whcb.db, appUserID)
+func (whcb *WebhookContextBase) SetBotUserAccessGranted(value bool) error {
+	updated, err := whcb.store.SetPlatformUserAccessGranted(whcb.Context(), whcb.identity(""), whcb.botContext.BotSettings.Profile.NewPlatformUserData, value)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return appUser.Data, err
+	if whcb.linkedIdentity != nil {
+		whcb.linkedIdentity.PlatformUser = updated
+	}
+	return nil
+}
+
+// GetAppUser loads information about the current app user through the state-store port.
+func (whcb *WebhookContextBase) GetAppUser() (botsfwmodels.AppUserData, error) {
+	return whcb.AppUserData()
 }
 
 // ExecutionContext returns an execution context for strongo app
@@ -312,12 +241,14 @@ func NewWebhookContextBase(
 	if args.HttpRequest == nil {
 		panic("args.HttpRequest == nil")
 	}
+	if args.Store == nil {
+		panic("args.Store == nil")
+	}
 	c := args.BotContext.BotHost.Context(args.HttpRequest)
 	whcb = &WebhookContextBase{
-		r:  args.HttpRequest,
-		c:  c,
-		db: args.Db,
-		//tx: args.Tx,
+		r:     args.HttpRequest,
+		c:     c,
+		store: args.Store,
 		getLocaleAndChatID: func() (locale, chatID string, err error) {
 			return getLocaleAndChatID(c)
 		},
@@ -428,29 +359,17 @@ func (whcb *WebhookContextBase) GetBotToken() string {
 
 // HasChatData return true if messages is within botChat
 func (whcb *WebhookContextBase) HasChatData() bool {
-	return whcb.botChat.Data != nil
+	return whcb.linkedIdentity != nil && whcb.linkedIdentity.ChatData != nil
 }
 
-//func (whcb *WebhookContextBase) SaveAppUser(appUserID int64, appUserEntity BotAppUser) error {
-//	return whcb.BotAppUserStore.SaveAppUser(whcb.Context(), appUserID, appUserEntity)
-//}
-
-//// SetChatEntity sets botChat data for the context (loaded from DB)
-//func (whcb *WebhookContextBase) SetChatEntity(chatData botsfwmodels.BotChatData) {
-//	whcb.chatData = chatData
-//}
-
-// ChatData returns app entity for the context (loaded from DB)
+// ChatData returns current bot chat state, creating and linking the identity
+// through the injected store when the platform supplied a chat ID.
 func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
-	if whcb.botChat.Data != nil {
-		return whcb.botChat.Data
+	if whcb.HasChatData() {
+		return whcb.linkedIdentity.ChatData
 	}
 	whcb.isLoadingChatData = true
-	defer func() {
-		whcb.isLoadingChatData = false
-	}()
-	//panic("*WebhookContextBase.BotChatData()")
-	//log.Debugf(whcb.c, "*WebhookContextBase.BotChatData()")
+	defer func() { whcb.isLoadingChatData = false }()
 	chatID, err := whcb.BotChatID()
 	if err != nil {
 		panic(fmt.Errorf("failed to call whcb.BotChatID(): %w", err))
@@ -459,201 +378,60 @@ func (whcb *WebhookContextBase) ChatData() botsfwmodels.BotChatData {
 		log.Debugf(whcb.c, "whcb.BotChatID() is empty string")
 		return nil
 	}
-	if err = whcb.loadChatEntityBase(); err != nil {
-		if dal.IsNotFound(err) {
-			botID := whcb.GetBotCode()
-			if whcb.recordsFieldsSetter == nil {
-				panic("whcb.recordsFieldsSetter == nil")
-			}
-			sender := whcb.input.GetSender()
-			botUserID := fmt.Sprintf("%v", sender.GetID())
-			appUserID := whcb.AppUserID()
-			webhookChat := whcb.Chat()
-			if err = whcb.recordsFieldsSetter.SetBotChatFields(
-				whcb.botChat.Data,
-				webhookChat,
-				botID,
-				botUserID,
-				appUserID,
-				true, // isAccessGranted - TODO: Implement!!!
-			); err != nil {
-				panic(fmt.Errorf("failed to call whcb.recordsMaker.MakeBotChatDto(): %w", err))
-			}
-		} else {
-			panic(fmt.Errorf("failed to call whcb.loadChatEntityBase(): %w", err))
-		}
+	if whcb.recordsFieldsSetter == nil {
+		panic("whcb.recordsFieldsSetter == nil")
 	}
-	return whcb.botChat.Data
-}
-
-func (whcb *WebhookContextBase) getPlatformUserRecord(tx dal.ReadSession) (err error) {
-	if whcb.platformUser.Data != nil {
+	sender := whcb.input.GetSender()
+	identity := whcb.identity(chatID)
+	request := botsfwstore.LinkRequest{
+		Identity:             identity,
+		ReadPlatformUserData: whcb.botContext.BotSettings.Profile.NewPlatformUserData,
+		NewPlatformUserData: func(appUserID string) (botsfwmodels.PlatformUserData, error) {
+			data := whcb.botContext.BotSettings.Profile.NewPlatformUserData()
+			if data == nil {
+				return nil, errors.New("bot profile returned nil platform-user data")
+			}
+			if err := whcb.recordsFieldsSetter.SetBotUserFields(data, sender, identity.BotID, identity.BotUserID, appUserID); err != nil {
+				return nil, fmt.Errorf("set platform-user fields: %w", err)
+			}
+			return data, nil
+		},
+		NewChatData: func(appUserID string, accessGranted bool) (botsfwmodels.BotChatData, error) {
+			data := whcb.botContext.BotSettings.Profile.NewBotChatData()
+			if data == nil {
+				return nil, errors.New("bot profile returned nil chat data")
+			}
+			if err := whcb.recordsFieldsSetter.SetBotChatFields(data, whcb.Chat(), identity.BotID, identity.BotUserID, appUserID, accessGranted); err != nil {
+				return nil, fmt.Errorf("set chat fields: %w", err)
+			}
+			return data, nil
+		},
+	}
+	if err := request.Validate(); err != nil {
+		panic(fmt.Errorf("invalid identity-link request: %w", err))
+	}
+	linked, err := whcb.store.EnsureLinked(whcb.Context(), request)
+	if err != nil {
+		panic(fmt.Errorf("ensure linked bot identity: %w", err))
+	}
+	whcb.linkedIdentity = &linked
+	whcb.SetUser(linked.AppUser.ID, linked.AppUser.Data)
+	if linked.ChatData == nil {
 		return nil
 	}
-	platformID := botsfwconst.Platform(whcb.botPlatform.ID())
-	sender := whcb.input.GetSender()
-	ctx := whcb.Context()
-
-	whcb.platformUser.ID = fmt.Sprintf("%v", sender.GetID())
-	whcb.platformUser.Data = whcb.botContext.BotSettings.Profile.NewPlatformUserData()
-	if whcb.platformUser, err = botsdal.GetPlatformUser(ctx, tx, platformID, whcb.platformUser.ID, whcb.platformUser.Data); err != nil {
-		return
+	if sender != nil && sender.GetLanguage() != "" {
+		linked.ChatData.AddClientLanguage(sender.GetLanguage())
 	}
-	return
-}
-
-func (whcb *WebhookContextBase) createPlatformUserRecord(tx dal.ReadwriteTransaction) (err error) {
-	if whcb.platformUser.Data != nil {
-		return nil
-	}
-	//platformID := whcb.botPlatform.ID()
-	botID := whcb.GetBotCode()
-	sender := whcb.input.GetSender()
-
-	var botUserID string
-	switch senderID := sender.GetID().(type) {
-	case string:
-		botUserID = senderID
-	case int:
-		botUserID = strconv.Itoa(senderID)
-	case int64:
-		botUserID = strconv.FormatInt(senderID, 10)
-	default:
-		botUserID = fmt.Sprintf("%v", sender.GetID())
-	}
-
-	ctx := whcb.Context()
-
-	if err = whcb.recordsFieldsSetter.SetBotUserFields(whcb.platformUser.Data, sender, botID, botUserID, botUserID); err != nil {
-		log.Errorf(ctx, "WebhookContextBase.getOrCreatePlatformUserRecord(): failed to make bot user DTO: %v", err)
-		return err
-	}
-	if err = tx.Set(ctx, whcb.platformUser.Record); err != nil {
-		log.Errorf(ctx, "WebhookContextBase.getOrCreatePlatformUserRecord(): failed to create bot user: %v", err)
-		return err
-	}
-	log.Infof(ctx, "Bot user record created")
-
-	{ // Log analytics
-		whAnalytics := whcb.Analytics()
-
-		whAnalytics.Enqueue(analytics.NewEvent("user-created", "users", "bot-create-user"))
-		whAnalytics.Enqueue(analytics.NewEvent("messenger-linked", "users", "bot-create-user"))
-		whAnalytics.Enqueue(analytics.NewEvent("bot-user-created", "users", "bot-create-user"))
-	}
-
-	return
-}
-
-// getOrCreatePlatformUserRecord to be documented
-func (whcb *WebhookContextBase) getOrCreatePlatformUserRecord() (botUser botsdal.BotUser, err error) {
-	if whcb.platformUser.Data != nil {
-		return whcb.platformUser, nil
-	}
-	ctx := whcb.Context()
-	log.Debugf(ctx, "getOrCreatePlatformUserRecord()")
-	whcb.isLoadingPlatformUserData = true
-	defer func() {
-		whcb.isLoadingPlatformUserData = false
-	}()
-
-	if err = whcb.getPlatformUserRecord(whcb.db); err != nil {
-		if !dal.IsNotFound(err) {
-			return whcb.platformUser, err
-		} else {
-			log.Debugf(ctx, "Bot user record not found, creating a new one...")
-			if err = whcb.db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-				if err = whcb.createPlatformUserRecord(tx); err != nil {
-					return fmt.Errorf("failed to create platform user record: %w", err)
-				}
-				return nil
-			}); err != nil {
-				return whcb.platformUser, err
-			}
+	if chatLocale := linked.ChatData.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
+		if err := whcb.SetLocale(chatLocale); err != nil {
+			log.Errorf(whcb.Context(), "failed to set locale: %v", err)
 		}
-
-		return whcb.platformUser, err
-	} else {
-		log.Infof(ctx, "Found existing bot user entity")
 	}
-	return whcb.platformUser, err
+	return linked.ChatData
 }
 
 var EnvLocal = "local"           // TODO: Consider adding this to init interface of setting config values
 var EnvProduction = "production" // TODO: Consider adding this to init interface of setting config values
-
-func (whcb *WebhookContextBase) loadChatEntityBase() (err error) {
-	ctx, cancel := context.WithTimeout(whcb.Context(), time.Second)
-	defer cancel()
-	if whcb.HasChatData() {
-		log.Warningf(ctx, "Duplicate call of func (whc *bot.WebhookContext) _getChat()")
-		return nil
-	}
-
-	var chatKey = botsfwmodels.ChatKey{
-		BotID: whcb.GetBotCode(),
-	}
-	if chatKey.ChatID, err = whcb.BotChatID(); err != nil {
-		return fmt.Errorf("failed to call whcb.BotChatID(): %w", err)
-	}
-
-	platformID := botsfwconst.Platform(whcb.botPlatform.ID())
-	db := whcb.DB()
-	whcb.botChat, err = botsdal.GetBotChat(ctx, db, platformID,
-		whcb.botContext.BotSettings.Code, whcb.botChat.ID, whcb.botContext.BotSettings.Profile.NewBotChatData)
-	if err != nil && !dal.IsNotFound(err) {
-		return fmt.Errorf("failed to get bot char record: %w", err)
-	}
-	if whcb.botChat.Record.Exists() {
-		if botUserID := whcb.GetBotUserID(); botUserID != "" {
-			chatDataBase := whcb.botChat.Data.Base()
-			switch len(chatDataBase.BotUserIDs) {
-			case 0:
-				chatDataBase.BotUserIDs = []string{botUserID}
-			case 1:
-				if chatDataBase.BotUserIDs[0] != botUserID {
-					// Different bot user ID - should never happen?
-					log.Warningf(ctx, "different bot user ID: %s != %s: chatKey=%v", chatKey, chatDataBase.BotUserIDs[0], botUserID)
-				}
-			default:
-				chatDataBase.SetBotUserID(botUserID)
-			}
-		}
-	}
-	if dal.IsNotFound(err) {
-		log.Infof(ctx, "BotChat not found, first check for bot user entity...")
-		var botUser botsdal.BotUser
-
-		if botUser, err = whcb.getOrCreatePlatformUserRecord(); err != nil {
-			return err
-		}
-
-		isAccessGranted := botUser.Data.IsAccessGranted()
-		whChat := whcb.input.Chat()
-		appUserID := botUser.Data.GetAppUserID()
-		if err = whcb.recordsFieldsSetter.SetBotChatFields(whcb.botChat.Data, whChat, chatKey.BotID, botUser.ID, appUserID, isAccessGranted); err != nil {
-			return err
-		}
-
-		event := analytics.NewEvent("bot-botChat-created", "bots", "create-bot-chat")
-		event.SetLabel(whcb.botPlatform.ID())
-		whcb.Analytics().Enqueue(event)
-	}
-
-	if sender := whcb.input.GetSender(); sender != nil {
-		if languageCode := sender.GetLanguage(); languageCode != "" {
-			whcb.botChat.Data.AddClientLanguage(languageCode)
-		}
-	}
-
-	if chatLocale := whcb.botChat.Data.GetPreferredLanguage(); chatLocale != "" && chatLocale != whcb.locale.Code5 {
-		if err = whcb.SetLocale(chatLocale); err != nil {
-			log.Errorf(ctx, "failed to set locate: %v", err)
-			err = nil
-		}
-	}
-	return err
-}
 
 // AppUserEntity current app user entity from data storage
 func (whcb *WebhookContextBase) AppUserEntity() botsfwmodels.AppUserData {
@@ -738,30 +516,29 @@ func (whcb *WebhookContextBase) CommandText(title, icon string) string {
 }
 
 func (whcb *WebhookContextBase) SaveBotChat() error {
-	ctx := whcb.Context()
-	// It is dangerous to allow user to pass context to this func as if it's a transactional context it might lead to deadlock
-	return whcb.db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		return tx.Set(whcb.c, whcb.botChat.Record)
-	})
-}
-
-func (whcb *WebhookContextBase) SaveBotUser(ctx context.Context) error {
-	return whcb.db.RunReadwriteTransaction(ctx, func(ctx context.Context, tx dal.ReadwriteTransaction) error {
-		return errors.New("func SaveBotUser is not implemented yet")
-		//return tx.Set(ctx, whcb.platformUser.Record)
-	})
+	chatData := whcb.ChatData()
+	if chatData == nil {
+		return nil
+	}
+	chatID, err := whcb.BotChatID()
+	if err != nil {
+		return err
+	}
+	return whcb.store.SaveChat(whcb.Context(), whcb.identity(chatID), chatData)
 }
 
 func (whcb *WebhookContextBase) AppUserData() (appUserData botsfwmodels.AppUserData, err error) {
 	appUserID := whcb.AppUserID()
 	if appUserID == "" {
-		return nil, fmt.Errorf("%w: AppUserID() is empty", dal.ErrRecordNotFound)
+		return nil, fmt.Errorf("%w: AppUserID() is empty", botsfwstore.ErrNotFound)
 	}
-	ctx := whcb.Context()
-	botContext := whcb.BotContext()
-	var appUser record.DataWithID[string, botsfwmodels.AppUserData]
-	if appUser, err = botContext.BotSettings.GetAppUserByID(ctx, whcb.db, appUserID); err != nil {
+	if whcb.appUserData != nil {
+		return whcb.appUserData, nil
+	}
+	appUser, err := whcb.store.AppUser(whcb.Context(), whcb.GetBotCode(), appUserID)
+	if err != nil {
 		return
 	}
-	return appUser.Data, err
+	whcb.SetUser(appUser.ID, appUser.Data)
+	return appUser.Data, nil
 }
