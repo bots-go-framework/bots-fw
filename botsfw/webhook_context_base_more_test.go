@@ -10,6 +10,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore/botsfwstoretest"
 )
 
 // --- Test doubles ---
@@ -206,30 +208,6 @@ func TestWebhookHandlerBase_Register_NilHost_Panics(t *testing.T) {
 }
 
 // =============================================================================
-// IsInTransaction / NonTransactionalContext (webhook_context_base.go, 0%)
-// =============================================================================
-
-func TestWebhookContextBase_IsInTransaction_Panics(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("expected panic from IsInTransaction")
-		}
-	}()
-	whcb := newMoreTestWHCB(t)
-	whcb.IsInTransaction(context.Background())
-}
-
-func TestWebhookContextBase_NonTransactionalContext_Panics(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("expected panic from NonTransactionalContext")
-		}
-	}()
-	whcb := newMoreTestWHCB(t)
-	whcb.NonTransactionalContext(context.Background())
-}
-
-// =============================================================================
 // NewWebhookContextBase — nil request and valid (webhook_context_base.go, 22.2%)
 // =============================================================================
 
@@ -259,6 +237,7 @@ func TestNewWebhookContextBase_ValidArgs(t *testing.T) {
 	args := CreateWebhookContextArgs{
 		HttpRequest: r,
 		AppContext:  testAppContext{},
+		Store:       &botsfwstoretest.FakeStateStore{},
 		BotContext: BotContext{
 			BotHost:     testBotHost{},
 			BotSettings: &BotSettings{Code: "testbot", Token: "tok123", Locale: i18n.LocaleEnUS},
@@ -292,6 +271,7 @@ func TestNewWebhookContextBase_WithGetLocaleAndChatID(t *testing.T) {
 	args := CreateWebhookContextArgs{
 		HttpRequest: r,
 		AppContext:  testAppContext{},
+		Store:       &botsfwstoretest.FakeStateStore{},
 		BotContext: BotContext{
 			BotHost:     testBotHost{},
 			BotSettings: &BotSettings{Code: "bot2", Token: "tok2", Locale: i18n.LocaleEnUS},
@@ -518,13 +498,6 @@ func TestWebhookContextBase_RecordsFieldsSetter_IsNil(t *testing.T) {
 	whcb := newMoreTestWHCB(t)
 	if whcb.RecordsFieldsSetter() != nil {
 		t.Error("expected nil RecordsFieldsSetter")
-	}
-}
-
-func TestWebhookContextBase_DB_IsNil(t *testing.T) {
-	whcb := newMoreTestWHCB(t)
-	if whcb.DB() != nil {
-		t.Error("expected nil DB when not set")
 	}
 }
 

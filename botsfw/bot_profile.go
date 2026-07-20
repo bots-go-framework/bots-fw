@@ -41,7 +41,6 @@ type BotProfile interface {
 	SupportedLocales() []i18n.Locale
 	NewBotChatData() botsfwmodels.BotChatData
 	NewPlatformUserData() botsfwmodels.PlatformUserData
-	NewAppUserData() botsfwmodels.AppUserData // TODO: Can we get rit of it and instead use GetAppUserByID/CreateAppUser?
 	GetTranslations() BotTranslations
 }
 
@@ -53,8 +52,6 @@ type botProfile struct {
 	supportedLocales []i18n.Locale
 	newBotChatData   func() botsfwmodels.BotChatData
 	newBotUserData   func() botsfwmodels.PlatformUserData
-	newAppUserData   func() botsfwmodels.AppUserData
-	getAppUserByID   AppUserGetter
 	router           Router
 	translations     BotTranslations
 }
@@ -83,10 +80,6 @@ func (v *botProfile) NewPlatformUserData() botsfwmodels.PlatformUserData {
 	return v.newBotUserData()
 }
 
-func (v *botProfile) NewAppUserData() botsfwmodels.AppUserData {
-	return v.newAppUserData()
-}
-
 func (v *botProfile) GetTranslations() BotTranslations {
 	return v.translations
 }
@@ -96,8 +89,6 @@ func NewBotProfile(
 	router Router,
 	newBotChatData func() botsfwmodels.BotChatData,
 	newBotUserData func() botsfwmodels.PlatformUserData,
-	newAppUserData func() botsfwmodels.AppUserData,
-	getAppUserByID AppUserGetter,
 	defaultLocale i18n.Locale,
 	supportedLocales []i18n.Locale,
 	translations BotTranslations,
@@ -128,8 +119,6 @@ func NewBotProfile(
 		supportedLocales: supportedLocales,
 		newBotChatData:   newBotChatData,
 		newBotUserData:   newBotUserData,
-		newAppUserData:   newAppUserData,
-		getAppUserByID:   getAppUserByID,
 		translations:     translations,
 	}
 }

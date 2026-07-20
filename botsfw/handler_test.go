@@ -26,7 +26,7 @@ func TestNewCreateWebhookContextArgs(t *testing.T) {
 	assert.Equal(t, appCtx, args.AppContext)
 	assert.Equal(t, botCtx, args.BotContext)
 	assert.Equal(t, mockInput, args.WebhookInput)
-	assert.Nil(t, args.Db)
+	assert.Nil(t, args.Store)
 }
 
 func TestCreateWebhookContextArgs_zero_value(t *testing.T) {
@@ -34,5 +34,5 @@ func TestCreateWebhookContextArgs_zero_value(t *testing.T) {
 	assert.Nil(t, args.HttpRequest)
 	assert.Nil(t, args.AppContext)
 	assert.Nil(t, args.WebhookInput)
-	assert.Nil(t, args.Db)
+	assert.Nil(t, args.Store)
 }

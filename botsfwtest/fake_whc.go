@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botmsg"
-	"github.com/bots-go-framework/bots-fw/botsdal"
 	"github.com/bots-go-framework/bots-fw/botsfw"
-	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 )
 
@@ -154,7 +153,6 @@ func (f *FakeWebhookContext) BotContext() botsfw.BotContext {
 }
 func (f *FakeWebhookContext) GetBotCode() string                  { return f.botSettings.Code }
 func (f *FakeWebhookContext) GetBotSettings() *botsfw.BotSettings { return &f.botSettings }
-func (f *FakeWebhookContext) DB() dal.DB                          { return nil }
 func (f *FakeWebhookContext) AppContext() botsfw.AppContext       { return nil }
 func (f *FakeWebhookContext) ExecutionContext() botsfw.ExecutionContext {
 	return fakeExecutionContext{ctx: f.ctx}
@@ -171,13 +169,11 @@ func (f *FakeWebhookContext) IsInGroup() (bool, error)     { return false, nil }
 
 func (f *FakeWebhookContext) ChatData() botsfwmodels.BotChatData { return f.chatData }
 func (f *FakeWebhookContext) SaveBotChat() error                 { return nil }
-func (f *FakeWebhookContext) GetBotUser() (botsdal.BotUser, error) {
-	return botsdal.BotUser{}, nil
+func (f *FakeWebhookContext) GetBotUser() (botsfwstore.PlatformUser, error) {
+	return botsfwstore.PlatformUser{ID: f.user.id}, nil
 }
-func (f *FakeWebhookContext) GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botsdal.BotUser, error) {
-	return botsdal.BotUser{}, nil
-}
-func (f *FakeWebhookContext) AppUserID() string { return f.chatData.GetAppUserID() }
+func (f *FakeWebhookContext) SetBotUserAccessGranted(value bool) error { return nil }
+func (f *FakeWebhookContext) AppUserID() string                        { return f.chatData.GetAppUserID() }
 func (f *FakeWebhookContext) SetUser(id string, data botsfwmodels.AppUserData) {
 	f.chatData.SetAppUserID(id)
 }

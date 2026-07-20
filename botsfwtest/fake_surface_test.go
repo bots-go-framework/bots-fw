@@ -87,11 +87,6 @@ func TestFakeWhc_Request_Nil(t *testing.T) {
 	assert.Nil(t, whc.Request())
 }
 
-func TestFakeWhc_DB_Nil(t *testing.T) {
-	whc := botsfwtest.NewFakeWebhookContext()
-	assert.Nil(t, whc.DB())
-}
-
 func TestFakeWhc_AppContext_Nil(t *testing.T) {
 	whc := botsfwtest.NewFakeWebhookContext()
 	assert.Nil(t, whc.AppContext())
@@ -140,7 +135,7 @@ func TestFakeWhc_UpdateLastProcessed(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// SaveBotChat / GetBotUser / GetBotUserForUpdate
+// SaveBotChat / GetBotUser / SetBotUserAccessGranted
 // ---------------------------------------------------------------------------
 
 func TestFakeWhc_SaveBotChat(t *testing.T) {
@@ -155,11 +150,9 @@ func TestFakeWhc_GetBotUser(t *testing.T) {
 	_ = user
 }
 
-func TestFakeWhc_GetBotUserForUpdate(t *testing.T) {
+func TestFakeWhc_SetBotUserAccessGranted(t *testing.T) {
 	whc := botsfwtest.NewFakeWebhookContext()
-	user, err := whc.GetBotUserForUpdate(context.Background(), nil)
-	require.NoError(t, err)
-	_ = user
+	require.NoError(t, whc.SetBotUserAccessGranted(true))
 }
 
 // ---------------------------------------------------------------------------

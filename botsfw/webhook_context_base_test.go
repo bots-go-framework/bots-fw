@@ -105,11 +105,6 @@ func TestWebhookContextBase_Request(t *testing.T) {
 	assert.Nil(t, whcb.Request())
 }
 
-func TestWebhookContextBase_DB(t *testing.T) {
-	whcb := &WebhookContextBase{}
-	assert.Nil(t, whcb.DB())
-}
-
 func TestWebhookContextBase_AppContext(t *testing.T) {
 	appCtx := &testAppContext{}
 	whcb := &WebhookContextBase{
@@ -128,7 +123,7 @@ func TestWebhookContextBase_ExecutionContext(t *testing.T) {
 func TestWebhookContextBase_SetChatID(t *testing.T) {
 	whcb := &WebhookContextBase{}
 	whcb.SetChatID("chat123")
-	assert.Equal(t, "chat123", whcb.botChat.ID)
+	assert.Equal(t, "chat123", whcb.chatID)
 }
 
 func TestWebhookContextBase_HasChatData(t *testing.T) {

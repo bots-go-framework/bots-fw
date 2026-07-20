@@ -12,6 +12,25 @@ on:
 
 jobs:
 
+  dalgo_boundary:
+    name: DALgo boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Reject DALgo imports and transitive dependencies
+        run: |
+          if grep -R --include='*.go' 'github.com/dal-go/dalgo' . | grep -v '_test.go'; then
+            echo 'DALgo must stay in bots-fw-store-dalgo, not bots-fw.'
+            exit 1
+          fi
+          if go list -deps ./... | grep -q '^github.com/dal-go/dalgo'; then
+            echo 'bots-fw must not have DALgo in its dependency graph.'
+            exit 1
+          fi
+
   strongo_workflow:
     permissions:
       contents: write
@@ -22,3 +41,6 @@ jobs:
       COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
     with:
       code_coverage: true
+      # The shared semantic-release step currently requires package.json even
+      # for Go-only modules. Keep CI green and publish explicit v0 tags.
+      disable-version-bumping: true

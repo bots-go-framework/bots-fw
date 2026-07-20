@@ -1,12 +1,7 @@
 package botsfw
 
 import (
-	"context"
 	"fmt"
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
-	"github.com/bots-go-framework/bots-fw/botsdal"
-	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
 	"time"
 )
 
@@ -14,18 +9,11 @@ import (
 func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 	c := whc.Context()
 	log.Debugf(c, "SetAccessGranted(value=%v)", value)
-	botID := whc.GetBotCode()
 	chatData := whc.ChatData()
 	if chatData != nil {
 		if chatData.IsAccessGranted() == value {
 			log.Infof(c, "No need to change chatData.AccessGranted, as already is: %v", value)
 		} else {
-			chatKey := botsfwmodels.ChatKey{
-				BotID: botID,
-			}
-			if chatKey.ChatID, err = whc.Input().BotChatID(); err != nil {
-				return err
-			}
 			if changed := chatData.SetAccessGranted(value); changed {
 				now := time.Now()
 				chatDataBase := chatData.Base()
@@ -39,33 +27,8 @@ func SetAccessGranted(whc WebhookContext, value bool) (err error) {
 		}
 	}
 
-	botUserID := whc.Input().GetSender().GetID()
-	botUserStrID := fmt.Sprintf("%v", botUserID)
-	log.Debugf(c, "SetAccessGranted(): whc.GetSender().GetID() = %v", botUserID)
-	db := whc.DB()
-	platformID := botsfwconst.Platform(whc.BotPlatform().ID())
-	botSettings := whc.BotContext().BotSettings
-
-	var botUser botsdal.BotUser
-	if botUser, err = botsdal.GetPlatformUser(c, db, platformID, botUserStrID, botSettings.Profile.NewPlatformUserData()); err != nil {
-		return fmt.Errorf("failed to get bot user by id=%v: %w", botUserID, err)
-	} else if botUser.Data.IsAccessGranted() == value {
-		log.Infof(c, "No need to change platformUser.AccessGranted, as already is: %v", value)
-	} else {
-		if err = db.RunReadwriteTransaction(c, func(ctx context.Context, tx dal.ReadwriteTransaction) (err error) {
-			if err = tx.Get(ctx, botUser.Record); err != nil {
-				return
-			}
-			if changed := botUser.Data.SetAccessGranted(value); changed {
-				if err = tx.Set(c, botUser.Record); err != nil {
-					err = fmt.Errorf("failed to save bot user record (key=%v): %w", botUser.Key, err)
-					return err
-				}
-			}
-			return
-		}); err != nil {
-			return
-		}
+	if err = whc.SetBotUserAccessGranted(value); err != nil {
+		return fmt.Errorf("failed to update platform-user access: %w", err)
 	}
 	return
 	//return SetAccessGrantedForAllUserChats(whc, whc.BotUserKey, value) // TODO: Call in deferrer

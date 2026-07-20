@@ -15,7 +15,6 @@ import (
 	reflect "reflect"
 
 	botsfw "github.com/bots-go-framework/bots-fw/botsfw"
-	dal "github.com/dal-go/dalgo/dal"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -97,20 +96,6 @@ func (m *MockWebhookRequestContext) Context() context.Context {
 func (mr *MockWebhookRequestContextMockRecorder) Context() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Context", reflect.TypeOf((*MockWebhookRequestContext)(nil).Context))
-}
-
-// DB mocks base method.
-func (m *MockWebhookRequestContext) DB() dal.DB {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DB")
-	ret0, _ := ret[0].(dal.DB)
-	return ret0
-}
-
-// DB indicates an expected call of DB.
-func (mr *MockWebhookRequestContextMockRecorder) DB() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DB", reflect.TypeOf((*MockWebhookRequestContext)(nil).DB))
 }
 
 // Environment mocks base method.

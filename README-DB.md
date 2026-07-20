@@ -1,11 +1,8 @@
-# Bots Framework Database
+# Historical DALgo schema
 
-The bot framework uses [dalgo](https://github.com/dal-go) (_Db Abstraction Layer in GO_) to work with different
-databases in a unified way.
-
-It was designed to be able to work with nested collections (e.g. with Firestore)
-but thanks to `dalgo` it will be able to work with any database supported by `dalgo`.
-Including relational SQL databases like MySQL, PostgreSQL, etc.
+`bots-fw` no longer depends on DALgo. This page records the key layout retained
+by the optional `bots-fw-store-dalgo` adapter; it does not define a core API.
+See [PERSISTENCE.md](PERSISTENCE.md) for migration and composition guidance.
 
 ## Database structure
 

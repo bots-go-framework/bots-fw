@@ -3,10 +3,9 @@ package botsfw
 import (
 	"context"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botmsg"
-	"github.com/bots-go-framework/bots-fw/botsdal"
-	"github.com/dal-go/dalgo/dal"
 	"github.com/strongo/i18n"
 	"net/http"
 )
@@ -50,10 +49,7 @@ type WebhookRequestContext interface {
 	// GetBotSettings is a convenience shortcut for BotContext().BotSettings.
 	GetBotSettings() *BotSettings
 
-	// DB returns the database handle assigned to this bot.
-	DB() dal.DB
-
-	// AppContext returns application-level context (i18n, DAL, etc.).
+	// AppContext returns application-level presentation context (for example i18n).
 	AppContext() AppContext
 
 	// ExecutionContext returns the execution context.
@@ -85,11 +81,12 @@ type WebhookUserData interface {
 	// SaveBotChat persists the current chat data to the database.
 	SaveBotChat() error
 
-	// GetBotUser returns the current platform user record.
-	GetBotUser() (botUser botsdal.BotUser, err error)
+	// GetBotUser returns the current platform user without exposing a storage record.
+	GetBotUser() (botUser botsfwstore.PlatformUser, err error)
 
-	// GetBotUserForUpdate returns the platform user record inside a write transaction.
-	GetBotUserForUpdate(ctx context.Context, tx dal.ReadwriteTransaction) (botUser botsdal.BotUser, err error)
+	// SetBotUserAccessGranted changes the platform-user access flag through the
+	// injected state-store port.
+	SetBotUserAccessGranted(value bool) error
 
 	// AppUserID returns the application-layer user ID linked to this bot user.
 	AppUserID() string

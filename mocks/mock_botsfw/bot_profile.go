@@ -84,20 +84,6 @@ func (mr *MockBotProfileMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockBotProfile)(nil).ID))
 }
 
-// NewAppUserData mocks base method.
-func (m *MockBotProfile) NewAppUserData() botsfwmodels.AppUserData {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NewAppUserData")
-	ret0, _ := ret[0].(botsfwmodels.AppUserData)
-	return ret0
-}
-
-// NewAppUserData indicates an expected call of NewAppUserData.
-func (mr *MockBotProfileMockRecorder) NewAppUserData() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewAppUserData", reflect.TypeOf((*MockBotProfile)(nil).NewAppUserData))
-}
-
 // NewBotChatData mocks base method.
 func (m *MockBotProfile) NewBotChatData() botsfwmodels.BotChatData {
 	m.ctrl.T.Helper()

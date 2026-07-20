@@ -1,31 +1,14 @@
 package botsfw
 
 import (
-	"context"
 	"testing"
 
-	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore/botsfwstoretest"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
-	"github.com/dal-go/dalgo/dal"
-	"github.com/dal-go/dalgo/record"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/strongo/i18n"
 )
-
-func newTestProfile(id string) BotProfile {
-	return NewBotProfile(
-		id,
-		nil,
-		func() botsfwmodels.BotChatData { return nil },
-		func() botsfwmodels.PlatformUserData { return nil },
-		func() botsfwmodels.AppUserData { return nil },
-		nil,
-		i18n.LocaleEnUS,
-		nil,
-		BotTranslations{},
-	)
-}
 
 func newTestBotSettings(code, id, token string) BotSettings {
 	return NewBotSettings(
@@ -37,8 +20,7 @@ func newTestBotSettings(code, id, token string) BotSettings {
 		token,
 		"",
 		i18n.LocaleEnUS,
-		nil,
-		nil,
+		&botsfwstoretest.FakeStateStore{},
 	)
 }
 
@@ -47,36 +29,43 @@ func TestNewBotSettings(t *testing.T) {
 
 	t.Run("panics_on_empty_platform", func(t *testing.T) {
 		assert.PanicsWithValue(t, "NewBotSettings: missing required parameter: platform", func() {
-			NewBotSettings("", "local", profile, "code", "", "tok", "", i18n.LocaleEnUS, nil, nil)
+			NewBotSettings("", "local", profile, "code", "", "tok", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
 		})
 	})
 
 	t.Run("panics_on_nil_profile", func(t *testing.T) {
 		assert.PanicsWithValue(t, "NewBotSettings: missing required parameter: profile", func() {
-			NewBotSettings("telegram", "local", nil, "code", "", "tok", "", i18n.LocaleEnUS, nil, nil)
+			NewBotSettings("telegram", "local", nil, "code", "", "tok", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
 		})
 	})
 
 	t.Run("panics_on_empty_code", func(t *testing.T) {
 		assert.PanicsWithValue(t, "NewBotSettings: missing required parameter: code", func() {
-			NewBotSettings("telegram", "local", profile, "", "", "tok", "", i18n.LocaleEnUS, nil, nil)
+			NewBotSettings("telegram", "local", profile, "", "", "tok", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
 		})
 	})
 
 	t.Run("panics_on_empty_token", func(t *testing.T) {
 		assert.Panics(t, func() {
-			NewBotSettings("telegram", "local", profile, "mybot", "", "", "", i18n.LocaleEnUS, nil, nil)
+			NewBotSettings("telegram", "local", profile, "mybot", "", "", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
 		})
 	})
 
 	t.Run("panics_on_empty_locale", func(t *testing.T) {
 		assert.PanicsWithValue(t, "NewBotSettings: missing required parameter: Locale.Code5", func() {
-			NewBotSettings("telegram", "local", profile, "mybot", "", "tok123", "", i18n.Locale{}, nil, nil)
+			NewBotSettings("telegram", "local", profile, "mybot", "", "tok123", "", i18n.Locale{}, &botsfwstoretest.FakeStateStore{})
+		})
+	})
+
+	t.Run("panics_on_nil_store", func(t *testing.T) {
+		assert.PanicsWithValue(t, "NewBotSettings: missing required parameter: store", func() {
+			NewBotSettings("telegram", "local", profile, "mybot", "", "tok123", "", i18n.LocaleEnUS, nil)
 		})
 	})
 
 	t.Run("valid_construction", func(t *testing.T) {
-		bs := NewBotSettings("telegram", "prod", profile, "mybot", "bot123", "tok123", "ga-token", i18n.LocaleEnUS, nil, nil)
+		store := &botsfwstoretest.FakeStateStore{}
+		bs := NewBotSettings("telegram", "prod", profile, "mybot", "bot123", "tok123", "ga-token", i18n.LocaleEnUS, store)
 		assert.Equal(t, botsfwconst.Platform("telegram"), bs.Platform)
 		assert.Equal(t, "prod", bs.Env)
 		assert.Equal(t, profile, bs.Profile)
@@ -85,29 +74,8 @@ func TestNewBotSettings(t *testing.T) {
 		assert.Equal(t, "tok123", bs.Token)
 		assert.Equal(t, "ga-token", bs.GAToken)
 		assert.Equal(t, i18n.LocaleEnUS, bs.Locale)
+		assert.Same(t, store, bs.Store)
 	})
-}
-
-func TestBotSettings_GetAppUserByID(t *testing.T) {
-	var calledWith struct {
-		botCode   string
-		appUserID string
-	}
-	getter := func(ctx context.Context, tx dal.ReadSession, botID string, appUserID string) (record.DataWithID[string, botsfwmodels.AppUserData], error) {
-		calledWith.botCode = botID
-		calledWith.appUserID = appUserID
-		return record.DataWithID[string, botsfwmodels.AppUserData]{}, nil
-	}
-
-	bs := BotSettings{
-		Code:       "testbot",
-		getAppUser: getter,
-	}
-
-	_, err := bs.GetAppUserByID(context.Background(), nil, "user42")
-	require.NoError(t, err)
-	assert.Equal(t, "testbot", calledWith.botCode)
-	assert.Equal(t, "user42", calledWith.appUserID)
 }
 
 func TestNewBotSettingsBy(t *testing.T) {
@@ -186,8 +154,8 @@ func TestNewBotSettingsBy(t *testing.T) {
 
 	t.Run("same_profile_multiple_bots", func(t *testing.T) {
 		sharedProfile := newTestProfile("shared")
-		bot1 := NewBotSettings("test", "local", sharedProfile, "c1", "id1", "tok1", "", i18n.LocaleEnUS, nil, nil)
-		bot2 := NewBotSettings("test", "local", sharedProfile, "c2", "id2", "tok2", "", i18n.LocaleEnUS, nil, nil)
+		bot1 := NewBotSettings("test", "local", sharedProfile, "c1", "id1", "tok1", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
+		bot2 := NewBotSettings("test", "local", sharedProfile, "c2", "id2", "tok2", "", i18n.LocaleEnUS, &botsfwstoretest.FakeStateStore{})
 		sb := NewBotSettingsBy(bot1, bot2)
 		assert.Len(t, sb.ByProfile["shared"], 2)
 	})

@@ -68,30 +68,29 @@ func TestBotCommand_Validate(t *testing.T) {
 func TestNewBotProfile(t *testing.T) {
 	newBotChatData := func() botsfwmodels.BotChatData { return nil }
 	newBotUserData := func() botsfwmodels.PlatformUserData { return nil }
-	newAppUserData := func() botsfwmodels.AppUserData { return nil }
 	locale := i18n.LocaleEnUS
 
 	t.Run("panics_on_empty_id", func(t *testing.T) {
 		assert.Panics(t, func() {
-			NewBotProfile("", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, nil, BotTranslations{})
+			NewBotProfile("", nil, newBotChatData, newBotUserData, locale, nil, BotTranslations{})
 		})
 	})
 
 	t.Run("panics_on_whitespace_id", func(t *testing.T) {
 		assert.Panics(t, func() {
-			NewBotProfile("   ", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, nil, BotTranslations{})
+			NewBotProfile("   ", nil, newBotChatData, newBotUserData, locale, nil, BotTranslations{})
 		})
 	})
 
 	t.Run("panics_on_nil_newBotChatData", func(t *testing.T) {
 		assert.Panics(t, func() {
-			NewBotProfile("testbot", nil, nil, newBotUserData, newAppUserData, nil, locale, nil, BotTranslations{})
+			NewBotProfile("testbot", nil, nil, newBotUserData, locale, nil, BotTranslations{})
 		})
 	})
 
 	t.Run("panics_on_nil_newBotUserData", func(t *testing.T) {
 		assert.Panics(t, func() {
-			NewBotProfile("testbot", nil, newBotChatData, nil, newAppUserData, nil, locale, nil, BotTranslations{})
+			NewBotProfile("testbot", nil, newBotChatData, nil, locale, nil, BotTranslations{})
 		})
 	})
 
@@ -100,7 +99,7 @@ func TestNewBotProfile(t *testing.T) {
 			Description: "Test bot",
 			Commands:    []BotCommand{{Command: "start", Description: "Start the bot"}},
 		}
-		profile := NewBotProfile("mybot", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, nil, translations)
+		profile := NewBotProfile("mybot", nil, newBotChatData, newBotUserData, locale, nil, translations)
 		require.NotNil(t, profile)
 		assert.Equal(t, "mybot", profile.ID())
 		assert.Nil(t, profile.Router())
@@ -109,32 +108,30 @@ func TestNewBotProfile(t *testing.T) {
 	})
 
 	t.Run("default_locale_added_to_supported", func(t *testing.T) {
-		profile := NewBotProfile("bot1", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, nil, BotTranslations{})
+		profile := NewBotProfile("bot1", nil, newBotChatData, newBotUserData, locale, nil, BotTranslations{})
 		supported := profile.SupportedLocales()
 		require.Len(t, supported, 1)
 		assert.Equal(t, locale.Code5, supported[0].Code5)
 	})
 
 	t.Run("default_locale_not_duplicated", func(t *testing.T) {
-		profile := NewBotProfile("bot2", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, []i18n.Locale{locale}, BotTranslations{})
+		profile := NewBotProfile("bot2", nil, newBotChatData, newBotUserData, locale, []i18n.Locale{locale}, BotTranslations{})
 		supported := profile.SupportedLocales()
 		assert.Len(t, supported, 1)
 	})
 
 	t.Run("multiple_supported_locales", func(t *testing.T) {
 		otherLocale := i18n.Locale{Code5: "de-DE"}
-		profile := NewBotProfile("bot3", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, []i18n.Locale{otherLocale}, BotTranslations{})
+		profile := NewBotProfile("bot3", nil, newBotChatData, newBotUserData, locale, []i18n.Locale{otherLocale}, BotTranslations{})
 		supported := profile.SupportedLocales()
 		assert.Len(t, supported, 2) // otherLocale + defaultLocale appended
 	})
 
 	t.Run("accessor_methods", func(t *testing.T) {
-		profile := NewBotProfile("bot4", nil, newBotChatData, newBotUserData, newAppUserData, nil, locale, nil, BotTranslations{})
+		profile := NewBotProfile("bot4", nil, newBotChatData, newBotUserData, locale, nil, BotTranslations{})
 		// NewBotChatData
 		assert.Nil(t, profile.NewBotChatData())
 		// NewPlatformUserData
 		assert.Nil(t, profile.NewPlatformUserData())
-		// NewAppUserData
-		assert.Nil(t, profile.NewAppUserData())
 	})
 }
