@@ -1,6 +1,7 @@
 package botsfw
 
 import (
+	"context"
 	"testing"
 
 	"github.com/bots-go-framework/bots-fw-store/botsfwstore/botsfwstoretest"
@@ -76,6 +77,30 @@ func TestNewBotSettings(t *testing.T) {
 		assert.Equal(t, i18n.LocaleEnUS, bs.Locale)
 		assert.Same(t, store, bs.Store)
 	})
+}
+
+func TestNewBotSettingsWithContextUsesEnvProvider(t *testing.T) {
+	t.Parallel()
+
+	ctx := WithEnvProvider(context.Background(), envProviderFromMap(map[string]string{
+		"TELEGRAM_BOT_TOKEN_MYBOT": "context-token",
+		"TELEGRAM_GA_TOKEN_MYBOT":  "context-ga-token",
+	}))
+	settings := NewBotSettingsWithContext(
+		ctx,
+		"telegram",
+		"test",
+		newTestProfile("profile"),
+		"mybot",
+		"",
+		"",
+		"",
+		i18n.LocaleEnUS,
+		&botsfwstoretest.FakeStateStore{},
+	)
+
+	assert.Equal(t, "context-token", settings.Token)
+	assert.Equal(t, "context-ga-token", settings.GAToken)
 }
 
 func TestNewBotSettingsBy(t *testing.T) {

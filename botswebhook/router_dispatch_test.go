@@ -1430,7 +1430,6 @@ func TestAcknowledgeCallbackQuery(t *testing.T) {
 }
 
 func TestDefaultResponseChannel(t *testing.T) {
-	ctx := context.Background()
 	for _, tt := range []struct {
 		name  string
 		value string
@@ -1441,8 +1440,19 @@ func TestDefaultResponseChannel(t *testing.T) {
 		{name: "https", value: "https", want: botsfw.BotAPISendMessageOverHTTPS},
 		{name: "invalid", value: "other", want: botsfw.BotAPISendMessageOverResponse},
 	} {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv(defaultResponseChannelEnv, tt.value)
+			t.Parallel()
+			values := map[string]string{}
+			if tt.value != "" {
+				values[defaultResponseChannelEnv] = tt.value
+			}
+			ctx := botsfw.WithEnvProvider(context.Background(), botsfw.EnvProviderFunc(
+				func(name string) (string, bool) {
+					value, ok := values[name]
+					return value, ok
+				},
+			))
 			if got := defaultResponseChannel(ctx); got != tt.want {
 				t.Errorf("defaultResponseChannel() = %q, want %q", got, tt.want)
 			}

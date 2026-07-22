@@ -12,7 +12,6 @@ import (
 	"github.com/strongo/logus"
 	"github.com/strongo/validation"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 )
@@ -978,13 +977,14 @@ const defaultResponseChannelEnv = "BOTSFW_DEFAULT_RESPONSE_CHANNEL"
 // explicitly choose one. The efficient webhook response is the default; set
 // BOTSFW_DEFAULT_RESPONSE_CHANNEL=https to use the Bot API instead.
 func defaultResponseChannel(ctx context.Context) botmsg.BotAPISendMessageChannel {
-	switch strings.ToLower(strings.TrimSpace(os.Getenv(defaultResponseChannelEnv))) {
+	configured := botsfw.GetEnv(ctx, defaultResponseChannelEnv)
+	switch strings.ToLower(strings.TrimSpace(configured)) {
 	case "", "response":
 		return botsfw.BotAPISendMessageOverResponse
 	case "https":
 		return botsfw.BotAPISendMessageOverHTTPS
 	default:
-		log.Warningf(ctx, "Unknown %s value %q; using response", defaultResponseChannelEnv, os.Getenv(defaultResponseChannelEnv))
+		log.Warningf(ctx, "Unknown %s value %q; using response", defaultResponseChannelEnv, configured)
 		return botsfw.BotAPISendMessageOverResponse
 	}
 }

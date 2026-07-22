@@ -6,7 +6,6 @@ import (
 	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
 	"github.com/strongo/i18n"
-	"os"
 	"strings"
 )
 
@@ -87,6 +86,22 @@ func NewBotSettings(
 	locale i18n.Locale,
 	store botsfwstore.StateStore,
 ) BotSettings {
+	return NewBotSettingsWithContext(
+		context.Background(), platform, environment, profile, code, id, token, gaToken, locale, store,
+	)
+}
+
+// NewBotSettingsWithContext configures a bot application using the
+// environment provider attached to ctx for optional token fallbacks.
+func NewBotSettingsWithContext(
+	ctx context.Context,
+	platform botsfwconst.Platform,
+	environment string,
+	profile BotProfile,
+	code, id, token, gaToken string,
+	locale i18n.Locale,
+	store botsfwstore.StateStore,
+) BotSettings {
 	if platform == "" {
 		panic("NewBotSettings: missing required parameter: platform")
 	}
@@ -98,14 +113,14 @@ func NewBotSettings(
 	}
 	if token == "" {
 		envVarKey := fmt.Sprintf("%s_BOT_TOKEN_%s", strings.ToUpper(string(platform)), strings.ToUpper(code))
-		token = os.Getenv(envVarKey)
+		token = GetEnv(ctx, envVarKey)
 		if token == "" {
 			panic("NewBotSettings: missing required parameter 'token' and no environment variable " + envVarKey)
 		}
 	}
 	if gaToken == "" {
 		envVarKey := fmt.Sprintf("%s_GA_TOKEN_%s", strings.ToUpper(string(platform)), strings.ToUpper(code))
-		gaToken = os.Getenv(envVarKey)
+		gaToken = GetEnv(ctx, envVarKey)
 	}
 	if locale.Code5 == "" {
 		panic("NewBotSettings: missing required parameter: Locale.Code5")
