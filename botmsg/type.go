@@ -28,4 +28,7 @@ const (
 	TypeSetDescription
 	TypeSetShortDescription
 	TypeSetCommands
+
+	// TypeChatAction shows a chat action indicator (e.g. "typing") in the target chat
+	TypeChatAction
 )
