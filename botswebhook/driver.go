@@ -117,8 +117,16 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	}
 
 	for _, entryWithInputs := range entriesWithInputs {
+		// Not every webhook provider exposes a durable delivery/update identifier.
+		// Preserve the legacy dispatch path for those adapters rather than turning
+		// every missing ID into the same (and therefore permanently suppressed)
+		// update. Money-changing actions still need their own idempotency key.
+		updateID := ""
+		if entryWithInputs.Entry != nil {
+			updateID = fmt.Sprint(entryWithInputs.Entry.GetID())
+		}
 		for i, input := range entryWithInputs.Inputs {
-			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, fmt.Sprint(entryWithInputs.Entry.GetID()), i, input, handleError); err != nil {
+			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, updateID, i, input, handleError); err != nil {
 				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
 			}
 		}
@@ -220,33 +228,35 @@ func (d webhookDriver) processWebhookInput(
 		handleError(err, "Failed to prepare webhook state")
 		return
 	}
-	updateKey = botsfwstore.WebhookUpdateKey{PlatformID: string(botContext.BotSettings.Platform), BotID: botContext.BotSettings.Code, UpdateID: updateID}
-	claim, claimErr := store.ClaimWebhookUpdate(ctx, updateKey, time.Now().UTC().Add(2*time.Minute))
-	if claimErr != nil {
-		return fmt.Errorf("claim webhook update: %w", claimErr)
-	}
-	switch claim.Status {
-	case botsfwstore.WebhookUpdateClaimCompleted:
-		w.WriteHeader(http.StatusOK)
-		return nil
-	case botsfwstore.WebhookUpdateClaimLeased:
-		// A live owner may still commit the side effect. Do not acknowledge this
-		// delivery as complete: Telegram will retry the same update after the
-		// lease expires if the owner crashes.
-		http.Error(w, "webhook update is being processed", http.StatusServiceUnavailable)
-		return nil
-	case botsfwstore.WebhookUpdateClaimAcquired:
-		leaseID = claim.LeaseID
-	default:
-		return fmt.Errorf("claim webhook update returned unknown status %q", claim.Status)
-	}
-	defer func() {
-		if err != nil && leaseID != "" {
-			if failErr := store.FailWebhookUpdate(ctx, updateKey, leaseID, err); failErr != nil {
-				log.Errorf(ctx, "failed to mark webhook update as failed: %v", failErr)
-			}
+	if updateID != "" {
+		updateKey = botsfwstore.WebhookUpdateKey{PlatformID: string(botContext.BotSettings.Platform), BotID: botContext.BotSettings.Code, UpdateID: updateID}
+		claim, claimErr := store.ClaimWebhookUpdate(ctx, updateKey, time.Now().UTC().Add(2*time.Minute))
+		if claimErr != nil {
+			return fmt.Errorf("claim webhook update: %w", claimErr)
 		}
-	}()
+		switch claim.Status {
+		case botsfwstore.WebhookUpdateClaimCompleted:
+			w.WriteHeader(http.StatusOK)
+			return nil
+		case botsfwstore.WebhookUpdateClaimLeased:
+			// A live owner may still commit the side effect. Do not acknowledge this
+			// delivery as complete: Telegram will retry the same update after the
+			// lease expires if the owner crashes.
+			http.Error(w, "webhook update is being processed", http.StatusServiceUnavailable)
+			return nil
+		case botsfwstore.WebhookUpdateClaimAcquired:
+			leaseID = claim.LeaseID
+		default:
+			return fmt.Errorf("claim webhook update returned unknown status %q", claim.Status)
+		}
+		defer func() {
+			if err != nil && leaseID != "" {
+				if failErr := store.FailWebhookUpdate(ctx, updateKey, leaseID, err); failErr != nil {
+					log.Errorf(ctx, "failed to mark webhook update as failed: %v", failErr)
+				}
+			}
+		}()
+	}
 	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, store)
 	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 		handleError(err, "Failed to create WebhookContext")
@@ -269,9 +279,11 @@ func (d webhookDriver) processWebhookInput(
 		handleError(err, "Failed to dispatch")
 		return
 	}
-	if err = store.CompleteWebhookUpdate(ctx, updateKey, leaseID); err != nil {
-		handleError(err, "Failed to complete webhook update")
-		return
+	if leaseID != "" {
+		if err = store.CompleteWebhookUpdate(ctx, updateKey, leaseID); err != nil {
+			handleError(err, "Failed to complete webhook update")
+			return
+		}
 	}
 
 	return
