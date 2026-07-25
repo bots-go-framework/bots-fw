@@ -53,7 +53,7 @@ func TestProcessWebhookInput_PanicResponseIsSanitized(t *testing.T) {
 
 	var sent botmsg.MessageFromBot
 	responder.EXPECT().
-		SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+		SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverHTTPS).
 		DoAndReturn(func(_ context.Context, m botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
 			sent = m
 			return botsfw.OnMessageSentResponse{}, nil
@@ -67,18 +67,28 @@ func TestProcessWebhookInput_PanicResponseIsSanitized(t *testing.T) {
 	}
 	botContext := panicTestBotContext()
 	request := httptest.NewRequest(http.MethodPost, "/webhook", nil)
+	recorder := httptest.NewRecorder()
+	response := newWebhookResponse(recorder)
 
 	if err := driver.processWebhookInput(
 		context.Background(),
-		httptest.NewRecorder(),
+		response.writer,
 		request,
 		handler,
 		botContext,
 		0,
 		input,
-		func(error, string) {},
-	); err != nil {
-		t.Fatalf("processWebhookInput() error = %v", err)
+		func(err error, operation string) {
+			driver.handleProcessingError(context.Background(), response, err, operation)
+		},
+	); err == nil {
+		t.Fatal("processWebhookInput() error = nil, want recovered panic")
+	}
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("HTTP status = %d, want %d", recorder.Code, http.StatusInternalServerError)
+	}
+	if recorder.Body.String() != http.StatusText(http.StatusInternalServerError)+"\n" {
+		t.Fatalf("HTTP body = %q, want generic internal error", recorder.Body.String())
 	}
 
 	if sent.Text != wantText {

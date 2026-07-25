@@ -5,13 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"runtime/debug"
+	"strings"
+
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/analytics"
 	"github.com/strongo/logus"
-	"net/http"
-	"runtime/debug"
-	"strings"
 )
 
 // ErrorIcon is used to report errors to user
@@ -66,12 +67,31 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 		panic("Parameter 'webhookHandler WebhookHandler' is nil")
 	}
 
-	ctx := d.botHost.Context(r)
+	response := newWebhookResponse(w)
+	w = response.writer
+	ctx := r.Context()
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			log.Criticalf(ctx, "Panic recovered while handling webhook: %v\n\nStack trace:\n%s", recovered, debug.Stack())
+			d.handleProcessingError(ctx, response, fmt.Errorf("panic while handling webhook: %v", recovered), "Panic while handling webhook")
+		}
+	}()
+
+	if r.ContentLength > MaxWebhookRequestBodyBytes {
+		log.Warningf(ctx, "webhook request body exceeds limit: content_length=%d, limit=%d", r.ContentLength, MaxWebhookRequestBodyBytes)
+		response.writeError(http.StatusRequestEntityTooLarge)
+		return
+	}
+	if r.Body != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, MaxWebhookRequestBodyBytes)
+	}
+
+	ctx = d.botHost.Context(r)
 
 	// A bot can receiver multiple messages in a single request
 	botContext, entriesWithInputs, err := webhookHandler.GetBotContextAndInputs(ctx, r)
 
-	if d.invalidContextOrInputs(ctx, w, r, botContext, entriesWithInputs, err) {
+	if d.invalidContextOrInputs(ctx, response, r, botContext, entriesWithInputs, err) {
 		return
 	}
 
@@ -90,30 +110,26 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	//	}
 	//}()
 
-	handleErrorAndReturnHttpError := func(err error, message string) {
-		logus.Errorf(ctx, "%s: %v", message, err)
-		errText := fmt.Sprintf("%s: %s: %v", http.StatusText(http.StatusInternalServerError), message, err)
-		http.Error(w, errText, http.StatusInternalServerError)
-	}
-
-	handleErrorAndReturnHttpOK := func(err error, message string) {
-		logus.Errorf(ctx, "%s: %v\nHTTP will return status OK", message, err)
-		w.WriteHeader(http.StatusOK)
+	handleError := func(err error, message string) {
+		d.handleProcessingError(ctx, response, err, message)
 	}
 
 	for _, entryWithInputs := range entriesWithInputs {
 		for i, input := range entryWithInputs.Inputs {
-			var handleError func(err error, message string)
-			if input.InputType() == botinput.TypeCallbackQuery {
-				handleError = handleErrorAndReturnHttpOK
-			} else {
-				handleError = handleErrorAndReturnHttpError
-			}
 			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
 				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
 			}
 		}
 	}
+}
+
+func (webhookDriver) handleProcessingError(ctx context.Context, response *webhookResponse, err error, operation string) {
+	if response.isCommitted() {
+		logus.Errorf(ctx, "%s: %v; response already committed", operation, err)
+		return
+	}
+	logus.Errorf(ctx, "%s: %v", operation, err)
+	response.writeError(http.StatusInternalServerError)
 }
 
 func (d webhookDriver) processWebhookInput(
@@ -134,9 +150,14 @@ func (d webhookDriver) processWebhookInput(
 		log.Debugf(ctx, "driver.deferred(recover) - checking for panic & flush GA")
 
 		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("panic while processing webhook input: %v", recovered)
 			stack := string(debug.Stack())
 			messageText := fmt.Sprintf("Panic: %v\n\nStack trace:\n%s\n\n%s", recovered, stack, d.panicTextFooter)
 			log.Criticalf(ctx, "Panic recovered: %s", messageText)
+
+			runPanicRecoveryStep(ctx, "write panic response", func() {
+				handleError(err, "Panic while processing webhook input")
+			})
 
 			const maxLen = 3 * 1024
 			if len(messageText) > maxLen {
@@ -163,19 +184,18 @@ func (d webhookDriver) processWebhookInput(
 
 			if whc != nil {
 				runPanicRecoveryStep(ctx, "report panic to user", func() {
-					var chatID string
-					if chatID, err = whc.Input().BotChatID(); err == nil && chatID != "" {
+					if chatID, chatIDErr := whc.Input().BotChatID(); chatIDErr == nil && chatID != "" {
 						if responder := whc.Responder(); responder != nil {
 							m := whc.NewMessage(ErrorIcon + " " + panicUserMessage)
-							if _, err = botsfw.SendMessageThroughGate(ctx, responder, m, botsfw.BotAPISendMessageOverResponse); err != nil {
-								if botsfw.IsSendNotPermitted(err) {
+							if _, sendErr := botsfw.SendMessageThroughGate(ctx, responder, m, botsfw.BotAPISendMessageOverHTTPS); sendErr != nil {
+								if botsfw.IsSendNotPermitted(sendErr) {
 									// A gated platform will not accept an unsolicited
 									// message here. Reporting the panic to the user is
 									// best-effort; the panic is already logged and sent
 									// to analytics above.
-									log.Warningf(ctx, "not reporting error to user: %v", err)
+									log.Warningf(ctx, "not reporting error to user: %v", sendErr)
 								} else {
-									log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
+									log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", sendErr).Error())
 								}
 							}
 						}
@@ -191,7 +211,9 @@ func (d webhookDriver) processWebhookInput(
 	d.logInput(ctx, i, input)
 	store := botContext.BotSettings.Store
 	if store == nil {
-		return fmt.Errorf("bot %q has no state store", botContext.BotSettings.Code)
+		err = fmt.Errorf("bot %q has no state store", botContext.BotSettings.Code)
+		handleError(err, "Failed to prepare webhook state")
+		return
 	}
 	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, store)
 	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
@@ -228,13 +250,21 @@ func runPanicRecoveryStep(ctx context.Context, operation string, action func()) 
 	action()
 }
 
-func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botinput.EntryInputs, err error) bool {
+func (d webhookDriver) invalidContextOrInputs(c context.Context, response *webhookResponse, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botinput.EntryInputs, err error) bool {
 	if err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			log.Warningf(c, "webhook request body exceeds limit: limit=%d", maxBytesError.Limit)
+			response.writeError(http.StatusRequestEntityTooLarge)
+			return true
+		}
 		var errAuthFailed botsfw.ErrAuthFailed
 		if errors.As(err, &errAuthFailed) {
 			log.Warningf(c, "Auth failed: %v", err)
-			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+			response.writeError(http.StatusForbidden)
+			return true
 		}
+		d.handleProcessingError(c, response, err, "Failed to parse webhook request")
 		return true
 	}
 	if botContext == nil {
@@ -245,9 +275,11 @@ func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWr
 		} else {
 			log.Errorf(c, "botContext == nil, len(entriesWithInputs) == %v", len(entriesWithInputs))
 		}
+		response.writeError(http.StatusInternalServerError)
 		return true
 	} else if entriesWithInputs == nil {
 		log.Errorf(c, "entriesWithInputs == nil")
+		response.writeError(http.StatusInternalServerError)
 		return true
 	}
 
@@ -255,13 +287,13 @@ func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWr
 	case botsfw.EnvLocal:
 		if !isRunningLocally(r.Host) {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Local, host: %v", r.Host)
-			w.WriteHeader(http.StatusBadRequest)
+			response.writeError(http.StatusBadRequest)
 			return true
 		}
 	case botsfw.EnvProduction:
 		if isRunningLocally(r.Host) {
 			log.Warningf(c, "whc.GetBotSettings().Mode == Production, host: %v", r.Host)
-			w.WriteHeader(http.StatusBadRequest)
+			response.writeError(http.StatusBadRequest)
 			return true
 		}
 	}

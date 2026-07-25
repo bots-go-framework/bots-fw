@@ -42,7 +42,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 	t.Run("error_returns_true", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/webhook", nil)
-		result := d.invalidContextOrInputs(ctx, w, r, nil, nil, assert.AnError)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, nil, nil, assert.AnError)
 		assert.True(t, result)
 	})
 
@@ -50,7 +50,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/webhook", nil)
 		err := botsfw.ErrAuthFailed("auth failed")
-		result := d.invalidContextOrInputs(ctx, w, r, nil, nil, err)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, nil, nil, err)
 		assert.True(t, result)
 		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
@@ -58,14 +58,14 @@ func TestInvalidContextOrInputs(t *testing.T) {
 	t.Run("nil_botContext_nil_inputs", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/webhook", nil)
-		result := d.invalidContextOrInputs(ctx, w, r, nil, nil, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, nil, nil, nil)
 		assert.True(t, result)
 	})
 
 	t.Run("nil_botContext_empty_inputs", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/webhook", nil)
-		result := d.invalidContextOrInputs(ctx, w, r, nil, []botinput.EntryInputs{}, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, nil, []botinput.EntryInputs{}, nil)
 		assert.True(t, result)
 	})
 
@@ -73,7 +73,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "/webhook", nil)
 		entries := []botinput.EntryInputs{{}}
-		result := d.invalidContextOrInputs(ctx, w, r, nil, entries, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, nil, entries, nil)
 		assert.True(t, result)
 	})
 
@@ -83,7 +83,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 		bc := &botsfw.BotContext{
 			BotSettings: &botsfw.BotSettings{Env: "production"},
 		}
-		result := d.invalidContextOrInputs(ctx, w, r, bc, nil, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, bc, nil, nil)
 		assert.True(t, result)
 	})
 
@@ -94,7 +94,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 			BotSettings: &botsfw.BotSettings{Env: botsfw.EnvLocal},
 		}
 		entries := []botinput.EntryInputs{{}}
-		result := d.invalidContextOrInputs(ctx, w, r, bc, entries, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, bc, entries, nil)
 		assert.False(t, result)
 	})
 
@@ -105,7 +105,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 			BotSettings: &botsfw.BotSettings{Env: botsfw.EnvLocal},
 		}
 		entries := []botinput.EntryInputs{{}}
-		result := d.invalidContextOrInputs(ctx, w, r, bc, entries, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, bc, entries, nil)
 		assert.True(t, result)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -117,7 +117,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 			BotSettings: &botsfw.BotSettings{Env: botsfw.EnvProduction},
 		}
 		entries := []botinput.EntryInputs{{}}
-		result := d.invalidContextOrInputs(ctx, w, r, bc, entries, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, bc, entries, nil)
 		assert.True(t, result)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -129,7 +129,7 @@ func TestInvalidContextOrInputs(t *testing.T) {
 			BotSettings: &botsfw.BotSettings{Env: botsfw.EnvProduction},
 		}
 		entries := []botinput.EntryInputs{{}}
-		result := d.invalidContextOrInputs(ctx, w, r, bc, entries, nil)
+		result := d.invalidContextOrInputs(ctx, newWebhookResponse(w), r, bc, entries, nil)
 		assert.False(t, result)
 	})
 }
