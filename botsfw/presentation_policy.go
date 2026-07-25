@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/bots-go-framework/bots-fw/botmsg"
+	"github.com/bots-go-framework/bots-go-core/botkb"
 )
 
 type PersistentBottomKeyboardPolicy string
@@ -18,12 +19,11 @@ const (
 // PresentationPolicy is supplied by the bot host and is applied before every
 // responder send when the responder is wrapped with NewPolicyResponder.
 type PresentationPolicy struct {
-	PersistentBottomKeyboard  PersistentBottomKeyboardPolicy
-	HostMayShowBottomKeyboard bool
+	PersistentBottomKeyboard PersistentBottomKeyboardPolicy
 }
 
-func (p PresentationPolicy) Validate(m botmsg.MessageFromBot) error {
-	if !m.Presentation.PersistentBottomKeyboard {
+func (p PresentationPolicy) Validate(m botmsg.MessageFromBot, hostOwned bool) error {
+	if !hasPersistentBottomKeyboard(m) {
 		return nil
 	}
 	switch p.PersistentBottomKeyboard {
@@ -32,7 +32,7 @@ func (p PresentationPolicy) Validate(m botmsg.MessageFromBot) error {
 	case PersistentBottomKeyboardDeny:
 		return fmt.Errorf("persistent bottom keyboard denied by host presentation policy")
 	case PersistentBottomKeyboardHostOnly:
-		if p.HostMayShowBottomKeyboard {
+		if hostOwned {
 			return nil
 		}
 		return fmt.Errorf("persistent bottom keyboard is reserved for the host")
@@ -43,23 +43,49 @@ func (p PresentationPolicy) Validate(m botmsg.MessageFromBot) error {
 
 // NewPolicyResponder wraps both router-returned and direct responder sends,
 // provided the host installs the wrapper in the WebhookContext and router.
+// NewPolicyResponder creates a feature-owned responder; it cannot send a
+// host-only bottom keyboard. Hosts must use NewHostPolicyResponder explicitly.
 func NewPolicyResponder(next WebhookResponder, policy PresentationPolicy) WebhookResponder {
+	return newPolicyResponder(next, policy, false)
+}
+
+func NewHostPolicyResponder(next WebhookResponder, policy PresentationPolicy) WebhookResponder {
+	return newPolicyResponder(next, policy, true)
+}
+
+func newPolicyResponder(next WebhookResponder, policy PresentationPolicy, hostOwned bool) WebhookResponder {
 	if next == nil {
 		return nil
 	}
-	return policyResponder{next: next, policy: policy}
+	return policyResponder{next: next, policy: policy, hostOwned: hostOwned}
 }
 
 type policyResponder struct {
-	next   WebhookResponder
-	policy PresentationPolicy
+	next      WebhookResponder
+	policy    PresentationPolicy
+	hostOwned bool
 }
 
 func (r policyResponder) SendMessage(ctx context.Context, m botmsg.MessageFromBot, channel botmsg.BotAPISendMessageChannel) (OnMessageSentResponse, error) {
-	if err := r.policy.Validate(m); err != nil {
+	if err := r.policy.Validate(m, r.hostOwned); err != nil {
 		return OnMessageSentResponse{}, err
 	}
 	return r.next.SendMessage(ctx, m, channel)
+}
+
+func hasPersistentBottomKeyboard(m botmsg.MessageFromBot) bool {
+	if m.Presentation.PersistentBottomKeyboard || keyboardIsBottom(m.Keyboard) {
+		return true
+	}
+	switch message := m.BotMessage.(type) {
+	case *botmsg.TextMessageFromBot:
+		return keyboardIsBottom(message.Keyboard)
+	}
+	return false
+}
+
+func keyboardIsBottom(keyboard botkb.Keyboard) bool {
+	return keyboard != nil && keyboard.KeyboardType() == botkb.KeyboardTypeBottom
 }
 
 func (r policyResponder) DeleteMessage(ctx context.Context, messageID string) error {
