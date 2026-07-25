@@ -48,6 +48,14 @@ type BotMessage interface {
 	//BotEndpoint() string
 }
 
+// Presentation declares host-level presentation intent. It is optional so
+// existing messages preserve their current platform-specific behaviour.
+type Presentation struct {
+	// PersistentBottomKeyboard identifies a reply keyboard that remains visible
+	// after the message. Inline keyboards are not persistent bottom keyboards.
+	PersistentBottomKeyboard bool `json:"persistentBottomKeyboard,omitempty"`
+}
+
 // MessageFromBot keeps all the details of answer from bot to user
 //
 //goland:noinspection GoDeprecation
@@ -62,7 +70,8 @@ type MessageFromBot struct {
 	// This is a shortcut to MessageFromBot{}.BotMessage = TextMessageFromBot{text: "abc"}
 	TextMessageFromBot // TODO: This feels wrong and need to be refactored! Use BotMessage instead
 
-	BotMessage BotMessage `json:",omitempty"`
+	BotMessage   BotMessage   `json:",omitempty"`
+	Presentation Presentation `json:"presentation,omitempty"`
 
 	Analytics analytics.Message
 	//FbmAttachment      *fbmbotapi.RequestAttachment `json:",omitempty"` // deprecated
