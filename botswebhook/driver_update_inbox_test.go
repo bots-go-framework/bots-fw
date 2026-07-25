@@ -3,6 +3,7 @@ package botswebhook
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -147,7 +148,7 @@ func TestProcessWebhookEntryClaimsWholeProviderEntry(t *testing.T) {
 
 			err := (webhookDriver{}).processWebhookEntry(
 				context.Background(),
-				httptest.NewRecorder(),
+				newWebhookResponse(httptest.NewRecorder()),
 				httptest.NewRequest(http.MethodPost, "/webhook", nil),
 				handler,
 				botContext,
@@ -168,6 +169,67 @@ func TestProcessWebhookEntryClaimsWholeProviderEntry(t *testing.T) {
 			}
 			if dispatched != tt.wantDispatched {
 				t.Fatalf("router dispatches = %d, want %d", dispatched, tt.wantDispatched)
+			}
+		})
+	}
+}
+
+func TestProcessWebhookEntryLeasedResponseIsCommitAware(t *testing.T) {
+	tests := []struct {
+		name       string
+		commit     bool
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name:       "pre-commit returns generic retry status",
+			wantStatus: http.StatusServiceUnavailable,
+			wantBody:   http.StatusText(http.StatusServiceUnavailable) + "\n",
+		},
+		{
+			name:       "post-commit leaves platform response unchanged",
+			commit:     true,
+			wantStatus: http.StatusAccepted,
+			wantBody:   "platform response",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := &botsfwstoretest.FakeStateStore{
+				ClaimWebhookUpdateFunc: func(context.Context, botsfwstore.WebhookUpdateKey, time.Time) (botsfwstore.WebhookUpdateClaim, error) {
+					return botsfwstore.WebhookUpdateClaim{Status: botsfwstore.WebhookUpdateClaimLeased}, nil
+				},
+			}
+			botContext := &botsfw.BotContext{BotSettings: &botsfw.BotSettings{
+				Platform: botsfwconst.PlatformTelegram,
+				Code:     "test-bot",
+				Store:    store,
+			}}
+			recorder := httptest.NewRecorder()
+			response := newWebhookResponse(recorder)
+			if tt.commit {
+				response.writer.WriteHeader(http.StatusAccepted)
+				_, _ = io.WriteString(response.writer, tt.wantBody)
+			}
+
+			err := (webhookDriver{}).processWebhookEntry(
+				context.Background(),
+				response,
+				httptest.NewRequest(http.MethodPost, "/webhook", nil),
+				updateInboxTestHandler{},
+				botContext,
+				botinput.EntryInputs{Entry: testDurableWebhookEntry{updateID: "provider-entry-42", ok: true}},
+				func(error, string) {},
+			)
+			if err != nil {
+				t.Fatalf("processWebhookEntry() error = %v", err)
+			}
+			if recorder.Code != tt.wantStatus {
+				t.Fatalf("HTTP status = %d, want %d", recorder.Code, tt.wantStatus)
+			}
+			if body := recorder.Body.String(); body != tt.wantBody {
+				t.Fatalf("HTTP body = %q, want %q", body, tt.wantBody)
 			}
 		})
 	}

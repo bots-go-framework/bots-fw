@@ -117,7 +117,7 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	}
 
 	for _, entryWithInputs := range entriesWithInputs {
-		if err = d.processWebhookEntry(ctx, w, r, webhookHandler, botContext, entryWithInputs, handleError); err != nil {
+		if err = d.processWebhookEntry(ctx, response, r, webhookHandler, botContext, entryWithInputs, handleError); err != nil {
 			log.Errorf(ctx, "Failed to process webhook entry: %v", err)
 		}
 	}
@@ -138,7 +138,7 @@ func (webhookDriver) handleProcessingError(ctx context.Context, response *webhoo
 // update ID.
 func (d webhookDriver) processWebhookEntry(
 	ctx context.Context,
-	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
+	response *webhookResponse, r *http.Request, webhookHandler botsfw.WebhookHandler,
 	botContext *botsfw.BotContext,
 	entryWithInputs botinput.EntryInputs,
 	handleError func(error, string),
@@ -165,10 +165,12 @@ func (d webhookDriver) processWebhookEntry(
 		}
 		switch claim.Status {
 		case botsfwstore.WebhookUpdateClaimCompleted:
-			w.WriteHeader(http.StatusOK)
+			if !response.isCommitted() {
+				response.writer.WriteHeader(http.StatusOK)
+			}
 			return nil
 		case botsfwstore.WebhookUpdateClaimLeased:
-			http.Error(w, "webhook update is being processed", http.StatusServiceUnavailable)
+			response.writeError(http.StatusServiceUnavailable)
 			return nil
 		case botsfwstore.WebhookUpdateClaimAcquired:
 			leaseID = claim.LeaseID
@@ -187,7 +189,7 @@ func (d webhookDriver) processWebhookEntry(
 	}
 
 	for i, input := range entryWithInputs.Inputs {
-		if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
+		if err = d.processWebhookInput(ctx, response.writer, r, webhookHandler, botContext, i, input, handleError); err != nil {
 			return fmt.Errorf("process input[%d]: %w", i, err)
 		}
 	}
