@@ -1,5 +1,5 @@
-github.com/bots-go-framework/bots-fw-store v0.12.0 h1:oz2tCpsiTZ2WdeQhkG3H4vq44N24kxBUzXg1ie2nrRU=
-github.com/bots-go-framework/bots-fw-store v0.12.0/go.mod h1:0yS6Pg516jHIrIInv+kvWRWxXNGGqR4tlvRua8GfT20=
+github.com/bots-go-framework/bots-fw-store v0.14.1-0.20260725165959-023758cc8659 h1:ZF953xBKI5eSMzA+jENLnv/jXn33SXvGlpL9eA6sxqI=
+github.com/bots-go-framework/bots-fw-store v0.14.1-0.20260725165959-023758cc8659/go.mod h1:0yS6Pg516jHIrIInv+kvWRWxXNGGqR4tlvRua8GfT20=
 github.com/bots-go-framework/bots-go-core v0.2.5 h1:Uv9zb23yHJY/GnfEF6ocucAmfS12pwFHiig29ZoSqME=
 github.com/bots-go-framework/bots-go-core v0.2.5/go.mod h1:O/J3Q4HhTpbsbCL87Zhlf1BPtvfVp9UcfBWsc8D8ghw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

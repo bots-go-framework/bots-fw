@@ -11,6 +11,15 @@ type Entry interface {
 	GetTime() time.Time
 }
 
+// DurableWebhookEntry is implemented when a provider supplies a delivery ID
+// which remains stable across retries. Webhook drivers must use this capability
+// for durable deduplication rather than guessing whether Entry.GetID() is a
+// provider update ID.
+type DurableWebhookEntry interface {
+	Entry
+	WebhookUpdateID() (string, bool)
+}
+
 func GetBotInputTypeIdNameString(whInputType Type) string {
 	return fmt.Sprintf("%d:%s", whInputType, whInputType)
 }

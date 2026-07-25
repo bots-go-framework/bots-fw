@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 
+	"github.com/bots-go-framework/bots-fw-store/botsfwstore"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/strongo/analytics"
@@ -115,10 +117,8 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	}
 
 	for _, entryWithInputs := range entriesWithInputs {
-		for i, input := range entryWithInputs.Inputs {
-			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
-				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
-			}
+		if err = d.processWebhookEntry(ctx, response, r, webhookHandler, botContext, entryWithInputs, handleError); err != nil {
+			log.Errorf(ctx, "Failed to process webhook entry: %v", err)
 		}
 	}
 }
@@ -130,6 +130,128 @@ func (webhookDriver) handleProcessingError(ctx context.Context, response *webhoo
 	}
 	logus.Errorf(ctx, "%s: %v", operation, err)
 	response.writeError(http.StatusInternalServerError)
+}
+
+// processWebhookEntry leases one provider delivery and processes every input it
+// contains before completing it. An entry is the provider's atomic retry unit;
+// claiming per input would incorrectly suppress sibling inputs with the same
+// update ID.
+func (d webhookDriver) processWebhookEntry(
+	ctx context.Context,
+	response *webhookResponse, r *http.Request, webhookHandler botsfw.WebhookHandler,
+	botContext *botsfw.BotContext,
+	entryWithInputs botinput.EntryInputs,
+	handleError func(error, string),
+) (err error) {
+	updateID, hasUpdateID := webhookUpdateID(entryWithInputs.Entry)
+	store := botContext.BotSettings.Store
+	if store == nil {
+		err = fmt.Errorf("bot %q has no state store", botContext.BotSettings.Code)
+		handleError(err, "Failed to prepare webhook state")
+		return
+	}
+
+	var (
+		updateKey botsfwstore.WebhookUpdateKey
+		leaseID   string
+	)
+	if hasUpdateID {
+		updateKey = botsfwstore.WebhookUpdateKey{PlatformID: string(botContext.BotSettings.Platform), BotID: botContext.BotSettings.Code, UpdateID: updateID}
+		claim, claimErr := store.ClaimWebhookUpdate(ctx, updateKey, time.Now().UTC().Add(2*time.Minute))
+		if claimErr != nil {
+			err = fmt.Errorf("claim webhook update: %w", claimErr)
+			handleError(err, "Failed to claim webhook update")
+			return
+		}
+		switch claim.Status {
+		case botsfwstore.WebhookUpdateClaimCompleted:
+			if !response.isCommitted() {
+				response.writer.WriteHeader(http.StatusOK)
+			}
+			return nil
+		case botsfwstore.WebhookUpdateClaimLeased:
+			response.writeError(http.StatusServiceUnavailable)
+			return nil
+		case botsfwstore.WebhookUpdateClaimAcquired:
+			leaseID = claim.LeaseID
+		default:
+			err = fmt.Errorf("claim webhook update returned unknown status %q", claim.Status)
+			handleError(err, "Failed to claim webhook update")
+			return
+		}
+		defer func() {
+			if err != nil && leaseID != "" {
+				if failErr := store.FailWebhookUpdate(ctx, updateKey, leaseID, botsfwstore.WebhookUpdateFailureProcessing); failErr != nil {
+					log.Errorf(ctx, "failed to mark webhook update as failed: %v", failErr)
+				}
+			}
+		}()
+	}
+
+	for i, input := range entryWithInputs.Inputs {
+		if err = d.processWebhookInput(ctx, response.writer, r, webhookHandler, botContext, i, input, handleError); err != nil {
+			return fmt.Errorf("process input[%d]: %w", i, err)
+		}
+	}
+
+	if leaseID != "" {
+		if err = store.CompleteWebhookUpdate(ctx, updateKey, leaseID); err != nil {
+			err = fmt.Errorf("complete webhook update: %w", err)
+			handleError(err, "Failed to complete webhook update")
+			return
+		}
+	}
+	return nil
+}
+
+func webhookUpdateID(entry botinput.Entry) (string, bool) {
+	if entry == nil {
+		return "", false
+	}
+	if durableEntry, ok := entry.(botinput.DurableWebhookEntry); ok {
+		id, ok := durableEntry.WebhookUpdateID()
+		id = strings.TrimSpace(id)
+		if !ok || id == "" {
+			return "", false
+		}
+		return id, true
+	}
+
+	// Compatibility fallback for adapters that predate DurableWebhookEntry.
+	// It deliberately rejects absent and zero IDs, both of which conventionally
+	// mean the provider did not attach a durable delivery identifier.
+	switch id := entry.GetID().(type) {
+	case nil:
+		return "", false
+	case string:
+		id = strings.TrimSpace(id)
+		return id, id != ""
+	case int:
+		if id == 0 {
+			return "", false
+		}
+	case int32:
+		if id == 0 {
+			return "", false
+		}
+	case int64:
+		if id == 0 {
+			return "", false
+		}
+	case uint:
+		if id == 0 {
+			return "", false
+		}
+	case uint32:
+		if id == 0 {
+			return "", false
+		}
+	case uint64:
+		if id == 0 {
+			return "", false
+		}
+	}
+	return fmt.Sprint(entry.GetID()), true
 }
 
 func (d webhookDriver) processWebhookInput(
@@ -237,7 +359,6 @@ func (d webhookDriver) processWebhookInput(
 		handleError(err, "Failed to dispatch")
 		return
 	}
-
 	return
 }
 
