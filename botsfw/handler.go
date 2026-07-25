@@ -39,6 +39,13 @@ type WebhookHandler interface {
 	//ProcessInput(input webhookInput, entry *Entry)
 }
 
+// RouterResponderProvider is an optional host adapter seam. It lets an adapter
+// supply a router-only responder while WebhookContext retains the feature
+// responder used for direct sends.
+type RouterResponderProvider interface {
+	GetRouterResponder(WebhookContext, WebhookResponder) WebhookResponder
+}
+
 type CreateWebhookContextArgs struct {
 	HttpRequest  *http.Request // TODO: Can we get rid of it? Needed for botHost.GetHTTPClient()
 	AppContext   AppContext

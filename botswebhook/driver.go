@@ -191,9 +191,13 @@ func (d webhookDriver) processWebhookInput(
 	_ = whc.ChatData()
 
 	responder := webhookHandler.GetResponder(w, whc) // TODO: Move inside webhookHandler.CreateWebhookContext()?
+	routerResponder := responder
+	if provider, ok := webhookHandler.(botsfw.RouterResponderProvider); ok {
+		routerResponder = provider.GetRouterResponder(whc, responder)
+	}
 	router := botContext.BotSettings.Profile.Router()
 
-	if err = router.Dispatch(webhookHandler, responder, whc); err != nil {
+	if err = router.Dispatch(webhookHandler, routerResponder, whc); err != nil {
 		handleError(err, "Failed to dispatch")
 		return
 	}
