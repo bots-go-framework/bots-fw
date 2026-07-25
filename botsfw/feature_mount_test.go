@@ -9,8 +9,8 @@ import (
 
 func TestValidateFeatureMounts(t *testing.T) {
 	valid := []FeatureMount{
-		{ID: "home", Mode: FeatureMountDedicated, Commands: []CommandOwnership{{Code: "home", InputTypes: []botinput.Type{botinput.TypeText}}}},
-		{ID: "debtus", Mode: FeatureMountEmbedded, Namespace: "debtus", Navigator: "space", Capabilities: []string{"receipts"}, Commands: []CommandOwnership{{Code: "debtus_receipt", InputTypes: []botinput.Type{botinput.TypeCallbackQuery}}}},
+		{ID: "home", Mode: FeatureMountDedicated, Commands: []CommandOwnership{{Code: "dashboard", InputTypes: []botinput.Type{botinput.TypeText}}}},
+		{ID: "debtus", Mode: FeatureMountEmbedded, Namespace: "debtus", Navigator: "space", Capabilities: []CapabilityID{"receipts"}, Commands: []CommandOwnership{{Code: "debtus_receipt", InputTypes: []botinput.Type{botinput.TypeCallbackQuery}}}},
 	}
 	if err := ValidateFeatureMounts(valid); err != nil {
 		t.Fatalf("valid mounts: %v", err)
