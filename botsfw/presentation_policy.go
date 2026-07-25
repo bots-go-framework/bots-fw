@@ -22,6 +22,57 @@ type PresentationPolicy struct {
 	PersistentBottomKeyboard PersistentBottomKeyboardPolicy
 }
 
+// CommandResponseResponder is implemented by host-composed responders that
+// select presentation authority from the router's matched command, rather than
+// from data supplied by a feature message.
+type CommandResponseResponder interface {
+	ResponderForCommand(CommandCode) WebhookResponder
+}
+
+// NewCommandPolicyResponder makes router-return ownership depend on the command
+// codes selected by host composition. Direct sends retain feature ownership.
+func NewCommandPolicyResponder(next WebhookResponder, policy PresentationPolicy, hostCommands ...CommandCode) WebhookResponder {
+	if next == nil {
+		return nil
+	}
+	owned := make(map[CommandCode]struct{}, len(hostCommands))
+	for _, code := range hostCommands {
+		owned[code] = struct{}{}
+	}
+	return commandPolicyResponder{feature: newPolicyResponder(next, policy, false), host: next, policy: policy, hostCommands: owned}
+}
+
+type commandPolicyResponder struct {
+	feature      WebhookResponder
+	host         WebhookResponder
+	policy       PresentationPolicy
+	hostCommands map[CommandCode]struct{}
+}
+
+func (r commandPolicyResponder) SendMessage(ctx context.Context, m botmsg.MessageFromBot, channel botmsg.BotAPISendMessageChannel) (OnMessageSentResponse, error) {
+	return r.feature.SendMessage(ctx, m, channel)
+}
+
+func (r commandPolicyResponder) DeleteMessage(ctx context.Context, messageID string) error {
+	return r.feature.DeleteMessage(ctx, messageID)
+}
+
+func (r commandPolicyResponder) ResponderForCommand(code CommandCode) WebhookResponder {
+	if _, hostOwned := r.hostCommands[code]; hostOwned {
+		return newPolicyResponder(r.host, r.policy, true)
+	}
+	return r.feature
+}
+
+// ResponseResponderForCommand is called by the router after it has selected a
+// command. Only a host-composed responder can grant host presentation authority.
+func ResponseResponderForCommand(responder WebhookResponder, code CommandCode) WebhookResponder {
+	if scoped, ok := responder.(CommandResponseResponder); ok {
+		return scoped.ResponderForCommand(code)
+	}
+	return responder
+}
+
 func (p PresentationPolicy) Validate(m botmsg.MessageFromBot, hostOwned bool) error {
 	if !hasPersistentBottomKeyboard(m) {
 		return nil

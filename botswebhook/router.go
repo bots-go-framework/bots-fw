@@ -851,6 +851,11 @@ func (whRouter *webhooksRouter) processCommandResponse(
 	}
 
 	c := whc.Context()
+	if matchedCommand != nil {
+		// Router-return ownership comes from the command selected by the router;
+		// feature code cannot self-assert host presentation authority in a message.
+		responder = botsfw.ResponseResponderForCommand(responder, matchedCommand.Code)
+	}
 
 	responseChannel := m.ResponseChannel
 	if responseChannel == "" {

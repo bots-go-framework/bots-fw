@@ -66,3 +66,21 @@ func TestPresentationPolicyCannotBypassWithUnmarkedBottomKeyboard(t *testing.T) 
 		t.Fatal("bypassed policy reached responder")
 	}
 }
+
+func TestCommandPolicyResponderUsesRouterOwnedHostCommandOnly(t *testing.T) {
+	next := &presentationTestResponder{}
+	responder := NewCommandPolicyResponder(next, PresentationPolicy{PersistentBottomKeyboard: PersistentBottomKeyboardHostOnly}, "main_menu")
+	m := botmsg.MessageFromBot{Presentation: botmsg.Presentation{PersistentBottomKeyboard: true}}
+	if _, err := responder.SendMessage(context.Background(), m, BotAPISendMessageOverHTTPS); err == nil {
+		t.Fatal("direct feature send was granted host authority")
+	}
+	if _, err := ResponseResponderForCommand(responder, "debtus").SendMessage(context.Background(), m, BotAPISendMessageOverHTTPS); err == nil {
+		t.Fatal("embedded feature command was granted host authority")
+	}
+	if _, err := ResponseResponderForCommand(responder, "main_menu").SendMessage(context.Background(), m, BotAPISendMessageOverHTTPS); err != nil {
+		t.Fatalf("host router response: %v", err)
+	}
+	if next.sends != 1 {
+		t.Fatalf("host sends = %d, want 1", next.sends)
+	}
+}
