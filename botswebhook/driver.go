@@ -117,18 +117,8 @@ func (d webhookDriver) HandleWebhook(w http.ResponseWriter, r *http.Request, web
 	}
 
 	for _, entryWithInputs := range entriesWithInputs {
-		// Not every webhook provider exposes a durable delivery/update identifier.
-		// Preserve the legacy dispatch path for those adapters rather than turning
-		// every missing ID into the same (and therefore permanently suppressed)
-		// update. Money-changing actions still need their own idempotency key.
-		updateID := ""
-		if entryWithInputs.Entry != nil {
-			updateID = fmt.Sprint(entryWithInputs.Entry.GetID())
-		}
-		for i, input := range entryWithInputs.Inputs {
-			if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, updateID, i, input, handleError); err != nil {
-				log.Errorf(ctx, "Failed to process input[%v]: %v", i, err)
-			}
+		if err = d.processWebhookEntry(ctx, w, r, webhookHandler, botContext, entryWithInputs, handleError); err != nil {
+			log.Errorf(ctx, "Failed to process webhook entry: %v", err)
 		}
 	}
 }
@@ -142,11 +132,130 @@ func (webhookDriver) handleProcessingError(ctx context.Context, response *webhoo
 	response.writeError(http.StatusInternalServerError)
 }
 
+// processWebhookEntry leases one provider delivery and processes every input it
+// contains before completing it. An entry is the provider's atomic retry unit;
+// claiming per input would incorrectly suppress sibling inputs with the same
+// update ID.
+func (d webhookDriver) processWebhookEntry(
+	ctx context.Context,
+	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
+	botContext *botsfw.BotContext,
+	entryWithInputs botinput.EntryInputs,
+	handleError func(error, string),
+) (err error) {
+	updateID, hasUpdateID := webhookUpdateID(entryWithInputs.Entry)
+	store := botContext.BotSettings.Store
+	if store == nil {
+		err = fmt.Errorf("bot %q has no state store", botContext.BotSettings.Code)
+		handleError(err, "Failed to prepare webhook state")
+		return
+	}
+
+	var (
+		updateKey botsfwstore.WebhookUpdateKey
+		leaseID   string
+	)
+	if hasUpdateID {
+		updateKey = botsfwstore.WebhookUpdateKey{PlatformID: string(botContext.BotSettings.Platform), BotID: botContext.BotSettings.Code, UpdateID: updateID}
+		claim, claimErr := store.ClaimWebhookUpdate(ctx, updateKey, time.Now().UTC().Add(2*time.Minute))
+		if claimErr != nil {
+			err = fmt.Errorf("claim webhook update: %w", claimErr)
+			handleError(err, "Failed to claim webhook update")
+			return
+		}
+		switch claim.Status {
+		case botsfwstore.WebhookUpdateClaimCompleted:
+			w.WriteHeader(http.StatusOK)
+			return nil
+		case botsfwstore.WebhookUpdateClaimLeased:
+			http.Error(w, "webhook update is being processed", http.StatusServiceUnavailable)
+			return nil
+		case botsfwstore.WebhookUpdateClaimAcquired:
+			leaseID = claim.LeaseID
+		default:
+			err = fmt.Errorf("claim webhook update returned unknown status %q", claim.Status)
+			handleError(err, "Failed to claim webhook update")
+			return
+		}
+		defer func() {
+			if err != nil && leaseID != "" {
+				if failErr := store.FailWebhookUpdate(ctx, updateKey, leaseID, botsfwstore.WebhookUpdateFailureProcessing); failErr != nil {
+					log.Errorf(ctx, "failed to mark webhook update as failed: %v", failErr)
+				}
+			}
+		}()
+	}
+
+	for i, input := range entryWithInputs.Inputs {
+		if err = d.processWebhookInput(ctx, w, r, webhookHandler, botContext, i, input, handleError); err != nil {
+			return fmt.Errorf("process input[%d]: %w", i, err)
+		}
+	}
+
+	if leaseID != "" {
+		if err = store.CompleteWebhookUpdate(ctx, updateKey, leaseID); err != nil {
+			err = fmt.Errorf("complete webhook update: %w", err)
+			handleError(err, "Failed to complete webhook update")
+			return
+		}
+	}
+	return nil
+}
+
+func webhookUpdateID(entry botinput.Entry) (string, bool) {
+	if entry == nil {
+		return "", false
+	}
+	if durableEntry, ok := entry.(botinput.DurableWebhookEntry); ok {
+		id, ok := durableEntry.WebhookUpdateID()
+		id = strings.TrimSpace(id)
+		if !ok || id == "" {
+			return "", false
+		}
+		return id, true
+	}
+
+	// Compatibility fallback for adapters that predate DurableWebhookEntry.
+	// It deliberately rejects absent and zero IDs, both of which conventionally
+	// mean the provider did not attach a durable delivery identifier.
+	switch id := entry.GetID().(type) {
+	case nil:
+		return "", false
+	case string:
+		id = strings.TrimSpace(id)
+		return id, id != ""
+	case int:
+		if id == 0 {
+			return "", false
+		}
+	case int32:
+		if id == 0 {
+			return "", false
+		}
+	case int64:
+		if id == 0 {
+			return "", false
+		}
+	case uint:
+		if id == 0 {
+			return "", false
+		}
+	case uint32:
+		if id == 0 {
+			return "", false
+		}
+	case uint64:
+		if id == 0 {
+			return "", false
+		}
+	}
+	return fmt.Sprint(entry.GetID()), true
+}
+
 func (d webhookDriver) processWebhookInput(
 	ctx context.Context,
 	w http.ResponseWriter, r *http.Request, webhookHandler botsfw.WebhookHandler,
 	botContext *botsfw.BotContext,
-	updateID string,
 	i int,
 	input botinput.InputMessage,
 	handleError func(err error, message string),
@@ -154,9 +263,7 @@ func (d webhookDriver) processWebhookInput(
 	err error,
 ) {
 	var (
-		whc       botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
-		updateKey botsfwstore.WebhookUpdateKey
-		leaseID   string
+		whc botsfw.WebhookContext // TODO: How do deal with Facebook multiple entries per request?
 	)
 
 	defer func() {
@@ -228,35 +335,6 @@ func (d webhookDriver) processWebhookInput(
 		handleError(err, "Failed to prepare webhook state")
 		return
 	}
-	if updateID != "" {
-		updateKey = botsfwstore.WebhookUpdateKey{PlatformID: string(botContext.BotSettings.Platform), BotID: botContext.BotSettings.Code, UpdateID: updateID}
-		claim, claimErr := store.ClaimWebhookUpdate(ctx, updateKey, time.Now().UTC().Add(2*time.Minute))
-		if claimErr != nil {
-			return fmt.Errorf("claim webhook update: %w", claimErr)
-		}
-		switch claim.Status {
-		case botsfwstore.WebhookUpdateClaimCompleted:
-			w.WriteHeader(http.StatusOK)
-			return nil
-		case botsfwstore.WebhookUpdateClaimLeased:
-			// A live owner may still commit the side effect. Do not acknowledge this
-			// delivery as complete: Telegram will retry the same update after the
-			// lease expires if the owner crashes.
-			http.Error(w, "webhook update is being processed", http.StatusServiceUnavailable)
-			return nil
-		case botsfwstore.WebhookUpdateClaimAcquired:
-			leaseID = claim.LeaseID
-		default:
-			return fmt.Errorf("claim webhook update returned unknown status %q", claim.Status)
-		}
-		defer func() {
-			if err != nil && leaseID != "" {
-				if failErr := store.FailWebhookUpdate(ctx, updateKey, leaseID, err); failErr != nil {
-					log.Errorf(ctx, "failed to mark webhook update as failed: %v", failErr)
-				}
-			}
-		}()
-	}
 	whcArgs := botsfw.NewCreateWebhookContextArgs(r, botContext.AppContext, *botContext, input, store)
 	if whc, err = webhookHandler.CreateWebhookContext(whcArgs); err != nil {
 		handleError(err, "Failed to create WebhookContext")
@@ -279,13 +357,6 @@ func (d webhookDriver) processWebhookInput(
 		handleError(err, "Failed to dispatch")
 		return
 	}
-	if leaseID != "" {
-		if err = store.CompleteWebhookUpdate(ctx, updateKey, leaseID); err != nil {
-			handleError(err, "Failed to complete webhook update")
-			return
-		}
-	}
-
 	return
 }
 
