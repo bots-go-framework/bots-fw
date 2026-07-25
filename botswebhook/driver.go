@@ -17,6 +17,8 @@ import (
 // ErrorIcon is used to report errors to user
 var ErrorIcon = "🚨"
 
+const panicUserMessage = "Internal error. Please try again later."
+
 // webhookDriver keeps information about bots and map requests to appropriate handlers
 type webhookDriver struct {
 	Analytics       AnalyticsSettings
@@ -143,30 +145,42 @@ func (d webhookDriver) processWebhookInput(
 
 			// Initiate Google Analytics Measurement API client
 
-			if analyticsEnabled := d.Analytics.Enabled != nil && d.Analytics.Enabled(r) || botContext.BotSettings.Env == botsfw.EnvProduction; analyticsEnabled {
-				d.reportPanicToAnalytics(ctx, whc, messageText)
+			var analyticsEnabled bool
+			runPanicRecoveryStep(ctx, "check analytics configuration", func() {
+				analyticsEnabled = d.Analytics.Enabled != nil && d.Analytics.Enabled(r) || botContext.BotSettings.Env == botsfw.EnvProduction
+			})
+			if analyticsEnabled {
+				if whc != nil {
+					runPanicRecoveryStep(ctx, "report panic to analytics", func() {
+						d.reportPanicToAnalytics(ctx, whc, messageText)
+					})
+				} else {
+					log.Warningf(ctx, "not reporting panic to analytics: webhook context is unavailable")
+				}
 			} else {
 				log.Debugf(ctx, "botContext.BotSettings.Env=%s, analyticsEnabled=%t", botContext.BotSettings.Env, analyticsEnabled)
 			}
 
 			if whc != nil {
-				var chatID string
-				if chatID, err = whc.Input().BotChatID(); err == nil && chatID != "" {
-					if responder := whc.Responder(); responder != nil {
-						m := whc.NewMessage(ErrorIcon + " " + messageText)
-						if _, err = botsfw.SendMessageThroughGate(ctx, responder, m, botsfw.BotAPISendMessageOverResponse); err != nil {
-							if botsfw.IsSendNotPermitted(err) {
-								// A gated platform will not accept an unsolicited
-								// message here. Reporting the panic to the user is
-								// best-effort; the panic is already logged and sent
-								// to analytics above.
-								log.Warningf(ctx, "not reporting error to user: %v", err)
-							} else {
-								log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
+				runPanicRecoveryStep(ctx, "report panic to user", func() {
+					var chatID string
+					if chatID, err = whc.Input().BotChatID(); err == nil && chatID != "" {
+						if responder := whc.Responder(); responder != nil {
+							m := whc.NewMessage(ErrorIcon + " " + panicUserMessage)
+							if _, err = botsfw.SendMessageThroughGate(ctx, responder, m, botsfw.BotAPISendMessageOverResponse); err != nil {
+								if botsfw.IsSendNotPermitted(err) {
+									// A gated platform will not accept an unsolicited
+									// message here. Reporting the panic to the user is
+									// best-effort; the panic is already logged and sent
+									// to analytics above.
+									log.Warningf(ctx, "not reporting error to user: %v", err)
+								} else {
+									log.Errorf(ctx, fmt.Errorf("failed to report error to user: %w", err).Error())
+								}
 							}
 						}
 					}
-				}
+				})
 			}
 		}
 	}()
@@ -203,6 +217,15 @@ func (d webhookDriver) processWebhookInput(
 	}
 
 	return
+}
+
+func runPanicRecoveryStep(ctx context.Context, operation string, action func()) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			log.Criticalf(ctx, "panic recovery step failed: operation=%q, panic_type=%T", operation, recovered)
+		}
+	}()
+	action()
 }
 
 func (webhookDriver) invalidContextOrInputs(c context.Context, w http.ResponseWriter, r *http.Request, botContext *botsfw.BotContext, entriesWithInputs []botinput.EntryInputs, err error) bool {
