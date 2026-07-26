@@ -60,6 +60,39 @@ needed.
 		)
 	}
 
+### Published command ordering
+
+Bot profiles can preserve their declared command order, sort all commands
+alphabetically, or pin important commands above an alphabetical remainder:
+
+```go
+translations := botsfw.BotTranslations{
+	Commands: []botsfw.BotCommand{
+		{Command: "find", Description: "Find something"},
+		{Command: "sports", Description: "Open sports"},
+		{Command: "main", Description: "Open the main menu"},
+	},
+}
+profile := botsfw.NewBotProfile(
+	"profile_id",
+	router,
+	newBotChatData,
+	newBotUserData,
+	defaultLocale,
+	supportedLocales,
+	translations,
+	botsfw.WithPublishedCommandOrder(
+		botsfw.BotCommandOrderPinnedThenAlphabetical,
+		"main",
+		"sports",
+	),
+)
+```
+
+Pinned command codes are required configuration: every pinned code must occur
+exactly once in `Commands`. Invalid profile configuration fails fast instead of
+silently publishing a missing or duplicated command.
+
 ## 🤖 Sample bots built with Strongo Bots Framework
 
 The best way to learn is to see examples of usage. Here is few:

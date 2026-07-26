@@ -2,15 +2,105 @@ package botsfw
 
 import (
 	"errors"
+	"fmt"
+	"slices"
+	"sort"
+	"strings"
+
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/strongo/i18n"
-	"strings"
+)
+
+type BotCommandOrder string
+
+const (
+	// BotCommandOrderDeclared preserves the order in BotTranslations.Commands.
+	BotCommandOrderDeclared BotCommandOrder = ""
+	// BotCommandOrderAlphabetical orders all published commands by command code.
+	BotCommandOrderAlphabetical BotCommandOrder = "alphabetical"
+	// BotCommandOrderPinnedThenAlphabetical puts explicitly pinned commands
+	// first and orders every remaining command by command code.
+	BotCommandOrderPinnedThenAlphabetical BotCommandOrder = "pinned_then_alphabetical"
 )
 
 type BotTranslations struct {
 	Description      string
 	ShortDescription string
 	Commands         []BotCommand
+}
+
+// OrderBotCommands returns a copy arranged according to order.
+// pinnedCommands is only valid with BotCommandOrderPinnedThenAlphabetical,
+// and the supplied pin order is preserved.
+func OrderBotCommands(
+	commands []BotCommand,
+	order BotCommandOrder,
+	pinnedCommands ...string,
+) ([]BotCommand, error) {
+	orderedCommands := slices.Clone(commands)
+	switch order {
+	case BotCommandOrderDeclared:
+		if len(pinnedCommands) > 0 {
+			return nil, errors.New("pinned commands require pinned_then_alphabetical command order")
+		}
+		return orderedCommands, nil
+
+	case BotCommandOrderAlphabetical:
+		if len(pinnedCommands) > 0 {
+			return nil, errors.New("pinned commands require pinned_then_alphabetical command order")
+		}
+		sort.SliceStable(orderedCommands, func(i, j int) bool {
+			return orderedCommands[i].Command < orderedCommands[j].Command
+		})
+		return orderedCommands, nil
+
+	case BotCommandOrderPinnedThenAlphabetical:
+		pinnedOrder, err := pinnedCommandOrder(commands, pinnedCommands)
+		if err != nil {
+			return nil, err
+		}
+		sort.SliceStable(orderedCommands, func(i, j int) bool {
+			iPinnedOrder, iIsPinned := pinnedOrder[orderedCommands[i].Command]
+			jPinnedOrder, jIsPinned := pinnedOrder[orderedCommands[j].Command]
+			switch {
+			case iIsPinned && jIsPinned:
+				return iPinnedOrder < jPinnedOrder
+			case iIsPinned:
+				return true
+			case jIsPinned:
+				return false
+			default:
+				return orderedCommands[i].Command < orderedCommands[j].Command
+			}
+		})
+		return orderedCommands, nil
+
+	default:
+		return nil, fmt.Errorf("unknown bot command order: %q", order)
+	}
+}
+
+func pinnedCommandOrder(commands []BotCommand, pinnedCommands []string) (map[string]int, error) {
+	commandCounts := make(map[string]int, len(commands))
+	for _, command := range commands {
+		commandCounts[command.Command]++
+	}
+
+	pinnedOrder := make(map[string]int, len(pinnedCommands))
+	for i, commandCode := range pinnedCommands {
+		if _, ok := pinnedOrder[commandCode]; ok {
+			return nil, fmt.Errorf("published command %q is pinned more than once", commandCode)
+		}
+		switch commandCounts[commandCode] {
+		case 0:
+			return nil, fmt.Errorf("pinned published command %q is missing", commandCode)
+		case 1:
+			pinnedOrder[commandCode] = i
+		default:
+			return nil, fmt.Errorf("pinned published command %q is duplicated", commandCode)
+		}
+	}
+	return pinnedOrder, nil
 }
 
 type BotCommand struct {
@@ -42,6 +132,25 @@ type BotProfile interface {
 	NewBotChatData() botsfwmodels.BotChatData
 	NewPlatformUserData() botsfwmodels.PlatformUserData
 	GetTranslations() BotTranslations
+}
+
+type BotProfileOption func(*botProfileConfig)
+
+type botProfileConfig struct {
+	commandOrder   BotCommandOrder
+	pinnedCommands []string
+}
+
+// WithPublishedCommandOrder configures how a profile exposes its published
+// commands. Pinned command codes are required to occur exactly once.
+func WithPublishedCommandOrder(
+	order BotCommandOrder,
+	pinnedCommands ...string,
+) BotProfileOption {
+	return func(config *botProfileConfig) {
+		config.commandOrder = order
+		config.pinnedCommands = slices.Clone(pinnedCommands)
+	}
 }
 
 var _ BotProfile = (*botProfile)(nil)
@@ -92,6 +201,7 @@ func NewBotProfile(
 	defaultLocale i18n.Locale,
 	supportedLocales []i18n.Locale,
 	translations BotTranslations,
+	options ...BotProfileOption,
 ) BotProfile {
 	if strings.TrimSpace(id) == "" {
 		panic("missing required parameter: id")
@@ -112,6 +222,22 @@ func NewBotProfile(
 	if !defaultLocaleInSupportedLocales {
 		supportedLocales = append(supportedLocales, defaultLocale)
 	}
+	var config botProfileConfig
+	for i, option := range options {
+		if option == nil {
+			panic(fmt.Sprintf("nil bot profile option at index %d", i))
+		}
+		option(&config)
+	}
+	orderedCommands, err := OrderBotCommands(
+		translations.Commands,
+		config.commandOrder,
+		config.pinnedCommands...,
+	)
+	if err != nil {
+		panic(fmt.Sprintf("invalid published command order: %v", err))
+	}
+	translations.Commands = orderedCommands
 	return &botProfile{
 		id:               id,
 		router:           router,
