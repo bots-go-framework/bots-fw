@@ -7,7 +7,7 @@ go 1.25
 //replace github.com/bots-go-framework/bots-go-core => ../bots-go-core
 require (
 	github.com/bots-go-framework/bots-fw-store v0.14.1
-	github.com/bots-go-framework/bots-go-core v0.2.5
+	github.com/bots-go-framework/bots-go-core v0.2.6
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/strongo/analytics v0.2.5
