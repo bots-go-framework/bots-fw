@@ -107,6 +107,52 @@ func TestNewBotProfile(t *testing.T) {
 		assert.Equal(t, translations, profile.GetTranslations())
 	})
 
+	t.Run("applies_command_order", func(t *testing.T) {
+		translations := BotTranslations{
+			Commands: []BotCommand{
+				{Command: "watch", Description: "Watch"},
+				{Command: "sports", Description: "Sports"},
+				{Command: "main", Description: "Main"},
+			},
+		}
+
+		profile := NewBotProfile(
+			"ordered_bot",
+			nil,
+			newBotChatData,
+			newBotUserData,
+			locale,
+			nil,
+			translations,
+			WithPublishedCommandOrder(BotCommandOrderPinnedThenAlphabetical, "main"),
+		)
+
+		assert.Equal(t, []string{"main", "sports", "watch"}, botCommandCodes(profile.GetTranslations().Commands))
+	})
+
+	t.Run("panics_on_invalid_command_order", func(t *testing.T) {
+		translations := BotTranslations{
+			Commands: []BotCommand{{Command: "main", Description: "Main"}},
+		}
+
+		assert.PanicsWithValue(
+			t,
+			"invalid published command order: pinned commands require pinned_then_alphabetical command order",
+			func() {
+				NewBotProfile(
+					"invalid_order_bot",
+					nil,
+					newBotChatData,
+					newBotUserData,
+					locale,
+					nil,
+					translations,
+					WithPublishedCommandOrder(BotCommandOrderDeclared, "main"),
+				)
+			},
+		)
+	})
+
 	t.Run("default_locale_added_to_supported", func(t *testing.T) {
 		profile := NewBotProfile("bot1", nil, newBotChatData, newBotUserData, locale, nil, BotTranslations{})
 		supported := profile.SupportedLocales()
