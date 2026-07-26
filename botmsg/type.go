@@ -31,4 +31,13 @@ const (
 
 	// TypeChatAction shows a chat action indicator (e.g. "typing") in the target chat
 	TypeChatAction
+
+	// TypeSendRichMessage sends a native Telegram rich message.
+	TypeSendRichMessage
+
+	// TypeSendRichMessageDraft streams a temporary native Telegram rich-message draft.
+	TypeSendRichMessageDraft
+
+	// TypeEditRichMessage edits an existing native Telegram rich message.
+	TypeEditRichMessage
 )

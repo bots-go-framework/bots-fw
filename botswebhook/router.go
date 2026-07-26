@@ -891,7 +891,8 @@ func (whRouter *webhooksRouter) processCommandResponse(
 	// answer a successful callback unless the command supplied its own callback
 	// answer, otherwise Telegram leaves the client's "Loading…" indicator open.
 	if whc.Input().InputType() == botinput.TypeCallbackQuery &&
-		(m.BotMessage == nil || m.BotMessage.BotMessageType() != botmsg.TypeCallbackAnswer) {
+		(m.BotMessage == nil || m.BotMessage.BotMessageType() != botmsg.TypeCallbackAnswer) &&
+		!botsfw.WasCallbackQueryAcknowledged(whc) {
 		if callbackQuery, ok := whc.Input().(botinput.CallbackQuery); ok {
 			acknowledgeCallbackQuery(c, responder, callbackQuery)
 		} else {

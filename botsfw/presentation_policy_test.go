@@ -67,6 +67,20 @@ func TestPresentationPolicyCannotBypassWithUnmarkedBottomKeyboard(t *testing.T) 
 	}
 }
 
+func TestPresentationPolicyAcceptsTypedNilKeyboard(t *testing.T) {
+	next := &presentationTestResponder{}
+	responder := NewPolicyResponder(next, PresentationPolicy{PersistentBottomKeyboard: PersistentBottomKeyboardDeny})
+	var keyboard *botkb.MessageKeyboard
+	m := botmsg.MessageFromBot{}
+	m.Keyboard = keyboard
+	if _, err := responder.SendMessage(context.Background(), m, BotAPISendMessageOverHTTPS); err != nil {
+		t.Fatalf("typed nil keyboard: %v", err)
+	}
+	if next.sends != 1 {
+		t.Fatalf("delegate sends = %d, want 1", next.sends)
+	}
+}
+
 func TestCommandPolicyResponderUsesRouterOwnedHostCommandOnly(t *testing.T) {
 	next := &presentationTestResponder{}
 	responder := NewCommandPolicyResponder(next, PresentationPolicy{PersistentBottomKeyboard: PersistentBottomKeyboardHostOnly}, "main_menu")

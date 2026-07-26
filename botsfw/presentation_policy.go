@@ -3,6 +3,7 @@ package botsfw
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-go-core/botkb"
@@ -136,7 +137,21 @@ func hasPersistentBottomKeyboard(m botmsg.MessageFromBot) bool {
 }
 
 func keyboardIsBottom(keyboard botkb.Keyboard) bool {
-	return keyboard != nil && keyboard.KeyboardType() == botkb.KeyboardTypeBottom
+	if keyboard == nil {
+		return false
+	}
+	// A concrete nil pointer stored in an interface is itself non-nil. Feature
+	// renderers commonly assign an optional *MessageKeyboard to this interface,
+	// so guard every nil-capable implementation before invoking its value
+	// receiver method.
+	value := reflect.ValueOf(keyboard)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		if value.IsNil() {
+			return false
+		}
+	}
+	return keyboard.KeyboardType() == botkb.KeyboardTypeBottom
 }
 
 func (r policyResponder) DeleteMessage(ctx context.Context, messageID string) error {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -423,12 +424,21 @@ func (d webhookDriver) invalidContextOrInputs(c context.Context, response *webho
 }
 
 func isRunningLocally(host string) bool { // TODO(help-wanted): allow customization
-	result := host == "localhost" ||
-		strings.HasSuffix(host, ".ngrok.io") ||
-		strings.HasSuffix(host, ".ngrok.dev") ||
-		strings.HasSuffix(host, ".ngrok.app") ||
-		strings.HasSuffix(host, ".ngrok-free.app")
-	return result
+	hostname := strings.ToLower(strings.TrimSpace(host))
+	if parsedHost, _, err := net.SplitHostPort(hostname); err == nil {
+		hostname = parsedHost
+	}
+	hostname = strings.Trim(hostname, "[]")
+	if hostname == "localhost" {
+		return true
+	}
+	if ip := net.ParseIP(hostname); ip != nil && ip.IsLoopback() {
+		return true
+	}
+	return strings.HasSuffix(hostname, ".ngrok.io") ||
+		strings.HasSuffix(hostname, ".ngrok.dev") ||
+		strings.HasSuffix(hostname, ".ngrok.app") ||
+		strings.HasSuffix(hostname, ".ngrok-free.app")
 }
 
 func (webhookDriver) reportPanicToAnalytics(c context.Context, whc botsfw.WebhookContext, messageText string) {

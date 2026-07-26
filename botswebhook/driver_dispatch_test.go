@@ -17,6 +17,10 @@ func TestIsRunningLocally(t *testing.T) {
 		expected bool
 	}{
 		{"localhost", true},
+		{"localhost:8080", true},
+		{"127.0.0.1", true},
+		{"127.0.0.1:8080", true},
+		{"[::1]:8080", true},
 		{"abc123.ngrok.io", true},
 		{"abc123.ngrok.dev", true},
 		{"abc123.ngrok.app", true},
