@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw-store/botsfwmodels"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botmsg"
@@ -1009,7 +1010,7 @@ func acknowledgeCallbackQuery(ctx context.Context, responder botsfw.WebhookRespo
 // does not append a second HTTP error to the Telegram response body.
 func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookContext, matchedCommand *botsfw.Command, responder botsfw.WebhookResponder, err error) bool {
 	ctx := whc.Context()
-	// log.Errorf() we are logging this in dispatcher
+	logTelegramProviderError(ctx, err, logus.Errorf)
 	env := whc.GetBotSettings().Env
 
 	if env == botsfw.EnvProduction {
@@ -1059,6 +1060,25 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 		logus.Errorf(ctx, "Failed to process %v input by command{code=%s}: %v", inputType, matchedCommand.Code, inputType)
 	}
 	return false
+}
+
+// logTelegramProviderError records Telegram's structured diagnostic when a
+// command response fails. TelegramProviderErrorDetailsFrom intentionally
+// excludes the bot token, request URL, request parameters, and raw response
+// body; Error() stays redacted for user-facing messages.
+func logTelegramProviderError(ctx context.Context, err error, errorf func(context.Context, string, ...any)) bool {
+	details, ok := tgbotapi.TelegramProviderErrorDetailsFrom(err)
+	if !ok {
+		return false
+	}
+	errorf(
+		ctx,
+		"Telegram API provider error: method=%q, error_code=%d, description=%q",
+		details.Method,
+		details.ErrorCode,
+		details.Description,
+	)
+	return true
 }
 
 // callbackErrorText returns a short, user-safe explanation for a failed inline

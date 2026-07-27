@@ -3,9 +3,13 @@ package botswebhook
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
 	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsfw"
@@ -16,6 +20,12 @@ import (
 	"github.com/strongo/validation"
 	"go.uber.org/mock/gomock"
 )
+
+type telegramProviderRoundTripper func(*http.Request) (*http.Response, error)
+
+func (f telegramProviderRoundTripper) RoundTrip(request *http.Request) (*http.Response, error) {
+	return f(request)
+}
 
 // --- Combined input types (embed MockInputMessage + specific interface) ---
 
@@ -1245,6 +1255,50 @@ func TestProcessCommandResponse_WithResponseChannel(t *testing.T) {
 }
 
 // ======================== processCommandResponseError ========================
+
+func TestLogTelegramProviderError_LogsDescriptionButKeepsErrorRedacted(t *testing.T) {
+	const (
+		token              = "123456:PRIVATE-BOT-TOKEN"
+		description        = "RICH_MESSAGE_DATE_TIME_FORMAT_INVALID"
+		responseBodyCanary = "PRIVATE-TELEGRAM-RESPONSE-BODY"
+	)
+	responseBody := `{"ok":false,"error_code":400,"description":"` + description + `","parameters":{"canary":"` + responseBodyCanary + `"}}`
+	bot := tgbotapi.NewBotAPIWithClient(token, &http.Client{
+		Transport: telegramProviderRoundTripper(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode:    http.StatusBadRequest,
+				ContentLength: int64(len(responseBody)),
+				Body:          io.NopCloser(strings.NewReader(responseBody)),
+			}, nil
+		}),
+	})
+	_, err := bot.MakeRequest("sendRichMessage", nil)
+	if err == nil {
+		t.Fatal("MakeRequest() error = nil, want Telegram provider error")
+	}
+	if got := err.Error(); strings.Contains(got, token) || strings.Contains(got, description) || strings.Contains(got, responseBodyCanary) {
+		t.Fatalf("user-visible Error() leaks provider details: %q", got)
+	}
+
+	var loggedFormat string
+	var loggedArgs []any
+	if ok := logTelegramProviderError(context.Background(), err, func(_ context.Context, format string, args ...any) {
+		loggedFormat = format
+		loggedArgs = args
+	}); !ok {
+		t.Fatal("logTelegramProviderError() = false, want true")
+	}
+	if got, want := loggedFormat, "Telegram API provider error: method=%q, error_code=%d, description=%q"; got != want {
+		t.Errorf("log format = %q, want %q", got, want)
+	}
+	if got, want := fmt.Sprint(loggedArgs), "[sendRichMessage 400 RICH_MESSAGE_DATE_TIME_FORMAT_INVALID]"; got != want {
+		t.Errorf("log args = %q, want %q", got, want)
+	}
+	logged := fmt.Sprintf(loggedFormat, loggedArgs...)
+	if strings.Contains(logged, token) || strings.Contains(logged, responseBodyCanary) {
+		t.Fatalf("structured log leaks token or response body: %q", logged)
+	}
+}
 
 func TestProcessCommandResponseError_ProductionEnv(t *testing.T) {
 	ctrl := gomock.NewController(t)
