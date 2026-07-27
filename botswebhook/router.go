@@ -1020,19 +1020,23 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 	switch inputType := whc.Input().InputType(); inputType {
 	case botinput.TypeText, botinput.TypeContact:
 		// TODO: Try to get botChat ID from user?
-		m := whc.NewMessage(
-			whc.Translate(botsfw.MessageTextOopsSomethingWentWrong) +
-				"\n\n" +
-				"💢" +
-				fmt.Sprintf(" Server error - failed to process message: %v", err),
-		)
-
+		var footer string
 		if whRouter.errorFooterText != nil {
 			args := ErrorFooterArgs{
 				BotCode:      whc.GetBotCode(),
 				BotProfileID: "", // TODO(help-wanted): implement!
 			}
-			if footer := whRouter.errorFooterText(ctx, args); footer != "" {
+			footer = whRouter.errorFooterText(ctx, args)
+		}
+		m, expandable := expandableUserErrorMessage(whc, err, footer)
+		if !expandable {
+			m = whc.NewMessage(
+				whc.Translate(botsfw.MessageTextOopsSomethingWentWrong) +
+					"\n\n" +
+					"💢" +
+					fmt.Sprintf(" Server error - failed to process message: %v", err),
+			)
+			if footer != "" {
 				m.Text += "\n\n" + footer
 			}
 		}

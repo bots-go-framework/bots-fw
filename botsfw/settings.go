@@ -75,6 +75,33 @@ type BotSettings struct {
 	// Store owns framework identity and chat state for this bot. It is a narrow
 	// use-case port, never a generic database handle.
 	Store botsfwstore.StateStore
+
+	// UserErrorDetails controls whether technical command-processing errors are
+	// available to the user. The zero value preserves the legacy presentation.
+	//
+	// This is deliberately a per-bot opt-in. A host that accepts the disclosure
+	// risk can select an expandable, same-message presentation without changing
+	// the policy of every bot served by the same framework process.
+	UserErrorDetails UserErrorDetailsPolicy
+}
+
+// UserErrorDetailsDisclosure describes how technical error details are exposed
+// to a bot user.
+type UserErrorDetailsDisclosure string
+
+const (
+	// UserErrorDetailsDisclosureLegacy preserves the existing error message.
+	UserErrorDetailsDisclosureLegacy UserErrorDetailsDisclosure = ""
+
+	// UserErrorDetailsDisclosureExpandable adds technical details to the same
+	// message in an expandable blockquote on Telegram. It avoids callback state,
+	// a second message, and Telegram's 64-byte callback-data limit.
+	UserErrorDetailsDisclosureExpandable UserErrorDetailsDisclosure = "expandable"
+)
+
+// UserErrorDetailsPolicy is an explicit host-level disclosure decision.
+type UserErrorDetailsPolicy struct {
+	Disclosure UserErrorDetailsDisclosure
 }
 
 // NewBotSettings configures bot application
