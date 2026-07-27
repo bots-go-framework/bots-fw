@@ -1,6 +1,7 @@
 package botswebhook
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/bots-go-framework/bots-api-telegram/tgbotapi"
+	"github.com/bots-go-framework/bots-fw/botinput"
 	"github.com/bots-go-framework/bots-fw/botmsg"
 	"github.com/bots-go-framework/bots-fw/botsfw"
 	"github.com/bots-go-framework/bots-fw/botsfwconst"
@@ -104,15 +106,17 @@ func TestExpandableUserErrorMessage_RedactsSecretsRequestBodiesAndPrivateState(t
 		webhookSecret     = "PRIVATE-WEBHOOK-SECRET"
 		authorization     = "PRIVATE-BEARER-CREDENTIAL"
 		requestBody       = `{"private":"RAW-REQUEST-BODY"}`
+		requestURL        = "https://api.telegram.org/bot123456:PRIVATE-BOT-TOKEN/sendMessage?body=RAW-REQUEST-BODY"
 		walletPrivateData = "WALLET-BALANCE-AND-NONCE"
 		gamePrivateData   = "PRIVATE-CARDS"
 	)
 	err := fmt.Errorf(
-		"delivery failed token=%s\npayment_token=%s\nwebhook_secret=%s\nAuthorization: Bearer %s\nrequest body=%s\nwallet_private_state=%s\ngame_private_state=%s",
+		"delivery failed token=%s\npayment_token=%s\nwebhook_secret=%s\nAuthorization: Bearer %s\nrequest URL=%s\nrequest body=%s\nwallet_private_state=%s\ngame_private_state=%s",
 		botToken,
 		paymentToken,
 		webhookSecret,
 		authorization,
+		requestURL,
 		requestBody,
 		walletPrivateData,
 		gamePrivateData,
@@ -145,6 +149,8 @@ func TestExpandableUserErrorMessage_RedactsSecretsRequestBodiesAndPrivateState(t
 		paymentToken,
 		webhookSecret,
 		authorization,
+		requestURL,
+		"api.telegram.org",
 		requestBody,
 		"RAW-REQUEST-BODY",
 		walletPrivateData,
@@ -168,6 +174,69 @@ func TestExpandableUserErrorMessage_RequiresExplicitPerBotOptIn(t *testing.T) {
 
 	if _, ok := expandableUserErrorMessage(whc, fmt.Errorf("private error"), ""); ok {
 		t.Fatal("expandableUserErrorMessage() = true without opt-in")
+	}
+}
+
+func TestProcessCommandResponseError_RetriesPlainTextAfterTelegramRejectsExpandableHTML(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	im := newMockIM(ctrl, botinput.TypeText)
+	whc := mock_botsfw.NewMockWebhookContext(ctrl)
+	settings := &botsfw.BotSettings{
+		Env:      botsfw.EnvProduction,
+		Platform: botsfwconst.PlatformTelegram,
+		Token:    "123456:BOT-TOKEN",
+		UserErrorDetails: botsfw.UserErrorDetailsPolicy{
+			Disclosure: botsfw.UserErrorDetailsDisclosureExpandable,
+		},
+	}
+	whc.EXPECT().Context().Return(context.Background()).AnyTimes()
+	whc.EXPECT().Input().Return(im).AnyTimes()
+	whc.EXPECT().GetBotSettings().Return(settings).AnyTimes()
+	whc.EXPECT().GetBotCode().Return("SneatBot").AnyTimes()
+	whc.EXPECT().Locale().Return(i18n.LocaleEnUK).AnyTimes()
+	whc.EXPECT().Request().Return(&http.Request{Header: make(http.Header)}).AnyTimes()
+	whc.EXPECT().Translate(botsfw.MessageTextOopsSomethingWentWrong).Return("Friendly oops")
+	whc.EXPECT().NewMessage(gomock.Any()).DoAndReturn(func(text string) botmsg.MessageFromBot {
+		return botmsg.MessageFromBot{TextMessageFromBot: botmsg.TextMessageFromBot{Text: text}}
+	})
+	analytics := mock_botsfw.NewMockWebhookAnalytics(ctrl)
+	analytics.EXPECT().Enqueue(gomock.Any())
+	whc.EXPECT().Analytics().Return(analytics)
+
+	htmlRejection := newTelegramProviderError(t, settings.Token, http.StatusBadRequest, "Bad Request: can't parse entities")
+	responder := mock_botsfw.NewMockWebhookResponder(ctrl)
+	gomock.InOrder(
+		responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+			DoAndReturn(func(_ context.Context, message botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
+				if message.Format != botmsg.FormatHTML {
+					t.Errorf("first message format = %v, want HTML", message.Format)
+				}
+				return botsfw.OnMessageSentResponse{}, htmlRejection
+			}),
+		responder.EXPECT().SendMessage(gomock.Any(), gomock.Any(), botsfw.BotAPISendMessageOverResponse).
+			DoAndReturn(func(_ context.Context, message botmsg.MessageFromBot, _ botmsg.BotAPISendMessageChannel) (botsfw.OnMessageSentResponse, error) {
+				if message.Format != botmsg.FormatText {
+					t.Errorf("fallback message format = %v, want plain text", message.Format)
+				}
+				if strings.Contains(message.Text, "<blockquote") || strings.Contains(message.Text, "<code>") {
+					t.Errorf("plain fallback still contains HTML: %s", message.Text)
+				}
+				if !strings.Contains(message.Text, "🔎 Technical details") ||
+					!strings.Contains(message.Text, "storage unavailable") {
+					t.Errorf("plain fallback lost safe technical details: %s", message.Text)
+				}
+				return botsfw.OnMessageSentResponse{}, nil
+			}),
+	)
+
+	router := NewWebhookRouter(nil).(*webhooksRouter)
+	if handled := router.processCommandResponseError(
+		whc,
+		&botsfw.Command{Code: "test"},
+		responder,
+		fmt.Errorf("storage unavailable"),
+	); !handled {
+		t.Fatal("processCommandResponseError() = false after successful plain fallback")
 	}
 }
 

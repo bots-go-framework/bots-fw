@@ -23,8 +23,9 @@ var sensitiveErrorPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)\b(raw[_ -]?)?(http[_ -]?)?request[_ -]?body\s*[:=]\s*.*`),
 	regexp.MustCompile(`(?i)\b(wallet|game)[_ -]?private[_ -]?state\s*[:=]\s*.*`),
 	regexp.MustCompile(`(?i)\b(private[_ -]?state)\s*[:=]\s*.*`),
-	regexp.MustCompile(`(?i)https?://[^/\s:@]+:[^/\s@]+@`),
 }
+
+var userVisibleURLPattern = regexp.MustCompile(`(?i)https?://[^\s<>"']+`)
 
 type userErrorCopy struct {
 	technicalDetails      string
@@ -82,7 +83,7 @@ func expandableUserErrorMessage(whc botsfw.WebhookContext, err error, footer str
 	var visibleLines []string
 	if isProviderRejection {
 		visibleLines = append(visibleLines, copy.providerRejected)
-		reason := conciseProviderReason(providerDetails.Description)
+		reason := conciseProviderReason(redactUserVisibleURLs(providerDetails.Description))
 		if reason != "" {
 			visibleLines = append(visibleLines, copy.reason+": "+reason)
 		}
@@ -105,6 +106,23 @@ func expandableUserErrorMessage(whc botsfw.WebhookContext, err error, footer str
 	)
 	message.Format = botmsg.FormatHTML
 	return message, true
+}
+
+func isTelegramProviderRejection(err error) bool {
+	details, ok := tgbotapi.TelegramProviderErrorDetailsFrom(err)
+	return ok &&
+		details.ErrorCode >= http.StatusBadRequest &&
+		details.ErrorCode < http.StatusInternalServerError
+}
+
+func plainUserErrorFallback(message botmsg.MessageFromBot) botmsg.MessageFromBot {
+	message.Text = html.UnescapeString(strings.NewReplacer(
+		"\n\n<blockquote expandable><b>", "\n\n",
+		"</b>\n<code>", "\n",
+		"</code></blockquote>", "",
+	).Replace(message.Text))
+	message.Format = botmsg.FormatText
+	return message
 }
 
 func conciseProviderReason(description string) string {
@@ -134,7 +152,7 @@ func technicalErrorDetails(
 			lines,
 			fmt.Sprintf("%s: %s", copy.method, providerDetails.Method),
 			fmt.Sprintf("%s: %d", copy.code, providerDetails.ErrorCode),
-			fmt.Sprintf("%s: %s", copy.description, providerDetails.Description),
+			fmt.Sprintf("%s: %s", copy.description, redactUserVisibleURLs(providerDetails.Description)),
 		)
 	}
 	if requestID := requestCorrelationID(whc.Request()); requestID != "" {
@@ -168,21 +186,20 @@ func redactUserErrorText(value string, settings *botsfw.BotSettings) string {
 	for _, pattern := range sensitiveErrorPatterns {
 		value = pattern.ReplaceAllStringFunc(value, redactSensitiveMatch)
 	}
-	return value
+	return redactUserVisibleURLs(value)
 }
 
 func redactSensitiveMatch(match string) string {
-	if strings.HasPrefix(strings.ToLower(match), "http://") ||
-		strings.HasPrefix(strings.ToLower(match), "https://") {
-		schemeEnd := strings.Index(match, "://") + len("://")
-		return match[:schemeEnd] + "[REDACTED]@"
-	}
 	for _, separator := range []string{":", "="} {
 		if i := strings.Index(match, separator); i >= 0 {
 			return match[:i+1] + " [REDACTED]"
 		}
 	}
 	return "[REDACTED]"
+}
+
+func redactUserVisibleURLs(value string) string {
+	return userVisibleURLPattern.ReplaceAllString(value, "[REDACTED URL]")
 }
 
 func errorChain(err error) []string {

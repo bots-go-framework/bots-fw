@@ -1041,6 +1041,19 @@ func (whRouter *webhooksRouter) processCommandResponseError(whc botsfw.WebhookCo
 			}
 		}
 		if _, respErr := responder.SendMessage(ctx, m, botsfw.BotAPISendMessageOverResponse); respErr != nil {
+			if expandable && isTelegramProviderRejection(respErr) {
+				logTelegramProviderError(ctx, respErr, logus.Errorf)
+				plainFallback := plainUserErrorFallback(m)
+				if _, fallbackErr := responder.SendMessage(
+					ctx,
+					plainFallback,
+					botsfw.BotAPISendMessageOverResponse,
+				); fallbackErr == nil {
+					return true
+				} else {
+					log.Errorf(ctx, "Failed to report a plain-text fallback error to user for command %T: %v", matchedCommand, fallbackErr)
+				}
+			}
 			log.Errorf(ctx, "Failed to report to user a server error for command %T: %v", matchedCommand, respErr)
 			return false
 		}
