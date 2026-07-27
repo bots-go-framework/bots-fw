@@ -107,3 +107,73 @@ func TestWebhookContextBase_UsesStateStoreForIdentityAndChat(t *testing.T) {
 		t.Fatalf("store calls = access:%d save:%d", accessCalls, saveCalls)
 	}
 }
+
+func TestWebhookContextBase_AppUserIDLinksChatlessPlatformIdentity(t *testing.T) {
+	var ensureCalls int
+	store := &botsfwstoretest.FakeStateStore{}
+	store.EnsureLinkedFunc = func(
+		_ context.Context,
+		request botsfwstore.LinkRequest,
+	) (botsfwstore.LinkedIdentity, error) {
+		ensureCalls++
+		if request.Identity.ChatID != "" {
+			t.Fatalf("chatless identity unexpectedly has chat ID %q", request.Identity.ChatID)
+		}
+		if request.NewChatData != nil {
+			t.Fatal("chatless identity must not create chat data")
+		}
+		platformData, err := request.NewPlatformUserData("app-inline")
+		if err != nil {
+			return botsfwstore.LinkedIdentity{}, err
+		}
+		return botsfwstore.LinkedIdentity{
+			AppUser:      botsfwstore.AppUser{ID: "app-inline"},
+			PlatformUser: botsfwstore.PlatformUser{ID: request.Identity.BotUserID, Data: platformData},
+		}, nil
+	}
+
+	request, err := http.NewRequest(http.MethodPost, "/webhook", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := newTestProfile("store-test-inline")
+	settings := &BotSettings{
+		Code: "bot-1", Token: "token", Locale: i18n.LocaleEnUS,
+		Profile: profile, Store: store,
+	}
+	input := &moreTestInputMessage{
+		inputType: botinput.TypeInlineQuery,
+		senderID:  "user-inline",
+		firstName: "Ada",
+		language:  "ru",
+	}
+	whc, err := NewWebhookContextBase(
+		CreateWebhookContextArgs{
+			HttpRequest:  request,
+			AppContext:   testAppContext{},
+			BotContext:   BotContext{BotHost: testBotHost{}, BotSettings: settings},
+			WebhookInput: input,
+			Store:        store,
+		},
+		testBotPlatformMore{},
+		storeTestFieldsSetter{},
+		func() (bool, error) { return false, nil },
+		func(context.Context) (string, string, error) { return "", "", nil },
+	)
+	if err != nil {
+		t.Fatalf("NewWebhookContextBase() error: %v", err)
+	}
+
+	if got := whc.AppUserID(); got != "app-inline" {
+		t.Fatalf("AppUserID() = %q, want app-inline", got)
+	}
+	if ensureCalls != 1 {
+		t.Fatalf("EnsureLinked() calls = %d, want 1", ensureCalls)
+	}
+	if got := whc.AppUserID(); got != "app-inline" || ensureCalls != 1 {
+		t.Fatalf("second AppUserID() = %q, EnsureLinked calls = %d", got, ensureCalls)
+	}
+	if whc.ChatData() != nil {
+		t.Fatal("chatless inline query unexpectedly created chat data")
+	}
+}

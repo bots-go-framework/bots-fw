@@ -169,7 +169,63 @@ func (whcb *WebhookContextBase) AppUserID() string {
 	if whcb.ChatData() != nil && whcb.linkedIdentity != nil {
 		whcb.SetUser(whcb.linkedIdentity.AppUser.ID, whcb.linkedIdentity.AppUser.Data)
 	}
+	if whcb.appUserID == "" {
+		chatID, err := whcb.BotChatID()
+		if err != nil {
+			panic(fmt.Errorf("resolve bot chat before linking application user: %w", err))
+		}
+		if chatID == "" {
+			whcb.linkIdentityWithoutChat()
+		}
+	}
 	return whcb.appUserID
+}
+
+// linkIdentityWithoutChat resolves the platform user for chat-independent
+// updates such as Telegram inline queries. Identity linking belongs to the
+// platform user, not to a bot chat; a chat record is therefore optional.
+func (whcb *WebhookContextBase) linkIdentityWithoutChat() {
+	if whcb.linkedIdentity != nil {
+		whcb.SetUser(
+			whcb.linkedIdentity.AppUser.ID,
+			whcb.linkedIdentity.AppUser.Data,
+		)
+		return
+	}
+	if whcb.recordsFieldsSetter == nil {
+		panic("whcb.recordsFieldsSetter == nil")
+	}
+	sender := whcb.input.GetSender()
+	identity := whcb.identity("")
+	request := botsfwstore.LinkRequest{
+		Identity:             identity,
+		ReadPlatformUserData: whcb.botContext.BotSettings.Profile.NewPlatformUserData,
+		NewPlatformUserData: func(appUserID string) (botsfwmodels.PlatformUserData, error) {
+			data := whcb.botContext.BotSettings.Profile.NewPlatformUserData()
+			if data == nil {
+				return nil, errors.New("bot profile returned nil platform-user data")
+			}
+			if err := whcb.recordsFieldsSetter.SetBotUserFields(
+				data,
+				sender,
+				identity.BotID,
+				identity.BotUserID,
+				appUserID,
+			); err != nil {
+				return nil, fmt.Errorf("set platform-user fields: %w", err)
+			}
+			return data, nil
+		},
+	}
+	if err := request.Validate(); err != nil {
+		panic(fmt.Errorf("invalid chatless identity-link request: %w", err))
+	}
+	linked, err := whcb.store.EnsureLinked(whcb.Context(), request)
+	if err != nil {
+		panic(fmt.Errorf("ensure linked chatless bot identity: %w", err))
+	}
+	whcb.linkedIdentity = &linked
+	whcb.SetUser(linked.AppUser.ID, linked.AppUser.Data)
 }
 
 func (whcb *WebhookContextBase) identity(chatID string) botsfwstore.Identity {
