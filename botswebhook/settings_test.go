@@ -36,7 +36,6 @@ func TestNewBotSettings(t *testing.T) {
 		assert.Equal(t, code, bs.Code)
 		assert.Equal(t, token, bs.Token)
 		assert.Equal(t, localeCode5, bs.Locale.Code5)
-<<<<<<< HEAD
 		assert.Equal(t, gaToken, bs.GAToken) //nolint:staticcheck // intentionally testing deprecated field backward compatibility; UA was retired 2024-07-01
 	}
 
