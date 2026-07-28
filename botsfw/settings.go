@@ -48,7 +48,13 @@ type BotSettings struct {
 	// VerifyToken is used by Facebook Messenger - TODO: Document how it is used and add a link to Facebook docs
 	VerifyToken string
 
-	// GAToken is Google Analytics token - TODO: Refactor tu support multiple or move out
+	// GAToken is the Google Analytics tracking ID that was fed to the legacy
+	// Universal Analytics gamp (Measurement Protocol v1) path.
+	//
+	// Deprecated: Universal Analytics was shut down by Google on 1 July 2024; this
+	// field no longer has any effect on GA traffic. Wire a GA4 sink instead —
+	// e.g. create a github.com/strongo/analytics2ga4 sender and register it with
+	// analytics.AddSender() in your bot's initialisation code.
 	GAToken string
 
 	// WebhookSecretToken is the secret Telegram (or other platform) sends back on every
