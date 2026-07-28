@@ -175,7 +175,7 @@ func redactUserErrorText(value string, settings *botsfw.BotSettings) string {
 		settings.PaymentToken,
 		settings.PaymentTestToken,
 		settings.VerifyToken,
-		settings.GAToken,
+		settings.GAToken, //nolint:staticcheck // redact even deprecated field; the value may still be present in legacy configs
 		settings.WebhookSecretToken,
 	}
 	for _, secret := range redactions {
