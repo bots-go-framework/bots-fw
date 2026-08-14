@@ -19,14 +19,16 @@ import (
 
 // TypeCommands container for commands
 type TypeCommands struct {
-	all    []botsfw.Command
-	byCode map[botsfw.CommandCode]botsfw.Command
+	all                  []botsfw.Command
+	byCode               map[botsfw.CommandCode]botsfw.Command
+	explicitTextTriggers map[string]botsfw.CommandCode
 }
 
 func newTypeCommands(commandsCount int) *TypeCommands {
 	return &TypeCommands{
-		byCode: make(map[botsfw.CommandCode]botsfw.Command, commandsCount),
-		all:    make([]botsfw.Command, 0, commandsCount),
+		byCode:               make(map[botsfw.CommandCode]botsfw.Command, commandsCount),
+		all:                  make([]botsfw.Command, 0, commandsCount),
+		explicitTextTriggers: make(map[string]botsfw.CommandCode, commandsCount),
 	}
 }
 
@@ -34,11 +36,34 @@ func (v *TypeCommands) addCommand(command botsfw.Command, commandType botinput.T
 	if command.Code == "" {
 		panic(fmt.Sprintf("Command %v is missing required property ByCode", command))
 	}
-	v.all = append(v.all, command)
-	if _, ok := v.byCode[command.Code]; !ok {
-		v.byCode[command.Code] = command
-	} else {
+	if _, ok := v.byCode[command.Code]; ok {
 		panic(fmt.Sprintf("Duplicate command code for %v : %v", commandType, command.Code))
+	}
+	if commandType == botinput.TypeText {
+		v.assertUniqueExplicitTextTriggers(command)
+	}
+	v.all = append(v.all, command)
+	v.byCode[command.Code] = command
+}
+
+// assertUniqueExplicitTextTriggers prevents registration-order-dependent text
+// routing. matchMessageCommands case-folds command input before testing a
+// command code or its explicit aliases, so trigger ownership is case-insensitive
+// too. A command may repeat its own implicit /code trigger in Commands.
+func (v *TypeCommands) assertUniqueExplicitTextTriggers(command botsfw.Command) {
+	if v.explicitTextTriggers == nil {
+		v.explicitTextTriggers = make(map[string]botsfw.CommandCode)
+	}
+	triggers := append([]string{"/" + string(command.Code)}, command.Commands...)
+	for _, trigger := range triggers {
+		normalizedTrigger := strings.ToLower(trigger)
+		if owner, exists := v.explicitTextTriggers[normalizedTrigger]; exists && owner != command.Code {
+			panic(fmt.Sprintf("Duplicate explicit text command trigger %q: command %q conflicts with command %q", trigger, owner, command.Code))
+		}
+	}
+	for _, trigger := range triggers {
+		normalizedTrigger := strings.ToLower(trigger)
+		v.explicitTextTriggers[normalizedTrigger] = command.Code
 	}
 }
 
