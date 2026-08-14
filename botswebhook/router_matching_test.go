@@ -736,6 +736,80 @@ func TestAddCommand_DuplicatePanics(t *testing.T) {
 	router.RegisterCommands(cmd)
 }
 
+func TestRegisterCommands_TextTriggers(t *testing.T) {
+	t.Run("allows a command to repeat its implicit code alias", func(t *testing.T) {
+		router := NewWebhookRouter(nil).(*webhooksRouter)
+		router.RegisterCommands(botsfw.Command{
+			Code:       "commitment",
+			Commands:   []string{"/commitment", "/pledge"},
+			InputTypes: []botinput.Type{botinput.TypeText},
+			TextAction: dummyTextAction,
+		})
+	})
+
+	t.Run("does not reserve callback-only aliases in the text namespace", func(t *testing.T) {
+		router := NewWebhookRouter(nil).(*webhooksRouter)
+		router.RegisterCommands(
+			botsfw.NewCallbackCommand("confirm_callback", dummyCallbackAction),
+			botsfw.Command{
+				Code:       "confirm",
+				Commands:   []string{"/confirm_callback"},
+				InputTypes: []botinput.Type{botinput.TypeText},
+				TextAction: dummyTextAction,
+			},
+		)
+	})
+}
+
+func TestRegisterCommands_TextTriggerCollisionsPanic(t *testing.T) {
+	tests := []struct {
+		name    string
+		first   botsfw.Command
+		second  botsfw.Command
+		wantMsg string
+	}{
+		{
+			name: "alias versus alias ignores command case",
+			first: botsfw.Command{
+				Code:     "promise",
+				Commands: []string{"/verify"}, InputTypes: []botinput.Type{botinput.TypeText}, TextAction: dummyTextAction,
+			},
+			second: botsfw.Command{
+				Code:     "referee",
+				Commands: []string{"/VERIFY"}, InputTypes: []botinput.Type{botinput.TypeText}, TextAction: dummyTextAction,
+			},
+			wantMsg: `Duplicate explicit text command trigger "/VERIFY": command "promise" conflicts with command "referee"`,
+		},
+		{
+			name: "code versus alias",
+			first: botsfw.Command{
+				Code: "commit", InputTypes: []botinput.Type{botinput.TypeText}, TextAction: dummyTextAction,
+			},
+			second: botsfw.Command{
+				Code:     "pledge",
+				Commands: []string{"/COMMIT"}, InputTypes: []botinput.Type{botinput.TypeText}, TextAction: dummyTextAction,
+			},
+			wantMsg: `Duplicate explicit text command trigger "/COMMIT": command "commit" conflicts with command "pledge"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			router := NewWebhookRouter(nil).(*webhooksRouter)
+			router.RegisterCommands(tt.first)
+
+			defer func() {
+				if got := recover(); got == nil {
+					t.Fatal("expected explicit text trigger collision panic")
+				} else if got := fmt.Sprint(got); got != tt.wantMsg {
+					t.Errorf("panic = %q, want %q", got, tt.wantMsg)
+				}
+			}()
+			router.RegisterCommands(tt.second)
+		})
+	}
+}
+
 // --- RegisterCommands panics for missing actions with InputTypes ---
 
 func TestRegisterCommands_TextInputTypeNoAction_Panics(t *testing.T) {
