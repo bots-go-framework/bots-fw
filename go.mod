@@ -11,7 +11,7 @@ require (
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/strongo/analytics v0.2.5
-	github.com/strongo/i18n v0.8.15
+	github.com/strongo/i18n v0.8.16
 	github.com/strongo/logus v0.4.1
 	github.com/strongo/validation v0.0.10
 	go.uber.org/mock v0.6.0
