@@ -9,7 +9,7 @@ require (
 	github.com/bots-go-framework/bots-fw-store v0.14.1
 	github.com/bots-go-framework/bots-go-core v0.3.0
 	github.com/felixge/httpsnoop v1.1.0
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.0
 	github.com/strongo/analytics v0.2.5
 	github.com/strongo/i18n v0.8.16
 	github.com/strongo/logus v0.4.1
@@ -17,7 +17,7 @@ require (
 	go.uber.org/mock v0.6.0
 )
 
-require github.com/bots-go-framework/bots-api-telegram v0.15.15
+require github.com/bots-go-framework/bots-api-telegram v0.15.16
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
