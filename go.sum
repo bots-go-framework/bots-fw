@@ -4,6 +4,8 @@ github.com/bots-go-framework/bots-api-telegram v0.15.15 h1:DDUr673/owuMrjvbZyQtc
 github.com/bots-go-framework/bots-api-telegram v0.15.15/go.mod h1:S+7p6QnuSzrSdO2IlikvqMEe9FlniHcvFJjB2k6r0JU=
 github.com/bots-go-framework/bots-api-telegram v0.15.16 h1:1/yoJAWBXa1Mikwzn6lmX9+ANsqlItc4rMZ2r4wOVbw=
 github.com/bots-go-framework/bots-api-telegram v0.15.16/go.mod h1:IxF6VbMyOra/R8bOIZXHJg0Va+MGoO0YO4uiJrzp7is=
+github.com/bots-go-framework/bots-api-telegram v0.15.18 h1:kcII7+ThnNnSb55mXIc9T04vM5Tg/w47rzwrSBs/u+I=
+github.com/bots-go-framework/bots-api-telegram v0.15.18/go.mod h1:ihb+5scbrKLFt41DKRYNXzwsEAqMnj2cNQETyI3WT+U=
 github.com/bots-go-framework/bots-fw-store v0.14.1 h1:uo+jEI16A/7oiZzxPdom0q1fXXmc/xOsRYypu3CkHGM=
 github.com/bots-go-framework/bots-fw-store v0.14.1/go.mod h1:0yS6Pg516jHIrIInv+kvWRWxXNGGqR4tlvRua8GfT20=
 github.com/bots-go-framework/bots-go-core v0.3.0 h1:Jqk8P2ZjfBLihfvKdFybDYIPh9mt/EWULOKObowY910=
@@ -25,12 +27,18 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/stretchr/testify v1.12.0 h1:K6Mr6jO9JICuend/5xzTM03ydSV3vdNRYAdPSukj8uI=
 github.com/stretchr/testify v1.12.0/go.mod h1:bOYBZb5qJ00vPzWfIqBUZPaxK8jWiXc6d3ErP4Ca9Gw=
+github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWDWE=
+github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/strongo/analytics v0.2.5 h1:wNobPTa5C9hQUembtVYEXHIGGBWO29H0iUhTicR9CEo=
 github.com/strongo/analytics v0.2.5/go.mod h1:UcOgf57sMznb4zRxLA827+lC+HX6WWBU30YIQmbNwu0=
+github.com/strongo/analytics v0.2.6 h1:rPHtF+xFMG+/b/bPuSmrDvpIFNBlXDkiQmvjkHgYlzw=
+github.com/strongo/analytics v0.2.6/go.mod h1:UcOgf57sMznb4zRxLA827+lC+HX6WWBU30YIQmbNwu0=
 github.com/strongo/i18n v0.8.15 h1:wyIERaWLO8dySu8cqWMMVz9GpK819LOoUZLfLl6Er70=
 github.com/strongo/i18n v0.8.15/go.mod h1:qHRBffF+LH5RgJKoCmXtz3dZ5AmVeKAVo+hzwL8nxTQ=
 github.com/strongo/i18n v0.8.16 h1:kQATjKW6Oov2+kK2ml4eamqE1YlvDLfAbF5XlWep6kY=
 github.com/strongo/i18n v0.8.16/go.mod h1:6N0HLmPjRkHLUyBNWfGKTD3fOEABUu7noohKAdySTEI=
+github.com/strongo/i18n v0.8.18 h1:kFTFP7OkiQ4O/+r8/O9b3DF85+OYJm2H09BVBJ1xxCI=
+github.com/strongo/i18n v0.8.18/go.mod h1:EYh8M1Zdi+XJMrvNu1Sf1NwEG8UriqZUX1guDohaQjg=
 github.com/strongo/logus v0.4.1 h1:jEkcT5JzawDYjexRVHkCQiG4tv6Bm2a/c/ZdLk0IPqM=
 github.com/strongo/logus v0.4.1/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/slice v0.3.5 h1:8qbn5ll6DBf0eIZ2KtQm1xbmKOr5+FgXZIShz3Qg5to=
@@ -41,6 +49,8 @@ github.com/technoweenie/multipartstreamer v1.0.1 h1:XRztA5MXiR1TIRHxH2uNxXxaIkKQ
 github.com/technoweenie/multipartstreamer v1.0.1/go.mod h1:jNVxdtShOxzAsukZwTSw6MDx5eUJoiEBsSvzDU9uzog=
 go.uber.org/mock v0.6.0 h1:hyF9dfmbgIX5EfOdasqLsWD6xqpNZlXblLB/Dbnwv3Y=
 go.uber.org/mock v0.6.0/go.mod h1:KiVJ4BqZJaMj4svdfmHM0AUx4NJYO8ZNpPnZn1Z+BBU=
+go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
+go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
