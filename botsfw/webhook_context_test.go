@@ -144,7 +144,7 @@ func (whc TestWebhookContext) UpdateLastProcessed(chatEntity botsfwmodels.BotCha
 
 func (whc TestWebhookContext) UserID() int64 { panic("Not implemented") }
 
-// func (whc TestWebhookContext) CurrentUserKey() *dal.Key                     { panic("Not implemented") }
+// func (whc TestWebhookContext) CurrentUserKey() *record.Key                     { panic("Not implemented") }
 func (whc TestWebhookContext) AppUserData() (botsfwmodels.AppUserData, error) {
 	panic("Not implemented")
 }
