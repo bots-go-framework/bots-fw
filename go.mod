@@ -1,6 +1,6 @@
 module github.com/bots-go-framework/bots-fw
 
-go 1.25
+go 1.27.0
 
 //replace github.com/strongo/app => ../../strongo/app
 //replace github.com/strongo/i18n => ../../strongo/i18n
