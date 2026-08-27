@@ -9,17 +9,17 @@ toolchain go1.27.0
 //replace github.com/bots-go-framework/bots-go-core => ../bots-go-core
 require (
 	github.com/bots-go-framework/bots-fw-store v0.14.1
-	github.com/bots-go-framework/bots-go-core v0.3.0
+	github.com/bots-go-framework/bots-go-core v0.3.2
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/stretchr/testify v1.12.1
-	github.com/strongo/analytics v0.2.6
-	github.com/strongo/i18n v0.8.18
-	github.com/strongo/logus v0.4.1
-	github.com/strongo/validation v0.0.10
+	github.com/strongo/analytics v0.2.8
+	github.com/strongo/i18n v0.8.19
+	github.com/strongo/logus v0.4.3
+	github.com/strongo/validation v0.0.12
 	go.uber.org/mock v0.6.0
 )
 
-require github.com/bots-go-framework/bots-api-telegram v0.15.18
+require github.com/bots-go-framework/bots-api-telegram v0.15.21
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
