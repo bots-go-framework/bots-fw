@@ -19,7 +19,7 @@ require (
 	go.uber.org/mock v0.6.0
 )
 
-require github.com/bots-go-framework/bots-api-telegram v0.15.22
+require github.com/bots-go-framework/bots-api-telegram v0.15.23
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
