@@ -12,7 +12,7 @@ require (
 	github.com/bots-go-framework/bots-go-core v0.3.3
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/stretchr/testify v1.12.1
-	github.com/strongo/analytics v0.2.8
+	github.com/strongo/analytics v0.2.9
 	github.com/strongo/i18n v0.8.21
 	github.com/strongo/logus v0.4.4
 	github.com/strongo/validation v0.0.13
