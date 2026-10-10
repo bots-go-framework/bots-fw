@@ -26,6 +26,8 @@ github.com/bots-go-framework/bots-go-core v0.3.3 h1:OUvC8NcqEFH1RpMTAAWmtkkuiL+t
 github.com/bots-go-framework/bots-go-core v0.3.3/go.mod h1:kBdKbG7avpQa6MX4zgO0mFhzzngyGWzCbEOnZv96LKE=
 github.com/bots-go-framework/bots-go-core v0.3.5 h1:2P5qvWGvA7nnfLFh5n+VBOnAlr6+bhAQCTUHS9WSNKA=
 github.com/bots-go-framework/bots-go-core v0.3.5/go.mod h1:kBdKbG7avpQa6MX4zgO0mFhzzngyGWzCbEOnZv96LKE=
+github.com/bots-go-framework/bots-go-core v0.3.6 h1:n0jFxZ+OvYNMAu0w5MPy4N1jchoXkdMSa4JQjHWWMQ4=
+github.com/bots-go-framework/bots-go-core v0.3.6/go.mod h1:vmE6KwwE2fjGPXD3R4S+xMf/LUWqaBcCE65wnkMI+Ew=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -77,6 +79,8 @@ github.com/strongo/logus v0.4.4 h1:zv0t1tSCE1pHEOpmZnlwKRDb8pfxaCeP/Hk2PCj6swg=
 github.com/strongo/logus v0.4.4/go.mod h1:mVugDWLg/FXFiNAunrt+gvuEJtsSeCgwosU22FV1myY=
 github.com/strongo/logus v0.4.6 h1:SL0rsN9joNauT9uyQB7bjbWZtdGSDFKmFBDBqjjfSAE=
 github.com/strongo/logus v0.4.6/go.mod h1:mVugDWLg/FXFiNAunrt+gvuEJtsSeCgwosU22FV1myY=
+github.com/strongo/logus v0.4.7 h1:d36JbfN59k4NassuKebrooTJSm/Cvw4xzWPu2WCwlFc=
+github.com/strongo/logus v0.4.7/go.mod h1:9NEL4hzCy5DLmOjd/T5hHcNYDtU69A0JB6XQP9HrdEM=
 github.com/strongo/slice v0.3.5 h1:8qbn5ll6DBf0eIZ2KtQm1xbmKOr5+FgXZIShz3Qg5to=
 github.com/strongo/slice v0.3.5/go.mod h1:Tymvuhp8oV6T4vswWR4F/JmGFxOcMWFTM5qp0WlV0sk=
 github.com/strongo/slice v0.3.10 h1:FeODEVCsR+1WHbw44eshB4++HhY1fNR9zJyJ6zns6zo=

@@ -2,19 +2,19 @@ module github.com/bots-go-framework/bots-fw
 
 go 1.26.0
 
-toolchain go1.27.1
+toolchain go1.27.2
 
 //replace github.com/strongo/app => ../../strongo/app
 //replace github.com/strongo/i18n => ../../strongo/i18n
 //replace github.com/bots-go-framework/bots-go-core => ../bots-go-core
 require (
 	github.com/bots-go-framework/bots-fw-store v0.14.2
-	github.com/bots-go-framework/bots-go-core v0.3.5
+	github.com/bots-go-framework/bots-go-core v0.3.6
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/stretchr/testify v1.12.1
 	github.com/strongo/analytics v0.2.10
 	github.com/strongo/i18n v0.8.23
-	github.com/strongo/logus v0.4.6
+	github.com/strongo/logus v0.4.7
 	github.com/strongo/validation v0.0.15
 	go.uber.org/mock v0.6.0
 )
