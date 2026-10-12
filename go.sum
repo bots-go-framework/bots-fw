@@ -73,6 +73,8 @@ github.com/strongo/i18n v0.8.21 h1:bQ+olN7DFtxouOgi/ERJ3kQL8F1y97cqaWl5ly4n+F4=
 github.com/strongo/i18n v0.8.21/go.mod h1:7BRe5UVQUIpBaATr/qvSbHVf/gH8iW0hAZSc4WO3maU=
 github.com/strongo/i18n v0.8.23 h1:VDoPgdOXcBZE+Op3i/htlx+w+tlPN/vhkmj1nLiA5u8=
 github.com/strongo/i18n v0.8.23/go.mod h1:7BRe5UVQUIpBaATr/qvSbHVf/gH8iW0hAZSc4WO3maU=
+github.com/strongo/i18n v0.8.24 h1:ljY5lkzuy0xiupIkq0Yu6RfZAp3ngi+JWqBPQTEuyfE=
+github.com/strongo/i18n v0.8.24/go.mod h1:MNFxWn67EkqlYO0xIwXHXXE/GPIsP9MYmiLT5hCC3C0=
 github.com/strongo/logus v0.4.1 h1:jEkcT5JzawDYjexRVHkCQiG4tv6Bm2a/c/ZdLk0IPqM=
 github.com/strongo/logus v0.4.1/go.mod h1:sd8gjJklqGQAg+Q0mlP5MWgzguAuxR25YYFSkfVOPdc=
 github.com/strongo/logus v0.4.3 h1:hAT2VNAj41SXta7A2bRPmk/RgWXAO930faHga5Fc58w=
@@ -95,6 +97,8 @@ github.com/strongo/validation v0.0.13 h1:EgRfP5XBZSVoiOd4805OGCOVqZndeqFONpSmdSe
 github.com/strongo/validation v0.0.13/go.mod h1:EY+//fgQhn6rr0rOvWRJuUCTSk5BIETZL2bL9CIDhbs=
 github.com/strongo/validation v0.0.15 h1:k5rM/DmRlEXYAlH/n9vlUYku1k7qQWVdg2PRAXSg9Ww=
 github.com/strongo/validation v0.0.15/go.mod h1:EY+//fgQhn6rr0rOvWRJuUCTSk5BIETZL2bL9CIDhbs=
+github.com/strongo/validation v0.0.16 h1:SHWiXNdiEzT25nZkqxdKPgTZrmRCgAilYb8oPjgeNOE=
+github.com/strongo/validation v0.0.16/go.mod h1:phG1QvHTDI46BtsJodTvTOWIHfw1cZlBLRcgvFClejs=
 github.com/technoweenie/multipartstreamer v1.0.1 h1:XRztA5MXiR1TIRHxH2uNxXxaIkKQDeX7m2XsSOlQEnM=
 github.com/technoweenie/multipartstreamer v1.0.1/go.mod h1:jNVxdtShOxzAsukZwTSw6MDx5eUJoiEBsSvzDU9uzog=
 go.uber.org/mock v0.6.0 h1:hyF9dfmbgIX5EfOdasqLsWD6xqpNZlXblLB/Dbnwv3Y=
