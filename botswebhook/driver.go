@@ -453,7 +453,7 @@ func (webhookDriver) logInput(c context.Context, i int, input botinput.InputMess
 	prefix := fmt.Sprintf("BotUser#%v(%v %v)", sender.GetID(), sender.GetFirstName(), sender.GetLastName())
 	switch input := input.(type) {
 	case botinput.TextMessage:
-		log.Debugf(c, "%s => text: %v", prefix, input.Text())
+		log.Debugf(c, "%s => text: %v", prefix, botLogText(input.Text()))
 	case botinput.LocationMessage:
 		log.Debugf(c, "%s => location: %d:%d", prefix, input.GetLatitude(), input.GetLongitude())
 	case botinput.NewChatMembersMessage:

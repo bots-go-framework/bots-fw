@@ -6,7 +6,7 @@ import "context"
 // message: which command won and by which rule (or that nothing matched). It is
 // emitted by the message router when RoutingTracer is set.
 type RouteTraceEvent struct {
-	// InputText is the message text that was being routed.
+	// InputText is the routed text, with sensitive Watch link payloads redacted.
 	InputText string
 	// AwaitingReplyTo is the chat's AwaitingReplyTo at match time ("" if none).
 	AwaitingReplyTo string
@@ -39,7 +39,7 @@ var RoutingTracer func(ctx context.Context, event RouteTraceEvent)
 func traceRoute(ctx context.Context, commandCode, reason, awaitingReplyTo, inputText string) {
 	if RoutingTracer != nil {
 		RoutingTracer(ctx, RouteTraceEvent{
-			InputText:       inputText,
+			InputText:       botLogText(inputText),
 			AwaitingReplyTo: awaitingReplyTo,
 			CommandCode:     commandCode,
 			Reason:          reason,
